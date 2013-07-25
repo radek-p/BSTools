@@ -1,0 +1,2614 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{Biblioteka \texttt{libpknum}}
+
+W tej bibliotece s"a procedury realizuj"ace r"o"rne metody numeryczne.
+Chwilowo metody te dotycz"a prawie wy"l"acznie niekt"orych zada"n algebry
+liniowej, ale to mo"re si"e zmieni (je"sli trzeba b"edzie zaspokoi"c nowe
+potrzeby).
+
+\vspace{\medskipamount}
+\noindent
+\textbf{DOZRO:} Rzecz"a do zrobienia w~przysz"lo"sci jest przeprowadzenie
+optymalizacji opisanych tu procedur lub nawet zrealizowanie ich jako
+interfejsu do procedur BLAS z~pakietu LAPACK, co spowoduje przyspieszenie
+oblicze"n. Wymaga to jednak dokonania odpowiednich zmian tak"re w~bibliotece
+\texttt{libmultibs}, kt"orej wiele procedur ,,liczy na w"lasn"a r"ek"e''
+zamiast wywo"lywa"c odpowiednie procedury z~tej biblioteki.
+
+
+\section{Dzia"lania na wektorach i macierzach pe"lnych}
+
+Procedury opisane w~tym punkcie przetwarzaj"a macierze reprezentowane
+w~postaci zwyk"lych tablic zawieraj"acych wszystkie wsp"o"lczynniki.
+Macierze rzadkie, tj.\ takie, kt"orych wi"ekszo"s"c wsp"o"lczynnik"ow
+jest r"owna~$0$, najcz"e"sciej mo"rna i~warto reprezentowa"c w~inny spos"ob.
+W~punkcie~\ref{sect:band:matrix} s"a opisane procedury przetwarzania
+tzw.\ macierzy wst"egowych, tj.\ pewnego rodzaju macierzy rzadkich.
+
+Wiersze i~kolumny macierzy $m\times n$ indeksujemy od~$0$ do $m-1$ i~od~$0$
+do~$n-1$.
+
+
+\subsection{Dzia"lania elementarne}
+
+\ucprog{%
+void pkn\_AddMatrixf ( int nrows, int rowlen, \\
+\ind{22}int inpitch1, const float *indata1, \\
+\ind{22}int inpitch2, const float *indata2, \\
+\ind{22}int outpitch, float *outdata ); \\
+void pkn\_SubtractMatrixf ( int nrows, int rowlen, \\
+\ind{27}int inpitch1, const float *indata1, \\
+\ind{27}int inpitch2, const float *indata2, \\
+\ind{27}int outpitch, float *outdata ); \\
+void pkn\_AddMatrixMf ( int nrows, int rowlen, \\
+\ind{23}int inpitch1, const float *indata1, \\
+\ind{23}int inpitch2, const float *indata2, \\
+\ind{23}double a, \\
+\ind{23}int outpitch, float *outdata ); \\
+void pkn\_MatrixMDifferencef ( int nrows, int rowlen, \\
+\ind{30}int inpitch1, const float *indata1, \\
+\ind{30}int inpitch2, const float *indata2, \\
+\ind{30}double a, \\
+\ind{30}int outpitch, float *outdata );}
+
+\dcprog{%
+void pkn\_MatrixLinCombf ( int nrows, int rowlen, \\
+\ind{26}int inpitch1, const float *indata1, \\
+\ind{26}double a, \\
+\ind{26}int inpitch2, const float *indata2, \\
+\ind{26}double b, \\
+\ind{26}int outpitch, float *outdata );}
+Powy"rsze procedury obliczaj"a macierze
+
+\vspace{\medskipamount}
+\centerline{\begin{tabular}{rl}
+  $A+B$ & \texttt{pkn\_AddMatrixf}, \\
+  $A-B$ & \texttt{pkn\_SubtractMatrixf}, \\
+  $A+aB$ & \texttt{pkn\_AddMatrixMf}, \\
+  $a(A-B)$ & \texttt{pkn\_MatrixMDifferencef}, \\
+  $aA+bB$ & \texttt{pkn\_MatrixLinCombf}.
+\end{tabular}}
+
+\vspace{\medskipamount}
+Obie macierze dane i wynik maj"a \texttt{nrows} wierszy i~\texttt{rowlen}
+kolumn. Wsp"o"lczynniki macierzy $A$ i $B$ s"a podane w~tablicach
+\texttt{indata1} i~\texttt{indata2}. Wynik jest umieszczany w~tablicy
+\texttt{outdata}. Podzia"lki tablic s"a r"owne odpowiednio
+\texttt{inpitch1}, \texttt{inpitch2} i~\texttt{outpitch}.
+
+\vspace{\medskipamount}
+\noindent
+\textbf{Uwaga:} Istotn"a cech"a procedur przetwarzaj"acych macierze jest to,
+"re je"sli mi"edzy wierszami macierzy umieszczonymi w~tablicy wyst"epuj"a
+nieu"rywane obszary pami"eci, to ich zawarto"s"c nie jest zmieniana. Na tej
+w"lasno"sci procedur opieraj"a si"e r"o"rne inne procedury, kt"ore mog"a
+w~obszarach tych przechowywa"c dowolne dane, bez obawy, "re jaka"s procedura
+na przyk"lad dokona inicjalizacji tablicy wpisuj"ac zera gdzie popadnie.
+Dodatkowo, jest rzecz"a dopuszczaln"a stosowanie ujemnych podzia"lek, byleby
+tylko nie prowadzi"lo to do pisania lub czytania element"ow macierzy poza
+obszarem na ten cel zarezerwowanym.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_MultMatrixNumf ( int nrows, int rowlen, \\
+\ind{26}int inpitch, const float *indata, \\
+\ind{26}double a, \\
+\ind{26}int outpitch, float *outdata );}
+Procedura \texttt{pkn\_MultMatrixNumf} oblicza iloczyn macierzy~$A$
+o~wymiarach $m\times n$ ($m={}$\texttt{nrows}, $n={}$\texttt{rowlen}),
+i~liczby~$a$.
+
+Wsp"o"lczynniki macierzy s"a podane w~tablicy \texttt{indata} o~podzia"lce
+\texttt{inpitch}, za"s wynik jest wpisywany do tablicy \texttt{outdata}
+o~podzia"lce \texttt{outpitch}. Liczba~$a$ jest warto"sci"a
+parametru~\texttt{a}.
+
+Je"sli podzia"lka tablicy \texttt{outdata} jest wi"eksza ni"r d"lugo"s"c
+wiersza, to zawarto"s"c obszar"ow nieu"rywanych mi"edzy wierszami nie ulega
+zmianie.
+
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+void pkn\_MultArrayf ( int nrows, int rowlen, \\
+\ind{22}int pitch\_a, const float *a, \\
+\ind{22}int pitch\_b, const float *b, \\
+\ind{22}int pitch\_c, float *c )}
+Procedura \texttt{pkn\_MultArrayf} mno"ry wsp"o"lczynniki macierzy $A$
+i~$B$, tj.\ oblicza $c_{ij}=a_{ij}b_{ij}$. Macierze te oraz macierz
+iloczyn"ow~$C$ maj"a wymiary \texttt{nrows}$\times$\texttt{rowlen}.
+Podzia"lki tablic \texttt{a}, \texttt{b} i~\texttt{c} ze wsp"o"lczynnikami
+macierzy $A$, $B$ i~$C$ s"a r"owne odpowiednio \texttt{pitch\_a},
+\texttt{pitch\_b} i~\texttt{pitch\_c}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_MultMatrixf ( int nrows\_a, int rowlen\_a, \\
+\ind{23}int pitch\_a, const float *a, \\
+\ind{23}int rowlen\_b, int pitch\_b, const float *b, \\
+\ind{23}int pitch\_c, float *c );}
+Procedura \texttt{pkn\_MultMatrixf} dokonuje mno"renia macierzy
+prostok"atnych, tj.\ oblicza macierz $C=AB$, gdzie $A\in\R^{m,n}$,
+$B\in\R^{n,l}$, a~zatem $C\in\R^{m,l}$.
+
+Parametry \texttt{nrows\_a},
+\texttt{rowlen\_a} i~\texttt{rowlen\_b} maj"a warto"sci odpowiednio $m$, $n$
+i~$l$. Wsp"o"lczynniki macierzy $A$ i~$B$ nale"ry poda"c w~tablicach
+\texttt{a} i~\texttt{b} o~podzia"lkach \texttt{pitch\_a}
+i~\texttt{pitch\_b}. Parametr \texttt{pitch\_c} okre"sla podzia"lk"e tablicy
+\texttt{c}, do~kt"orej procedura wpisuje wynik.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_MultMatrixAddf ( int nrows\_a, int rowlen\_a, \\
+\ind{25}int pitch\_a, const float *a, \\
+\ind{25}int rowlen\_b, int pitch\_b, const float *b, \\
+\ind{25}int pitch\_c, float *c ); \\
+void pkn\_MultMatrixSubf ( int nrows\_a, int rowlen\_a, \\
+\ind{25}int pitch\_a, const float *a, \\
+\ind{25}int rowlen\_b, int pitch\_b, const float *b, \\
+\ind{25}int pitch\_c, float *c );}
+Procedura \texttt{pkn\_MultMatrixAddf} oblicza sum"e macierzy i~iloczynu macierzy
+prostok"atnych, tj.\ oblicza macierz $D=C+AB$, gdzie $A\in\R^{m,n}$,
+$B\in\R^{n,l}$, oraz $C,D\in\R^{m,l}$.
+
+Procedura \texttt{pkn\_MultMatrixSubf} oblicza macierz $D=C-AB$, dla macierzy
+o~wymiarach jak wy"rej.
+
+Parametry \texttt{nrows\_a}, \texttt{rowlen\_a} i~\texttt{rowlen\_b} maj"a
+warto"sci odpowiednio $m$, $n$ i~$l$. Wsp"o"lczynniki macierzy $A$ i~$B$ nale"ry
+poda"c w~tablicach \texttt{a} i~\texttt{b} o~podzia"lkach \texttt{pitch\_a}
+i~\texttt{pitch\_b}. Parametr \texttt{pitch\_c} okre"sla podzia"lk"e tablicy
+\texttt{c}, kt"ora pocz"atkowo zawiera wsp"o"lczynniki macierzy~$C$
+i~do~kt"orej procedura wpisuje wynik (wsp"o"lczynniki macierzy~$D$.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+void pkn\_MultTMatrixf ( int nrows\_a, int rowlen\_a, \\
+\ind{24}int pitch\_a, const float *a, \\
+\ind{24}int rowlen\_b, int pitch\_b, const float *b, \\
+\ind{24}int pitch\_c, float *c );}
+Procedura \texttt{pkn\_MultTMatrixf} dokonuje mno"renia macierzy prostok"atnych,
+tj.\ oblicza macierz $C=A^TB$, gdzie $A\in\R^{m,n}$,
+$B\in\R^{m,l}$, a~zatem $C\in\R^{n,l}$.
+
+Parametry \texttt{nrows\_a}, \texttt{rowlen\_a} i~\texttt{rowlen\_b}
+maj"a warto"sci odpowiednio $m$, $n$ i~$l$. Wsp"o"lczynniki macierzy $A$ i~$B$
+nale"ry poda"c w~tablicach \texttt{a} i~\texttt{b} o~podzia"lkach \texttt{pitch\_a}
+i~\texttt{pitch\_b}. Parametr \texttt{pitch\_c} okre"sla podzia"lk"e tablicy
+\texttt{c}, do~kt"orej procedura wpisuje wynik.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_MultTMatrixAddf ( int nrows\_a, int rowlen\_a, int pitch\_a, \\
+\ind{25}const float *a, \\
+\ind{25}int rowlen\_b, int pitch\_b, const float *b, \\
+\ind{25}int pitch\_c, float *c ); \\
+void pkn\_MultTMatrixSubf ( int nrows\_a, int rowlen\_a, int pitch\_a, \\
+\ind{25}const float *a, \\
+\ind{25}int rowlen\_b, int pitch\_b, const float *b, \\
+\ind{25}int pitch\_c, float *c );}
+
+
+\vspace{\bigskipamount}
+\cprog{%
+double pkn\_ScalarProductf ( int spdimen, \\
+\ind{28}const float *a, const float *b );}
+Warto"sci"a procedury jest iloczyn skalarny wektor"ow
+$a$~i~$b$ w~przestrzeni $\R^n$, gdzie wymiar $n$ jest warto"sci"a parametru
+\texttt{spdimen}.
+
+\vspace{\bigskipamount}
+\cprog{%
+double pkn\_SecondNormf ( int spdimen, const float *b );}
+Warto"sci"a procedury jest norma druga (pierwiastek z sumy kwadrat"ow
+wsp"o"lrz"ednych) wektora $b$, w przestrzeni $\R^n$ o wymiarze
+$n=$\texttt{spdimen}.
+
+\vspace{\bigskipamount}
+\cprog{%
+double pkn\_detf ( int n, float *a );}
+Warto"sci"a procedury jest wyznacznik macierzy $A$ o wymiarach $n\times n$.
+Parametr~\texttt{n} okre"sla wymiary macierzy, a~w~tablicy~\texttt{a}
+nale"ry poda"c $n^2$ wsp"o"lczynnik"ow tej macierzy (w kolejnych wierszach
+lub kolumnach). Procedura niszczy zawarto"s"c tej tablicy.
+
+Wyznacznik jest obliczany metod"a eliminacji Gaussa z pe"lnym wyborem
+elementu g"l"ownego.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_MVectorSumf ( int m, int n, float *sum, ... ); \\
+void pkn\_MVectorLinCombf ( int m, int n, float *sum, ... );}
+Procedury \texttt{pkn\_MVectorSumf} i~\texttt{pkn\_MVectorLinCombf} obliczaj"a
+odpowiednio sum"e i~kombinacj"e liniow"a $m$~wektor"ow w~$\R^n$. Parametry
+\texttt{m} i~\texttt{n} okre"slaj"a liczby $m$ i~$n$, kt"ore musz"a by"c
+dodatnie. Parametr~\texttt{sum} jest wska"znikiem tablicy, w~kt"orej
+zostanie umieszczony wynik. Po~nim, w~wywo"laniu procedury
+\texttt{pkn\_MVectorSumf} nale"ry poda"c $m$~wska"znik"ow do tablic
+element"ow typu \texttt{float}, kt"orych sumy maj"a by"c obliczone.
+
+W~wywo"laniu procedury \texttt{pkn\_MVectorLinCombf} po parametrze
+\texttt{sum} nale"ry poda"c $m$ par parametr"ow; para sk"lada si"e ze
+wska"znika tablicy (typu \texttt{float*}) oraz wsp"o"lczynnika kombinacji
+liniowej typu \texttt{double}.
+
+
+%\newpage
+\subsection{Rozwi"azywanie uk"lad"ow r"owna"n liniowych}
+
+Uk"lad r"owna"n liniowych $A\bm{x}=\bm{b}$ z~pe"ln"a nieosobliw"a macierz"a
+kwadratow"a mo"rna rozwi"aza"c za pomoc"a metody eliminacji Gaussa; procedury
+opisane w~tym punkcie realizuj"a ten algorytm z~pe"lnym wyborem elementu
+g"l"ownego.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_GaussDecomposePLUQf ( int n, float *a, \\
+\ind{34}int *P, int *Q );}
+Procedura \texttt{pkn\_GaussDecomposePLUQf} oblicza czynniki rozk"ladu macierzy
+kwadratowej $A=P^{-1}LUQ$ o~wymiarach $n\times n$. Czynniki te to: macierz
+permutacji $P^{-1}$, macierzy tr"ojk"atna dolna $L$ z~jedynkami na diagonali,
+macierz tr"ojk"atna g"orna $U$ i~macierz permutacji~$Q$.
+
+Parametr \texttt{n} okre"sla wymiary macierzy. Jej wsp"o"lczynniki nale"ry
+poda"c w~tablicy~\texttt{a} o~d"lugo"sci $n^2$; zawiera ona kolejne wiersze.
+Procedura umieszcza w~tej tablicy obliczone wsp"o"lczynniki macierzy
+$L$~i~$U$. Macierze permutacji $P$~i~$Q$ s"a reprezentowane przez liczby
+wstawione do tablic \texttt{P} i~\texttt{Q} o~d"lugo"sci $n-1$.
+
+Warto"sci"a procedury jest \texttt{true}, je"sli obliczenie zako"nczy"lo
+si"e sukcesem, albo \texttt{false}, w~przypadku gdy macierz~$A$ jest
+osobliwa.
+
+\vspace{\bigskipamount}
+%\newpage
+\cprog{%
+void pkn\_multiSolvePLUQf ( int n, const float *lu, \\
+\ind{27}const int *P, const int *Q, \\
+\ind{27}int spdimen, int pitch, float *b );}
+Procedura \texttt{pkn\_multiSolvePLUQf} rozwi"azuje uk"lad r"owna"n liniowych
+$AX=B$, gdzie macierz $A$ o~wymiarach $n\times n$ jest kwadratowa nieosobliwa,
+macierz $B$ ma wymiary $n\times d$.
+
+Macierz $A$ jest reprezentowana za pomoc"a jej czynnik"ow rozk"ladu znalezionych
+przez procedur"e \texttt{pkn\_GaussDecomposePLUQf}. Parametr~\texttt{n}
+okre"sla jej wymiary. Parametr \texttt{spdimen} okre"sla liczb"e kolumn
+$d$ macierzy $B$ i~$X$. Wsp"o"lczynniki macierzy~$B$ s"a dane w~tablicy
+\texttt{b} o~podzia"lce \texttt{pitch}. W~tablicy tej procedura umieszcza
+obliczone rozwi"azanie.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_multiGaussSolveLinEqf ( int n, const float *a, \\
+\ind{32}int spdimen, int pitch, float *b );}
+Procedura~\texttt{pkn\_multiGaussSolveLinEqf} rozwi"azuje uk"lad r"owna"n
+$AX=B$ z~nieosobliw"a macierz"a~$A$ ze wzgl"edu na macierz~$X$.
+W~tym celu procedura ta tworzy kopi"e tablicy~\texttt{a}
+(aby nie psu"c jej zawarto"sci)
+i~wywo"luje kolejno procedury \texttt{pkn\_GaussDecomposePLUQf}
+i~\texttt{pkn\_multiSolvePLUQf}. Warto"sci"a procedury jest \texttt{true}
+je"sli obliczenie zako"nczy"lo si"e sukcesem, albo \texttt{false}, je"sli nie.
+Przyczyn"a niepowodzenia mo"re by"c osobliwa macierz~$A$, albo brak pami"eci
+pomocniczej.
+
+Poniewa"r dla $d<n$ najwi"ekszy koszt rozwi"azywania wi"a"re si"e ze znalezieniem
+rozk"ladu macierzy~$A$, wi"ec je"sli trzeba kolejno rozwi"aza"c wiele
+uk"lad"ow z~t"a sam"a macierz"a (i~r"o"rnymi prawymi stronami), to lepiej jest
+nie korzysta"c z~tej procedury. Zamiast tego nale"ry raz dokona"c rozk"ladu,
+a~nast"epnie dla ka"rdej kolejnej macierzy~$B$ wywo"lywa"c procedur"e
+\texttt{pkn\_multiSolvePLUQf}.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_GaussInvertMatrixf ( int n, float *a );}
+\begin{sloppypar}
+Procedura \texttt{pkn\_GaussInvertMatrixf} oblicza odwrotno"s"c danej
+macierzy~$A$ o~wymiarach $n\times n$. Najlepiej jej nie u"rywa"c wcale.%
+\end{sloppypar}
+
+
+\newpage
+\subsection{\label{ssect:QR}Rozk"lad $QR$ i~liniowe zadania najmniejszych
+  kwadrat"ow}
+
+W tym punkcie s"a opisane procedury dokonuj"ace rozk"ladu macierzy
+prostok"atnej~$A$ na czynniki ortogonalny~$Q$ i~tr"ojk"atny g"orny~$R$, oraz
+procedury wykorzystuj"ace ten rozk"lad do rozwi"azywania liniowych zada"n
+najmniejszych kwadrat"ow dla uk"lad"ow r"owna"n $A\bm{x}=\bm{b}$ z~pe"ln"a
+macierz"a $A$.
+
+Macierz ortogonalna~$Q$ reprezentuje przekszta"lcenie, kt"ore jest
+z"lo"reniem ci"agu odbi"c symetrycznych wzgl"edem pewnych hiperp"laszczyzn;
+w"la"sciwa metoda reprezentowania takiej macierzy polega na przechowywaniu
+wektor"ow normalnych hiperp"laszczyzn tych odbi"c.
+
+Odbicie wzgl"edem hiperp"laszczyzny jest przekszta"lceniem
+$\R^m\rightarrow\R^m$, kt"orego macierz jest opisana wzorem
+\begin{align*}
+H_i = I_m-\bm{w}_i\gamma_i\bm{w}_i^T,
+\quad\mbox{gdzie}\quad
+  \gamma_i = \frac{2}{\bm{w}_i^T\bm{w}_i}.
+\end{align*}
+Macierz $I_m$ jest jednostkowa $m\times m$. Wektorem normalnym
+hiperp"laszczyzny odbicia jest wektor $\bm{w}_i$. Odbicia konstruowane
+w~celu otrzymania opisywanego tu rozk"ladu macierzy to tzw.\ \textbf{odbicia
+Householdera}. S"a one dobierane tak, aby obrazami kolejnych kolumn by"ly
+kolumny macierzy tr"ojk"atnej. Dla przyspieszenia oblicze"n w~nast"epnych
+etapach rozwi"azywania liniowych zada"n najmniejszych kwadrat"ow, opr"ocz
+wektor"ow $\bm{w}_i$ nale"ry przechowywa"c liczby $\gamma_i$, kt"orych
+ponowne obliczanie jest mo"rliwe, ale zabiera czas.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_QRDecomposeMatrixf ( int nrows, int ncols, \\
+\ind{33}float *a, float *aa );}
+Procedura \texttt{pkn\_QRDecomposeMatrixf} dokonuje rozk"ladu macierzy~$A$,
+kt"ora ma \texttt{nrows} wierszy i~\texttt{ncols} kolumn, na czynniki
+ortogonalny~$Q$ i~tr"ojk"atny~$R$. Wsp"o"lczynniki macierzy $A$ nale"ry
+poda"c w~tablicy~\texttt{a}, o~d"lugo"sci
+\texttt{nrows}$\times$\texttt{ncols}, kt"ora zawiera kolejne wiersze
+macierzy~$A$.
+
+Po zako"nczeniu dzia"lania procedury tablica~\texttt{a} zawiera
+reprezentacj"e znalezionych czynnik"ow rozk"ladu. Wsp"o"lczynniki
+macierzy~$R$ na i~nad diagonal"a s"a umieszczane w~odpowiednich miejscach
+tablicy (wsp"o"lczynnik $r_{ij}$ dla $i\leq j$ zajmuje miejsce wsp"o"lczynnika
+$a_{ij}$). Macierz ortogonalna~$Q$ jest reprezentowana w~postaci ci"agu
+wektor"ow normalnych hiperp"laszczyzn odbi"c Householdera, kt"ore
+przekszta"lcaj"a macierz $A$~na~$R$. Do przechowywania wsp"o"lrz"ednych tych
+wektor"ow s"a wykorzystane miejsca w~tablicy~\texttt{a}, w~kt"orych
+pocz"atkowo by"ly wsp"o"lczynniki $a_{ij}$ dla $i>j$. Poniewa"r nie ma tam
+do"s"c miejsca, pozosta"le \texttt{ncols} wsp"o"lrz"ednych, a~tak"re
+dodatkowe \texttt{ncols} wsp"o"lczynnik"ow~$\gamma_i$ procedura wstawia
+do tablicy \texttt{aa}. Spos"ob przechowywania wsp"o"lczynnik"ow macierzy~$R$
+i~reprezentacji odbi"c jest pokazany na rysunku.%
+\begin{figure}[ht]
+  \centerline{%
+  \begin{minipage}[t]{2.25in}
+  \texttt{\begin{tabular}{r@{ }c@{ }r@{}l@{}l@{}l}
+  a &=& \{$r_{00}$, \mbox{}&$r_{01}$,&$r_{02}$,&$r_{03}$, \\
+    & &   $w_{10}$,&$r_{11}$,&$r_{12}$,&$r_{13}$, \\
+    & &   $w_{20}$,&$w_{21}$,&$r_{22}$,&$r_{23}$, \\
+    & &   $w_{30}$,&$w_{31}$,&$w_{32}$,&$r_{33}$, \\
+    & &   $w_{40}$,&$w_{41}$,&$w_{42}$,&$w_{43}$, \\
+    & &   $w_{50}$,&$w_{51}$,&$w_{52}$,&$w_{53}$\}; \\
+ aa &=& \{$w_{00}$,&$w_{11}$,&$w_{22}$,&$w_{33}$, \\
+    & & $\gamma_0$, \mbox{}&$\gamma_1$,&$\gamma_2$,&$\gamma_3$\};
+  \end{tabular}}
+  \end{minipage}
+  \begin{minipage}[t]{2.5in}
+    $\bm{w}_0 =  \left[\begin{array}{c}
+      w_{00} \\ w_{10} \\ w_{20} \\ w_{30} \\ w_{40} \\ w_{50}
+    \end{array}\right]$,
+    $\bm{w}_1 =  \left[\begin{array}{c}
+      0 \\ w_{11} \\ w_{21} \\ w_{31} \\ w_{41} \\ w_{51}
+    \end{array}\right]$, \ldots
+  \end{minipage}}
+  \caption{Przechowywanie reprezentacji macierzy $Q$ i~$R$ dla macierzy
+    $6\times 4$}
+\end{figure}
+
+Warto"sci"a procedury jest \texttt{true}, je"sli obliczenie zako"nczy"lo si"e
+sukcesem, albo \texttt{false}, je"sli kolumny macierzy s"a liniowo zale"rne.
+W~tym przypadku zawarto"sci tablic \texttt{a} i~\texttt{aa} s"a nieokre"slone.
+
+%\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+void pkn\_multiReflectVectorf ( int nrows, int ncols, \\
+\ind{31}const float *a, const float *aa, \\
+\ind{31}int spdimen, int pitch, float *b );}
+Procedura \texttt{pkn\_multiReflectVectorf} oblicza iloczyn macierzy~$Q^{-1}$
+i~$B$; czynnik~$Q$ jest macierz"a ortogonaln"a, kt"orej reprezentacja
+znaleziona przez procedur"e \texttt{pkn\_QRDecomposeMatrixf} (w~postaci
+ci"agu odbi"c Householdera) jest przechowywana w~tablicach~\texttt{a}
+i~\texttt{aa}. Macierz~$B$ o~wymiarach \texttt{ncols} wierszy
+i~\texttt{spdimen} kolumn jest przechowywana w~tablicy~\texttt{b}.
+Podzia"lka tablicy~\texttt{b}, czyli odleg"lo"s"c pierwszych
+wsp"o"lczynnik"ow kolejnych wierszy, jest warto"sci"a parametru
+\texttt{pitch}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_multiInvReflectVectorf ( int nrows, int ncols, \\
+\ind{32}const float *a, const float *aa, \\
+\ind{32}int spdimen, int pitch, float *b );}
+Procedura \texttt{pkn\_multiInvReflectVectorf} oblicza iloczyn macierzy~$Q$
+i~$B$; czynnik~$Q$ jest macierz"a ortogonaln"a, kt"orej reprezentacja
+znaleziona przez procedur"e \texttt{pkn\_QRDecomposeMatrixf} (w~postaci
+ci"agu odbi"c Householdera) jest przechowywana w~tablicach~\texttt{a}
+i~\texttt{aa}. Macierz~$B$ o~wymiarach \texttt{ncols} wierszy
+i~\texttt{spdimen} kolumn jest przechowywana w~tablicy~\texttt{b}.
+Podzia"lka tablicy~\texttt{b}, czyli odleg"lo"s"c pierwszych
+wsp"o"lczynnik"ow kolejnych wierszy, jest warto"sci"a parametru
+\texttt{pitch}.
+
+\vspace{\bigskipamount}
+%\newpage
+\cprog{%
+void pkn\_multiMultUTVectorf ( int nrows, const float *a, \\
+\ind{30}int spdimen, int bpitch, float *b, \\
+\ind{30}int xpitch, float *x );}
+\begin{sloppypar}
+Procedura \texttt{pkn\_multiMultUTVectorf} oblicza iloczyn macierzy~$R$
+i~$B$; czynnik~$R$ jest macierz"a tr"ojk"atn"a, kt"orej reprezentacja
+znaleziona np.\ przez procedur"e \texttt{pkn\_QRDecomposeMatrixf} jest
+przechowywana w~tablicy~\texttt{a}. Macierz~$B$ o~wymiarach \texttt{nrows}
+wierszy i~\texttt{spdimen} kolumn jest przechowywana w~tablicy~\texttt{b}.
+Podzia"lka tablicy~\texttt{b}, czyli odleg"lo"s"c pierwszych
+wsp"o"lczynnik"ow kolejnych wierszy, jest warto"sci"a parametru
+\texttt{bpitch}.
+\end{sloppypar}
+
+Wynik mno"renia jest umieszczany w~tablicy~\texttt{x},
+o~podzia"lce~\texttt{xpitch}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_multiMultInvUTVectorf ( int nrows, const float *a, \\
+\ind{33}int spdimen, int bpitch, float *b, \\
+\ind{33}int xpitch, float *x );}
+Procedura \texttt{pkn\_multiMultUTVectorf} oblicza iloczyn macierzy~$R^{-1}$
+i~$B$; macierz~$R$ jest macierz"a tr"ojk"atn"a, kt"orej reprezentacja
+znaleziona np.\ przez procedur"e \texttt{pkn\_QRDecomposeMatrixf} jest
+przechowywana w~tablicy~\texttt{a}. Macierz~$B$ o~wymiarach \texttt{nrows}
+wierszy
+i~\texttt{spdimen} kolumn jest przechowywana w~tablicy~\texttt{b}.
+Podzia"lka tablicy~\texttt{b}, czyli odleg"lo"s"c pierwszych
+wsp"o"lczynnik"ow kolejnych wierszy, jest warto"sci"a parametru
+\texttt{bpitch}.
+
+Wynik mno"renia jest umieszczany w~tablicy~\texttt{x},
+o~podzia"lce~\texttt{xpitch}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_multiMultTrUTVectorf ( int nrows, const float *a, \\
+\ind{33}int spdimen, int bpitch, float *b, \\
+\ind{33}int xpitch, float *x ); \\
+void pkn\_multiMultInvTrUTVectorf ( int nrows, const float *a, \\
+\ind{33}int spdimen, int bpitch, float *b, \\
+\ind{33}int xpitch, float *x );}
+
+\vspace{\bigskipamount}
+%\newpage
+\cprog{%
+boolean pkn\_multiSolveRLSQf ( int nrows, int ncols, float *a, \\
+\ind{30}int spdimen, int bpitch, float *b, \\
+\ind{30}int xpitch, float *x );}
+\begin{sloppypar}
+Procedura \texttt{pkn\_multiSolveRLSQf} rozwi"azuje liniowe zadanie
+najmniejszych kwadrat"ow $AX=B$, tj.\ dokonuje rozk"ladu $QR$ macierzy~$A$,
+(kt"ora musi by"c kolumnowo-regularna), po czym oblicza macierz
+$Y=Q^{-1}B$, a nast"epnie $X=R_1^{-1}Y$, gdzie macierz kwadratowa~$R_1$ jest
+g"ornym blokiem macierzy~$R$.
+\end{sloppypar}
+
+Liczby wierszy i~kolumn macierzy~$A$ to \texttt{nrows} i~\texttt{ncols}. Jej
+wsp"o"lczynniki nale"ry poda"c w~tablicy~\texttt{a} (nale"ry poda"c kolejne
+wiersze bez przerw mi"edzy nimi). Wymiary macierzy $B$ to \texttt{nrows}
+wierszy i~\texttt{spdimen} kolumn. Jej wsp"o"lczynniki nale"ry poda"c
+w~tablicy~\texttt{b}, o~podzia"lce \texttt{bpitch}.
+
+Wynik, tj.\ wsp"o"lczynniki macierzy~$X$ o~wymiarach
+\texttt{ncols}$\times$\texttt{spdimen} procedura wstawia do tablicy
+\texttt{x} o~podzia"lce \texttt{xpitch}.
+
+Je"sli obliczenie zako"nczy"lo si"e sukcesem, to warto"sci"a procedury jest
+\texttt{true}. Pora"rka, sygnalizowana przez warto"s"c \texttt{false},
+oznacza, "re kolumny macierzy~$A$ s"a liniowo zale"rne, czyli "re zadanie
+jest nieregularne.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_QRGetReflectionf ( int nrows, int ncols, \\
+\ind{28}const float *a, const float *aa, \\
+\ind{28}int nrefl, float *w, float *gamma );}
+Procedura \texttt{pkn\_QRGetReflectionf} ,,wyjmuje'' reprezentacj"e
+jednego odbicia Householdera z~tablic \texttt{a} i~\texttt{aa},
+w~kt"orych reprezentacja ta zosta"la umieszczona przez procedur"e
+\texttt{pkn\_QRDecomposeMatrixf}.
+
+Parametry \texttt{nrows} i~\texttt{ncols} opisuj"a wymiary macierzy~$A$,
+kt"orej czynniki rozk"ladu $QR$ s"a podane w~tablicach \texttt{a} i~\texttt{aa}.
+Parametr \texttt{nrefl} o~warto"sci~$i$ od~\texttt{0} do~\texttt{ncols-1}
+okre"sla numer odbicia. Wsp"o"lrz"edne wektora normalnego hiperp"laszczyzny
+odbicia~$\bm{w}$ s"a wpisywane do tablicy~\texttt{w} o~d"lugo"sci
+$l=$\texttt{nrows-$i$}; to jest ostatnie~$l$ z~\texttt{nrows} wsp"o"lrz"ednych
+tego wektora, poniewa"r pocz"atkowe~$i$ wsp"o"lrz"ednych
+jest r"owne~$0$.
+
+Zmienna \texttt{*gamma} otrzymuje warto"s"c parametru $\gamma_i$.
+Mo"rna te"r wywo"la"c procedur"e z~parametrem \texttt{gamma=NULL}, kt"ory
+jest wtedy ignorowany. 
+
+
+\newpage
+\section{\label{sect:band:matrix}Obs"luga macierzy wst"egowych}
+
+\subsection{\label{ssect:band:basic}Reprezentacja i podstawowe procedury}
+
+Macierz wst"egowa $m\times n$ spe"lnia taki warunek: istnieje liczba~$w$
+i~dwa niemalej"ace ci"agi liczb, $j_0<\cdots<j_{m-1}$ oraz
+$k_0<\cdots<k_{m-1}$, takie "re wsp"o"lczynnik $a_{ij}$ (w~$i$-tym wierszu
+i~$j$-tej kolumnie) jest r"owny~$0$, je"sli $j<j_i$ lub $j\geq k_i$,
+przy czym dla ka"rdego $i$ jest $k_i-j_i\leq w$. Liczba~$w$ jest nazywana
+\emph{szeroko"sci"a wst"egi} i~je"sli jest znacznie mniejsza ni"r liczba
+kolumn~$n$, to do reprezentowania takiej macierzy potrzebne jest znacznie
+mniej pami"eci, a ponadto wiele algorytm"ow przetwarzania takiej macierzy
+mo"re wykona"c zadanie znacznie mniejszym kosztem ni"r w przypadku pe"lnej
+macierzy.
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct bandm\_profile \{ \\
+\ind{2}int firstnz; \\
+\ind{2}int ind; \\
+\} bandm\_profile;}
+
+Parametry opisuj"ace macierz wst"egow"a to: liczba kolumn i ewentualnie
+wierszy oraz dwie tablice. Pierwsza z~nich, \texttt{prof}, o~d"lugo"sci
+$n+1$ (o~$1$ wi"ekszej ni"r liczba kolumn) zawiera struktury typu
+\texttt{bandm\_profile}, opisuj"ace kolejne kolumny macierzy. W~drugiej
+tablicy,~\texttt{a}, przechowywane s"a wsp"o"lczynniki macierzy,
+zgodnie z~opisem w~pierwszej tablicy.
+
+Warto"s"c \texttt{prof[j].firstnz} (od~$0$ do $m-1$) jest r"owna indeksowi
+pierwszego wiersza, w~kt"orym w~$j$-tej kolumnie wsp"o"lczynnik macierzy
+jest r"o"rny od~$0$. Warto"s"c \texttt{prof[j].ind} jest indeksem miejsca
+w~tablicy wsp"o"lczynnik"ow~\texttt{a}, w~kt"orym jest przechowywany ten
+wsp"o"lczynnik. W~kolejnych miejscach tej tablicy przechowywane s"a kolejne
+wsp"o"lczynniki tej kolumny. Liczba wsp"o"lczynnik"ow z~tej kolumny jest
+r"owna \texttt{prof[j+1].ind-prof[j].ind}. Przyk"lad takiej reprezentacji
+jest przedstawiony na rys.~\ref{fig:band:matrix}.
+\begin{figure}[ht]
+  \begin{minipage}{1.82in}
+  \begin{align*}
+    \left[\begin{array}{ccccc}
+      a_0 &   0 &      0 &      0 &   0    \\
+      a_1 & a_4 & a_{10} &      0 &   0    \\
+      a_2 & a_5 & a_{11} &      0 &   0    \\
+      a_3 & a_6 & a_{12} &      0 &   0    \\
+        0 & a_7 & a_{13} &      0 &   0    \\
+        0 & a_8 & a_{14} & a_{17} &   0    \\
+        0 & a_9 & a_{15} & a_{18} &   0    \\
+        0 &   0 & a_{16} & a_{19} &   0    \\
+        0 &   0 &      0 & a_{20} & a_{23} \\
+        0 &   0 &      0 & a_{21} & a_{24} \\
+        0 &   0 &      0 & a_{22} & a_{25} \\
+        0 &   0 &      0 &      0 & a_{26}
+    \end{array}\right]
+  \end{align*}
+  \end{minipage}
+  \begin{minipage}{3.05in}
+    \texttt{int ncols = 5;} \\[10pt]
+    \texttt{bandm\_profile prof[6] = \\
+     \{\{0,0\},\{1,4\},\{1,10\},\{5,17\},\{8,23\},\{*,27\}\};} \\[10pt]
+    \texttt{float a[27] = \{ $a_0$,\ldots,$a_{26}$ \};}
+  \end{minipage}
+  \caption{\label{fig:band:matrix}Przyk"lad macierzy wst"egowej
+    i~opisuj"acych j"a tablic}
+\end{figure}
+
+Aby reprezentowa"c ci"ag odbi"c wzgl"edem hiperp"laszczyzn, kt"orych
+wektorami normalnymi s"a $\bm{w}_0,\ldots,\bm{w}_{n-1}$ nale"ry utworzy"c
+tablice \texttt{a} i \texttt{prof}, takie jak dla macierzy wst"egowej.
+W~tablicy~$a$ przechowywuje si"e liczby $\gamma_i$, a po nich
+niezerowe wsp"o"lrz"edne wektor"ow $\bm{w}_i$ (tak jakby to by"ly kolumny
+macierzy wst"egowej). Tablica \texttt{prof} umo"rliwia odnalezienie tych
+wsp"o"lrz"ednych. Przyk"lad jest pokazany na
+rys.~\ref{fig:householder:matrix}.%
+\begin{figure}[ht]
+\newcommand{\mkb}[2]{\mbox{\raisebox{0pt}[0pt][0pt]{$\displaystyle%
+\begin{array}[t]{@{}c@{}}{#1} \\[4pt] \uparrow \\ {#2} \end{array}$}}}
+  \begin{minipage}{2.2in}
+  \begin{align*}
+    \left[\begin{array}{ccccc}
+      w_5 &   0    &      0 &      0 &   0    \\
+      w_6 & w_9    &      0 &      0 &   0    \\
+      w_7 & w_{10} & w_{15} &      0 &   0    \\
+      w_8 & w_{11} & w_{16} & w_{21} &   0    \\
+        0 & w_{12} & w_{17} & w_{22} & w_{29} \\
+        0 & w_{13} & w_{18} & w_{23} & w_{30} \\
+        0 & w_{14} & w_{19} & w_{24} & w_{31} \\
+        0 &   0    & w_{20} & w_{25} & w_{32} \\
+        0 &   0    &      0 & w_{26} & w_{33} \\
+        0 &   0    &      0 & w_{27} & w_{34} \\
+        0 &   0    &      0 & w_{28} & w_{35} \\
+        \mkb{0}{\bm{w}_0} & \mkb{0}{\bm{w}_1} &
+        \mkb{0}{\bm{w}_2} & \mkb{0}{\bm{w}_3} &
+        \mkb{w_{36}}{\bm{w}_4}
+    \end{array}\right]
+  \end{align*}
+  \vspace*{0.6cm}
+  \end{minipage}
+  \begin{minipage}{2.75in}
+    \texttt{int ncols = 5;} \\[10pt]
+    \texttt{bandm\_profile prof[6] = \\
+     \ind{2}\{\{0,5\},\{1,9\},\{2,15\},\{3,21\},\\
+     \ind{2}\{4,29\},\{*,37\}\};} \\[10pt]
+    \texttt{float a[37] = \\
+    \ind{2}\{ $\gamma_0$,\ldots,$\gamma_4$,$w_5$,\ldots,$w_{36}$ \};}
+  \end{minipage}
+  \caption{\label{fig:householder:matrix}Reprezentacja przyk"ladowej
+    macierzy opisuj"acej z"lo"renie odbi"c.}
+  \centerline{Kolumny macierzy z lewej strony s"a wektorami normalnymi
+    hiperp"laszczyzn odbi"c}
+\end{figure}
+
+Opisana reprezentacja ma na celu oszcz"edno"s"c pami"eci w przypadku, gdy
+pewne odbicia s"a skonstruowane w celu rozwi"azywania zada"n najmniejszych
+kwadrat"ow dla uk"lad"ow r"owna"n z macierz"a wst"egow"a $A$. Z"lo"renie
+wszystkich odbi"c w kolejno"sci uporz"adkowania kolumn jest
+przekszta"lceniem o macierzy ortogonalnej $Q^T$. Sk"la\-daj"ac te odbicia
+w~odwrotnej kolejno"sci otrzymamy macierz $Q$: macierz $R$, taka "re $A=QR$,
+jest tr"ojk"atna g"orna.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_BandmFindQRMSizes ( int ncols, \\
+\ind{29}const bandm\_profile *aprof, \\
+\ind{29}int *qsize, int *rsize );}
+\begin{sloppypar}
+Procedura \texttt{pkn\_BandmFindQRMSizes} oblicza d"lugo"sci tablic
+potrzebnych do przechowywania wsp"o"lczynnik"ow macierzy~$Q$ oraz~$R$ ---
+czynnik"ow rozk"ladu ortogonalno-tr"ojk"atnego danej macierzy wst"egowej~$A$.
+Macierz~$R$ b"edzie reprezentowana jako macierz wst"egowa w~,,zwyk\-"ly''
+spos"ob (tj.\ odpowiednia tablica zawiera jej wsp"o"lczynniki, tak samo jak
+rozk"ladana macierz $A$), a~macierz~$Q$,
+kt"ora jest iloczynem macierzy odbi"c Householdera b"edzie reprezentowana
+za pomoc"a wektor"ow okre"slaj"acych kolejne odbicia. Oba sposoby
+reprezentowania tych macierzy s"a opisane wy"rej.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_BandmQRDecomposeMatrixf ( int nrows, int ncols, \\
+\ind{34}const bandm\_profile *aprof, \\
+\ind{34}const float *a, \\
+\ind{34}bandm\_profile *qprof, float *q, \\
+\ind{34}bandm\_profile *rprof, float *r );}
+Procedura \texttt{pkn\_BandmQRDecomposeMatrixf} znajduje czynniki rozk"ladu
+macierzy wst"egowej $A$, tj.\ macierz ortogonaln"a $Q$ i macierz
+tr"ojk"atn"a $R$. Macierz $A$ o~wymiarach
+\texttt{nrows}$\times$\texttt{ncols} jest reprezentowana za pomoc"a tablicy
+\texttt{aprof}, kt"ora opisuje rozmieszczenie niezerowych wsp"o"lczynnik"ow
+w~jej kolumnach i~macierzy \texttt{a}, w~kt"orej s"a przechowywane te
+wsp"o"lczynniki.
+
+Obliczona macierz tr"ojk"atna g"orna~$R$ jest r"ownie"r wst"egowa.
+Procedura umieszcza jej reprezentacj"e w~tablicach \texttt{rprof}
+i~\texttt{r}. Pierwsza z~tych tablic musi mie"c d"lugo"s"c co najmniej
+\texttt{ncols}$+1$. Druga z~nich musi mie"c co najmniej d"lugo"s"c
+obliczon"a przez wywo"lan"a wcze"sniej procedur"e
+\texttt{pkn\_BandmFindQRSizes}.
+
+Macierz ortogonalna~$Q$ jest iloczynem macierzy odbi"c Householdera
+sprowadzaj"acych macierz~$A$ do postaci tr"ojk"atnej. Liczba tych odbi"c
+jest r"owna \texttt{ncols}, a~zatem tablica \texttt{qprof} musi mie"c
+d"lugo"s"c co najmniej \texttt{ncols}$+1$. D"lugo"s"c tablicy~\texttt{q} do
+przechowywania wsp"o"lrz"ednych wektor"ow reprezentuj"acych odbicia
+powinna r"ownie"r by"c nie mniejsza ni"r podana przez procedur"e
+\texttt{pkn\_BandmFindQRSizes}.
+
+\vspace{\medskipamount}
+\noindent
+\textbf{Uwaga:} Liczba kolumn, \texttt{ncols}, musi by"c \emph{mniejsza}
+ni"r liczba wierszy, \texttt{nrows}; macierze kwadratowe s"a rozk"ladane
+z~b"l"edem (do poprawienia kiedy"s w~przysz"lo"sci).
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_multiBandmReflectVectorf ( int ncols, \\
+\ind{36}const bandm\_profile *qprof, \\
+\ind{36}const float *q, \\
+\ind{36}int spdimen, float *b );}
+Procedura \texttt{pkn\_multiBandmReflectVectorf} dokonuje \texttt{ncols}
+odbi"c kolumn macierzy $B$, kt"ora ma \texttt{spdimen} kolumn. Kolejne
+wiersze tej macierzy s"a podane w~tab\-li\-cy~\texttt{b}, w~kt"orej po
+wykonaniu
+obliczenia znajduje si"e wynik. Kolejno"s"c wykonywanych odbi"c jest zgodna
+z~ich uporz"adkowaniem w tablicach (tj.\ najpierw wzgl"edem
+hiperp"laszczyzny prostopad"lej do $\bm{w}_0$, potem $\bm{w}_1$ itd.).
+
+Reprezentacja odbi"c jest podawana w tablicach \texttt{qprof} i~\texttt{q},
+zgodnie z wcze"sniejszym opisem.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+void pkn\_multiBandmInvReflectVectorf ( int ncols, \\
+\ind{39}const bandm\_profile *qprof, \\
+\ind{39}const float *q, \\
+\ind{39}int spdimen, float *b );}
+Procedura \texttt{pkn\_multiBandmReflectVectorf} dokonuje \texttt{ncols}
+odbi"c kolumn macierzy~$B$, kt"ora ma \texttt{spdimen} kolumn. Kolejne
+wiersze tej macierzy s"a podane w~tablicy \texttt{b}, w~kt"orej po wykonaniu
+obliczenia znajduje si"e wynik. Kolejno"s"c wykonywanych odbi"c jest
+odwrotna do ich uporz"adkowaniem w tablicach (tj.\ je"sli
+$n=$\texttt{ncols}, to najpierw wykonywane jest odbicie wzgl"edem
+hiperp"laszczyzny prostopad"lej do $\bm{w}_{n-1}$, potem $\bm{w}_{n-2}$ itd.).
+
+Reprezentacja odbi"c jest podawana w tablicach \texttt{qprof} i~\texttt{q},
+zgodnie z wcze"sniejszym opisem.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_multiBandmMultVectorf ( int nrows, int ncols, \\
+\ind{33}const bandm\_profile *aprof, \\
+\ind{33}const float *a, \\
+\ind{33}int spdimen, const float *x, \\
+\ind{33}float *y );}
+Procedura \texttt{pkn\_multiBandmMultVectorf} wykonuje mno"renie macierzy
+wst"egowej~$A$ o~wymiarach \texttt{nrows}$\times$\texttt{ncols},
+reprezentowanej za pomoc"a tablic \texttt{aprof} i~\texttt{a} i~macierzy $X$
+o~wymiarach \texttt{ncols}$\times$\texttt{spdimen}. Wynik --- macierz $Y=AX$
+o~wymiarach \texttt{nrows}$\times$\texttt{spdimen} jest wpisywany do
+tablicy~\texttt{y}. W~tablicach \texttt{x}~i~\texttt{y} s"a kolejne wiersze
+macierzy $X$~i~$Y$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_multiBandmMultInvUTMVectorf ( int nrows, \\
+\ind{39}const bandm\_profile *rprof, \\
+\ind{39}const float *r, \\
+\ind{39}int spdimen, const float *x, \\
+\ind{39}float *y );}
+Procedura \texttt{pkn\_multiBandmMultInvUTMVectorf} oblicza macierz $Y=A^{-1}X$.
+Macierz $A$ o~wymiarach \texttt{nrows}$\times$\texttt{nrows}
+musi by"c nieosobliwa tr"ojk"atna g"orna. Macierz~$X$ o~wymiarach
+\texttt{nrows}$\times$\texttt{spdimen} jest reprezentowana za pomoc"a
+tablicy~\texttt{x}, w~kt"orej znajduj"a si"e kolejne wiersze. Wynik jest
+wpisywany do tablicy~\texttt{y}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_multiBandmMultTrVectorf ( int ncols, \\
+\ind{35}const bandm\_profile *aprof, \\
+\ind{35}const float *a, \\
+\ind{35}int spdimen, const float *x, \\
+\ind{35}float *y )}
+\begin{sloppypar}
+Procedura \texttt{pkn\_multiBandmMultTrVectorf} wykonuje mno"renie
+transpozycji macierzy wst"egowej~$A$ o~wymiarach
+$m\times n$, reprezentowanej za pomoc"a tab\-lic \texttt{aprof} i~\texttt{a}
+i~macierzy $X$ o~wymiarach $n\times d$. Wynik --- macierz $Y=A^TX$
+o~wymiarach \texttt{nrows}$\times$\texttt{spdimen} jest wpisywany do
+tablicy~\texttt{y}. W~tablicach \texttt{x}~i~\texttt{y} s"a kolejne wiersze
+macierzy $X$~i~$Y$.%
+\end{sloppypar}
+
+Liczba $m$ jest reprezentowana przez profil macierzy~$A$, $n$ jest
+warto"sci"a parametru \texttt{ncols}, a~$d$ jest warto"sci"a parametru
+\texttt{spdimen}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_multiBandmMultInvTrUTMVectorf ( int nrows, \\
+\ind{39}const bandm\_profile *rprof, \\
+\ind{39}const float *r, \\
+\ind{39}int spdimen, const float *x, \\
+\ind{39}float *y )}
+\begin{sloppypar}
+Procedura \texttt{pkn\_multiBandmMultInvTrUTMVectorf} oblicza macierz
+$Y=A^{-T}X$.
+Macierz $A$ o~wymiarach \texttt{nrows}$\times$\texttt{nrows}
+musi by"c nieosobliwa tr"ojk"atna g"orna. Macierz~$X$ o~wymiarach
+\texttt{nrows}$\times$\texttt{spdimen} jest reprezentowana za pomoc"a
+tablicy~\texttt{x}, w~kt"orej znajduj"a si"e kolejne wiersze. Wynik jest
+wpisywany do tablicy~\texttt{y}.
+\end{sloppypar}
+
+
+\subsection{\label{ssect:bandm:rlsq}Rozwi"azywanie liniowych zada"n
+  najmniejszych kwadrat"ow}
+
+Przyk"lad u"rycia powy"rszych procedur do rozwi"azania regularnego liniowego
+zadania najmniejszych kwadrat"ow $A\bm{x}=\bm{b}$, z~kolumnowo-regularn"a
+macierz"a wst"egow"a~$A$:
+\begin{enumerate}
+  \item Utw"orz reprezentacj"e macierzy~$A$.
+  \item Wywo"laj procedur"e \texttt{pkn\_BandmFindQRMSizes} i~zarezerwuj
+    tablice o~obliczonych przez t"e procedur"e d"lugo"sciach na
+    przechowanie reprezentacji czynnik"ow rozk"ladu $Q$~i~$R$ macierzy~$A$.
+  \item Wywo"laj \texttt{pkn\_BandmQRDecomposeMatrixf} w~celu dokonania
+    rozk"ladu macierzy~$A$.
+  \item Oblicz wektor $\bm{y}=Q^T\bm{b}$ za pomoc"a
+    \texttt{pkn\_multiBandmReflectVectorf}.
+  \item\begin{sloppypar}
+    Oblicz $\bm{x}=R_1^{-1}\bm{y}_1$, gdzie macierz $R_1$ jest blokiem
+    $n\times n$ z"lo"ronym z~pocz"atkowych wierszy macierzy~$R$,
+    a~wektor~$\bm{y}_1$ sk"lada si"e z~pierwszych~$n$ wsp"o"lrz"ednych
+    wektora~$\bm{y}$. \\ W~tym celu wywo"laj
+    procedur"e \texttt{pkn\_multiBandmMultInvUTMVectorf}.%
+    \end{sloppypar}
+\end{enumerate}
+
+%\vspace{\bigskipamount}
+\newpage
+\cprog{%
+void pkn\_multiBandmSolveRLSQf ( int nrows, int ncols, \\
+\ind{32}const bandm\_profile *aprof, \\
+\ind{32}const float *a, \\
+\ind{32}int nrsides, int spdimen, \\
+\ind{32}int bpitch, const float *b, \\
+\ind{32}int xpitch, float *x );}
+\begin{sloppypar}
+Procedura \texttt{pkn\_multiBandmSolveRLSQf} rozwi"azuje w~opisany wy"rej spos"ob
+$z$~liniowych zada"n najmniejszych kwad\-ra\-t"ow, opisanych wsp"olnie przez
+uk"lad r"owna"n
+\begin{align*}
+  A[\bm{x}_0,\ldots,\bm{x}_{z-1}] = [\bm{b}_0,\ldots,\bm{b}_{z-1}].
+\end{align*}
+Macierz wst"egowa~$A$ o~wymiarach $m\times n$ (podanych jako parametry
+\texttt{nrows} i~\texttt{ncols}) jest reprezentowana przez tablice
+\texttt{aprof} i~\texttt{a}. Tablica~\texttt{b} o~d"lugo"sci
+\texttt{bpitch}$\times z$ opisuje prawe strony uk"lad"ow,
+tj.\ macierze~$\bm{b}_0,\ldots,\bm{b}_{z-1}$ z~kt"orych ka"rda ma
+wymiary $m\times d$ i~jej kolejne wiersze s"a umieszczone w~tablicy
+po kolei (bez przerw). Pozycje pierwszych wsp"o"lczynnik"ow kolejnych
+macierzy r"o"rni"a si"e o~warto"s"c parametru~\texttt{bpitch}.
+Ka"rda z~$d$ kolumn ka"rdej macierzy jest jednym wektorem prawej
+strony uk"ladu (czyli w~rzeczywisto"sci procedura rozwi"azuje
+$z\times d={}$\texttt{nrsides}$\times$\texttt{spdimen} zada"n,
+z~t"a sam"a macierz"a~$A$ i~r"o"rnymi prawymi stronami).
+\end{sloppypar}
+
+Rozwi"azania zada"n s"a kolumnami macierzy $\bm{x}_0,\ldots,\bm{x}_{z-1}$,
+kt"orych wsp"o"lczynniki (kolejne wiersze, bez przerw) procedura wpisuje do
+tablicy~\texttt{x}. Tablica ta musi mie"c d"lugo"s"c co najmniej
+\texttt{xpitch}$\times z$. Parametr \texttt{xpitch} okre"sla odleg"lo"s"c
+w~tablicy~\texttt{x} pocz"atkowych wsp"o"lczynnik"ow kolejnych macierzy
+$\bm{x}_i$.
+
+
+\subsection{Rozwi"azywanie zada"n regularnych z~wi"ezami}
+
+Regularne liniowe zadanie najmniejszych kwadrat"ow z~wi"ezami polega na
+znalezieniu wektora $\bm{x}$ spe"lniaj"acego uk"lad r"owna"n liniowych
+\begin{align*}
+  C\bm{x} = \bm{d},
+\end{align*}
+zwany uk"ladem wi"ez"ow,  i~takiego, "re wektor $\bm{r}=A\bm{x}-\bm{b}$ ma
+najmniejsz"a norm"e drug"a, przy czym macierz~$A\in\R^{m,n}$ jest kolumnowo
+regularna, a~macierz~$C\in\R^{w,n}$ jest wierszowo regularna.
+
+Liniowa niezale"rno"s"c wierszy macierzy~$C$ zapewnia niesprzeczno"s"c uk"ladu
+wi"ez"ow i~postawione wy"rej zadanie ma jednoznaczne rozwi"azanie. Mo"rna je
+znale"z"c, rozwi"azuj"ac uk"lad r"owna"n liniowych
+\begin{align*}
+  \left[\begin{array}{cc} A & C^T \\ C & 0 \end{array}\right]
+  \left[\begin{array}{c} \bm{x} \\ \bm{y} \end{array}\right] =
+  \left[\begin{array}{c} \bm{b} \\ \bm{d} \end{array}\right].
+\end{align*}
+Numeryczna metoda rozwi"azywania przebiega w~nast"epuj"acych krokach:
+\begin{enumerate}
+  \item Dokonaj rozk"ladu macierzy~$A$ na czynniki $Q$ i~$R$,
+    takie "re $Q$ jest macierz"a ortogonaln"a, a~$R$ tr"ojk"atn"a g"orn"a.
+  \item Rozwi"a"r uk"lad r"owna"n liniowych $R^TE=C^T$.
+  \item Dokonaj rozk"ladu macierzy~$E$ na czynniki $U$ i~$F$,
+    takie "re $U$ jest macierz"a ortogonaln"a, a~$F$ tr"ojk"atn"a g"orn"a.
+    Oznacz symbolem $F_1$ macierz $w\times w$, kt"ora jest blokiem macierzy~$F$
+    sk"ladaj"acym si"e z~jej pocz"atkowych $w$~wierszy.
+  \item Korzystaj"ac z~rozk"ladu $QR$ macierzy~$A$ oblicz
+    rozwi"azanie~$\bm{x}_0$ regularnego zadania najmniejszych kwadrat"ow,
+    rozwi"azuj"ac uk"lad r"owna"n $R_1\bm{x}_0=\bm{y}_1$ (zobacz opis
+    w~p.~\ref{ssect:bandm:rlsq}).
+  \item Rozwi"a"r uk"lady r"owna"n $F_1^T\bm{e}=\bm{d}-C\bm{x}_0$ oraz
+    $F_1\bm{f}=\bm{e}$.
+  \item Rozwi"a"r uk"lady $R_1^T\bm{g}=C^T\bm{f}$ i~$R_1\bm{h}=\bm{g}$.
+  \item Oblicz $\bm{x}=\bm{x}_0+\bm{h}$.
+\end{enumerate}
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_multiBandmSolveCRLSQf ( int nrows, int ncols, \\
+\ind{23}const bandm\_profile *aprof, const float *a, \\
+\ind{23}int nconstr, int cpitch, const float *c, \\
+\ind{23}int nrsides, int spdimen, \\
+\ind{23}int bpitch, const float *b, \\
+\ind{23}int dpitch, const float *d, \\
+\ind{23}int xpitch, float *x );}
+Procedura \texttt{pkn\_multiBandmSolveCRLSQf} rozwi"azuje $z$~regularnych
+liniowych zada"n najmniejszych kwadrat"ow z~wi"ezami, opisanych "l"acznie
+przez uk"lad r"owna"n
+\begin{align*}
+  A[\bm{x}_0,\ldots,\bm{x}_{z-1}] = [\bm{b}_0,\ldots,\bm{b}_{z-1}],
+\end{align*}
+z~macierz"a wst"egow"a~$A$ przy czym wi"ezy s"a opisane przez uk"lad r"owna"n
+\begin{align*}
+  C[\bm{x}_0,\ldots,\bm{x}_{z-1}] = [\bm{d}_0,\ldots,\bm{d}_{z-1}],
+\end{align*}
+w~kt"orym macierz~$C$ jest pe"lna.
+
+Parametry:
+\texttt{nrows}, \texttt{ncols} --- liczba wierszy~$m$ i~kolumn~$n$ macierzy~$A$,
+\texttt{aprof}, \texttt{a} --- profil (tj.\ reprezentacja sposobu rozmieszczenia
+niezerowych wsp"o"lczynnik"ow) i~tablica z~niezerowymi
+wsp"o"lczynnikami macierzy~$A$, \texttt{nconstr} --- liczba~$w$ wi"ez"ow
+(musi by"c mniejsza ni"r~$n$), \texttt{cpitch} --- podzia"lka (tj.\ odleg"lo"s"c
+pocz"atk"ow kolejnych wierszy) tablicy~\texttt{c} ze wsp"o"lczynnikami
+macierzy~$C$, \texttt{nrsides} --- liczba~$z$, \texttt{spdimen} --- d"lugo"s"c
+wiersza ka"rdej macierzy~$\bm{b}_i$ oraz~$\bm{x}_i$ i~$\bm{d}_i$,
+\texttt{bpitch} --- podzia"lka tablicy~\texttt{b} ze wsp"o"lczynnikami macierzy
+$\bm{b}_0,\ldots,\bm{b}_{z-1}$ (tj.\ odleg"lo"s"c pocz"atkowych
+wsp"o"lczynnik"ow kolejnych macierzy; wiersze ka"rdej z~nich s"a przechowywane
+bez przerw), \texttt{dpitch} --- podzia"lka tablicy~\texttt{d} ze
+wsp"o"lczynnikami macierzy~$\bm{d}_0,\ldots,\bm{d}_{z-1}$,
+\texttt{xpitch} --- podzia"lka tablicy~\texttt{x}, w~kt"orej ma byc
+umieszczony wynik.
+
+Parametr~\texttt{d} mo"re by"c r"owny \texttt{NULL} --- wtedy uk"lad r"ona"n
+wi"ez"ow jest jednorodny.
+
+
+\subsection{Rozwi"azywanie dualnych zada"n najmniejszych kwadrat"ow}
+
+\begin{sloppypar}
+Dualne zadanie najmniejszych kwadrat"ow polega na znalezieniu rozwi"azania
+$\bm{x}$ uk"ladu r"owna"n $A\bm{x}=\bm{b}$ z~macierz"a~$A\in\R^{m,n}$
+wierszowo-regularn"a, takiego "re dla wskazanego wektora $\bm{x}_0\in\R^n$
+liczba $\|\bm{x}-\bm{x}_0\|_2$ jest najmniejsza. Poprzednio opisane
+procedury mog"a by"c u"ryte do rozwi"azania zadania, je"sli program utworzy
+reprezentacj"e wst"egow"a macierzy $A^T$.
+\end{sloppypar}
+\begin{enumerate}
+  \item Utw"orz reprezentacj"e wst"egow"a macierzy $A^T$.
+  \item Wywo"laj procedur"e \texttt{pkn\_BandmFindQRSizes} i~zarezerwuj
+    tablice o~odpowiednich d"lugo"sciach na przechowanie reprezentacji
+    czynnik"ow $Q$~i~$R$ rozk"ladu macierzy $A^T$.
+  \item Wywo"laj \texttt{pkn\_BandmQRDecomposeMatrixf} w~celu dokonania
+    rozk"ladu macierzy $A^T$ (co jest r"ownowa"rne roz"lo"reniu macierzy~$A$
+    na czynniki $R^T$~i~$Q^T$).
+  \item Oblicz wektor $\bm{z}_0=Q^T\bm{x}_0$, wywo"luj"ac
+    \texttt{pkn\_multiBandmReflectVectorf}. Je"sli $\bm{x}_0=\bm{0}$, to mo"rna
+    zamiast tego przypisa"c (bez liczenia) $\bm{z}_0=\bm{0}$.
+  \item Rozwi"a"r uk"lad r"owna"n liniowych $R_1^T\bm{z}_1=\bm{b}$,
+    wykonuj"ac w~tym celu procedur"e
+    \texttt{pkn\_multiBandmMultInvTrUTMVectorf}. Je"sli
+    $\bm{b}=\bm{0}$, to mo"rna przypisa"c (bez liczenia) $\bm{z}_1=\bm{0}$.
+    Oblicz wektor $\bm{z}$, kt"orego pocz"atkowe $m$~wsp"o"lrz"ednych
+    jest r"ownych odpowiednim wsp"o"lrz"ednym wektora~$\bm{z}_1$,
+    a~pozosta"le to wsp"o"lrz"edne wektora~$\bm{z}_0$.
+  \item Wykonaj procedur"e \texttt{pkn\_multiBandmInvReflectVectorf} w~celu
+    obliczenia rozwi"azania zadania, tj.\ wektora $\bm{x}=Q\bm{z}$.
+\end{enumerate}
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_multiBandmSolveDLSQf ( int nrows, int ncols, \\
+\ind{32}const bandm\_profile *atprof, \\
+\ind{32}const float *at, \\
+\ind{32}int nrsides, int spdimen, \\
+\ind{32}int bpitch, const float *b, \\
+\ind{32}int x0pitch, const float *x0, \\
+\ind{32}int xpitch, float *x );}
+\begin{sloppypar}
+Procedura \texttt{pkn\_multiBandmSolveDLSQf} rozwi"azuje dualne zadania
+najmniejszych kwadrat"ow w~spos"ob opisany wy"rej. Parametry \texttt{nrows}
+(liczba wierszy,~$n$), \texttt{ncols} (liczba kolumn,~$m$), \texttt{atprof}
+(profil) i~\texttt{at} (tablica wsp"o"lczynnik"ow) opisuj"a macierz $A^T$.
+\end{sloppypar}
+
+Prawe strony uk"ladu s"a opisane przez $z=$\texttt{nrsides} macierz~$\bm{b}$,
+kt"ore maj"a $m$~wierszy i~$d=$\texttt{spdimen} kolumn; ka"rda kolumna jest
+praw"a stron"a jednego zadania (zatem procedura rozwi"azuje $zd$~zada"n z~t"a
+sam"a macierz"a~$A$).
+Kolejne wiersze macierzy~$\bm{b}$ nale"ry poda"c w~tablicy~\texttt{b}.
+Pozycje pierwszych wsp"o"lczynnik"ow kolejnych macierzy~$b$ r"o"rni"a si"e
+o~warto"s"c parametru~\texttt{bpitch}.
+Parametr~\texttt{b} mo"re te"r mie"c warto"s"c \texttt{NULL}, co oznacza,
+"re prawe strony uk"lad"ow w~zadaniu s"a wektorem zerowym.
+
+Przybli"renia rozwi"aza"n zada"n s"a kolumnami macierzy~$\bm{x}_0$
+o~wymiarach $n\times d$. Kolejne wiersze tej macierzy nale"ry poda"c
+w~tablicy~\texttt{x0}. Pozycje pierwszych wsp"o"lczynnik"ow
+kolejnych macierzy~$\bm{x}_0$ r"o"rni"a si"e o~warto"s"c parametru
+\texttt{x0pitch}. Je"sli parametr \texttt{x0} ma warto"s"c
+\texttt{NULL}, to oznacza to, "re macierze~$\bm{x}_0$ s"a zerowe.
+
+Rozwi"azania zada"n s"a kolumnami macierzy~$\bm{x}$. Kolejne wiersze tych
+macierzy procedura umieszcza w~tablicy~\texttt{x}, kt"ora musi mie"c
+d"lugo"s"c co najmniej \texttt{xpitch}$\times z$.
+
+
+\newpage
+\subsection{Odpluskwianie}
+
+W tym punkcie s"a opisane procedury, kt"ore wypisuja na \texttt{stdout}
+macierze w~postaci tekstowej. Takie procedury nieraz bardzo pomagaj"a
+znale"z"c b"l"ad w~programie.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_PrintMatf ( int nrows, int ncols, const float *a );}
+Procedura \texttt{pkn\_PrintMatf} wypisuje wsp"o"lczynniki macierzy~$A$,
+reprezentowanej w postaci jawnej w tablicy.
+
+Parametry \texttt{nrows} i~\texttt{ncols} opisuj"a odpowiednio liczb"e
+wierszy i kolumn. Tablica \texttt{a} zawiera wsp"o"lczynniki macierzy $A$
+--- kolejno piewszy wiersz, potem drugi itd.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_PrintBandmf ( int ncols, const bandm\_profile *aprof, \\
+\ind{23}const float *a );}
+Procedura \texttt{pkn\_PrintBandmf} wypisuje macierz
+wst"egow"a reprezentowan"a przez tablice \texttt{aprof} i~\texttt{a}.
+Mo"re ona by"c u"ryteczna podczas uruchamiania programu.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_PrintBandmRowSumf ( int ncols, const bandm\_profile *aprof, \\
+\ind{23}const float *a );}
+Procedura \texttt{pkn\_PrintBandmRowSumf} wypisuje macierz
+wst"egow"a re\-pre\-zen\-to\-wa\-n"a przez tablice \texttt{aprof} i~\texttt{a}.
+Na ko"ncu ka"rdego wiersza procedura wypisuje sum"e wsp"o"lczynnik"ow
+w~tym wierszu.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_PrintProfile ( int ncols, const bandm\_profile *prof );}
+Procedura \texttt{pkn\_PrintProfile} wypisuje
+zawarto"s"c tablicy \texttt{prof}, czyli profil macierzy wst"egowej.
+
+
+\newpage
+\section[Obs"luga ,,spakowanych'' macierzy symetrycznych i~tr"ojk"atnych]%
+  {\label{sect:packed:sym:array}%
+   Obs"luga ,,spakowanych'' macierzy \\symetrycznych i~tr"ojk"atnych}
+
+Kwadratowa macierz symetryczna $n\times n$ mo"re by"c reprezentowana
+za pomoc"a $\frac{1}{2}(n+1)n$ liczb, czyli prawie dwa razy mniej
+ni"r macierz dowolna o~tych samych wymiarach. Tak"re macierze
+tr"ojk"atne dolne i~g"orne mog"a by"c reprezentowane bez potrzeby
+przechowywania wsp"o"lczynnik"ow, o~kt"orych wiadomo, "re s"a r"owne~$0$.
+Poni"rej opisane procedury s"lu"r"a do przetwarzania oszcz"ednej
+reprezentacji takich macierzy.
+\begin{figure}[ht]
+  \begin{minipage}{2.2in}
+    \begin{align*}
+      A = \left[\begin{array}{cccc}
+        a_{00} & a_{10} & a_{20} & a_{30} \\
+        a_{10} & a_{11} & a_{21} & a_{31} \\
+        a_{20} & a_{21} & a_{22} & a_{32} \\
+        a_{30} & a_{31} & a_{32} & a_{33}
+      \end{array}\right]
+    \end{align*}
+  \end{minipage}
+  \begin{minipage}{2.7in}
+    \texttt{int n = $4$;} \\
+    \texttt{float a[] = \{$a_{00}$,$a_{10}$,$a_{11}$,$a_{20}$,$a_{21}$,$a_{22}$,} \\
+    \texttt{\ind{13}$a_{30}$,$a_{31}$,$a_{32}$,$a_{33}$\};}
+  \end{minipage}
+  \caption{\label{fig:symmat}Reprezentacja macierzy symetrycznej}
+\vspace{\bigskipamount}
+  \centerline{\begin{minipage}{2.4in}
+    \begin{align*}
+      L = \left[\begin{array}{cccc}
+        l_{00} & 0 & 0 & 0 \\
+        l_{10} & l_{11} & 0 & 0 \\
+        l_{20} & l_{21} & l_{22} & 0 \\
+        l_{30} & l_{31} & l_{32} & l_{33}
+      \end{array}\right]
+    \end{align*}
+  \end{minipage}
+  \begin{minipage}{2.4in}
+    \begin{align*}
+      L^T = \left[\begin{array}{cccc}
+        l_{00} & l_{10} & l_{20} & l_{30} \\
+        0 & l_{11} & l_{21} & l_{31} \\
+        0 & 0 & l_{22} & l_{32} \\
+        0 & 0 & 0 & l_{33}
+      \end{array}\right]
+    \end{align*}
+  \end{minipage}}
+
+\vspace{\medskipamount}
+  \centerline{\begin{minipage}{3.6in}
+    \texttt{int n = $4$;} \\
+    \texttt{float l[] = \{$l_{00}$,$l_{10}$,$l_{11}$,$l_{20}$,$l_{21}$,$l_{22}$,%
+    $l_{30}$,$l_{31}$,$l_{32}$,$l_{33}$\};}
+  \end{minipage}}
+  \caption{\label{fig:trmat}Reprezentacja macierzy tr"ojk"atnych}
+\end{figure}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define pkn\_SymMatIndex(i,j) \bsl \\
+\ind{2}( (i) >= (j) ?\ (i)*((i)+1)/2+(j) :\ (j)*((j)+1)/2+(i) )}
+Makro \texttt{pkn\_SymMatIndex} s"lu"ry do obliczania indeksu wsp"o"lczynnika
+$a_{ij}$ macierzy symetrycznej~$A$ w~tablicy, w~kt"orej s"a przechowywane
+jej wsp"o"lczynniki. Jednocze"snie jest to indeks wsp"o"lczynnika $l_{ij}$
+macierzy tr"ojk"atnej dolnej~$L$, je"sli $i\geq j$ (w~przeciwnym razie
+$l_{ij}=0$).
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_CholeskyDecompf ( int n, float *a );}
+Procedura \texttt{pkn\_CholeskyDecompf} dokonuje rozk"ladu macierzy
+symetrycznej dodatnio okre"slonej~$A$ (tj.\ takiej, "re $A^T=A$ oraz
+$\forall_{\bm{x}\neq\bm{0}}\,\bm{x}^TA\bm{x}>0$) na czynniki tr"ojk"atne:
+$A=LL^T$. Wsp"o"lczynniki macierzy tr"ojk"atnej dolnej~$L$ s"a umieszczane
+w~tablicy~\texttt{a}, w~kt"orej pocz"atkowo znajduj"a si"e wsp"o"lczynniki
+macierzy~$A$.
+
+Parametr \texttt{n} okre"sla wymiary macierzy. Warto"sci"a procedury jest
+\texttt{true}, je"sli rozk"lad zosta"l dokonany z~powodzeniem, za"s
+\texttt{false}, je"sli w~trakcie oblicze"n okaza"lo si"e, "re macierz~$A$
+nie jest dodatnio okre"slona. W~tym przypadku zawarto"s"c tablicy~\texttt{a}
+jest nieokre"slona.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_SymMatrixMultf ( int n, const float *a, int spdimen, \\
+\ind{26}int bpitch, const float *b, \\
+\ind{26}int xpitch, float *x ); \\
+void pkn\_LowerTrMatrixMultf ( int n, const float *l, int spdimen, \\
+\ind{30}int bpitch, const float *b, \\
+\ind{30}int xpitch, float *x ); \\
+void pkn\_UpperTrMatrixMultf ( int n, const float *l, int spdimen, \\
+\ind{30}int bpitch, const float *b, \\
+\ind{30}int xpitch, float *x );}
+\begin{sloppypar}
+Procedury \texttt{pkn\_SymMatrixMultf}, \texttt{pkn\_LowerTrMatrixMultf} oraz \\
+\texttt{pkn\_UpperTrMatrixMultf} obliczaj"a iloczyn~$X$ macierzy odpowiednio
+symetrycznej, tr"ojk"atnej dolnej i~tr"ojk"atnej g"ornej (reprezentowanej
+w~opisany wy"rej oszcz"edny spos"ob) $A$ o~wymiarach $n\times n$
+i~macierzy~$B$ o~wymiarach $n\times d$, kt"orej reprezentacja jest ,,pe"lna''.
+\end{sloppypar}
+
+Parametry \texttt{n} i~\texttt{spdimen} okre"slaj"a wymiary $n$ i~$d$ macierzy.
+Parametr~\texttt{a} lub~\texttt{l} jest wska"znikiem tablicy wsp"o"lczynnik"ow
+macierzy~$A$, spakowanych w~,,oszcz"edny'' spos"ob. Parametr~\texttt{b} jest
+wska"znikiem tablicy wsp"o"lczynnik"ow macierzy~$B$, o~podzia"lce \texttt{bpitch}.
+Parametry \texttt{x} i~\texttt{xpitch} to odpowiednio wska"znik i~podzia"lka
+tablicy, w~kt"orej procedura ma umie"sci"c wynik.
+
+\vspace{\medskipamount}
+\noindent
+\textbf{Uwaga.}
+Nie ma specjalnej procedury mno"renia macierzy symetrycznych, poniewa"r
+iloczyn w~og"olno"sci nie jest macierz"a symetryczn"a. Nie ma te"r mno"renia
+dw"och macierzy tr"ojk"atnych dolnych lub tr"ojk"atnych g"ornych, bo p"oki co
+nie mia"lem potrzeby, "reby je napisa"c. W~razie czego mo"rna dokona"c
+konwersji reprezentacji do postaci pe"lnej (za pomoc"a procedur opisanych
+dalej) i~u"ry"c procedur mno"renia macierzy pe"lnych, lub napisa"c w"lasne
+procedury.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_LowerTrMatrixSolvef ( int n, const float *l, int spdimen, \\
+\ind{31}int bpitch, const float *b, \\
+\ind{31}int xpitch, float *x ); \\
+void pkn\_UpperTrMatrixSolvef ( int n, const float *l, int spdimen, \\
+\ind{31}int bpitch, const float *b, \\
+\ind{31}int xpitch, float *x );}
+Procedury \texttt{pkn\_LowerTrMatrixSolvef} i~\texttt{pkn\_UpperTrMatrixSolvef}
+rozwi"azuj"a uk"lady r"owna"n odpowiednio z~macierz"a tr"ojk"atn"a doln"a~$L$
+i~g"orn"a~$L^T$, reprezentowanymi w~,,oszcz"ednej'' postaci, czyli
+efektywnie dokonuj"a mno"renia macierzy prawej strony~$B$ przez macierz
+$L^{-1}$ lub $L^{-T}$.
+
+Parametry~\texttt{n} i~\texttt{spdimen} okre"slaj"a wymiary macierzy
+$L\colon n\times n$ i~$B$ oraz $X\colon n\times d$. Tablice \texttt{l}
+i~\texttt{b} zawieraj"a wsp"o"lczynniki macierzy $L$ i~$B$. Procedury
+wpisuj"a wynik do~tablicy~\texttt{x}. Parametry \texttt{bpitch}
+i~\texttt{xpitch} okre"slaj"a podzia"lki tablic \texttt{b} i~\texttt{x}.
+
+Mo"rna poda"c t"e sam"a tablic"e jako oba parametry: \texttt{b} i~\texttt{x};
+w~tym przypadku wynik oblicze"n b"edzie umieszczony w~tablicy zamiast
+pocz"atkowej zawarto"sci (czyli wektora prawej strony), ale wtedy
+parametry \texttt{bpitch} i~\texttt{xpitch} musz"a mie"c identyczne
+warto"sci. W~razie podania r"o"rnych tablic, zawarto"s"c tablicy~\texttt{b}
+pozostanie niezmieniona.
+
+\vspace{\medskipamount}
+Aby rozwi"aza"c uk"lad r"owna"n liniowych $A\bm{x}=\bm{b}$ z~macierz"a
+symetryczn"a dodatnio okre"slon"a~$A$, mo"rna u"ry"c procedury
+\texttt{pkn\_CholeskyDecompf}, kt"ora obliczy wsp"o"lczynniki macierzy~$L$
+takiej, "re $A=LL^T$, a~nast"epnie rozwi"aza"c uk"lad r"owna"n liniowych
+$L\bm{y}=\bm{b}$ za pomoc"a \texttt{pkn\_LowerTrMatrixSolvef}
+i~$L^T\bm{x}=\bm{y}$ za pomoc"a \texttt{pkn\_UpperTrMatrixSolvef}.
+Ca"le to post"epowanie jest metod"a szybsz"a ni"r u"rycie odpowiedniego
+algorytmu dla macierzy dowolnej (np.\ eliminacji Gaussa lub odbi"c
+Householdera).
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_SymToFullMatrixf ( int n, const float *syma, \\
+\ind{28}int pitch, float *fulla ); \\
+void pkn\_FullToSymMatrixf ( int n, int pitch, const float *fulla, \\
+\ind{28}float *syma ); \\
+\#define pkn\_FullToLTrMatrixf(n,pitch,fulla,ltra) \bsl \\
+\ind{2}pkn\_FullToSymMatrixf(n,pitch,fulla,ltra) \\
+void pkn\_LTrToFullMatrixf ( int n, const float *ltra, \\
+\ind{28}int pitch, float *fulla ); \\
+void pkn\_UTrToFullMatrixf ( int n, const float *utra, \\
+\ind{28}int pitch, float *fulla ); \\
+void pkn\_FullToUTrMatrixf ( int n, int pitch, const float *fulla, \\
+\ind{28}float *utra );}
+Powy"rsze procedury (i~jedno makro) s"lu"r"a do dokonywania konwersji
+macierzy symetrycznych i~tr"ojk"atnych, mi"edzy reprezentacjami
+,,oszcz"ednymi'' i~pe"lnymi.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_ComputeQSQTf ( int m, const float *s, \\
+\ind{24}int n, const float *a, const float *aa, \\
+\ind{24}float *b ); \\
+void pkn\_ComputeQTSQf ( int m, const float *s, \\
+\ind{24}int n, const float *a, const float *aa, \\
+\ind{24}float *b );}
+Procedury \texttt{pkn\_ComputeQSQTf} i~\texttt{pkn\_ComputeQTSQf} obliczaj"a
+odpowiednio iloczyny macierzy
+\begin{align*}
+  QSQ^T \quad\mbox{oraz}\quad Q^TSQ,
+\end{align*}
+gdzie~$S$ jest macierz"a symetryczn"a $m\times m$, reprezentowan"a
+w~postaci spakowanej, za"s macierz~$Q$ jest ortogonalna, $m\times m$.
+Macierz~$Q$ reprezentuje z"lo"renie $n$ odbi"c Householdera, otrzymanych
+podczas rozk"ladu ortogonalno-tr"ojk"atnego macierzy~$A$ o~wymiarach
+$m\times n$, zgodnie z~opisem w~p.~\ref{ssect:QR}.
+
+Parametry~\texttt{m} i~\texttt{n} opisuj"a wymiary macierzy~$S$ i~$A$.
+Tablica~\texttt{s} zawiera wsp"o"lczynniki macierzy~$S$. Tablice~\texttt{a}
+i~\texttt{aa} zawieraj"a reprezentacj"e odbi"c (tj.\ macierzy~$Q$), zgodnie
+z~opisem w~p.~\ref{ssect:QR}. Wsp"o"lczynniki iloczynu macierzy, kt"ory jest
+macierz"a symetryczn"a, s"a wpisywane do tablicy~\texttt{b}.
+Mo"rna poda"c parametry \texttt{b=s}; wtedy wsp"o"lczynniki macierzy~$S$
+zostan"a w~tablicy zast"apione przez wsp"o"lczynniki iloczynu.
+
+Zastosowany w~procedurach algorytm Ortegi-Householdera jest nast"epuj"acy;
+dla ka"rdego kolejnego odbicia, reprezentowanego przez
+macierz~$H_i=I_m-\bm{v}_i\beta_i\bm{v}_i^T$, obliczane s"a kolejno
+dla $i=0,\ldots,n-1$
+\begin{align*}
+  &\mbox{wektor } \bm{u} = B_{i-1}\bm{v}_i\beta_i, \\
+  &\mbox{wektor } \bm{p} = \bm{u}-\bm{v}_i\bm{v}_i^T\bm{u}\beta_i/2, \\
+  &\mbox{macierz } B_i = B_{i-1} - (\bm{v}_i\bm{p}^T+\bm{p}\bm{v}_i^T),
+\end{align*}
+przy czym $B_0=S$, za"s~$\bm{v}_i=\bm{w}_i$, $\beta_i=\gamma_i$
+dla procedury \texttt{pkn\_ComputeQTSQf}, oraz
+$\bm{v}_i=\bm{w}_{n-i-1}$, $\beta_i=\gamma_{n-i-1}$ dla procedury
+\texttt{pkn\_ComputeQSQTf}. Ko"ncowy wynik to macierz $B_{n-1}$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_MatrixLowerTrMultf ( int m, int n, int bpitch, \\
+\ind{10}const float *b, const float *l, int xpitch, float *x );   \\
+void pkn\_MatrixUpperTrMultf ( int m, int n, int bpitch, \\
+\ind{10}const float *b, const float *l, int xpitch, float *x ); \\
+void pkn\_MatrixLowerTrSolvef ( int m, int n, int bpitch, \\
+\ind{10}const float *b, const float *l, int xpitch, float *x ); \\
+void pkn\_MatrixUpperTrSolvef ( int m, int n, int bpitch, \\
+\ind{10}const float *b, const float *l, int xpitch, float *x ); \\
+void pkn\_MatrixLowerTrMultAddf ( int m, int n, int bpitch, \\
+\ind{10}const float *b, const float *l, int xpitch, float *x ); \\
+void pkn\_MatrixUpperTrMultAddf ( int m, int n, int bpitch, \\
+\ind{10}const float *b, const float *l, int xpitch, float *x ); \\
+boolean pkn\_MatrixLowerTrSolveAddf ( int m, int n, int bpitch, \\
+\ind{10}const float *b, const float *l, int xpitch, float *x ); \\
+boolean pkn\_MatrixUpperTrSolveAddf ( int m, int n, int bpitch, \\
+\ind{10}const float *b, const float *l, int xpitch, float *x ); \\
+void pkn\_MatrixLowerTrMultSubf ( int m, int n, int bpitch, \\
+\ind{10}const float *b, const float *l, int xpitch, float *x ); \\
+void pkn\_MatrixUpperTrMultSubf ( int m, int n, int bpitch, \\
+\ind{10}const float *b, const float *l, int xpitch, float *x ); \\
+boolean pkn\_MatrixLowerTrSolveSubf ( int m, int n, int bpitch, \\
+\ind{10}const float *b, const float *l, int xpitch, float *x ); \\
+boolean pkn\_MatrixUpperTrSolveSubf ( int m, int n, int bpitch, \\
+\ind{10}const float *b, const float *l, int xpitch, float *x );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_SymMatSubAATf ( int n, float *b, int m, int pitch\_a, \\
+\ind{25}const float *a );}
+
+
+\newpage
+\section{\label{sect:nrb:sym:array}Obs"luga symetrycznych i~tr"ojk"atnych macierzy \\
+o~nieregularnej wst"edze}
+
+Macierze $n\times n$ symetryczne i~tr"ojk"atne o~nieregularnej wst"edze
+s"a reprezentowane za pomoc"a dw"och tablic: profilu i~tablicy wsp"o"lczynnik"ow.
+Profil jest tablic"a liczb ca"lkowitych o~d"lugo"sci~$n$; jej $i$-ty element
+jest indeksem pierwszego niezerowego wsp"o"lczynnika macierzy w~$i$-tym wierszu
+(wiersze i~kolumny s"a indeksowane od~$0$). Przyk"lady s"a na
+rysunkach~\ref{fig:nrb:sym:array} i~\ref{fig:nrb:tr:array}.
+\begin{figure}[ht]
+  \centerline{\begin{minipage}{2.2in}
+    \begin{align*}
+    \left[\begin{array}{cccccc}
+      a_{00} & a_{10} & & & & \\
+      a_{10} & a_{11} & a_{21} & & a_{41} & \\
+       & a_{21} & a_{22} & a_{32} & a_{42} & \\
+       & & a_{32} & a_{33} & a_{43} & a_{53} \\
+       & a_{41} & a_{42} & a_{43} & a_{44} & a_{54} \\
+       & & & a_{53} & a_{54} & a_{55}
+    \end{array}\right]
+    \end{align*}
+  \end{minipage}
+  \begin{minipage}{2.7in}
+    \texttt{int n = $6$;} \\
+    \texttt{float a[] = \{$a_{00}$,$a_{10}$,$a_{11}$,$a_{21}$,$a_{22}$,$a_{32}$,} \\
+    \texttt{\mbox{} \ \ \ $a_{33}$,$a_{41}$,$a_{42}$,$a_{43}$,$a_{44}$,$a_{53}$,$a_{54}$,$a_{55}$\};} \\
+    \texttt{int prof[] = \{0,0,1,2,1,3\};}
+  \end{minipage}}
+  \caption{\label{fig:nrb:sym:array}Reprezentacja macierzy symetrycznej
+    o~nieregularnej wst"edze}
+  \centerline{\begin{minipage}{2.2in}
+    \begin{align*}
+    \left[\begin{array}{cccccc}
+      l_{00} & & & & & \\
+      l_{10} & l_{11} & & & & \\
+       & l_{21} & l_{22} & & & \\
+       & & l_{32} & l_{33} & &  \\
+       & l_{41} & l_{42} & l_{43} & l_{44} & \\
+       & & & l_{53} & l_{54} & l_{55}
+    \end{array}\right]
+    \end{align*}
+  \end{minipage}
+  \begin{minipage}{2.2in}
+    \begin{align*}
+    \left[\begin{array}{cccccc}
+      l_{00} & l_{10} & & & & \\
+       & l_{11} & l_{21} & & l_{41} & \\
+       & & l_{22} & l_{32} & l_{42} & \\
+       & & & l_{33} & l_{43} & l_{53} \\
+       & & & & l_{44} & l_{54} \\
+       & & & & & l_{55}
+    \end{array}\right]
+    \end{align*}
+  \end{minipage}}
+  \vspace{\medskipamount}
+  \texttt{int n = 6;} \\
+  \texttt{float l[] = \{$l_{00}$,$l_{10}$,$l_{11}$,$l_{21}$,$l_{22}$,$l_{32}$,%
+     $l_{33}$,$l_{41}$,$l_{42}$,$l_{43}$,$l_{44}$,$l_{53}$,$l_{54}$,$l_{55}$\};} \\
+  \texttt{int prof[] = \{0,0,1,2,1,3\};}
+  \caption{\label{fig:nrb:tr:array}Reprezentacja macierzy tr"ojk"atnych
+    o~nieregularnej wst"edze}
+\end{figure}
+
+\vspace{\bigskipamount}
+\cprog{%
+int pkn\_NRBArraySize ( int n, const int *prof );}
+Procedura \texttt{pkn\_NRBArraySize} oblicza d"lugo"s"c tablicy wsp"o"lczynnik"ow
+na podstawie profilu.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_NRBFindRowsf ( int n, const int *prof, const float *a, \\
+\ind{27}float **row );}
+Procedura \texttt{pkn\_NRBFindRowsf} umieszcza w~tablicy \texttt{row}
+o~d"lugo"sci~$n$ wska"zniki pocz"atk"ow wirtualnych wierszy; dost"ep
+do wsp"o"lczynnika $a_{ij}$, daje wyra"renie \texttt{row[i][j]}, ale musi
+by"c spe"lniony warunek $\texttt{prof[i]}\leq\texttt{j}\leq i$.
+
+Opisane ni"rej procedury maj"a parametr \texttt{row}, kt"ory mo"re by"c r"owny
+\texttt{NULL}; wtedy wywo"lywana jest przez nie procedura \texttt{pkn\_NRBFindRowsf}.
+Mo"rna r"ownie"r jednorazowo utworzy"c tablic"e \texttt{row}, wywo"la"c
+\texttt{pkn\_NRBFindRowsf}, a~nast"epnie przekazywa"c j"a jako parametr
+tych procedur. Oszcz"edza to troch"e czasu (ale mo"re si"e to przyda"c
+r"ownie"r w~celu obliczenia wsp"o"lczynnik"ow macierzy przez aplikacj"e).
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_NRBSymCholeskyDecompf ( int n, const int *prof, \\
+\ind{36}float *a, float **row );}
+Procedura \texttt{pkn\_NRBCholeskyDecompf} dokonuje rozk"ladu metod"a Choleskiego
+macierzy symetrycznej dodatnio okre"slonej~$A$ na czynniki tr"ojk"atne $L$ i~$L^T$.
+Wsp"o"lczynniki macierzy~$L$ s"a wpisywane do tablicy~\texttt{a}, w~kt"orej
+zast"epuj"a wsp"o"lczynniki danej macierzy~$A$. Profil macierzy~$L$ jest taki sam
+jak profil~$A$.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_NRBSymMultf ( int n, const int *prof, \\
+\ind{26}const float *a, const float **row, \\
+\ind{26}int spdimen, int xpitch, const float *x, \\
+\ind{26}int ypitch, float *y ); \\
+boolean pkn\_NRBLowerTrMultf ( int n, const int *prof, \\
+\ind{26}const float *a, const float **row, \\
+\ind{26}int spdimen, int xpitch, const float *x, \\
+\ind{26}int ypitch, float *y ); \\
+boolean pkn\_NRBUpperTrMultf ( int n, const int *prof, \\
+\ind{26}const float *a, const float **row, \\
+\ind{26}int spdimen, int xpitch, const float *x, \\
+\ind{26}int ypitch, float *y );}
+Procedury \texttt{pkn\_NRBSymMultf}, \texttt{pkn\_NRBLowerTrMultf}
+i~\texttt{pkn\_NRBUpperTrMultf} obliczaj"a odpowiednio iloczyn
+macierzy symetrycznej, tr"ojk"atnej dolnej lub tr"ojk"atnej g"ornej
+o~nieregularnej wst"edze i~macierzy pe"lnej~$X$.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_NRBLowerTrSolvef ( int n, const int *prof, \\
+\ind{26}const float *l, const float **row, \\
+\ind{26}int spdimen, int bpitch, const float *b, \\
+\ind{26}int xpitch, float *x ); \\
+boolean pkn\_NRBUpperTrSolvef ( int n, const int *prof, \\
+\ind{26}const float *l, const float **row, \\
+\ind{26}int spdimen, int bpitch, const float *b, \\
+\ind{26}int xpitch, float *x );}
+Procedury \texttt{pkn\_NRBLowerTrSolvef} i~\texttt{pkn\_NRBUpperTrSolvef}
+rozwi"azuj"a odpowiednio uk"lad r"owna"n liniowych z~macierz"a tr"ojk"atn"a
+doln"a lub g"orn"a o~nieregularnej wst"edze.
+
+%\vspace{\bigskipamount}
+\newpage
+\cprog{%
+boolean pkn\_NRBSymFindEigenvalueIntervalf ( int n, const int *prof, \\
+\ind{40}float *a, float **row, \\
+\ind{40}float *amin, float *amax );}
+Procedura \texttt{pkn\_NRBSymFindEigenvalueIntervalf} znajduje,
+na podstawie twierdzenia Gershgorina, przedzia"l, w~kt"orym znajduj"a
+si"e wszystkie warto"sci w"lasne macierzy symetrycznej o nieregularnej
+wst"edze.
+
+Parametry \texttt{n}, \texttt{prof}, \texttt{a} i~\texttt{row} reprezentuj"a
+macierz.
+
+Parametry \texttt{amin}, \texttt{amax} s"a wska"znikami do zmiennych,
+kt"orym procedura ma przypisa"c znalezione liczby.
+
+Warto"s"c powrotna \texttt{true} oznacza sukces, \texttt{false} ---
+pora"rk"e, kt"ora mo"re by"c spowodowana brakiem pami"eci, je"sli
+parametr \texttt{row} ma warto"s"c \texttt{NULL} i~procedura
+musi sama utworzyc tablic"e wska"znik"ow wierszy na podstawie profilu
+(b"l"ad mo"re by"c wtedy wykryty przez procedur"e
+\texttt{pkn\_NRBFindRowsf}).
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_NRBComputeQTSQf ( int n, int *prof, float *Amat, \\
+\ind{30}float **Arows, \\
+\ind{30}int w, float *Bmat, float *bb, \\
+\ind{30}int *qaprof, float **QArows ); \\
+boolean pkn\_NRBComputeQSQTf ( int n, int *prof, float *Amat, \\
+\ind{30}float **Arows, \\
+\ind{30}int w, float *Bmat, float *bb, \\
+\ind{30}int *qaprof, float **QArows );}
+Danymi dla powy"rej opisanych procedur s"a: macierz symetryczna~$S$
+o~wymiarach $n\times n$ i~o~nieregularnej wst"edze, oraz macierz
+ortogonalna~$Q$, reprezentowana w~postaci ci"agu~$w$ odbi"c Householdera
+przestrzeni~$\R^n$ (gdzie~$w<n$). Macierz~$Q$ mo"re by"c otrzymana
+z~rozk"ladu ortogonalno-tr"ojk"atnego macierzy~$B$ o~wymiarach $n\times w$,
+za pomoc"a procedury \texttt{pkn\_QRDecomposeMatrixf}.
+
+Zadaniem procedury \texttt{pkn\_NRBComputeQTSQf} jest obliczenie macierzy
+$C=Q^TSQ$.
+
+Zadaniem procedury \texttt{pkn\_NRBComputeQSQTf} jest obliczenie macierzy
+$D=QSQ^T$.
+
+W~obu przypadkach wynik oblicze"n jest reprezentowany jako macierz
+sy\-met\-rycz\-na o~nieregularnej wst"edze.
+
+Parametry wej"sciowe: \texttt{n}, \texttt{prof}, \texttt{Amat},
+\texttt{Arows} --- reprezentacja macierzy~$S$. \\
+\textbf{Uwaga:} w~obecnej wersji parametr \texttt{Arows} nie mo"re by"c
+wska"znikiem pustym, musi wskazywa"c tablic"e $n$~wska"znik"ow wirtualnych
+wierszy.
+
+Parametry \texttt{n}, \texttt{w}, \texttt{Bmat}, \texttt{bb} reprezentuj"a
+macierz~$Q$ w~spos"ob opisany w~p.~\ref{ssect:QR}. Liczba~$w$ jest liczb"a
+odbi"c, kolumny macierzy w~tablicy~\texttt{Bmat} zawieraj"a wsp"o"lrz"edne
+wektor"ow normalnych hiperp"laszczyzn odbi"c~$\bm{w}_i$
+(opr"ocz pocz"atkowych zerowych i~pierwszego niezerowego),
+w~tablicy~\texttt{bb} s"a podane pierwsze niezerowe wsp"o"lrz"edne
+wektor"ow~$\bm{w}_i$ i~liczby~$\gamma_i$.
+
+Parametry wyj"sciowe: \texttt{qaprof} --- wska"znik do tablicy
+o~d"lugo"sci~$n$, w~kt"orej zostanie umieszczony profil macierzy~$C$
+albo~$D$ (tablica ta ma by"c zaalokowana przez program przed wywo"laniem
+procedury), \texttt{QArows} --- wska"znik do tablicy o~d"lu\-go"s\-ci~$n$,
+w~kt"orej zostan"a umieszczone wska"zniki wirtualnych wierszy
+macierzy wynikowej. Wsp"o"lczynniki tej macierzy s"a umieszczone
+w~tablicy zarezerwowanej przy u"ryciu procedury \texttt{malloc};
+adres pocz"atku tej tablicy (do zdealokowania za pomoc"a \texttt{free})
+jest adresem pierwszego wirtualnego wiersza.
+
+Warto"s"c \texttt{true} procedury oznacza sukces, warto"s"c \texttt{false}
+pora"rk"e, kt"ora mo"re by"c spowodowana brakiem dostatecznej
+pami"eci w~puli pami"eci pomocniczej lub w~stercie obs"lugiwanej
+przez \texttt{malloc} i~\texttt{free}.
+
+\textbf{Uwaga:} w~zastosowaniach praktycznych bardziej po"ryteczne mog"a
+si"e okaza"c opisane ni"rej procedury \texttt{pkn\_NRBComputeQTSQblf}
+i~\texttt{pkn\_NRBComputeQSQTblf}, kt"ore rozwi"azuj"a te same zadania,
+ale tworz"a reprezentacj"e wyniku podzielonego na bloki.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_NRBComputeQTSQblf ( int n, int *prof, float *Amat, \\
+\ind{32}float **Arows, \\
+\ind{32}int w, float *Bmat, float *bb, \\
+\ind{32}int *qa11prof, float **QA11rows, \\
+\ind{32}int *qa22prof, float **QA22rows, \\
+\ind{32}float **QA21 ); \\
+boolean pkn\_NRBComputeQSQTblf ( int n, int *prof, float *Amat, \\
+\ind{32}float **Arows, \\
+\ind{32}int w, float *Bmat, float *bb, \\
+\ind{32}int *qa11prof, float **QA11rows, \\
+\ind{32}int *qa22prof, float **QA22rows, \\
+\ind{32}float **QA21 );}
+Danymi dla powy"rej opisanych procedur s"a: macierz symetryczna~$S$
+o~wymiarach $n\times n$ i~o~nieregularnej wst"edze, oraz macierz
+ortogonalna~$Q$, reprezentowana w~postaci ci"agu~$w$ odbi"c Householdera
+przestrzeni~$\R^n$ (gdzie~$w<n$). Macierz~$Q$ mo"re by"c otrzymana
+z~rozk"ladu ortogonalno-tr"ojk"atnego macierzy~$B$ o~wymiarach $n\times w$,
+za pomoc"a procedury \texttt{pkn\_QRDecomposeMatrixf}.
+
+Zadaniem procedury \texttt{pkn\_NRBComputeQTSQblf} jest obliczenie blok"ow
+macierzy $C=Q^TSQ$.
+
+Zadaniem procedury \texttt{pkn\_NRBComputeQSQTblf} jest obliczenie blok"ow
+macierzy $D=QSQ^T$.
+
+Wynik, np.\ macierz~$C$, sk"lada si"e z~blok"ow:
+\begin{align*}
+  C = \left[\begin{array}{cc}
+     C_{11} & C_{21}^T \\ C_{21} & C_{22}
+  \end{array}\right].
+\end{align*}
+Bloki $C_{11}$ i~$C_{22}$, o~wymiarach odpowiednio $w\times w$
+i~$n-w\times n-w$, s"a macierzami symetrycznymi i~s"a reprezentowane
+jako macierze o~nieregularnej wst"edze. Blok~$C_{21}$ o~wymiarach
+$n-w\times w$ jest reprezentowany jako macierz pe"lna.
+
+Parametry wej"sciowe s"a identyczne, jak dla dw"och procedur
+opisanych poprzednio: \texttt{n}, \texttt{prof}, \texttt{Amat},
+\texttt{Arows} --- reprezentacja macierzy~$S$. \\
+\textbf{Uwaga:} w~obecnej wersji parametr \texttt{Arows} nie mo"re by"c
+wska"znikiem pustym, musi wskazywa"c tablic"e $n$~wska"znik"ow wirtualnych
+wierszy.
+
+Parametry \texttt{n}, \texttt{w}, \texttt{Bmat}, \texttt{bb} reprezentuj"a
+macierz~$Q$ w~spos"ob opisany w~p.~\ref{ssect:QR}. Liczba~$w$ jest liczb"a
+odbi"c, kolumny macierzy w~tablicy~\texttt{Bmat} zawieraj"a wsp"o"lrz"edne
+wektor"ow normalnych hiperp"laszczyzn odbi"c~$\bm{w}_i$
+(opr"ocz pocz"atkowych zerowych i~pierwszego niezerowego),
+w~tablicy~\texttt{bb} s"a podane pierwsze niezerowe wsp"o"lrz"edne
+wektor"ow~$\bm{w}_i$ i~liczby~$\gamma_i$.
+
+
+Parametry wyj"sciowe: \texttt{qa11prof} i~\texttt{qa22prof} --- wska"zniki
+do tablicy o~d"lugo"sciach odpowiednio~$w$ i~$n-w$, w~kt"orych zostan"a
+umieszczone profile macierzy~$C_{11}$ i~$C_{22}$
+(tablice ta maj"a by"c zaalokowane przez program przed wywo"laniem
+procedury), \texttt{QA11rows} i~\texttt{QA22rows}--- wska"zniki do tablic
+o~d"lu\-go"s\-ciach~$w$ i~$n-w$, w~kt"orych zostan"a umieszczone wska"zniki
+wirtualnych wierszy macierzy $C_{11}$ i~$C_{22}$.
+Parametr~\texttt{QA21} jest adresem zmiennej, kt"ora otrzyma warto"s"c
+wskazuj"ac"a tablic"e ze wsp"o"lczynnikami bloku~$C_{12}$ (reprezentowan"a
+wiersz po wierszu, bez przerw).
+
+Wszystkie wsp"o"lczynniki macierzy wynikowej s"a umieszczone
+w~tablicy zarezerwowanej przy u"ryciu procedury \texttt{malloc};
+adres pocz"atku tej tablicy (do zdealokowania za pomoc"a \texttt{free})
+jest adresem pierwszego wirtualnego wiersza bloku $C_{11}$.
+
+Warto"s"c \texttt{true} procedury oznacza sukces, warto"s"c \texttt{false}
+pora"rk"e, kt"ora mo"re by"c spowodowana brakiem dostatecznej
+pami"eci w~puli pami"eci pomocniczej lub w~stercie obs"lugiwanej
+przez \texttt{malloc} i~\texttt{free}.
+
+
+\newpage
+\section{\label{sect:block:sym:array}Obs"luga blokowych macierzy symetrycznych}
+
+\subsection{Macierze o strukturze blokowej pierwszego rodzaju}
+
+\begin{sloppypar}
+Procedury wype"lniania wielok"atnych otwor"ow w~bibliotece \texttt{libg2hole}
+musz"a roz\-wi"a\-zywa"c uk"lady r"owna"n liniowych z~symetrycznymi
+macierzami dodatnio okre"slonymi o~strukturze blokowej --- z~blokami zerowymi
+poza diagonal"a i~ostatnim wierszem oraz kolumn"a. Przyk"lad takiej macierzy
+jest na rysunku~\ref{fig:block:sympos}%
+\end{sloppypar}
+\begin{figure}[ht]
+  \begin{align*}
+    \left[\begin{array}{cccc}
+      A_{00} & & & A_{30}^T \\
+      & A_{11} & & A_{31}^T \\
+      & & A_{22} & A_{32}^T \\
+      A_{30} & A_{31} & A_{32} & A_{33} 
+    \end{array}\right] \qquad
+    \left[\begin{array}{cccc}
+      L_{00} & & & \\
+      & L_{11} & & \\
+      & & L_{22} & \\
+      L_{30} & L_{31} & L_{32} & L_{33} 
+    \end{array}\right]
+  \end{align*}
+  \caption{\label{fig:block:sympos}Struktura symetrycznej macierzy blokowej i~blokowej macierzy tr"ojk"atnej dolnej}
+\end{figure}
+
+Struktura macierzy jest okre"slona za pomoc"a trzech liczb.
+Pierwsza ($k$) jest liczb"a blok"ow na diagonali bez ostatniego,
+druga ($r$) okre"sla wymiary tych blok"ow,
+a~trzecia ($s$) okre"sla wymiary ostatniego bloku na diagonali.
+Macierz ma zatem wymiary $(kr+s)\times(kr+s)$.
+
+Wsp"o"lczynniki takiej macierzy s"a przechowywane w~tablicy~\texttt{A}.
+Bloki diagonalne s"a reprezentowane w~,,spakowanej'' postaci, opisanej
+w~poprzednim punkcie, bloki poddiagonalne w~postaci pe"lnej.
+Tablica~\texttt{A} musi mie"c zatem d"lugo"s"c $kr(r+1)/2+s(s+1)/2+krs$.
+
+Wi"ekszo"s"c oblicze"n procedury opisane ni"rej wykonuj"a wywo"luj"ac
+procedury obs"lugi macierzy pe"lnych i~,,spakowanych'' macierzy
+symetrycznych.
+
+\vspace{\bigskipamount}
+\cprog{%
+int pkn\_Block1ArraySize ( int k, int r, int s ); \\
+int pkn\_Block1FindBlockPos ( int k, int r, int s, int i, int j ); \\
+int pkn\_Block1FindElemPos ( int k, int r, int s, int i, int j );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_Block1CholeskyDecompMf ( int k, int r, int s, \\
+\ind{29}float *A );}
+\begin{sloppypar}
+Procedura \texttt{pkn\_Block1CholeskyDecompMf} dokonuje rozk"ladu
+macierzy blokowej~$A$ na czynniki tr"ojk"atne $L$ i~$L^T$.
+Wsp"o"lczynniki macierzy tr"ojk"atnej dolnej~$L$ s"a wstawiane do
+tablicy~\texttt{A} na miejsca zajmowane pocz"atkowo przez wsp"o"lczynniki
+macierzy~$A$. Jest to mo"rliwe, poniewa"r macierz~$L$ ma bloki zerowe tam,
+gdzie macierz~$A$ ma bloki zerowe.%
+\end{sloppypar}
+
+Warto"sci"a procedury jest \texttt{true}, je"sli obliczenie zako"nczy"lo
+si"e sukcesem, a~\texttt{false} w~przeciwnym razie. Przyczyn"a
+niepowodzenia mo"re by"c brak dodatniej okre"slono"sci macierzy~$A$,
+lub tak z"le jej uwarunkowanie, "re skutki b"l"ed"ow zaokr"agle"n
+wygl"adaj"a, jakby macierz ta nie by"la dodatnio okre"slona.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_Block1LowerTrMSolvef ( int k, int r, int s, \\
+\ind{13}const float *A, \\
+\ind{13}int spdimen, int xpitch, float *x ); \\
+void pkn\_Block1UpperTrMSolvef ( int k, int r, int s, \\
+\ind{13}const float *A, \\
+\ind{13}int spdimen, int xpitch, float *x );}
+Powy"rsze procedury rozwi"azuj"a uk"lady r"owna"n liniowych odpowiednio
+$L\bm{x}=\bm{b}$ i~$L^T\bm{x}=\bm{b}$. Prawa strona uk"ladu i~rozwi"azanie
+to macierze o~wymiarach $n\times d$ (gdzie $n=kr+s$). Procedury zast"epuj"a
+wsp"o"lczynniki prawej strony dane w~tablicy~\texttt{x} o~podzia"lce
+\texttt{xpitch} przez wsp"o"lczynniki rozwi"azania.
+
+Aby rozwi"aza"c uk"lad r"owna"n z~macierz"a blokow"a~$A$, nale"ry najpierw
+dokona"c jej rozk"ladu na czynniki (za~pomoc"a procedury
+\texttt{pkn\_Block1CholeskyDecompMf}), a~nast"epnie wywo"la"c kolejno
+powy"rsze dwie procedury.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_Block1SymMatrixMultf ( int k, int r, int s, \\
+\ind{32}float *A, \\
+\ind{32}int spdimen, int xpitch, float *x, \\
+\ind{32}int ypitch, float *y );}
+Procedura~\texttt{pkn\_Block1SymMatrixMultf} oblicza iloczyn macierzy:
+$\bm{y}=A\bm{x}$, gdzie macierz~$A$ jest blokowa symetryczna $n\times n$
+(gdzie $n=kr+s$), a~macierz~$\bm{x}$ (oraz~$\bm{y}$) jest pe"lna, o~wymiarach
+$n\times d$. Tablica~\texttt{x} zawiera wsp"o"lczynniki macierzy~$\bm{x}$.
+Do tablicy~\texttt{y} procedura wpisuje wynik. Podzia"lki tych tablic
+(tj.\ odleg"lo"sci pocz"atk"ow kolejnych wierszy) s"a r"owne odpowiednio
+\texttt{xpitch} i~\texttt{ypitch}. Parametr \texttt{spdimen} ma warto"s"c~$d$.
+
+
+\newpage
+\subsection{Macierze o strukturze blokowej drugiego rodzaju}
+
+\begin{sloppypar}
+Struktura blokowa drugiego rodzaju obs"lugiwanego przez bibliotek"e
+\texttt{libpknum} jest przedstawiona na rysunku~\ref{fig:Block2:matrix}.
+Macierze takie s"a symetryczne i~sk"ladaj"a si"e z~$2k+\nobreak 1\times 2k+1$ blok"ow,
+gdzie $k\geq 3$.%
+\end{sloppypar}
+\begin{figure}[ht]
+\newcommand{\BBox}{\rule[-2.5mm]{0mm}{5mm}\raisebox{0pt}[4mm][0pt]{\framebox[5.1mm]{\rule{0mm}{2.7mm}}}}
+\newcommand{\zddots}{\mbox{\raisebox{0pt}[0pt][0pt]{$\ddots$}}}
+\newcommand{\zvdots}{\mbox{\raisebox{0pt}[0pt][0pt]{$\vdots$}}}
+\begin{align*}
+\left[\begin{array}{c@{\;\,}c@{\;\,}c@{\;\,}c@{\;\,}c@{\;\,}c|c@{\;\,}c@{\;\,}c@{\;\,}c@{\;\,}c@{\;\,}c|c}
+\BBox & & & & & & \BBox & \BBox & & & & & \BBox \\
+ & \BBox & & & & & & \BBox & \BBox & & & & \BBox \\
+ & & \BBox & & & & & & \BBox & \zddots & & & \BBox \\
+ & & & \zddots & & & & & & \zddots & \zddots & & \zvdots \\
+ & & & & \BBox & & & & & & \BBox & \BBox & \BBox \\
+ & & & & & \BBox & \BBox & & & & & \BBox & \BBox \\ \hline
+\rule{0mm}{6mm}\BBox & & & & & \BBox & \BBox & \BBox & & & & \BBox & \BBox \\
+\BBox & \BBox & & & & & \BBox & \BBox & \BBox & & & \BBox & \BBox \\
+ & \BBox & \BBox & & & & & \BBox & \BBox & \zddots & & \BBox & \BBox \\
+ & & \zddots & \zddots & & & & & \zddots & \zddots & \zddots & \zvdots & \zvdots \\
+ & & & \zddots & \BBox & & & & & \zddots & \BBox & \BBox & \BBox \\
+ & & & & \BBox & \BBox & \BBox & \BBox & \BBox & \ldots & \BBox & \BBox & \BBox \\ \hline
+\rule{0mm}{6mm}\BBox & \BBox & \BBox & \makebox[5.1mm][c]{$\ldots$} & \BBox & \BBox & \BBox & \BBox  & \BBox & \makebox[5.1mm][c]{$\ldots$} & \BBox & \BBox & \BBox
+\end{array}\right]
+\end{align*}
+\caption{\label{fig:Block2:matrix}Struktura blokowa drugiego rodzaju
+macierzy symetrycznej}
+\end{figure}
+
+Bloki niezerowe s"a rozmieszczone jak na rysunku, przy czym
+wiersze i~kolumny blok"ow s"a numerowane od~$0$ do $2k$:
+\begin{itemize}
+  \item Bloki $A_{00},\ldots,A_{k-1,k-1}$ maj"a wymiary $r\times r$.
+  \item Bloki $A_{kk},\ldots,A_{2k-1,2k-1}$ maj"a wymiary $s\times s$.
+  \item Blok $A_{2k,2k}$ ma wymiary $t\times t$.
+\end{itemize}
+Je"sli macierz~$A$ jest dodatnio okre"slona, to macierz tr"ojk"atna dolna~$L$,
+taka "re $LL^T=A$, ma zerowe bloki odpowiadaj"ace zerowym blokom macierzy~$A$.
+
+Ca"la macierz ma zatem wymiary $k(r+s)+t\times k(r+s)+t$. Do zapami"etania
+jej dolnego tr"ojk"ata potrzeba:
+\begin{itemize}
+  \item $k\cdot\frac{1}{2}(r+1)r$ liczb dla blok"ow diagonalnych
+    $A_{00},\ldots,A_{k-1,k-1}$,
+  \item $k\cdot\frac{1}{2}(s+1)s$ liczb dla blok"ow diagonalnych
+    $A_{kk},\ldots,A_{2k-1,2k-1}$,
+  \item $\frac{1}{2}(t+1)t$ liczb dla bloku diagonalnego $A_{2k,2k}$,
+  \item \raggedright
+    $2k\cdot rs$ liczb dla blok"ow $A_{k,k-1},A_{k,0},A_{k+1,k},A_{k+1,k+1},%
+    \ldots,\allowbreak A_{2k-1,2k-2},$ \\ $A_{2k-1,2k-1}$,
+  \item $(2k-3)\cdot s^2$ liczb dla blok"ow $A_{k+1,k},\ldots,A_{2k-2,2k-3}$
+    oraz $A_{2k-1,k},\ldots,A_{2k-1,2k-2}$.
+  \item $k\cdot(r+s)t$ liczb dla blok"ow $A_{2k,0},\ldots,A_{2k,2k-1}$.
+\end{itemize}
+W~sumie trzeba zarezerwowa"c tablic"e o~d"lugo"sci
+\begin{align*}
+k\Bigl(\frac{1}{2}(r+1)r+\frac{1}{2}(s+1)s+(r+s)(t+2s)\Bigr)+\frac{1}{2}(t+1)t-3s^2.
+\end{align*}
+
+
+\subsubsection*{Obliczanie indeks"ow pocz"atk"ow blok"ow}
+
+Maj"ac dane indeksy $i,j\in\{0,\ldots,2k\}$, gdzie $i\geq j$, nale"ry
+obliczy"c indeks~$p$ pierwszego elementu bloku $A_{ij}$ w~tablicy.
+\begin{enumerate}
+  \item Je"sli $i=j<k$, to $p=i\frac{1}{2}(r+1)r$.
+  \item Je"sli $k\leq i=j<2k$, to $p=k\frac{1}{2}(r+1)r+i\frac{1}{2}(s+1)s$.
+  \item Je"sli $i=j=2k$, to $p=\frac{1}{2}k\LP(r+1)r+(s+1)s\RP$.
+  \item Niech $N_1=\frac{1}{2}\LP k(r+1)r+k(s+1)s+(t+1)t\RP$.
+
+    Je"sli $k\leq i<2k$, $0\leq j<k$ oraz $i-j\bmod k\in\{0,1\}$, to \\
+    $p=N_1+\LP 2(i-k)+1-(i-j)\bmod k\RP rs.$
+  \item Niech $N_2=N_1+2krs$.
+
+    Je"sli $k<i<2k-1$ oraz $j=i-1$, to $p=N_2+(i-k-1)s^2$.
+  \item Je"sli $i=2k-1$ oraz $k\leq j<2k-2$, to $p=N2+(j-2)s^2$.
+  \item Niech $N_3=N_2+(2k-3)s^2$.
+
+    Je"sli $i=2k$ oraz $j<k$, to $p=N_3+jrt$.
+  \item Je"sli $i=2k$ oraz $k\leq j<2k$, to $p=N_3+krt+(j-k)st$.
+  \item W~przeciwnym razie blok $A_{ij}$ jest blokiem zerowym, kt"orego
+    wsp"o"lczynniki nie s"a przechowywane w~tablicy.
+\end{enumerate}
+Dla blok"ow diagonalnych s"a przechowywane tylko elementy na i~pod diagonal"a.
+Elementy blok"ow poddiagonalnych s"a przechowywane wiersz po wierszu.
+
+
+\subsubsection*{Rozk"lad tr"ojk"atny macierzy symetrycznej~$A$}
+
+Je"sli macierz~$L$ jest tr"ojk"atna dolna i~sk"lada si"e
+z~blok"ow $L_{i,j}$ (tj.\ dla $i<j$ blok $L_{i,j}$ jest zerowy),
+to macierz~$A=LL^T$ sk"lada si"e z~blok"ow
+\begin{align*}
+  A_{i,j} = \sum_{l=0}^jL_{i,l}L_{l,j}^T.
+\end{align*}
+
+Bloki macierzy~$L$ mo"rna obliczy"c przy u"ryciu nast"epuj"acego algorytmu: \\
+Kolejno dla $i=0,\ldots,2k$ oblicz (metod"a Choleskiego) blok tr"ojk"atny dolny
+$L_{i,i}$, taki "re $L_{i,i}L_{i,i}^T=A_{i,i}-\sum_{l=0}^{i-1}L_{i,l}L_{i,l}^T$,
+a~nast"epnie dla $j=i+1,\ldots,2k$ oblicz blok
+$L_{j,i} = (A_{j,i}-\sum_{l=0}^{i-1}L_{j,l}L_{i,l}^T)L_{i,i}^{-T}$.
+
+\vspace{\bigskipamount}
+
+Dla macierzy~$A$ o~rozpatrywanej strukturze wystarczy obliczy"c
+\begin{enumerate}
+  \item Dla $i=0,\ldots,k-1$ macierz $L_{i,i}$ tak"a "re $L_{i,i}L_{i,i}^T=A_{i,i}$, \\
+    a~nast"epnie $L_{j,i}=A_{j,i}L_{i,i}^{-T}$, gdzie $j\in\{i+k,i+(k+1)\bmod k,2k\}$.
+  \item Macierz $L_{k,k}$, tak"a "re
+    $L_{k,k}L_{k,k}^T=A_{k,k}-L_{k,0}L_{k,0}^T-L_{k,k-1}L_{k,k-1}^T$, \\ a~nast"epnie
+    $L_{k+1,k}$, $L_{2k-1,k}$ i~$L_{2k,k}$.
+  \item Dla $i=k+1,\ldots,2k-3$ macierz $L_{i,i}$ tak"a, "re \\
+    $L_{i,i}L_{i,i}^T=A_{i,i}-L_{i,i-k-1}L_{i,i-k-1}^T-L_{i,i-k}L_{i,i-k}^T-L_{i,i-1}L_{i,i-1}^T$, \\
+    a~nast"epnie $L_{i+1,i}$, $L_{2k-1,i}$ i~$L_{2k,i}$.
+  \item Macierz $L_{2k-2,2k-2}$, tak"a "re \\
+    $L_{2k-2,2k-2}L_{2k-2,2k-2}^T=A_{2k-2,2k-2}$ \\
+    $-L_{2k-2,k-3}L_{2k-2,k-3}^T-L_{2k-2,k-2}L_{2k-2,k-2}^T-L_{2k-2,2k-3}L_{2k-2,2k-3}^T$, \\
+    a~nast"epnie $L_{2k-1,2k-2} =$ \\
+    $(A_{2k-1,2k-2}-L_{2k-1,k-2}L_{2k-2,k-2}^T-L_{2k-1,2k-3}L_{2k-2,2k-3}^T)L_{2k-2,2k-2}^{-T}$ \\
+    i~$L_{2k,2k-2}=
+    (A_{2k,2k-2}-L_{2k,k-2}L_{2k-2,k-2}^T-L_{2k,2k-3}L_{2k-2,2k-3}^T)L_{2k-2,2k-2}^{-T}$.
+  \item Macierz $L_{2k-1,2k-1}$, tak"a "re \\
+    $L_{2k-1,2k-1}L_{2k-1,2k-1}^T=A_{2k-1,2k-1}-\sum_{l=k-2}^{2k-2}L_{2k-1,l}L_{2k-1,l}^T$, \\
+    a~nast"epnie $L_{2k,2k-1} = (A_{2k,2k-1}-\sum_{l=k-2}^{2k-2}L_{2k,l}L_{2k-1,l}^T)L_{2k-1,2k-1}^{-T}$.
+  \item Macierz $L_{2k,2k}$, tak"a "re
+    $L_{2k,2k}L_{2k,2k}^T=A_{2k,2k}-\sum_{l=0}^{2k-1}L_{2k,l}L_{2k,l}^T$.
+\end{enumerate}
+
+\subsubsection*{Procedury}
+
+\vspace{\bigskipamount}
+\cprog{%
+int pkn\_Block2ArraySize ( int k, int r, int s, int t ); \\
+int pkn\_Block2FindBlockPos ( int k, int r, int s, int t, \\
+\ind{29}int i, int j ); \\
+int pkn\_Block2FindElemPos ( int k, int r, int s, int t, \\
+\ind{29}int i, int j );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_Block2CholeskyDecompMf ( int k, int r, int s, int t, \\
+\ind{37}float *A );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_Block2LowerTrMSolvef ( int k, int r, int s, int t, \\
+\ind{30}const float *L, \\
+\ind{30}int spdimen, int xpitch, float *x ); \\
+void pkn\_Block2UpperTrMSolvef ( int k, int r, int s, int t, \\
+\ind{30}const float *L, \\
+\ind{30}int spdimen, int xpitch, float *x );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_Block2SymMatrixMultf ( int k, int r, int s, int t, \\
+\ind{26}float *A, \\
+\ind{26}int spdimen, int xpitch, const float *x, \\
+\ind{26}int ypitch, float *y );}
+
+
+\newpage
+\subsection{Macierze o~strukturze blokowej trzeciego rodzaju}
+
+Struktura blokowa trzeciego rodzaju (Block3) r"o"rni si"e od struktury
+pierwszego rodzaju obecno"sci"a niezerowych blok"ow kodiagonalnych.
+Macierz symetryczn"a i~dodatnio okre"slon"a o~takiej strukturze mo"rna
+roz"lo"ry"c na czynniki tr"ojk"atne $A=LL^T$, 
+przyk"lad jest na rysunku~\ref{fig:block3:sympos}.
+\begin{figure}[ht]
+  \begin{align*}
+    \left[\begin{array}{ccccc}
+      A_{00} & A_{10}^T & & & A_{40}^T \\
+      A_{10} & A_{11} & A_{21}^T & & A_{41}^T \\
+      & A_{21} & A_{22} & A_{32}^T & A_{42}^T \\
+      & & A_{32} & A_{33} & A_{43}^T \\
+      A_{40} & A_{41} & A_{42} & A_{43} & A_{44}
+    \end{array}\right] \qquad
+    \left[\begin{array}{ccccc}
+      L_{00} & & & & \\
+      L_{10} & L_{11} & & & \\
+      & L_{21} & L_{22} & & \\
+      & & L_{32} & L_{33} & \\
+      L_{40} & L_{41} & L_{42} & L_{43} & L_{44}
+    \end{array}\right]
+  \end{align*}
+  \caption{\label{fig:block3:sympos}Struktura symetrycznej macierzy blokowej trzeciego rodzaju}
+  \centerline{i~blokowej macierzy tr"ojk"atnej dolnej}
+\end{figure}
+Macierz jest podzielona na $(k+1)\times(k+1)$ blok"ow, w~wierszach i~kolumnach
+numerowanych od~$0$ do~$k$. Bloki w~kolumnach $0,\ldots,k-1$ maj"a $r$~kolumn,
+bloki w~kolumnie~$k$ maj"a $s$~kolumn. Bloki w~wierszach $0,\ldots,k-1$
+maj"a $r$~wierszy, bloki w~wierszu~$k$ maj"a $s$ wierszy.
+Je"sli $k=2$, to taka macierz jest pe"lna, ale kolejno"s"c wsp"o"lczynnik"ow
+w~tablicy u"rytej do ich przechowywania jest specyficzna.
+
+Symetryczne bloki diagonalne $A_{00},\ldots,A_{kk}$ s"a reprezentowane
+w~postaci spakowanej (tylko dolny tr"ojk"at, zobacz
+p.~\ref{sect:packed:sym:array}). Pozosta"le bloki, o~wymiarach $s\times r$
+(w~dolnym wierszu) i~$r\times r$ (pod diagonal"a, opr"ocz dolnego wiersza)
+s"a reprezentowane jako macierze pe"lne.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+int pkn\_Block3ArraySize ( int k, int r, int s ); \\
+int pkn\_Block3FindBlockPos ( int k, int r, int s, int i, int j ); \\
+int pkn\_Block3FindElemPos ( int k, int r, int s, int i, int j );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_Block3CholeskyDecompMf ( int k, int r, int s, \\
+\ind{37}float *A );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_Block3LowerTrMSolvef ( int k, int r, int s, \\
+\ind{30}const float *L, \\
+\ind{30}int spdimen, int xpitch, float *x ); \\
+void pkn\_Block3UpperTrMSolvef ( int k, int r, int s, \\
+\ind{30}const float *L, \\
+\ind{30}int spdimen, int xpitch, float *x );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_Block3SymMatrixMultf ( int k, int r, int s, \\
+\ind{26}const float *A, \\
+\ind{26}int spdimen, int xpitch, const float *x, \\
+\ind{26}int ypitch, float *y );}
+
+
+\newpage
+\section{\label{sect:sparse:matrices}Nieregularne macierze rzadkie}
+
+\begin{listingC}
+typedef struct {
+    int i, j;
+  } index2;
+
+typedef struct {
+    int i, j, k;
+  } index3;
+\end{listingC}
+
+\begin{listingC}
+void pkn_SPMindex2to3 ( int nnz, index2 *ai, index3 *sai );
+void pkn_SPMindex3to2 ( int nnz, index3 *sai, index2 *ai );
+
+boolean pkn_SPMSortByRows ( int nrows, int ncols, int nnz,
+                            index2 *ai, int *permut );
+boolean pkn_SPMSortByCols ( int nrows, int ncols, int nnz,
+                            index2 *ai, int *permut );  
+boolean pkn_SPMFindRows ( int nrows, int ncols, int nnz,
+                          index2 *ai, int *permut, boolean ro,
+                          int *rows );
+boolean pkn_SPMFindCols ( int nrows, int ncols, int nnz,
+                          index2 *ai, int *permut, boolean co,
+                          int *cols );
+\end{listingC}
+
+\begin{listingC}
+boolean pkn_SPMCountMMnnzR ( int nra, int nca, int ncb,
+                             int nnza, index2 *ai,
+                             int *apermut, int *arows, boolean ra,
+                             int nnzb, index2 *bi,
+                             int *bpermut, int *brows, boolean rb,
+                             int *nnzab, int *nmultab );
+boolean pkn_SPMFindMMnnzR ( int nra, int nca, int ncb,  
+                            int nnza, index2 *ai, int *apermut, int *arows,
+                            int nnzb, index2 *bi, int *bpermut, int *brows,
+                            index2 *abi, int *abpos, index2 *aikbkj );
+boolean pkn_SPMCountMMnnzC ( int nra, int nca, int ncb,
+                             int nnza, index2 *ai,
+                             int *apermut, int *acols, boolean ca,
+                             int nnzb, index2 *bi,
+                             int *bpermut, int *bcols, boolean cb,
+                             int *nnzab, int *nmultab );
+boolean pkn_SPMFindMMnnzC ( int nra, int nca, int ncb,  
+                            int nnza, index2 *ai, int *apermut, int *acols,
+                            int nnzb, index2 *bi, int *bpermut, int *bcols,
+                            index2 *abi, int *abpos, index2 *aikbkj );
+\end{listingC}
+
+\begin{listingC}
+boolean pkn_SPMCountMMTnnzR ( int nra, int nca, int nrb,
+                              int nnza, index2 *ai,
+                              int *apermut, int *arows, boolean ra,
+                              int nnzb, index2 *bi,
+                              int *bpermut, int *bcols, boolean cb,
+                              int *nnzab, int *nmultab );
+boolean pkn_SPMFindMMTnnzR ( int nra, int nca, int nrb,  
+                             int nnza, index2 *ai, int *apermut, int *arows,
+                             int nnzb, index2 *bi, int *bpermut, int *bcols,
+                             index2 *abi, int *abpos, index2 *aikbkj );
+boolean pkn_SPMCountMMTnnzC ( int nra, int nca, int nrb,
+                              int nnza, index2 *ai,
+                              int *apermut, int *acols, boolean ca,
+                              int nnzb, index2 *bi,
+                              int *bpermut, int *brows, boolean rb,
+                              int *nnzab, int *nmultab );
+boolean pkn_SPMFindMMTnnzC ( int nra, int nca, int nrb,  
+                             int nnza, index2 *ai, int *apermut, int *acols,
+                             int nnzb, index2 *bi, int *bpermut, int *brows,
+                             index2 *abi, int *abpos, index2 *aikbkj );
+\end{listingC}
+
+\begin{listingC}
+boolean pkn_SPMCountMTMnnzR ( int nra, int nca, int ncb,
+                              int nnza, index2 *ai,
+                              int *apermut, int *acols, boolean ca,
+                              int nnzb, index2 *bi,
+                              int *bpermut, int *brows, boolean rb,
+                              int *nnzab, int *nmultab );
+boolean pkn_SPMFindMTMnnzR ( int nra, int nca, int ncb,  
+                             int nnza, index2 *ai, int *apermut, int *acols,
+                             int nnzb, index2 *bi, int *bpermut, int *brows,
+                             index2 *abi, int *abpos, index2 *aikbkj );
+boolean pkn_SPMCountMTMnnzC ( int nra, int nca, int ncb,
+                              int nnza, index2 *ai,
+                              int *apermut, int *arows, boolean ra,
+                              int nnzb, index2 *bi,
+                              int *bpermut, int *bcols, boolean cb,
+                              int *nnzab, int *nmultab );
+boolean pkn_SPMFindMTMnnzC ( int nra, int nca, int ncb,  
+                             int nnza, index2 *ai, int *apermut, int *arows,
+                             int nnzb, index2 *bi, int *bpermut, int *bcols,
+                             index2 *abi, int *abpos, index2 *aikbkj );
+\end{listingC}
+
+\begin{listingC}
+boolean pkn_SPMmultMMCempty ( int nra, int nca, int ncb,
+                              int nnza, index2 *ai,
+                              int *apermut, int *acols, boolean ca,
+                              int nnzb, index2 *bi,
+                              int *bpermut, int *bcols, boolean cb,
+                              index2 *abi );
+boolean pkn_SPMmultMMTCempty ( int nra, int nca, int nrb,
+                               int nnza, index2 *ai,
+                               int *apermut, int *acols, boolean ca,
+                               int nnzb, index2 *bi,
+                               int *bpermut, int *brows, boolean rb,
+                               index2 *abi );
+boolean pkn_SPMmultMTMCempty ( int nra, int nca, int ncb,
+                               int nnza, index2 *ai,
+                               int *apermut, int *arows, boolean ra,
+                               int nnzb, index2 *bi,
+                               int *bpermut, int *bcols, boolean ba,
+                               index2 *abi );
+\end{listingC}
+
+\begin{listingC}
+boolean pkn_SPsubMSortByRows ( int nrows, int ncols, int nnz,
+                               index3 *ai, int *permut );
+boolean pkn_SPsubMSortByCols ( int nrows, int ncols, int nnz,
+                               index3 *ai, int *permut );
+boolean pkn_SPsubMFindRows ( int nrows, int ncols, int nnz,
+                             index3 *ai, int *permut, boolean ro,
+                             int *rows );
+boolean pkn_SPsubMFindCols ( int nrows, int ncols, int nnz,
+                             index3 *ai, int *permut, boolean co,
+                             int *cols );
+\end{listingC}
+
+\begin{listingC}
+boolean pkn_SPsubMCountMMnnzR ( int nra, int nca, int ncb,
+                                int nnza, index3 *ai,
+                                int *apermut, int *arows, boolean ra,
+                                int nnzb, index3 *bi,
+                                int *bpermut, int *brows, boolean rb,
+                                int *nnzab, int *nmultab );
+boolean pkn_SPsubMFindMMnnzR ( int nra, int nca, int ncb,  
+                               int nnza, index3 *ai, int *apermut, int *arows,
+                               int nnzb, index3 *bi, int *bpermut, int *brows,
+                               index2 *abi, int *abpos, index2 *aikbkj );
+boolean pkn_SPsubMCountMMnnzC ( int nra, int nca, int ncb,
+                                int nnza, index3 *ai,
+                                int *apermut, int *acols, boolean ca,
+                                int nnzb, index3 *bi,
+                                int *bpermut, int *bcols, boolean cb,
+                                int *nnzab, int *nmultab );
+boolean pkn_SPsubMFindMMnnzC ( int nra, int nca, int ncb,  
+                               int nnza, index3 *ai, int *apermut, int *acols,
+                               int nnzb, index3 *bi, int *bpermut, int *bcols,
+                               index2 *abi, int *abpos, index2 *aikbkj );
+\end{listingC}
+
+\begin{listingC}
+boolean pkn_SPsubMCountMMTnnzR ( int nra, int nca, int nrb,
+                                 int nnza, index3 *ai,
+                                 int *apermut, int *arows, boolean ra,
+                                 int nnzb, index3 *bi,
+                                 int *bpermut, int *bcols, boolean cb,
+                                 int *nnzab, int *nmultab );
+boolean pkn_SPsubMFindMMTnnzR ( int nra, int nca, int nrb,  
+                                int nnza, index3 *ai, int *apermut, int *arows,
+                                int nnzb, index3 *bi, int *bpermut, int *bcols,
+                                index2 *abi, int *abpos, index2 *aikbkj );
+boolean pkn_SPsubMCountMMTnnzC ( int nra, int nca, int nrb,
+                                 int nnza, index3 *ai,
+                                 int *apermut, int *acols, boolean ca,
+                                 int nnzb, index3 *bi,
+                                 int *bpermut, int *brows, boolean rb,
+                                 int *nnzab, int *nmultab );
+boolean pkn_SPsubMFindMMTnnzC ( int nra, int nca, int nrb,  
+                                int nnza, index3 *ai, int *apermut, int *acols,
+                                int nnzb, index3 *bi, int *bpermut, int *brows,
+                                index2 *abi, int *abpos, index2 *aikbkj );
+\end{listingC}
+
+\begin{listingC}
+boolean pkn_SPsubMCountMTMnnzR ( int nra, int nca, int ncb,
+                                 int nnza, index3 *ai,
+                                 int *apermut, int *acols, boolean ca,
+                                 int nnzb, index3 *bi,
+                                 int *bpermut, int *brows, boolean rb,
+                                 int *nnzab, int *nmultab );
+boolean pkn_SPsubMFindMTMnnzR ( int nra, int nca, int ncb,  
+                                int nnza, index3 *ai, int *apermut, int *acols,
+                                int nnzb, index3 *bi, int *bpermut, int *brows,
+                                index2 *abi, int *abpos, index2 *aikbkj );
+boolean pkn_SPsubMCountMTMnnzC ( int nra, int nca, int ncb,
+                                 int nnza, index3 *ai,
+                                 int *apermut, int *arows, boolean ra,
+                                 int nnzb, index3 *bi,
+                                 int *bpermut, int *bcols, boolean cb,
+                                 int *nnzab, int *nmultab );
+boolean pkn_SPsubMFindMTMnnzC ( int nra, int nca, int ncb,  
+                                int nnza, index3 *ai, int *apermut, int *arows,
+                                int nnzb, index3 *bi, int *bpermut, int *bcols,
+                                index2 *abi, int *abpos, index2 *aikbkj );
+\end{listingC}
+
+\begin{listingC}
+boolean pkn_MultSPMVectorf ( int nrows, int ncols, int nnz,
+                             const index2 *ai, const float *ac,    
+                             int spdimen, const float *x,
+                             float *y );
+boolean pkn_MultSPMTVectorf ( int nrows, int ncols, int nnz,
+                              const index2 *ai, const float *ac,
+                              int spdimen, const float *x,
+                              float *y );
+
+boolean pkn_MultSPsubMVectorf ( int nrows, int ncols, int nnz,
+                                const index3 *ai, const float *ac,
+                                int spdimen, const float *x, 
+                                float *y );
+boolean pkn_MultSPsubMTVectorf ( int nrows, int ncols, int nnz,
+                                 const index3 *ai, const float *ac,
+                                 int spdimen, const float *x,
+                                 float *y );
+\end{listingC}
+
+\begin{listingC}
+void pkn_SPMFastMultMMf ( float *ac, float *bc,
+                          int nnzab, int *abpos, index2 *aikbkj,
+                          float *abc );
+\end{listingC}
+
+\begin{listingC}
+boolean pkn_SPMmultMMCf ( int nra, int nca, int ncb,
+                          int nnza, index2 *ai, float *ac,
+                          int *apermut, int *acols, boolean ca,
+                          int nnzb, index2 *bi, float *bc,
+                          int *bpermut, int *bcols, boolean cb,
+                          index2 *abi, float *abc );
+boolean pkn_SPMmultMMTCf ( int nra, int nca, int nrb,
+                           int nnza, index2 *ai, float *ac,
+                           int *apermut, int *acols, boolean ca,
+                           int nnzb, index2 *bi, float *bc,
+                           int *bpermut, int *brows, boolean rb,
+                           index2 *abi, float *abc );
+boolean pkn_SPMmultMTMCf ( int nra, int nca, int ncb,
+                           int nnza, index2 *ai, float *ac,
+                           int *apermut, int *arows, boolean ra,
+                           int nnzb, index2 *bi, float *bc,
+                           int *bpermut, int *bcols, boolean cb,
+                           index2 *abi, float *abc );
+\end{listingC}
+
+\begin{listingC}
+boolean pkn_SPsubMmultMMCf ( int nra, int nca, int ncb,
+                             int nnza, index3 *ai, float *ac,
+                             int *apermut, int *acols, boolean ca,
+                             int nnzb, index3 *bi, float *bc,
+                             int *bpermut, int *bcols, boolean cb,
+                             index2 *abi, float *abc );
+boolean pkn_SPsubMmultMMTCf ( int nra, int nca, int nrb,
+                              int nnza, index3 *ai, float *ac,
+                              int *apermut, int *acols, boolean ca,
+                              int nnzb, index3 *bi, float *bc,
+                              int *bpermut, int *brows, boolean rb,
+                              index2 *abi, float *abc );
+boolean pkn_SPsubMmultMTMCf ( int nra, int nca, int ncb,
+                              int nnza, index3 *ai, float *ac,
+                              int *apermut, int *arows, boolean ra,
+                              int nnzb, index3 *bi, float *bc,
+                              int *bpermut, int *bcols, boolean cb,
+                              index2 *abi, float *abc );
+\end{listingC}
+
+
+
+\newpage
+\section{Rozwi"azywanie r"owna"n nieliniowych}
+
+\cprog{%
+boolean pkn\_SolveSqEqf ( float p, float q, float *x1, float *x2 );}
+\hspace*{\parindent}Procedura \texttt{pkn\_SolveSqEqf} oblicza miejsca
+zerowe wielomianu $x^2+2px+q$ o~rzeczywistych wsp"o"lczynnikach.
+Parametry \texttt{p} i~\texttt{q} maj"a warto"sci wsp"o"lczynnik"ow
+$p$~i~$q$. Parametry \texttt{x1} i~\texttt{x2} s"lu"r"a do wyprowadzenia
+wynik"ow.
+
+Je"sli miejsca zerowe s"a \emph{rzeczywiste}, to warto"sci"a procedury jest
+\texttt{true}. Procedura przypisuje zmiennej \texttt{*x1} warto"s"c
+mniejszego, a~zmiennej \texttt{*x2} wi"ekszego miejsca zerowego.
+
+Je"sli miejsca zerowe s"a \emph{zespolone}, to warto"sci"a procedury jest
+\texttt{false}. Procedura przypisuje zmiennej \texttt{*x1} cz"e"s"c
+rzeczywist"a, a~zmiennej \texttt{*x2} warto"s"c bezwzgl"edn"a cz"e"sci
+urojonej miejsc zerowych.
+
+\vspace{\bigskipamount}
+\cprog{%
+float pkn\_Illinoisf ( float (*f) (float), float a, float b, \\
+\ind{22}float eps, boolean *error );}
+\begin{sloppypar}
+Procedura \texttt{pkn\_Illinoisf} znajduje
+z~dok"ladno"sci"a~$\varepsilon$ miejsce
+zerowe funkcji rzeczywistej~$f$ w~przedziale $[a,b]$.
+Funkcja musi by"c ci"ag"la w~przedziale $[a,b]$ i~mie"c na jego ko"ncach
+przeciwne znaki. Je"sli funkcja $f$ ma wi"ecej ni"r jedno miejsce zerowe, to
+procedura obliczy jedno z~nich. Metoda numeryczna realizowana przez
+procedur"e dla funkcji g"ladkich o zerach jednokrotnych dzia"la zwykle
+szybciej ni"r bisekcja.
+\end{sloppypar}
+
+Parametr \texttt{f} jest procedur"a obliczaj"ac"a warto"s"c funkcji $f$ dla
+podanego argumentu. Parametry \texttt{a} i~\texttt{b} okre"slaj"a przedzia"l
+$[a,b]$, w~kt"orym jest poszukiwane rozwi"azanie. Parametr \texttt{eps}
+okre"sla "r"adan"a dok"ladno"s"c $\varepsilon$ obliczenia rozwi"azania
+(musi to by"c liczba dodatnia i~nie powinna by"c mniejsza ni"r maksymalna
+graniczna dok"ladno"s"c, kt"ora zale"ry od b"l"ed"ow zaokr"agle"n
+w~obliczaniu warto"sci funkcji~$f$). Parametr \texttt{error} na wyj"sciu
+z~procedury ma warto"s"c \texttt{false} je"sli nie zosta"l wykryty b"l"ad
+podczas oblicze"n, albo \texttt{true} je"sli znak funkcji~$f$ na obu
+ko"ncach przedzia"lu $[a,b]$ jest taki sam.
+
+Obliczone miejsce zerowe jest zwracane jako warto"s"c procedury.
+
+
+\newpage
+\section{Optymalizacja}
+
+\cprog{%
+float pkn\_GoldenRatf ( float (*f) (float), float a, float b, \\
+\ind{23}float eps, boolean *error );}
+\hspace*{\parindent}%
+Procedura \texttt{pkn\_GoldenRatf} znajduje metod"a z"lotych podzia"l"ow
+minimum funkcji rzeczywistej~$f$ jednej zmiennej w~przedziale $[a,b]$.
+Parametry \texttt{a}, \texttt{b} okre"slaj"a ko"nce tego przedzia"lu,
+parametr \texttt{eps} okre"sla "r"adan"a dok"ladno"s"c (jego warto"s"c
+musi by"c liczb"a dodatni"a), procedura \texttt{*f} ma oblicza"c warto"s"c
+funkcji~$f$ w~punkcie podanym jako parametr.
+
+Parametr \texttt{*error} otrzymuje warto"s"c \texttt{true}, je"sli procedura
+nie wykryje "radnego b"l"edu w~obliczeniach (obecnie nie jest w~stanie "radnego
+b"l"edu wykry"c, ale po testach mo"re to si"e przyda).
+
+Warto"s"c procedury jest znalezionym punktem minimum; jest to przybli"renie
+jakiego"s minimum lokalnego w~przedziale $[a,b]$.
+
+
+\newpage
+\section{Obliczanie pochodnych funkcji z"lo"ronej}
+
+Procedury opisane w~tym punkcie s"lu"r"a do obliczania pochodnych cz"astkowych
+rz"edu $1,\ldots,4$ funkcji $\bm{h}$, b"ed"acej z"lo"reniem funkcji
+$\bm{f}\colon\R^2\rightarrow\R^2$ i~$\bm{g}\colon\R^2\rightarrow\R^d$
+na podstawie pochodnych cz"astkowych tych funkcji. Rzecz dotyczy wi"ec funkcji
+dw"och zmiennych, ale zastosowane podej"scie mo"re by"c u"ryte do funkcji,
+kt"ore maj"a inn"a ni"r~$2$ liczb"e argument"ow (ale jak dot"ad nie mia"lem
+takiej potrzeby).
+
+Niech $\bm{f}(u,v)=[x(u,v),y(u,v)]^T$.
+Wzory opisuj"ace pochodne funkcji z"lo"ronej coraz wy"rszych rz"ed"ow
+mo"rna wyprowadza"c rekurencyjnie, na podstawie wzor"ow dla pochodnych
+pierwszego rz"edu:
+\begin{align*}
+  \bm{h}_u &{}= x_u\bm{g}_x + y_u\bm{g}_y, \\
+  \bm{h}_v &{}= x_v\bm{g}_x + y_v\bm{g}_y,
+\end{align*}
+i~wzor"ow na pochodne iloczynu funkcji. Wychodz"a st"ad wzory
+\begin{align*}
+  \bm{h}_{uu} &{}= x_u^2\bm{g}_{xx} + 2x_uy_u\bm{g}_{xy} + y_u^2\bm{g}_{yy} +
+              x_{uu}\bm{g}_x + y_{uu}\bm{g}_y, \\
+  \bm{h}_{uv} &{}= x_ux_v\bm{g}_{xx} + (x_uy_v+x_vy_u)\bm{g}_{xy} + y_uy_v\bm{g}_{yy} +
+              x_{uv}\bm{g}_x + y_{uv}\bm{g}_y, \\
+  \bm{h}_{vv} &{}= x_v^2\bm{g}_{xx} + 2x_vy_v\bm{g}_{xy} + y_v^2\bm{g}_{yy} +
+              x_{vv}\bm{g}_x + y_{vv}\bm{g}_y,
+\end{align*}
+a nast"epnie wzory na pochodne wy"rszych rz"ed"ow, kt"ore s"a coraz d"lu"rsze.
+Cech"a charakterystyczn"a wszystkich tych wzor"ow jest mo"rliwo"s"c
+przedstawienia ich w~postaci macierzowej, np.
+\begin{align}\label{eq:comp:der:matrix:1}
+\left[\begin{array}{@{\:}c@{\:}} \bm{h}_u \\ \bm{h}_v \end{array}\right] &{}=   
+A_{11}\left[\begin{array}{@{\:}c@{\:}} \bm{g}_x \\ \bm{g}_y \end{array}\right], \\
+\label{eq:comp:der:matrix:2}
+\left[\begin{array}{@{\:}c@{\:}}
+  \bm{h}_{uu} \\ \bm{h}_{uv} \\ \bm{h}_{vv} \end{array}\right] &{}=
+A_{21}\left[\begin{array}{@{\:}c@{\:}} \bm{g}_x \\ \bm{g}_y \end{array}\right] +
+A_{22}\left[\begin{array}{@{\:}c@{\:}} \bm{g}_{xx} \\ \bm{g}_{xy} \\ \bm{g}_{yy}
+      \end{array}\right], \\
+\label{eq:comp:der:matrix:3}
+\left[\begin{array}{@{\:}c@{\:}} \bm{h}_{uuu} \\ \bm{h}_{uuv} \\ \bm{h}_{uvv} \\
+      \bm{h}_{vvv} \end{array}\right] &{}=
+A_{31}\left[\begin{array}{@{\:}c@{\:}} \bm{g}_x \\ \bm{g}_y \end{array}\right] +
+A_{32}\left[\begin{array}{@{\:}c@{\:}} \bm{g}_{xx} \\ \bm{g}_{xy} \\ \bm{g}_{yy}
+      \end{array}\right] +
+A_{33}\left[\begin{array}{@{\:}c@{\:}} \bm{g}_{xxx} \\ \bm{g}_{xxy} \\ \bm{g}_{xyy} \\
+      \bm{g}_{yyy} \end{array}\right], \\
+\label{eq:comp:der:matrix:4}
+\left[\begin{array}{@{\:}c@{\:}} \bm{h}_{uuuu} \\ \bm{h}_{uuuv} \\ \bm{h}_{uuvv} \\
+      \bm{h}_{uvvv} \\ \bm{h}_{vvvv} \end{array}\right] &{}=
+A_{41}\left[\begin{array}{@{\:}c@{\:}} \bm{g}_x \\ \bm{g}_y \end{array}\right] +
+A_{42}\left[\begin{array}{@{\:}c@{\:}} \bm{g}_{xx} \\ \bm{g}_{xy} \\ \bm{g}_{yy}
+      \end{array}\right] +
+A_{43}\left[\begin{array}{@{\:}c@{\:}} \bm{g}_{xxx} \\ \bm{g}_{xxy} \\ \bm{g}_{xyy} \\
+      \bm{g}_{yyy} \end{array}\right] +
+A_{44}\left[\begin{array}{@{\:}c@{\:}} \bm{g}_{xxxx} \\ \bm{g}_{xxxy} \\ \bm{g}_{xxyy} \\
+      \bm{g}_{xyyy} \\ \bm{g}_{yyyy} \end{array}\right].
+\end{align}
+Wsp"o"lczynniki macierzy $A_{11},\ldots,A_{44}$ s"a wyra"reniami zale"rnymi
+od pochodnych cz"astkowych funkcji $x$ i~$y$.
+
+
+\subsection{\label{ssect:comp:matrices}Obliczanie macierzy przekszta"lce"n
+  pochodnych}
+
+\cprog{%
+void pkn\_Setup2DerA11Matrixf ( \\
+\ind{8}float xu, float yu, float xv, float yv, float *A11 ); \\
+void pkn\_Setup2DerA21Matrixf ( float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, float *A21 ); \\
+void pkn\_Setup2DerA22Matrixf ( \\
+\ind{8}float xu, float yu, float xv, float yv, float *A22 ); \\
+void pkn\_Setup2DerA31Matrixf ( \\
+\ind{8}float xuuu, float yuuu, float xuuv, float yuuv, \\
+\ind{8}float xuvv, float yuvv, float xvvv, float yvvv, \\
+\ind{8}float *A31 ); \\
+void pkn\_Setup2DerA32Matrixf ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, float *A32 ); \\
+void pkn\_Setup2DerA33Matrixf ( \\
+\ind{8}float xu, float yu, float xv, float yv, float *A33 ); \\
+void pkn\_Setup2DerA41Matrixf ( \\
+\ind{8}float xuuuu, float yuuuu, float xuuuv, float yuuuv, \\
+\ind{8}float xuuvv, float yuuvv, float xuvvv, float yuvvv, \\
+\ind{8}float xvvvv, float yvvvv, float *A41 ); \\
+void pkn\_Setup2DerA42Matrixf ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, \\
+\ind{8}float xuuu, float yuuu, float xuuv, float yuuv, \\
+\ind{8}float xuvv, float yuvv, float xvvv, float yvvv, \\
+\ind{8}float *A42 ); \\
+void pkn\_Setup2DerA43Matrixf ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, float *A43 ); \\
+void pkn\_Setup2DerA44Matrixf ( \\
+\ind{8}float xu, float yu, float xv, float yv, float *A44 );}
+\hspace*{\parindent}Powy"rsze procedury obliczaj"a macierze wyst"epuj"ace we
+wzorach~(\ref{eq:comp:der:matrix:1})--(\ref{eq:comp:der:matrix:4}).
+Parametry typu \texttt{float} opisuj"a warto"sci pochodnych funkcji
+$x$ i~$y$, np.\ warto"s"c parametru \texttt{xu} jest r"owna $x_u$, czyli
+$\frac{\partial x}{\partial u}$, warto"s"c parametru \texttt{yuuv}
+jest r"owna $y_{uuv}$, czyli $\frac{\partial^3y}{\partial^2u\partial v}$
+itd. Wsp"o"lczynniki macierzy s"a wpisywane do tablic wskazywanych przez
+parametry \texttt{A11}\ldots\texttt{A44}.
+
+
+\subsection{Obliczanie pochodnych funkcji z"lo"ronej}
+
+\cprog{%
+void pkn\_Comp2Derivatives1f ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}int spdimen, const float *gx, const float *gy, \\
+\ind{8}float *hu, float *hv ); \\
+void pkn\_Comp2Derivatives2f ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, \\
+\ind{8}int spdimen, const float *gx, const float *gy, \\
+\ind{8}const float *gxx, const float *gxy, const float *gyy, \\
+\ind{8}float *huu, float *huv, float *hvv ); \\
+void pkn\_Comp2Derivatives3f ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, \\
+\ind{8}float xuuu, float yuuu, float xuuv, float yuuv, \\
+\ind{8}float xuvv, float yuvv, float xvvv, float yvvv, \\
+\ind{8}int spdimen, const float *gx, const float *gy, \\
+\ind{8}const float *gxx, const float *gxy, const float *gyy, \\
+\ind{8}const float *gxxx, const float *gxxy, \\
+\ind{8}const float *gxyy, const float *gyyy, \\
+\ind{8}float *huuu, float *huuv, float *huvv, float *hvvv ); \\
+void pkn\_Comp2Derivatives4f ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, \\
+\ind{8}float xuuu, float yuuu, float xuuv, float yuuv, \\
+\ind{8}float xuvv, float yuvv, float xvvv, float yvvv, \\
+\ind{8}float xuuuu, float yuuuu, float xuuuv, float yuuuv, \\
+\ind{8}float xuuvv, float yuuvv, float xuvvv, float yuvvv, \\
+\ind{8}float xvvvv, float yvvvv, \\
+\ind{8}int spdimen, const float *gx, const float *gy, \\
+\ind{8}const float *gxx, const float *gxy, const float *gyy, \\
+\ind{8}const float *gxxx, const float *gxxy, \\
+\ind{8}const float *gxyy, const float *gyyy, \\
+\ind{8}const float *gxxxx, const float *gxxxy, const float *gxxyy, \\
+\ind{8}const float *gxyyy, const float *gyyyy, \\
+\ind{8}float *huuuu, float *huuuv, float *huuvv, \\
+\ind{8}float *huvvv, float *hvvvv );}
+\hspace*{\parindent}
+Powy"rsze procedury obliczaj"a pochodne rz"edu $1,\ldots,4$ funkcji
+$\bm{h}=\bm{f}\comp\bm{g}$ na podstawie pochodnych cz"astkowych funkcji
+$\bm{f}\colon\R^2\rightarrow\R^2$, opisanej za pomoc"a dw"och funkcji
+skalarnych, $x(u,v)$ i~$y(u,v)$, oraz funkcji
+$\bm{g}\colon\R^2\rightarrow\R^d$.
+
+Wymiar $d$~przestrzeni, kt"ora jest przeciwdziedzin"a funkcji~$\bm{g}$
+jest we wszystkich procedurach okre"slany przez warto"s"c parametru
+\texttt{spdimen}.
+
+Nazwy pozosta"lych parametr"ow odpowiadaj"a znaczeniu ich warto"sci.
+Na przyk"lad warto"s"c parametru \texttt{xu} jest r"owna warto"sci pochodnej
+funkcji $x$ wzgl"edem $u$; podobnie, parametr \texttt{yuuvv} ma warto"s"c
+$y_{uuvv}=\frac{\partial^4 y}{\partial^2u\partial^2v}$ itp.
+
+Podobnie, parametr \texttt{gx} wskazuje tablic"e $d$ wsp"o"lrz"ednych wektora
+$\bm{g}_x=\frac{\partial\bm{g}}{\partial x}$, za"s parametr \texttt{hu} jest
+wska"znikiem tablicy, do kt"orej procedura wstawi $d$ wsp"o"lrz"ednych wektora
+$\frac{\partial\bm{h}}{\partial u}$ itd.
+
+Poniewa"r do obliczenia pochodnych funkcji $\bm{h}$ rz"edu~$n$ potrzebne s"a
+tylko macierze $A_{n1},\ldots,A_{nn}$ (zobacz
+wzory~(\ref{eq:comp:der:matrix:1})--(\ref{eq:comp:der:matrix:4})),
+wi"ec ka"rda z~powy"rszych procedur oblicza pochodne tylko jednego rz"edu ---
+odpowiednio $1$, $2$, $3$ i~$4$. W~obliczeniu tych pochodnych s"a istotne
+pochodne funkcji $\bm{f}$ i~$\bm{g}$ rz"edu $1,\ldots,n$.
+
+\vspace{\medskipamount}
+\noindent
+\textbf{Uwaga:} Je"sli funkcja~$\bm{f}$ jest przekszta"lceniem afinicznym,
+to jej pochodne rz"edu wi"ekszego ni"r $1$ s"a r"owne~$0$. W~tym przypadku
+macierze $A_{ij}$ dla $j<i$ s"a macierzami zerowymi i~lepiej (bo odrobin"e
+szybciej) jest oblicza"c pochodne rz"edu~$n$ funkcji~$\bm{h}$ obliczaj"ac
+macierz~$A_{nn}$ (za pomoc"a odpowiedniej procedury opisanej
+w~p.~\ref{ssect:comp:matrices}), a~nast"epnie mno"r"ac j"a przez macierz,
+kt"orej wiersze s"a odpowiednimi pochodnymi rz"ednu~$n$ funkcji~$\bm{g}$.
+
+
+\subsection{Obliczanie pochodnych z"lo"renia z~funkcj"a odwrotn"a}
+
+\ucprog{%
+void pkn\_Comp2iDerivatives1f ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}int spdimen, const float *hu, const float *hv, \\
+\ind{8}float *gx, float *gy ); \\
+void pkn\_Comp2iDerivatives2f ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, \\
+\ind{8}int spdimen, const float *hu, const float *hv, \\
+\ind{8}const float *huu, const float *huv, const float *hvv, \\
+\ind{8}float *gx, float *gy, float *gxx, float *gxy, float *gyy );}
+
+\dcprog{%
+void pkn\_Comp2iDerivatives3f ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, \\
+\ind{8}float xuuu, float yuuu, float xuuv, float yuuv, \\
+\ind{8}float xuvv, float yuvv, float xvvv, float yvvv, \\
+\ind{8}int spdimen, const float *hu, const float *hv, \\
+\ind{8}const float *huu, const float *huv, const float *hvv, \\
+\ind{8}const float *huuu, const float *huuv, \\
+\ind{8}const float *huvv, const float *hvvv, \\
+\ind{8}float *gx, float *gy, float *gxx, float *gxy, float *gyy, \\
+\ind{8}float *gxxx, float *gxxy, float *gxyy, float *gyyy ); \\
+void pkn\_Comp2iDerivatives4f ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, \\
+\ind{8}float xuuu, float yuuu, float xuuv, float yuuv, \\
+\ind{8}float xuvv, float yuvv, float xvvv, float yvvv, \\
+\ind{8}float xuuuu, float yuuuu, float xuuuv, \\
+\ind{8}float yuuuv, float xuuvv, float yuuvv, \\
+\ind{8}float xuvvv, float yuvvv, float xvvvv, float yvvvv, \\
+\ind{8}int spdimen, const float *hu, const float *hv, \\
+\ind{8}const float *huu, const float *huv, const float *hvv, \\
+\ind{8}const float *huuu, const float *huuv, const float *huvv, \\
+\ind{8}const float *hvvv, const float *huuuu, const float *huuuv, \\
+\ind{8}const float *huuvv, const float *huvvv, const float *hvvvv, \\
+\ind{8}float *gx, float *gy, float *gxx, float *gxy, float *gyy, \\
+\ind{8}float *gxxx, float *gxxy, float *gxyy, float *gyyy, \\
+\ind{8}float *gxxxx, float *gxxxy, float *gxxyy, \\
+\ind{8}float *gxyyy, float *gyyyy );}
+\hspace*{\parindent}
+Powy"rsze procedury obliczaj"a pochodne cz"astkowe funkcji
+$\bm{g}=\bm{f}^{-1}\comp\bm{h}$, kt"ora jest z"lo"reniem 
+funkcji $\bm{f}^{-1}\colon\R^2\rightarrow\R^2$ i~funkcji
+$\bm{h}\colon\R^2\rightarrow\R^d$. Funkcja~$\bm{f}$, opisana przez
+dwie funkcje skalarne, $x(u,v)$ i~$y(u,v)$, musi by"c regularna
+(tj.\ jej pochodne cz"astkowe pierwszego rz"edu musz"a by"c liniowo
+niezale"rne), przy czym funkcje $\bm{f}$ i~$\bm{h}$
+musz"a by"c odpowiednio g"ladkie.
+
+Parametr~\texttt{spdimen} we wszystkich procedurach okre"sla wymiar~$d$
+przeciwdziedziny funkcji~$\bm{g}$ i~$\bm{h}$. Pozosta"le parametry
+maj"a nazwy opisuj"ace niesione warto"sci. Na przyk"lad parametr
+\texttt{yu} ma warto"s"c pochodnej $y_u=\frac{\partial y}{\partial u}$
+itp. Podobnie, parametr \texttt{huv} jest wska"znikiem tablicy
+zawieraj"acej $d$~wsp"o"lrz"ednych wektora
+$\bm{h}_{uv}=\frac{\partial^2\bm{h}}{\partial u\partial v}$, za"s parametr
+\texttt{gyyyy} jest wska"znikiem tablicy, do kt"orej procedura ma wstawi"c
+$d$ wsp"o"lrz"ednych wektora
+$\bm{g}_{yyyy}=\frac{\partial^4\bm{g}}{\partial y^4}$.
+
+Metoda obliczenia polega na potraktowaniu
+wzor"ow~(\ref{eq:comp:der:matrix:1})--(\ref{eq:comp:der:matrix:4})) jako
+uk"lad"ow r"owna"n liniowych z~niewiadomymi pochodnymi funkcji~$\bm{g}$.
+R"ownania te s"a rozwi"azywane za pomoc"a procedury
+\texttt{pkn\_multiGaussSolveLinEqf}, kt"ora realizuje metod"e eliminacji
+Gaussa z~pe"lnym wyborem elementu g"l"ownego. Poniewa"r aby obliczy"c
+pochodne rz"edu~$n$ funkcji~$\bm{g}$ trzeba wcze"sniej obliczy"c pochodne
+rz"edu ni"rszego ni"r~$n$, wi"ec procedury maj"a parametry --- wska"zniki
+tablic, do kt"orych wpisywane s"a wszystkie te pochodne
+(to jest r"o"rnica w~por"ownaniu z~procedurami opisanymi w~poprzednim
+punkcie).
+
+
+\subsection{Obliczanie pochodnych funkcji odwrotnej}
+
+\cprog{%
+void pkn\_f2iDerivatives1f ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float *gx, float *gy ); \\
+void pkn\_f2iDerivatives2f ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, \\
+\ind{8}float *gx, float *gy, float *gxx, float *gxy, float *gyy ); \\
+void pkn\_f2iDerivatives3f ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, \\
+\ind{8}float xuuu, float yuuu, float xuuv, float yuuv, \\
+\ind{8}float xuvv, float yuvv, float xvvv, float yvvv, \\
+\ind{8}float *gx, float *gy, float *gxx, float *gxy, float *gyy, \\
+\ind{8}float *gxxx, float *gxxy, float *gxyy, float *gyyy ); \\
+void pkn\_f2iDerivatives4f ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, \\
+\ind{8}float xuuu, float yuuu, float xuuv, float yuuv, \\
+\ind{8}float xuvv, float yuvv, float xvvv, float yvvv, \\
+\ind{8}float xuuuu, float yuuuu, float xuuuv, \\
+\ind{8}float yuuuv, float xuuvv, float yuuvv, \\
+\ind{8}float xuvvv, float yuvvv, float xvvvv, float yvvvv, \\
+\ind{8}float *gx, float *gy, float *gxx, float *gxy, float *gyy, \\
+\ind{8}float *gxxx, float *gxxy, float *gxyy, float *gyyy, \\
+\ind{8}float *gxxxx, float *gxxxy, float *gxxyy, \\
+\ind{8}float *gxyyy, float *gyyyy );}
+\hspace*{\parindent}
+Powy"rsze procedury obliczaj"a pochodne cz"astkowe funkcji
+$\bm{g}=\bm{f}^{-1}$, gdzie $\bm{f}\colon\R^2\rightarrow\R^2$ jest funkcj"a
+regularn"a i~odpowiednio g"ladk"a, opisan"a za pomoc"a dw"och funkcji
+skalarnych, $x(u,v)$ i~$y(u,v)$. Procedury te wywo"luj"a odpowiednio
+opisane w~punkcie poprzednim procedury, kt"ore obliczaj"a pochodne
+z"lo"renia funkcji $\bm{f}^{-1}$ z~funkcj"a~$\bm{h}$, b"ed"ac"a
+przekszta"lceniem to"rsamo"sciowym.
+
+
+\section{Kwadratury}
+
+\cprog{%
+boolean pkn\_QuadRectanglesf ( float a, float b, int n, \\
+\ind{30}float *qknots, float *qcoeff );}
+
+\cprog{%
+boolean pkn\_QuadSimpsonf ( float a, float b, int n, \\
+\ind{28}float *qknots, float *qcoeff );}
+
+\cprog{%
+boolean pkn\_QuadGaussLegendre4f ( float a, float b, int n, \\
+\ind{34}float *qknots, float *qcoeff );}
+

@@ -1,0 +1,854 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{Biblioteka \texttt{libxgedit}}
+
+Procedury w~bibliotece \texttt{libxgedit} obs"luguj"a dialog aplikacji
+z~u"rytkownikiem, poprzez system XWindow. Biblioteka umo"rliwia
+tworzenie wielu okien i~wihajstr"ow i~zast"epuje w~tej roli wszelkie
+bardziej wyrafinowane nak"ladki na system XWindow. G"l"ownym
+jej celem jest zastosowanie w~programach demonstracyjnych pakietu
+BSTools (i~by"c mo"re do niczego innego si"e ona nie nadaje).
+
+\vspace{\bigskipamount}
+\cprog{%
+\#if \_\_WORDSIZE == 64 \\
+typedef unsigned int xgecolour\_int; \\
+\#else \\
+\#if \_\_WORDSIZE == 32 \\
+typedef unsigned long xgecolour\_int; \\
+\#else \\
+\#error Either 32-bit or 64-bit integers are assumed \\
+\#endif \\
+\#endif}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define xge\_MAX\_WINDOWS    8 \\
+\#define xge\_MAX\_CURSORS   16 \\
+\mbox{} \\
+\#define xge\_MAX\_WIDTH   1024 \\
+\#define xge\_MAX\_HEIGHT   768 \\
+\#define xge\_WIDTH        480 \\
+\#define xge\_HEIGHT       360}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define xge\_CHAR\_WIDTH     6 \\
+\#define xge\_CHAR\_HEIGHT   13}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define xge\_RECT\_NONE     -1 \\
+\#define xge\_MINDIST        8}
+
+\vspace{\bigskipamount}
+\cprog{%
+/* mouse button states */ \\
+\#define xgemouse\_LBUTTON\_DOWN    (1 << 0) \\
+\#define xgemouse\_LBUTTON\_CHANGE  (1 << 1) \\
+\#define xgemouse\_RBUTTON\_DOWN    (1 << 2) \\
+\#define xgemouse\_RBUTTON\_CHANGE  (1 << 3) \\
+\#define xgemouse\_MBUTTON\_DOWN    (1 << 4) \\
+\#define xgemouse\_MBUTTON\_CHANGE  (1 << 5) \\
+\#define xgemouse\_WHEELFW\_DOWN    (1 << 6) \\
+\#define xgemouse\_WHEELFW\_CHANGE  (1 << 7) \\
+\#define xgemouse\_WHEELBK\_DOWN    (1 << 8) \\
+\#define xgemouse\_WHEELBK\_CHANGE  (1 << 9)}
+
+\vspace{\bigskipamount}
+\cprog{%
+/* message codes */ \\
+\#define xgemsg\_NULL                           0 \\
+\#define xgemsg\_INIT                       0x100}
+
+\vspace{\bigskipamount}
+\cprog{%
+/* user action messages */ \\
+\#define xgemsg\_KEY                        0x101 \\
+\#define xgemsg\_SPECIAL\_KEY                0x102 \\
+\#define xgemsg\_MMOVE                      0x103 \\
+\#define xgemsg\_MCLICK                     0x104 \\
+\#define xgemsg\_STATE\_CHANGE              0x105 \\
+\#define xgemsg\_OTHEREVENT                 0x106}
+
+\vspace{\bigskipamount}
+\cprog{%
+/* commands sent by libxgedit procedures */ \\
+\#define xgemsg\_ENTERING                   0x107 \\
+\#define xgemsg\_EXITING                    0x108 \\
+\#define xgemsg\_RESIZE                     0x109 \\
+\#define xgemsg\_MOVE                       0x10A \\
+\#define xgemsg\_BUTTON\_COMMAND             0x10B \\
+\#define xgemsg\_SWITCH\_COMMAND             0x10C \\
+\#define xgemsg\_SLIDEBAR\_COMMAND           0x10D \\
+\#define xgemsg\_KNOB\_COMMAND               0x10E \\
+\#define xgemsg\_TEXT\_EDIT\_COMMAND          0x10F \\
+\#define xgemsg\_INT\_WIDGET\_COMMAND         0x110 \\
+\#define xgemsg\_LISTBOX\_ITEM\_SET           0x111 \\
+\#define xgemsg\_LISTBOX\_ITEM\_PICK          0x112}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define xgemsg\_2DWIN\_RESIZE               0x113 \\
+\#define xgemsg\_2DWIN\_PROJCHANGE           0x114 \\
+\#define xgemsg\_2DWIN\_PICK\_POINT           0x115 \\
+\#define xgemsg\_2DWIN\_MOVE\_POINT           0x116 \\
+\#define xgemsg\_2DWIN\_SELECT\_POINTS        0x117 \\
+\#define xgemsg\_2DWIN\_UNSELECT\_POINTS      0x118 \\
+\#define xgemsg\_2DWIN\_CHANGE\_TRANS         0x119 \\
+\#define xgemsg\_2DWIN\_SAVE\_POINTS          0x11A \\
+\#define xgemsg\_2DWIN\_TRANSFORM\_POINTS     0x11B \\
+\#define xgemsg\_2DWIN\_FIND\_REFBBOX         0x11C \\
+\#define xgemsg\_2DWIN\_ERROR                0x11D}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define xgemsg\_3DWIN\_RESIZE               0x11E \\
+\#define xgemsg\_3DWIN\_PROJCHANGE           0x11F \\
+\#define xgemsg\_3DWIN\_PICK\_POINT           0x120 \\
+\#define xgemsg\_3DWIN\_MOVE\_POINT           0x121 \\
+\#define xgemsg\_3DWIN\_SELECT\_POINTS        0x122 \\
+\#define xgemsg\_3DWIN\_UNSELECT\_POINTS      0x123 \\
+\#define xgemsg\_3DWIN\_CHANGE\_TRANS         0x124 \\
+\#define xgemsg\_3DWIN\_SAVE\_POINTS          0x125 \\
+\#define xgemsg\_3DWIN\_TRANSFORM\_POINTS     0x126 \\
+\#define xgemsg\_3DWIN\_FIND\_REFBBOX         0x127 \\
+\#define xgemsg\_3DWIN\_ERROR                0x128}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define xgemsg\_KNOTWIN\_CHANGE\_KNOT        0x129 \\
+\#define xgemsg\_KNOTWIN\_INSERT\_KNOT        0x12A \\
+\#define xgemsg\_KNOTWIN\_REMOVE\_KNOT        0x12B \\
+\#define xgemsg\_KNOTWIN\_CHANGE\_MAPPING     0x12C \\
+\#define xgemsg\_KNOTWIN\_ERROR              0x12D}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define xgemsg\_T2KNOTWIN\_RESIZE           0x12E \\
+\#define xgemsg\_T2KNOTWIN\_PROJCHANGE       0x12F \\
+\#define xgemsg\_T2KNOTWIN\_CHANGE\_KNOT\_U    0x130 \\
+\#define xgemsg\_T2KNOTWIN\_CHANGE\_KNOT\_V    0x131 \\
+\#define xgemsg\_T2KNOTWIN\_INSERT\_KNOT\_U    0x132 \\
+\#define xgemsg\_T2KNOTWIN\_INSERT\_KNOT\_V    0x133 \\
+\#define xgemsg\_T2KNOTWIN\_REMOVE\_KNOT\_U    0x134 \\
+\#define xgemsg\_T2KNOTWIN\_REMOVE\_KNOT\_V    0x135 \\
+\#define xgemsg\_T2KNOTWIN\_SELECT\_POINTS    0x136 \\
+\#define xgemsg\_T2KNOTWIN\_UNSELECT\_POINTS  0x137 \\
+\#define xgemsg\_T2KNOTWIN\_CHANGE\_MAPPING   0x138 \\
+\#define xgemsg\_T2KNOTWIN\_ERROR            0x139}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define xgemsg\_IDLE\_COMMAND               0x13A}
+
+\vspace{\bigskipamount}
+\cprog{%
+/* additional application messages must be greater than xgemsg\_LAST\_MESSAGE */ \\
+\#define xgemsg\_LAST\_MESSAGE xgemsg\_IDLE\_COMMAND}
+
+\vspace{\bigskipamount}
+\cprog{%
+/* States of the program.\ Others may be defined in applications.\ */ \\
+\#define xgestate\_NOTHING                      0 \\
+\#define xgestate\_MOVINGSLIDE                  1 \\
+\#define xgestate\_TURNINGKNOB                  2 \\
+\#define xgestate\_MESSAGE                      3 \\
+\#define xgestate\_RESIZING\_X                   4 \\
+\#define xgestate\_RESIZING\_Y                   5 \\
+\#define xgestate\_RESIZING\_XY                  6 \\
+\#define xgestate\_TEXT\_EDITING                 7 \\
+\#define xgestate\_2DWIN\_MOVINGPOINT            8 \\
+\#define xgestate\_2DWIN\_PANNING                9 \\
+\#define xgestate\_2DWIN\_ZOOMING               10 \\
+\#define xgestate\_2DWIN\_SELECTING             11 \\
+\#define xgestate\_2DWIN\_UNSELECTING           12 \\
+\#define xgestate\_2DWIN\_MOVING\_GEOM\_WIDGET    13 \\
+\#define xgestate\_2DWIN\_USING\_GEOM\_WIDGET     14 \\
+\#define xgestate\_2DWIN\_ALTUSING\_GEOM\_WIDGET  15 \\
+\#define xgestate\_3DWIN\_MOVINGPOINT           16 \\
+\#define xgestate\_3DWIN\_PARPANNING            17 \\
+\#define xgestate\_3DWIN\_PARZOOMING            18 \\
+\#define xgestate\_3DWIN\_TURNING\_VIEWER        19 \\
+\#define xgestate\_3DWIN\_PANNING               20
+\#define xgestate\_3DWIN\_ZOOMING               21 \\
+\#define xgestate\_3DWIN\_SELECTING             22 \\
+\#define xgestate\_3DWIN\_UNSELECTING           23 \\
+\#define xgestate\_3DWIN\_MOVING\_GEOM\_WIDGET    24 \\
+\#define xgestate\_3DWIN\_USING\_GEOM\_WIDGET     25 \\
+\#define xgestate\_3DWIN\_ALTUSING\_GEOM\_WIDGET  26 \\
+\#define xgestate\_KNOTWIN\_MOVINGKNOT          27 \\
+\#define xgestate\_KNOTWIN\_PANNING             28 \\
+\#define xgestate\_KNOTWIN\_ZOOMING             29 \\
+\#define xgestate\_T2KNOTWIN\_MOVINGKNOT\_U      30 \\
+\#define xgestate\_T2KNOTWIN\_MOVINGKNOT\_V      31 \\
+\#define xgestate\_T2KNOTWIN\_MOVING\_POINT      32 \\
+\#define xgestate\_T2KNOTWIN\_PANNING           33 \\
+\#define xgestate\_T2KNOTWIN\_ZOOMING           34 \\
+\#define xgestate\_T2KNOTWIN\_SELECTING         35 \\
+\#define xgestate\_T2KNOTWIN\_UNSELECTING       36 \\
+/* additional application states must be greater than xge\_LAST\_STATE */ \\
+\#define xgestate\_LAST xgestate\_T2KNOTWIN\_UNSELECTING}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#ifndef XGERGB\_H \\
+\#include "xgergb.h" \\
+\#endif}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define xgec\_MENU\_BACKGROUND       xgec\_Grey5 \\
+\#define xgec\_INFOMSG\_BACKGROUND    xgec\_Grey4 \\
+\#define xgec\_ERRORMSG\_BACKGROUND   xgec\_Red \\
+\#define xgec\_WARNINGMSG\_BACKGROUND xgec\_DarkMagenta}
+
+
+\vspace{\bigskipamount}
+\cprog{%
+/* wrappers around XWindow drawing and some other procedures */ \\
+\#define xgeSetBackground(colour) \bsl \\
+  XSetBackground(xgedisplay,xgegc,colour) \\
+\#define xgeSetForeground(colour) \bsl \\
+  XSetForeground(xgedisplay,xgegc,colour) \\
+\#define xgeSetLineAttributes(width,line\_style,cap\_style, \bsl \\
+\ind{4}join\_style) \bsl \\
+  XSetLineAttributes(xgedisplay,xgegc,width,line\_style,cap\_style, \bsl \\
+\ind{4}join\_style) \\
+\#define xgeSetDashes(n,dash\_list,offset) \bsl \\
+  XSetDashes(xgedisplay,xgegc,offset,dash\_list,n)}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define xgeDrawRectangle(w,h,x,y) \bsl \\
+  XDrawRectangle(xgedisplay,xgepixmap,xgegc,x,y,w,h) \\
+\#define xgeFillRectangle(w,h,x,y) \bsl \\
+  XFillRectangle(xgedisplay,xgepixmap,xgegc,x,y,w,h) \\
+\#define xgeDrawString(string,x,y) \bsl \\
+  XDrawString(xgedisplay,xgepixmap,xgegc,x,y,string,strlen(string)) \\
+\#define xgeDrawLine(x0,y0,x1,y1) \bsl \\
+  XDrawLine(xgedisplay,xgepixmap,xgegc,x0,y0,x1,y1) \\
+\#define xgeDrawLines(n,p) \bsl \\
+  XDrawLines(xgedisplay,xgepixmap,xgegc,p,n,CoordModeOrigin) \\
+\#define xgeDrawArc(w,h,x,y,a0,a1) \bsl \\
+  XDrawArc(xgedisplay,xgepixmap,xgegc,x,y,w,h,a0,a1) \\
+\#define xgeFillArc(w,h,x,y,a0,a1) \bsl \\
+  XFillArc(xgedisplay,xgepixmap,xgegc,x,y,w,h,a0,a1) \\
+\#define xgeDrawPoint(x,y) \bsl \\
+  XDrawPoint(xgedisplay,xgepixmap,xgegc,x,y) \\
+\#define xgeDrawPoints(n,p) \bsl \\
+  XDrawPoints(xgedisplay,xgepixmap,xgegc,p,n,CoordModeOrigin) \\
+\#define xgeFillPolygon(shape,n,p) \bsl \\
+  XFillPolygon(xgedisplay,xgepixmap,xgegc,p,n,shape,CoordModeOrigin)}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define xgeCopyRectOnScreen(w,h,x,y) \bsl \\
+  XCopyArea(xgedisplay,xgepixmap,xgewindow,xgegc,x,y,w,h,x,y) \\
+\#define xgeRaiseWindow() \bsl \\
+  XRaiseWindow(xgedisplay,xgewindow) \\
+\#define xgeResizeWindow(w,h) \bsl \\
+  XResizeWindow(xgedisplay,xgewindow,w,h) \\
+\#define xgeMoveWindow(x,y) \bsl \\
+  XMoveWindow(xgedisplay,xgewindow,x,y) \\
+\#define xgeDefineCursor(cursor) \bsl \\
+  XDefineCursor(xgedisplay,xgewindow,cursor)}
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct xge\_widget \{ \\
+          int   id; \\
+          short w, h, x, y; \\
+          void *data0, *data1; \\
+          short xofs, yofs; \\
+          char  rpos; \\
+          char  window\_num; \\
+          boolean (*msgproc) ( struct xge\_widget*, int, int, short, short ); \\
+          void (*redraw) ( struct xge\_widget*, boolean ); \\
+          struct xge\_widget *next, *prev, *up; \\
+          struct xge\_widget *prevfocus; \\
+        \} xge\_widget;}
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef boolean (*xge\_message\_proc) ( struct xge\_widget *er, \\
+                                      int msg, int key, short x, short y ); \\
+typedef void (*xge\_redraw\_proc) ( struct xge\_widget *er, boolean onscreen );}
+
+
+\vspace{\bigskipamount}
+\cprog{%
+extern int   xge\_winnum; \\
+extern unsigned int xge\_mouse\_buttons; \\
+extern int   xge\_mouse\_x, xge\_mouse\_y; \\
+extern short xge\_xx, xge\_yy;}
+
+\vspace{\bigskipamount}
+\cprog{%
+extern Display    *xgedisplay; \\
+extern Window     xgewindow; \\
+extern Pixmap     xgepixmap; \\
+extern int        xgescreen; \\
+extern GC         xgegc; \\
+extern Visual     *xgevisual; \\
+extern XSizeHints xgehints; \\
+extern Cursor     xgecursor[]; \\
+extern KeySym     xgekeysym; \\
+extern XEvent     xgeevent; \\
+extern float      xge\_aspect;}
+
+\vspace{\bigskipamount}
+\cprog{%
+extern unsigned short xge\_current\_width, xge\_current\_height;}
+
+\vspace{\bigskipamount}
+\cprog{%
+extern char       *xge\_p\_name; \\
+extern char       xge\_done; \\
+extern short      xge\_prevx, xge\_prevy; \\
+extern int        xge\_slidebarid;}
+
+\vspace{\bigskipamount}
+\cprog{%
+extern xgecolour\_int xge\_foreground, xge\_background; \\
+extern int           xge\_nplanes; \\
+extern xgecolour\_int *xge\_palette; \\
+extern const char    *xge\_colour\_name[];}
+
+\vspace{\bigskipamount}
+\cprog{%
+extern int         xge\_state, xge\_prev\_state; \\
+extern xge\_widget *xge\_focus; \\
+extern boolean     xge\_notinfocus;}
+
+\vspace{\bigskipamount}
+\cprog{%
+xge\_widget *xge\_NewWidget ( \\
+         char window\_num, xge\_widget *prev, int id, \\
+         short w, short h, short x, short y, \\
+         void *data0, void *data1, \\
+         boolean (*msgproc)(xge\_widget*, int, int, short, short), \\
+         void (*redraw)(xge\_widget*, boolean) ); \\
+void xge\_SetWidgetPositioning ( xge\_widget *edr, \\
+                                char rpos, short xofs, short yofs );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_DrawEmpty ( xge\_widget *er, boolean onscreen ); \\
+boolean xge\_EmptyMsg ( xge\_widget *er, int msg, int key, short x, short y ); \\
+xge\_widget *xge\_NewEmptyWidget ( char window\_num, xge\_widget *prev, int id, \\
+                                 short w, short h, short x, short y );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_DrawMenu ( xge\_widget *er, boolean onscreen ); \\
+boolean xge\_MenuMsg ( xge\_widget *er, int msg, int key, short x, short y ); \\
+boolean xge\_PopupMenuMsg ( xge\_widget *er, int msg, int key, short x, short y ); \\
+xge\_widget *xge\_NewMenu ( char window\_num, xge\_widget *prev, int id, \\
+                          short w, short h, short x, short y, \\
+                          xge\_widget *widgetlist ); \\
+void xge\_DrawFMenu ( xge\_widget *er, boolean onscreen ); \\
+xge\_widget *xge\_NewFMenu ( char window\_num, xge\_widget *prev, int id, \\
+                           short w, short h, short x, short y, \\
+                           xge\_widget *widgetlist ); \\
+void xge\_SetMenuWidgets ( xge\_widget *menu, xge\_widget *widgetlist, \\
+                          boolean redraw );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_DrawSwitch ( xge\_widget *er, boolean onscreen ); \\
+boolean xge\_SwitchMsg ( xge\_widget *er, int msg, int key, short x, short y ); \\
+xge\_widget *xge\_NewSwitch ( char window\_num, xge\_widget *prev, int id, \\
+                            short w, short h, short x, short y, \\
+                            char *title, boolean *sw );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_DrawButton ( xge\_widget *er, boolean onscreen ); \\
+boolean xge\_ButtonMsg ( xge\_widget *er, int msg, int key, short x, short y ); \\
+xge\_widget *xge\_NewButton ( char window\_num, xge\_widget *prev, int id, \\
+                            short w, short h, short x, short y, \\
+                            char *title );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_DrawSlidebarf ( xge\_widget *er, boolean onscreen ); \\
+boolean xge\_SlidebarfMsg ( xge\_widget *er, int msg, int key, short x, short y ); \\
+xge\_widget *xge\_NewSlidebarf ( char window\_num, xge\_widget *prev, int id, \\
+                               short w, short h, short x, short y, \\
+                               float *data );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_DrawVSlidebarf ( xge\_widget *er, boolean onscreen ); \\
+boolean xge\_VSlidebarfMsg ( xge\_widget *er, int msg, int key, short x, short y ); \\
+xge\_widget *xge\_NewVSlidebarf ( char window\_num, xge\_widget *prev, int id, \\
+                                short w, short h, short x, short y, \\
+                                float *data );}
+
+\vspace{\bigskipamount}
+\cprog{%
+float xge\_LinSlidebarValuef ( float xmin, float xmax, float t ); \\
+float xge\_LogSlidebarValuef ( float xmin, float xmax, float t );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_DrawKnobf ( xge\_widget *er, boolean onscreen ); \\
+boolean xge\_KnobfMsg ( xge\_widget *er, int msg, int key, short x, short y ); \\
+xge\_widget *xge\_NewKnobf ( char window\_num, xge\_widget *prev, int id, \\
+                           short w, short h, short x, short y, \\
+                           char *title, float *data );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_DrawText ( xge\_widget *er, boolean onscreen ); \\
+xge\_widget *xge\_NewTextWidget ( char window\_num, xge\_widget *prev, int id, \\
+                                short w, short h, short x, short y, \\
+                                char *text );}
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct xge\_string\_ed \{ \\
+    xge\_widget *er; \\
+    short maxlength,  /* maximal string length */ \\
+          chdisp,     /* number of characters displayed */ \\
+          start,      /* first character displayed */ \\
+          pos;        /* text cursor position */ \\
+    boolean active; \\
+  \} xge\_string\_ed;}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_DrawStringEd ( xge\_widget *er, boolean onscreen ); \\
+boolean xge\_StringEdMsg ( xge\_widget *er, int msg, int key, short x, short y ); \\
+xge\_widget *xge\_NewStringEd ( char window\_num, xge\_widget *prev, int id, \\
+                              short w, short h, short x, short y, \\
+                              short maxlength, char *text, xge\_string\_ed *ed );}
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct xge\_int\_widget \{ \\
+    xge\_widget *er; \\
+    int        minvalue, maxvalue; \\
+    char       *title; \\
+  \} xge\_int\_widget;}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_DrawIntWidget ( xge\_widget *er, boolean onscreen ); \\
+boolean xge\_IntWidgetMsg ( xge\_widget *er, int msg, int key, short x, short y ); \\
+xge\_widget *xge\_NewIntWidget ( char window\_num, xge\_widget *prev, int id, \\
+                               short w, short h, short x, short y, \\
+                               int minvalue, int maxvalue, \\
+                               xge\_int\_widget *iw, char *title, int *valptr );}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define xge\_LISTDIST 16 \\
+\mbox{} \\
+typedef struct xge\_listbox \{ \\
+    xge\_widget *er; \\
+    char  dlistnpos;   /* number of positions displayed */ \\
+    char  maxitl;      /* maximal item length, in characters */ \\
+    short nitems;      /* current number of list elements */ \\
+    short fditem;      /* first displayed item */ \\
+    short currentitem; /* current item */ \\
+    int   *itemind;    /* indexes to the item strings */ \\
+    char  *itemstr;    /* item strings */ \\
+  \} xge\_listbox;}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_DrawListBox ( xge\_widget *er, boolean onscreen ); \\
+boolean xge\_ListBoxMsg ( xge\_widget *er, int msg, int key, short x, short y ); \\
+xge\_widget *xge\_NewListBox ( char window\_num, xge\_widget *prev, int id, \\
+                             short w, short h, short x, short y, \\
+                             xge\_listbox *listbox ); \\
+void xge\_ClearListBox ( xge\_listbox *lbox ); \\
+void xge\_ShortenString ( const char *s, char *buf, int maxlen );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean xge\_SetupFileList ( xge\_listbox *lbox, const char *dir, \\
+                            const char *filter ); \\
+boolean xge\_SetupDirList ( xge\_listbox *lbox, const char *dir, \\
+                           const char *filter ); \\
+boolean xge\_FilterMatches ( const char *name, const char *filter );}
+
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define xge\_2DWIN\_MIN\_ZOOM      0.1 \\
+\#define xge\_2DWIN\_MAX\_ZOOM     10.0}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define xge\_2DWIN\_NO\_TOOL         0 \\
+\#define xge\_2DWIN\_MOVING\_TOOL     1 \\
+\#define xge\_2DWIN\_SCALING\_TOOL    2 \\
+\#define xge\_2DWIN\_ROTATING\_TOOL   3}
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct xge\_2Dwinf \{ \\
+    xge\_widget  *er; \\
+    CameraRecf  CPos; \\
+    Box2f       DefBBox, RefBBox; \\
+    boolean     panning, selecting\_mode; \\
+    boolean     display\_coord, inside; \\
+    boolean     moving\_tool, scaling\_tool, rotating\_tool; \\
+    char        current\_tool; \\
+    int         current\_point; \\
+    short       xx, yy; \\
+    float       zoom; \\
+    Box2s       selection\_rect; \\
+    point2f     saved\_centre; \\
+    point2f     scaling\_centre; \\
+    vector2f    scaling\_factors; \\
+    short       scaling\_size; \\
+    char        scaling\_mode; \\
+    point2f     rotating\_centre; \\
+    short       rotating\_radius; \\
+    trans2f     gwtrans; \\
+  \} xge\_2Dwinf;}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean xge\_2DwinfMsg ( xge\_widget *er, int msg, int key, short x, short y ); \\
+xge\_widget *xge\_New2Dwinf ( char window\_num, xge\_widget *prev, int id, \\
+                            short w, short h, short x, short y, \\
+                            xge\_2Dwinf *\_2Dwin, \\
+                            void (*redraw)(xge\_widget*, boolean) );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_2DwinfSetDefBBox ( xge\_2Dwinf *\_2Dwin, \\
+                            float x0, float x1, float y0, float y1 ); \\
+void xge\_2DwinfSetupProjection ( xge\_2Dwinf *\_2Dwin ); \\
+void xge\_2DwinfPan ( xge\_widget *er, short x, short y ); \\
+void xge\_2DwinfZoom ( xge\_widget *er, short y ); \\
+void xge\_2DwinfInitProjection ( xge\_2Dwinf *\_2Dwin, \\
+                                float x0, float x1, float y0, float y1 ); \\
+void xge\_2DwinfResetGeomWidgets ( xge\_2Dwinf *\_2Dwin ); \\
+void xge\_2DwinfResetGeomWidgetPos ( xge\_2Dwinf *\_2Dwin ); \\
+void xge\_2DwinfEnableGeomWidget ( xge\_2Dwinf *\_2Dwin, char tool ); \\
+void xge\_2DwinfDrawGeomWidgets ( xge\_widget *er ); \\
+char xge\_2DwinfIsItAGeomWidget ( xge\_2Dwinf *\_2Dwin, short x, short y ); \\
+void xge\_2DwinfMoveGeomWidget ( xge\_2Dwinf *\_2Dwin, short x, short y ); \\
+boolean xge\_2DwinfApplyGeomWidget ( xge\_2Dwinf *\_2Dwin, short x, short y, \\
+                                    boolean alt );}
+
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct xge\_fourww \{ \\
+    xge\_widget *er, *last; \\
+    xge\_widget *win[4]; \\
+    float      xsfr, ysfr; \\
+    short      splitx, splity; \\
+    boolean    resized; \\
+  \} xge\_fourww;}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_DrawFourWW ( xge\_widget *er, boolean onscreen ); \\
+boolean xge\_FourWWMsg ( xge\_widget *er, int msg, int key, short x, short y ); \\
+xge\_widget *xge\_NewFourWW ( char window\_num, xge\_widget *prev, int id, \\
+                            short w, short h, short x, short y, \\
+                            xge\_widget *ww, xge\_fourww *fwwdata );}
+
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define xge\_3DWIN\_MIN\_PARZOOM   0.1 \\
+\#define xge\_3DWIN\_MAX\_PARZOOM  10.0 \\
+\#define xge\_3DWIN\_MIN\_ZOOM      1.0 \\
+\#define xge\_3DWIN\_MAX\_ZOOM    100.0}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define xge\_3DWIN\_NO\_TOOL       0 \\
+\#define xge\_3DWIN\_MOVING\_TOOL   1 \\
+\#define xge\_3DWIN\_SCALING\_TOOL  2 \\
+\#define xge\_3DWIN\_ROTATING\_TOOL 3}
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct xge\_3Dwinf \{ \\
+    xge\_fourww  fww;         /* this must be the first component */ \\
+    xge\_widget  *cwin[4]; \\
+    CameraRecf  CPos[4]; \\
+    Box3f       DefBBox, RefBBox, PerspBBox; \\
+    boolean     panning, selecting\_mode; \\
+    boolean     display\_coord; \\
+    boolean     moving\_tool, scaling\_tool, rotating\_tool; \\
+    char        current\_tool; \\
+    signed char CoordWin; \\
+    int         current\_point; \\
+    short       xx, yy; \\
+    float       perspzoom; \\
+    Box2s       selection\_rect; \\
+    point3f     saved\_centre; \\
+    point3f     scaling\_centre; \\
+    vector3f    scaling\_factors; \\
+    short       scaling\_size; \\
+    char        scaling\_mode; \\
+    point3f     rotating\_centre; \\
+    short       rotating\_radius; \\
+    trans3f     gwtrans; \\
+  \} xge\_3Dwinf;}
+
+\vspace{\bigskipamount}
+\cprog{%
+xge\_widget *xge\_New3Dwinf ( char window\_num, xge\_widget *prev, int id, \\
+                            short w, short h, short x, short y, \\
+                            xge\_3Dwinf *\_3Dwin, \\
+                            void (*pararedraw)(xge\_widget*, boolean), \\
+                            void (*perspredraw)(xge\_widget*, boolean) );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_3DwinfSetDefBBox ( xge\_3Dwinf *\_3Dwin, float x0, float x1, \\
+                            float y0, float y1, float z0, float z1 ); \\
+void xge\_3DwinfSetupParProj ( xge\_3Dwinf *\_3Dwin, Box3f *bbox ); \\
+void xge\_3DwinfSetupPerspProj ( xge\_3Dwinf *\_3Dwin, boolean resetpos ); \\
+void xge\_3DwinfUpdatePerspProj ( xge\_3Dwinf *\_3Dwin ); \\
+void xge\_3DwinfPanParWindows ( xge\_widget *er, short x, short y ); \\
+void xge\_3DwinfZoomParWindows ( xge\_widget *er, short y ); \\
+void xge\_3DwinfInitProjections ( xge\_3Dwinf *\_3Dwin, \\
+                   float x0, float x1, float y0, float y1, float z0, float z1 ); \\
+void xge\_3DwinfResetGeomWidgets ( xge\_3Dwinf *\_3Dwin ); \\
+void xge\_3DwinfResetGeomWidgetPos ( xge\_3Dwinf *\_3Dwin ); \\
+void xge\_3DwinfEnableGeomWidget ( xge\_3Dwinf *\_3Dwin, char tool ); \\
+void xge\_3DwinfDrawCursorPos ( xge\_3Dwinf *\_3Dwin, \\
+                               int id, short x, short y ); \\
+void xge\_3DwinfDrawSelectionRect ( xge\_widget *er ); \\
+void xge\_3DwinfDrawGeomWidgets ( xge\_widget *er ); \\
+char xge\_3DwinfIsItAGeomWidget ( xge\_3Dwinf *\_3Dwin, int id, short x, short y ); \\
+void xge\_3DwinfMoveGeomWidget ( xge\_3Dwinf *\_3Dwin, int id, short x, short y ); \\
+boolean xge\_3DwinfApplyGeomWidget ( xge\_3Dwinf *\_3Dwin, int id, short x, short y, \\
+                                    boolean alt );}
+
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define xge\_KNOTWIN\_MIN\_SCALE   0.01 \\
+\#define xge\_KNOTWIN\_MAX\_SCALE  100.0 \\
+\#define xge\_KNOT\_EPS          1.0e-4}
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct \{
+    xge\_widget    *er; \\
+    boolean       panning, display\_coord, moving\_many; \\
+    boolean       closed; \\
+    float         akm, bkm, umin, umax, knotscf, knotshf; \\
+    int           clcK; \\
+    float         clcT; \\
+    int           degree; \\
+    unsigned char current\_mult; \\
+    short         xx; \\
+    int           maxknots, lastknot; \\
+    float         *knots; \\
+    float         newknot; \\
+    int           current\_knot; \\
+  \} xge\_KnotWinf;}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_DrawKnotWinf ( xge\_widget *er, boolean onscreen ); \\
+boolean xge\_KnotWinfMsg ( xge\_widget *er, int msg, int key, short x, short y ); \\
+xge\_widget *xge\_NewKnotWinf ( char window\_num, xge\_widget *prev, int id, \\
+                              short w, short h, short x, short y, \\
+                              xge\_KnotWinf *knw, int maxknots, float *knots );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_KnotWinfDrawCursorPos ( xge\_KnotWinf *knw ); \\
+void xge\_KnotWinfDrawKnots ( xge\_KnotWinf *knw ); \\
+void xge\_KnotWinfInitMapping ( xge\_KnotWinf *knw, float umin, float umax ); \\
+void xge\_KnotWinfZoom ( xge\_KnotWinf *knw, float scf ); \\
+void xge\_KnotWinfPan ( xge\_KnotWinf *knw, int dxi ); \\
+void xge\_KnotWinfFindMapping ( xge\_KnotWinf *knw ); \\
+void xge\_KnotWinfResetMapping ( xge\_KnotWinf *knw ); \\
+short xge\_KnotWinfMapKnot ( xge\_KnotWinf *knw, float u ); \\
+float xge\_KnotWinfUnmapKnot ( xge\_KnotWinf *knw, short xi ); \\
+boolean xge\_KnotWinfFindNearestKnot ( xge\_KnotWinf *knw, int x, int y ); \\
+boolean xge\_KnotWinfSetKnot ( xge\_KnotWinf *knw, int x ); \\
+boolean xge\_KnotWinfInsertKnot ( xge\_KnotWinf *knw, int x ); \\
+boolean xge\_KnotWinfRemoveKnot ( xge\_KnotWinf *knw );}
+
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct \{ \\
+    xge\_widget  *er; \\
+    CameraRecf  CPos; \\
+    Box2f       DefBBox, RefBBox; \\
+    point3f     centre; \\
+    boolean     panning, selecting\_mode, moving\_many; \\
+    boolean     display\_coord, inside; \\
+    unsigned char current\_mult; \\
+    int         current\_item; \\
+    short       knot\_margin; \\
+    short       xx, yy; \\
+    float       zoom; \\
+    Box2s       selection\_rect; \\
+    boolean     closed\_u, closed\_v; \\
+    int         clcKu, clcKv; \\
+    float       clcTu, clcTv; \\
+    int         maxknots\_u, lastknot\_u, degree\_u; \\
+    float       *knots\_u; \\
+    int         maxknots\_v, lastknot\_v, degree\_v; \\
+    float       *knots\_v; \\
+    float       newknot; \\
+  \} xge\_T2KnotWinf;}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean xge\_T2KnotWinfMsg ( xge\_widget *er, int msg, int key, short x, short y ); \\
+xge\_widget *xge\_NewT2KnotWinf ( char window\_num, xge\_widget *prev, int id, \\
+                                short w, short h, short x, short y, \\
+                                short knot\_margin, \\
+                                xge\_T2KnotWinf *T2win, \\
+                                void (*redraw)(xge\_widget*, boolean), \\
+                                int maxknots\_u, float *knots\_u, \\
+                                int maxknots\_v, float *knots\_v );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_T2KnotWinfDrawKnots ( xge\_T2KnotWinf *T2win ); \\
+void xge\_T2KnotWinfSetupMapping ( xge\_T2KnotWinf *T2win ); \\
+void xge\_T2KnotWinfInitMapping ( xge\_T2KnotWinf *T2win, \\
+                                 float umin, float umax, float vmin, float vmax ); \\
+void xge\_T2KnotWinfZoom ( xge\_T2KnotWinf *T2win, short y ); \\
+boolean xge\_T2KnotWinfPan ( xge\_T2KnotWinf *T2win, short x, short y ); \\
+void xge\_T2KnotWinfFindMapping ( xge\_T2KnotWinf *T2win ); \\
+void xge\_T2KnotWinfResetMapping ( xge\_T2KnotWinf *T2win );}
+
+\vspace{\bigskipamount}
+\cprog{%
+int xge\_T2KnotWinfFindDomWinRegion ( xge\_T2KnotWinf *T2win, int x, int y ); \\
+int xge\_T2KnotWinfFindNearestKnot ( xge\_T2KnotWinf *T2win, int x, int y ); \\
+int xge\_T2KnotWinfMapKnotU ( xge\_T2KnotWinf *T2win, float u ); \\
+float xge\_T2KnotWinfUnmapKnotU ( xge\_T2KnotWinf *T2win, int xi ); \\
+int xge\_T2KnotWinfMapKnotV ( xge\_T2KnotWinf *T2win, float v ); \\
+float xge\_T2KnotWinfUnmapKnotV ( xge\_T2KnotWinf *T2win, int eta ); \\
+boolean xge\_T2KnotWinfSetKnotU ( xge\_T2KnotWinf *T2win, int x ); \\
+boolean xge\_T2KnotWinfInsertKnotU ( xge\_T2KnotWinf *T2win, int x ); \\
+boolean xge\_T2KnotWinfRemoveKnotU ( xge\_T2KnotWinf *T2win ); \\
+boolean xge\_T2KnotWinfSetKnotV ( xge\_T2KnotWinf *T2win, int y ); \\
+boolean xge\_T2KnotWinfInsertKnotV ( xge\_T2KnotWinf *T2win, int y ); \\
+boolean xge\_T2KnotWinfRemoveKnotV ( xge\_T2KnotWinf *T2win ); \\
+void xge\_T2KnotWinfSelect ( xge\_T2KnotWinf *T2win, \\
+                            short x0, short x1, short y0, short y1 ); \\
+void xge\_T2KnotWinfUnselect ( xge\_T2KnotWinf *T2win, \\
+                              short x0, short x1, short y0, short y1 );}
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct \{ \\
+    xge\_widget *er; \\
+    xge\_widget *contents, *clipw, *xsl, *ysl; \\
+    float      x, y; \\
+    boolean    xslon, yslon; \\
+  \} xge\_scroll\_widget;}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_SetupScrollWidgetPos ( xge\_widget *er ); \\
+void xge\_DrawScrollWidget ( xge\_widget *er, boolean onscreen ); \\
+boolean xge\_ScrollWidgetMsg ( xge\_widget *er, int msg, int key, short x, short y ); \\
+xge\_widget *xge\_NewScrollWidget ( char window\_num, xge\_widget *prev, int id, \\
+                                  short w, short h, short x, short y, \\
+                                  xge\_scroll\_widget *sw, xge\_widget *contents );}
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_AddPopup ( xge\_widget *er ); \\
+void xge\_RemovePopup ( void ); \\
+void xge\_RemovePopups ( void );}
+
+\vspace{\bigskipamount}
+\cprog{%
+/* error and info message procedures */ \\
+void xge\_DisplayErrorMessage ( char *message ); \\
+void xge\_DisplayWarningMessage ( char *message ); \\
+void xge\_DisplayInfoMessage ( char **msglines );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_OutPixels ( const xpoint *buf, int n ); \\
+void xge\_DrawBC2f ( int n, const point2f *cp ); \\
+void xge\_DrawBC2Rf ( int n, const point3f *cp );}
+
+\vspace{\bigskipamount}
+\cprog{%
+int     xge\_NewWindow ( char *p\_name ); \\
+boolean xge\_SetWindow ( int win ); \\
+int     xge\_CurrentWindow ( void ); \\
+void    xge\_SetWinEdRect ( xge\_widget *edr ); \\
+int     xge\_NewCursor ( unsigned int shape );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_RedrawPopups ( void ); \\
+void xge\_Redraw ( void ); \\
+void xge\_RedrawAll ( void );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean xge\_PointInRect ( xge\_widget *edr, short x, short y ); \\
+void xge\_BoundPoint ( xge\_widget *er, short *x, short *y ); \\
+boolean xge\_RectanglesIntersect ( short wa, short ha, short xa, short ya, \\
+                                  short wb, short hb, short xb, short yb ); \\
+boolean xge\_IntersectXRectangles ( XRectangle *r1, XRectangle *r2 );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_SetClipping ( xge\_widget *edr ); \\
+void xge\_ResetClipping ( void );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_RepositionWidgets ( short w, short h, short x, short y, \\
+                             xge\_widget *edr );}
+
+\vspace{\bigskipamount}
+\cprog{%
+xgecolour\_int xge\_PixelColourf ( float r, float g, float b ); \\
+xgecolour\_int xge\_PixelColour ( byte r, byte g, byte b ); \\
+void xge\_GetPixelColour ( xgecolour\_int pixel, byte *r, byte *g, byte *b );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_OrderSelectionRect ( Box2s *sel\_rect ); \\
+void xge\_DrawGeomWinBackground ( xge\_widget *er ); \\
+void xge\_DrawGeomWinFrame ( xge\_widget *er, boolean onscreen ); \\
+void xge\_Draw2DGeomWinfCursorPos ( xge\_widget *er, CameraRecf *CPos, \\
+                                   short x, short y ); \\
+void xge\_DrawGeomWinSelectionRect ( xge\_widget *er, Box2s *sel\_rect );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_GetWindowSize ( void ); \\
+void xge\_Init ( int argc, char *argv[], \\
+                int (*callback)(xge\_widget*,int,int,short,short) ); \\
+void xge\_Cleanup ( void ); \\
+void xge\_MessageLoop ( void );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_PostIdleCommand ( unsigned int key, short x, short y );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void xge\_dispatch\_message ( unsigned int msg, unsigned int key, short x, short y ); \\
+void xge\_get\_message ( unsigned int *msg, unsigned int *key, short *x, short *y );}
+
+

@@ -1,0 +1,651 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{The \texttt{libpsout} library}
+
+The \texttt{libpsout} library consists of procedures, which write
+PostScript\raisebox{3pt}{\tiny(TM)} code to a~text file. The file
+represents a~picture, defined by subsequent calls of the library
+procedures, which produce commands of drawing lines etc.
+
+The library procedures are basic, which actually write the PostScript
+commands, and additional, which make it simpler to draw line
+segments --- one can draw their parts of various widths, mark some
+points, draw arrows etc.
+
+
+\section{Basic procedures}
+
+The phrase ,,the procedure draws a~line segment'' or whatever is to
+be interpreted in such a~way that based on the parameter values the procedure
+writes the text, whose processing by a~PostScript interpreter will cause
+the appearance of the line segment on the picture.
+
+\vspace{\bigskipamount}
+\cprog{%
+extern short ps\_dec\_digits;}
+The variable \texttt{ps\_dec\_digits} determines the number of decimal digits
+in the fractional parts of coordinates of points written to the PostScript
+file. The default value is~$3$; if the resolution is set to $600$DPI and
+there are no large scaling, this should be enough.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_WriteBBox ( float x1, float y1, float x2, float y2 );}
+The procedure \texttt{ps\_WriteBBox} called \emph{before} opening the
+PostScript file sets up the dimensions of the bounding box, to be written
+in the preamble. The picture should (but does not have to) fit in the
+bounding box, which will be used by a~typesetting system (\TeX) to place
+the picture on a~page.
+The first two parameters are coordinates of the lower left corner, and
+the last two parameters are coordinates of the upper right corner.
+The parameters are specified in ``big points''
+($1$ big point (\texttt{1bp} in~\TeX) is $1/72"$).
+
+The appropriate numbers are easy to find using \texttt{GhostView}. The procedure
+call with these numbers may be added to the program producing the picture,
+which may then be recompiled and executed again.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_OpenFile ( const char *filename, unsigned int dpi ); \\
+void ps\_CloseFile ( void );}
+The procedure \texttt{ps\_OpenFile} creates a~file, whose name is specified
+by the parameter \texttt{filename} (if a~file of than name already exists,
+then it is deleted) and writes a~PostScript header.
+The header contains the coordinates of the bounding box
+(if the procedure \texttt{ps\_WriteBBox} has been previously called)
+and a~scaling command, which sets the initial unit length. This unit is determined
+by the parameter \texttt{dpi}, e.g.\ if its value is $600$, then
+the unit length is $1/600"$. Some procedures are written in such a~way that
+symbols they draw (arrows etc.)\ look best with the unit that long.
+
+The procedure \texttt{ps\_CloseFile} closes the PostScript file. It should
+be called when the picture is finished.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Write\_Command ( char *command );}
+The procedure \texttt{ps\_Write\_Command} writes an arbitrary text in the
+PostScript file. Any PostScript command may be appended to the file,
+even if there is no ``ready'' procedure in the library to write such a~command.
+Therefore all possibilities of PostScript are available.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Set\_Gray ( float gray );}
+The procedure \texttt{ps\_Set\_Gray} sets the specified gray level
+int the current graphics state. The value of the parameter \texttt{gray}
+should be in the interval $[0,1]$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Set\_RGB ( float red, float green, float blue );}
+The procedure \texttt{ps\_Set\_RGB} sets the colour with the specified
+red, green and blue components in the current graphics state.
+The values of the parameters \texttt{red}, \texttt{green} and~\texttt{blue}
+should be in the interval $[0,1]$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Set\_Line\_Width ( float w );}
+The procedure \texttt{ps\_Set\_Line\_Width} sets the specified line width
+in the current graphics state. The parameter~\texttt{w} should have
+a~positive value.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Draw\_Line ( float x1, float y1, float x2, float y2 );}
+The procedure \texttt{ps\_Draw\_Line} draws a~line segment, whose end points
+have the coordinates \texttt{x1}, \texttt{y1} and \texttt{x2}, \texttt{y2}.
+The line width, colour and other properties are determined by the current
+settings in the graphics state.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Set\_Clip\_Rect ( float w, float h, float x, float y );}
+The procedure \texttt{ps\_Set\_Clip\_Rect} sets the clipping rectangle
+of dimensions \texttt{w} (width) and~\texttt{h} (height), whose lower
+left vertex has the coordinates \texttt{x}, \texttt{y}.
+
+The clipping is done in addition to all clipping paths specified before.
+Cancellation of clipping may be done only in such a~way, that
+we save the graphics state by calling \texttt{ps\_GSave~();},
+then we set the clipping path and after drawing we restore the initial
+graphics state by calling \texttt{ps\_GRestore~();}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Draw\_Rect ( float w, float h, float x, float y );}
+The procedure \texttt{ps\_Draw\_Rect} draws the edges of the~rectangle
+of dimensions \texttt{w} (width) and~\texttt{h} (height), whose lower
+left vertex has the coordinates \texttt{x}, \texttt{y}. The width and
+colour of the lines drawn are determined by the current graphics state.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Fill\_Rect ( float w, float h, float x, float y );}
+The procedure \texttt{ps\_Fill\_Rect} fills the rectangle of dimensions
+\texttt{w} (width) and~\texttt{h} (height), whose lower left vertex
+has the coordinates \texttt{x}, \texttt{y}. The colour of the
+rectangle is determined by the current graphics state.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Hatch\_Rect ( float w, float h, float x, float y, \\
+\ind{21}float ang, float d );}
+The procedure \texttt{ps\_Hatch\_Rect} draws a~number of lines to hatch
+the rectangle of dimensions \texttt{w} (width) and~\texttt{h} (height),
+whose lower left vertex has the coordinates \texttt{x}, \texttt{y}.
+The angle of inclination of the lines is specified by the parameter
+\texttt{ang} (in radians), and their distance is the value of the parameter
+\texttt{d}. The colour and width of the lines is determined by the
+current graphics state.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Draw\_Polyline2f ( int n, const point2f *p ); \\
+void ps\_Draw\_Polyline2d ( int n, const point2d *p );}
+\begin{sloppypar}
+The procedures \texttt{ps\_Draw\_Polyline2f} and~\texttt{ps\_Draw\_Polyline2d}
+draw (open) polylines consisting of $n-1$~line segments, whose
+vertices ($n$ points, i.e.\ $2n$ floating point numbers)
+are given in the array~\texttt{p}. The colour and line width are
+determined by the current graphics state.%
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Draw\_Polyline2Rf ( int n, const point3f *p ); \\
+void ps\_Draw\_Polyline2Rd ( int n, const point3d *p );}
+\begin{sloppypar}
+The procedures \texttt{ps\_Draw\_Polyline2Rf}
+and~\texttt{ps\_Draw\_Polyline2Rd}
+draw (open) polylines consisting of $n-1$~line segments, whose
+vertices ($n$ points, i.e.\ $3n$ floating point numbers, the homogeneous
+coordinates) are given in the array~\texttt{p}. The colour and line width
+are determined by the current graphics state.%
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Set\_Clip\_Polygon2f ( int n, const point2f *p ); \\
+void ps\_Set\_Clip\_Polygon2d ( int n, const point2d *p );}
+The procedures \texttt{ps\_Set\_Clip\_Polygon2f}
+and~\texttt{ps\_Set\_Clip\_Polygon2d} set the clipping path, being a~closed
+polyline with $n$ vertices given in the array~\texttt{p}.
+The PostScript interpreter clips to all clipping paths set before
+(except for the patchs set after saving the graphics state, which has then
+been restored).
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Set\_Clip\_Polygon2Rf ( int n, const point3f *p ); \\
+void ps\_Set\_Clip\_Polygon2Rd ( int n, const point3d *p );}
+The procedures \texttt{ps\_Set\_Clip\_Polygon2Rf}
+and~\texttt{ps\_Set\_Clip\_Polygon2Rd} set the clipping path, being a~closed
+polyline with $n$ vertices given in the array~\texttt{p}, which contains
+their homogeneous coordinates.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+void ps\_Fill\_Polygon2f ( int n, const point2f *p ); \\
+void ps\_Fill\_Polygon2d ( int n, const point2d *p );}
+The procedures \texttt{ps\_Fill\_Polygon2f} and~\texttt{ps\_Fill\_Polygon2d}
+fill a~polygon with $n$ vertices given in the array~\texttt{p}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Fill\_Polygon2Rf ( int n, const point3f *p ); \\
+void ps\_Fill\_Polygon2Rd ( int n, const point3d *p );}
+The procedures \texttt{ps\_Fill\_Polygon2Rf} and~\texttt{ps\_Fill\_Polygon2Rd}
+fill a~polygon with $n$ vertices (the homogeneous coordinates) given in the
+array~\texttt{p}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Draw\_BezierCf ( const point2f *p, int n ); \\
+void ps\_Draw\_BezierCd ( const point2d *p, int n );}
+The procedures \texttt{ps\_Draw\_BezierCf} and~\texttt{ps\_Draw\_BezierCd}
+draw B\'{e}zier curves of degree~$n$,
+whose $n+1$ control points are given in the array~\texttt{p}. For
+$n>1$ a~polyline of~$50$ line segments is drawn.
+
+The points of the curve are computed without using the \texttt{libmultibs}
+library.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Draw\_Circle ( float x, float y, float r );}
+The procedure \texttt{ps\_Draw\_Circle} draws the~circle with the radius~\texttt{r}
+and the centre \texttt{(x,y)}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Fill\_Circle ( float x, float y, float r );}
+The procedure \texttt{ps\_Draw\_Circle} fills the circle with the radius~\texttt{r}
+and the centre \texttt{(x,y)}.
+
+\pagebreak[1]
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Draw\_Arc ( float x, float y, float r, float a0, float a1 );}
+The procedure \texttt{ps\_Draw\_Arc} draws an arc of a~circle with the
+centre \texttt{(x,y)}, radius~\texttt{r} and the angles of beginning and
+end point \texttt{a0} and~\texttt{a1}. The meaning of all parameters is just
+like of the parameters of the PostScript operator \texttt{arc}, except that
+the angles are specified in radians (not in degrees).
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Mark\_Circle ( float x, float y );}
+The procedure \texttt{ps\_Mark\_Circle} draws a~mark (small circle
+with a~white dot) at \texttt{(x,y)}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Init\_Bitmap ( int w, int h, int x, int y, byte b ); \\
+void ps\_Out\_Line ( byte *data );}
+The procedure \texttt{ps\_Init\_Bitmap} prepares outputting of a~monochrome
+bitmap image (black--grey--white). The image is \texttt{w} pxels wide,
+\texttt{h} pixels high (the pixel width and height are $1$ unit
+of the current system of coordinates), and the lower left corner
+is at~\texttt{(x,y)}. The parameter~\texttt{b} specifies the number of
+bits per pixel, which has to be $1$, $2$, $4$ or~$8$.
+
+After calling the procedure \texttt{ps\_Init\_Bitmap} it is necessary to call
+\texttt{h}~times the procedure \texttt{ps\_Out\_Line}, whose parameter is
+an array of $\lceil w/b\rceil$ bytes. Each byte describes $8/b$ packed pixels.
+Each call of this procedure causes writing one row of pixels to the
+PostScript file, from top of the image to the bottom.
+
+The data are output in hexadecimal form, without any compression.
+Therefore the PostScript file with such an image may be large.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Init\_BitmapP ( int w, int h, int x, int y ); \\
+void ps\_Out\_LineP ( byte *data );}
+The procedure \texttt{ps\_Init\_BitmapP} prepares outputting of a~monochrome
+bitmap image (black--grey--white) in a~packed form. The image is
+\texttt{w} pxels wide,
+\texttt{h} pixels high (the pixel width and height are $1$ unit
+of the current system of coordinates), and the lower left corner
+is at~\texttt{(x,y)}. The colour of each pixel is specified by one byte.
+
+After calling the procedure \texttt{ps\_Init\_BitmapP} it is necessary to call
+\texttt{h}~times the procedure \texttt{ps\_Out\_LineP}, whose parameter is
+an array of $w$ bytes.
+Each call of this procedure causes writing one row of pixels to the
+PostScript file, from top of the image to the bottom.
+
+The data are output in hexadecimal form, with a~simple run-length encoding
+compression. Therefore the PostScript file with such an image may smaller.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Init\_BitmapRGB ( int w, int h, int x, int y ); \\
+void ps\_Out\_LineRGB ( byte *data );}
+The procedure \texttt{ps\_Init\_BitmapRGB} prepares outputting of a~colour
+bitmap image. The image is \texttt{w} pxels wide,
+\texttt{h} pixels high (the pixel width and height are $1$ unit
+of the current system of coordinates), and the lower left corner
+is at~\texttt{(x,y)}. The colour of each pixel is specified by three bytes.
+
+After calling the procedure \texttt{ps\_Init\_BitmapRGB} it is necessary to call
+\texttt{h}~times the procedure \texttt{ps\_Out\_LineRGB}, whose parameter is
+an array of $3w$ bytes.
+Each call of this procedure causes writing one row of pixels to the
+PostScript file, from top of the image to the bottom.
+
+The data are output in hexadecimal form, without any compression.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Init\_BitmapRGBP ( int w, int h, int x, int y ); \\
+void ps\_Out\_LineRGBP ( byte *data );}
+The procedure \texttt{ps\_Init\_BitmapRGBP} prepares outputting of a~colour
+bitmap image in a~packed form. The image is \texttt{w} pxels wide,
+\texttt{h} pixels high (the pixel width and height are $1$ unit
+of the current system of coordinates), and the lower left corner
+is at~\texttt{(x,y)}. The colour of each pixel is specified by three bytes.
+
+After calling the procedure \texttt{ps\_Init\_BitmapRGBP} it is necessary to call
+\texttt{h}~times the procedure \texttt{ps\_Out\_LineRGBP}, whose parameter is
+an array of $3w$ bytes.
+Each call of this procedure causes writing one row of pixels to the
+PostScript file, from top of the image to the bottom.
+
+The data are output in hexadecimal form, with a~simple run-length encoding.
+The decompression procedure is coded in PostScript. It is not extremely
+fast nor effective, but often sufficient. Some day it might be
+replaced by something better.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Newpath ( void );}
+The procedure \texttt{ps\_Newpath} causes writing the command
+\texttt{newpath}, which initializes a~path. This path may then be built
+with the procedures \texttt{ps\_MoveTo} and \texttt{ps\_LineTo}, and then
+it may be processed by the PostScript interpreter
+in the way described by the procedure \texttt{ps\_Write\_Command}
+(it may write \texttt{stroke} or anything else).
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_MoveTo ( float x, float y ); \\
+void ps\_LineTo ( float x, float y );}
+The procedures \texttt{ps\_MoveTo} and~\texttt{ps\_LineTo} output the PostScript
+commands which build a~path: respectively \texttt{moveto} and~\texttt{lineto}
+with appropriate parameters. The path constructed with these procedures may
+be used in an arbitrary way.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_ShCone ( float x, float y, float x1, float y1, \\
+\ind{17}float x2, float y2 );}
+The procedure \texttt{ps\_ShCone} draws a~shaded (grey) cone, i.e.\
+triangle, whose vertices are \texttt{(x,y)}, \texttt{(x+x1,y+y1)}
+and~\texttt{(x+x2,y+y2)}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_GSave ( void ); \\
+void ps\_GRestore ( void );}
+The procedure \texttt{ps\_GSave} writes the command \texttt{gsave}, which causes
+saving the current graphics state (on the appropriate stack of the
+PostScript interpreter).
+
+The procedure \texttt{ps\_GRestore} writes the command \texttt{grestore}, which
+restores the graphics state previously saved on the stack.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_BeginDict ( int n ); \\
+void ps\_EndDict ( void );}
+The procedure \texttt{ps\_BeginDict} writes the command
+\texttt{$n$ dict begin}, where $n$ is the number given as the parameter.
+For the PostScript interpreter it is the order of creating a~new dictionary
+with the capacity of~$n$ symbols, and opening it on top of the stack
+of open dictionaries.
+
+The procedure \texttt{ps\_EndDict} writes the command \texttt{end},
+which causes removing the dictionary from the top of the dictionary stack.
+Each call of \texttt{ps\_BeginDict} should be compelemnted by a~call
+to~\texttt{ps\_EndDict}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_DenseScreen ( void );}
+The procedure \texttt{ps\_DenseScreen} causes changing the current
+rasterization pattern to the pattern of twice as large liniature.
+Thin grey lines may look better printed with such a~pattern, though
+the precision of reproducing grey levels is worse.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_GetSize ( float *x1, float *y1, float *x2, float *y2 );}
+The procedure \texttt{ps\_GetSize} may help to get the dimensions of the
+rectangle bounding the picture (or rather its elements drawn before
+calling this procedure). Howevet, this procedure does not take into
+account any effects of the commands output by \texttt{ps\_Write\_Command}
+(which may be \texttt{scale}, \texttt{translate} or drawing commands),
+and it does not take into account clipping. Therefore it is
+not a~very useful procedure (using GhostView is much better).
+
+The parameters obtain the values of coordinates of the rectangle,
+into which, as it seems to the library, the picture fits.
+The units are determined by the resolution specified when the file
+has been created.
+
+
+\section{Additional procedures}
+
+Additional procedures make it easier to draw line segments, whose parts
+have various colours and widths. They may also have some parts marked
+with symbols like dots, arrows, ticks etc.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define tickl  10.0 \\
+\#define tickw   2.0 \\
+\#define tickd   6.0 \\
+\#define dotr   12.0 \\
+\#define arrowl 71.0 \\
+\#define arroww 12.5}
+\begin{sloppypar}
+The abobe symbolic constants determine a~half of length (\texttt{tickl})
+and width (\texttt{tickw}) of a~bar (tick) drawn across the current line,
+dot radius and length and half of width of arrows.
+\end{sloppypar}
+
+These dimensions are chosen so that the symbols look good, if the unit length
+(specified by the second parameter of \texttt{ps\_OpenFile}) is $1/600"$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_SetLine ( float x1, float y1, float x2, float y2, \\
+\ind{19}float t1, float t2 );}
+The procedure \texttt{psl\_SetLine} sets the line, whose segments and points
+will be drawn and marked. The line passes through the points \texttt{(x1,y1)}
+and~\texttt{(x2,y2)}, which must be different. To these two points
+correspond the parameters \texttt{t1} and \texttt{t2}, which must be different.
+
+Setting such a~line causes computing also its unit directional vector~$\bm{v}$,
+which will be used by other procedures in various constructions.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+void psl\_GetPointf ( float t, float *x, float *y );}
+The procedure \texttt{psl\_GetPointf} computes the point of the line
+recently set by the procedure \texttt{psl\_SetLine}, corresponding to
+the parameter~\texttt{t}. Its coordinates are assigned to the
+parameters \texttt{*x} and \texttt{*y}.
+
+\vspace{\bigskipamount}
+\cprog{%
+float psl\_GetDParam ( float dl );}
+The procedure \texttt{psl\_GetDParam} computes the increment of the
+line parameter, which corresponds to the translation by a~vector
+of length \texttt{dl}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_GoAlong ( float s, float *x, float *y );}
+The procedure \texttt{psl\_GoAlong} on entry gets the point
+$\bm{p}=$\texttt{(*x,*y)}. On return the parameters \texttt{*x}
+and~\texttt{*y} have values of coordinates of the image of~$\bm{p}$
+in the translation along the current line by the distance~\texttt{s}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_GoPerp ( float s, float *x, float *y );}
+The procedure \texttt{psl\_GoPerp} on entry gets the point
+$\bm{p}=$\texttt{(*x,*y)}. On return the parameters \texttt{*x}
+and~\texttt{*y} have values of coordinates of the image of~$\bm{p}$
+in the translation prependicular to the current line by the
+distance~\texttt{s}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_Tick ( float t );}
+The procedure \texttt{psl\_Tick} draws a~tick on the current line, at the
+point corresponding to the parameter~\texttt{t}, which is a~bar perpendicular
+to the line.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_BTick ( float t );}
+The procedure \texttt{psl\_BTick} draws a~tick on the current line, at the
+point corresponding to the parameter~\texttt{t}, which is a~bar perpendicular
+to the line. This bar is thicker and longer than that drawn by
+\texttt{psl\_Tick}. The idea is to draw it using the background colour
+and then to draw the ordinary bar on that background.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_HTick ( float t, boolean left );}
+The procedure \texttt{psl\_HTick} draws a~tick on the current line, at the
+point correspoding to the parameter~\texttt{t}, which is a~half of the bar
+drawn by the procedure \texttt{psl\_Tick}. The parameter \texttt{left}
+determines the side of the line to draw this half tick.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_Dot ( float t );}
+The procedure \texttt{psl\_Dot} marks the point of the current line corresponding
+to the parameter~\texttt{t}. The mark is a~circle, whose radius is
+\texttt{dotr}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_HDot ( float t );}
+The procedure \texttt{psl\_HDot} marks a~point of the current line
+corresponding to the parameter~\texttt{t}, by a~circle of slightly greater
+radius. It is intended to draw the circle using the background colour
+before drawing the proper circle using \texttt{psl\_Dot}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_TrMark ( float x, float y );}
+The procedure \texttt{psl\_TrMark} marks the point \texttt{(x,y)} (not
+related with the current line) by a~white isoscelses triangle with black edges.
+One edge is horizontal and the top vertex is at the marked point.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_BlackTrMark ( float x, float y );}
+The procedure \texttt{psl\_BlackTrMark} marks the point \texttt{(x,y)}
+(not related with the current line) by a~black isoscelses triangle.
+One edge is horizontal and the top vertex is at the marked point.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_HighTrMark ( float x, float y );}
+The procedure a \texttt{psl\_HighTrMark} marks the point \texttt{(x,y)}
+(not related with the current line) by a~white triangle with black edges.
+One edge is horizontal and the top vertex is at the marked point.
+The height of this triangle is greater than of that drawn by
+\texttt{psl\_TrMark}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_BlackHighTrMark ( float x, float y );}
+The procedure a \texttt{psl\_BlackHighTrMark} marks the point \texttt{(x,y)}
+(not related with the current line) by a~black triangle.
+One edge is horizontal and the top vertex is at the marked point.
+The height of this triangle is greater than of that drawn by
+\texttt{psl\_BlackTrMark}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_LTrMark ( float t ); \\
+void psl\_BlackLTrMark ( float t ); \\
+void psl\_HighLTrMark ( float t ); \\
+void psl\_BlackHighLTrMark ( float t );}
+The above procedures mark the point of the current line
+corresponding to the parameter~\texttt{t}, using the
+symbols drawn by \texttt{psl\_TrMark},
+\texttt{psl\_BlackTrMark}, \texttt{psl\_HighTrMark}
+and~\texttt{psl\_BlackHighTrMark} respectively. Essentially, they are
+appropriate for horizontal lines.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_Arrow ( float t, boolean sgn );}
+The procedure \texttt{psl\_Arrow} marks the point of the current line
+corresponding to the parameter~\texttt{t}, by an arrow (which is a~triangle)
+having the direction of the line.
+The parameter \texttt{sgn} selects the orientation of the arrow.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_BkArrow ( float t, boolean sgn );}
+The procedure \texttt{psl\_BkArrow} marks the point of the current line
+corresponding to the parameter~\texttt{t}, drawing the area which is
+a~background of the arrow to be drawn by\texttt{psl\_Arrow}.
+The parameter \texttt{sgn} selects the orientation of the arrow.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+void psl\_Draw ( float ta, float tb, float w );}
+The procedure \texttt{psl\_Draw} draws a~segment of the current line,
+between the points corresponding to the parameters
+\texttt{ta} and \texttt{tb}. The parameter~\texttt{w} specifies the
+width of the line segment.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_ADraw ( float ta, float tb, float ea, float eb, float w );}
+The procedure \texttt{psl\_ADraw} draws a~segment of the current line,
+whose end points are obtained as follows: first, the point
+$\bm{p}_a$, which corresponds to \texttt{ta} is computed, and then
+the unit vector having direction of the current line, multiplied by
+the parameter~\texttt{ea} is added (see the description of the procedure
+\texttt{psl\_SetLine}). The other end point of the segment is obtained in
+a~similar way, using the parameters \texttt{tb} and \texttt{eb}.
+The parameter ~\texttt{w} specifies the width of the line.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_MapsTo ( float t );}
+The procedure \texttt{psl\_MapsTo} marks the point of the current line
+corresponding to the parameter~\texttt{t} with an arrow having a~shape
+different than that of~\texttt{psl\_Arrow}, more appropriate
+for commutative diagrams.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_DrawEye ( float t, byte cc, float mag, float ang );}
+The procedure \texttt{psl\_DrawEye} marks the point of the current line
+corresponding to the parameter~\texttt{t} with an eye symbol.
+It may be used to denote the viewer position on various schematic pictures.
+
+The parameter \texttt{cc} should be $0$, $1$, $2$ or $3$, and it determines
+the orientation of the symbol. The parameter \texttt{mag}
+specifies the magnification, and the parameter \texttt{ang} specifies the
+angle (in radians) of additional rotation of the image, which may be necessary
+to obtain a~good looking effect.
+
+
+\newpage
+%\vspace{\bigskipamount}
+\noindent
+\textbf{Example:} The program below draws the picture shown in
+Figure~\ref{fig:psout}.
+
+\vspace{\medskipamount}
+\noindent{\ttfamily
+\#include <string.h> \\
+\#include "psout.h" \\
+int main ( void ) \\
+\{ \\
+\ind{2}ps\_WriteBBox ( 12, 13, 264, 80 ); \\
+\ind{2}ps\_OpenFile ( "psout.ps", 600 ); \\
+\ind{2}psl\_SetLine ( 200, 600, 2200, 100, 0.0, 4.0 ); \\
+\ind{2}psl\_Draw ( 0.5, 1.5, 2.0 ); \\
+\ind{2}psl\_Draw ( 2.0, 3.0, 6.0 ); \\
+\ind{2}psl\_ADraw ( 3.5, 4.0, 0.0, -arrowl, 1.0 ); \\
+\ind{2}psl\_DrawEye ( 0.0, 1, 1.2, 0.15 ); \\
+\ind{2}psl\_HTick ( 1.0, false ); \\
+\ind{2}psl\_HTick ( 1.5, true ); \\
+\ind{2}psl\_Tick ( 2.0 ); \\
+\ind{2}psl\_BlackHighLTrMark ( 2.5 ); \\
+\ind{2}psl\_LTrMark ( 3.0 ); \\
+\ind{2}psl\_Dot ( 3.5 ); \\
+\ind{2}psl\_Arrow ( 4.0, true ); \\
+\ind{2}ps\_CloseFile (); \\
+\ind{2}exit ( 0 ); \\
+\} /*main*/}
+\begin{figure}[t]
+  \centerline{\epsfig{file=psout.ps}}
+  \caption{\label{fig:psout}A~line with marked points}
+\end{figure}
+
+

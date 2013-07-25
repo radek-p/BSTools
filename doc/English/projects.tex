@@ -1,0 +1,164 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{Obsolete projects}
+
+Once upon a~time I~wrote a~very simple procedure of filling polygonal holes
+in a~bicubic spline surface with biquintic patches so as to obtain the
+tangent plane ($G^1$) continuity. This procedure is described in detail in
+my book \emph{Podstawy mo\-de\-lo\-wa\-nia krzywych i~powierzchni}, and it may
+have some educational value, which is why I~left it, even if the procedures
+of filling polygonal holes in the \texttt{libeghole} library produce much
+better results.
+
+\section{\label{sect:obsolete:G1}Filling polygonal holes}
+
+The demonstration program \texttt{polep} uses the procedure of filling
+a~polygonal hole in a~generalized bicubic B-spline surface, with B\'{e}zier
+patches of degree~$(5,5)$, joined with each other and with the patches
+around the hole with tangent plane ($G^1$) continuity. A~detailed description
+of this procedure and the underlying theory is in my book
+\emph{Podstawy modelowania krzywych i~powierzchni} (in Polish).
+The construction carried out by this procedure is much simpler and
+less general than the constructions performed by the procedures
+collected in the libraries \texttt{libg1hole} and \texttt{libg2hole};
+it was developed much earlier and the experience gathered then helped
+in developing the constructions implemented in these libraries.
+Below is a~description of the representation of data for this procedure
+and its parameters.
+
+The single precision source code is in the file \texttt{g1holef.c},
+and its header file is \texttt{g1holef.h}.
+The corresponding double precision source files are \texttt{g1holed.c}
+and \texttt{g1holed.h} respectively.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean FillG1Holef ( int hole\_k, point3f*(*GetBezp)(int i, int j), \\
+\ind{22}float beta1, float beta2, \\
+\ind{22}point3f *hpcp );}
+The procedure \texttt{FillG1Holef} constructs a~surface filling a~$k$-sided hole
+in a~surface. The parameters are as follows:
+
+The parameter \texttt{hole\_k} specifies the number $k$ of sides (and
+corners) of the hole. Its value has to be~$3$, $5$, $6$, $7$ or~$8$.
+
+The parameter \texttt{GetBezp} is a~pointer of a~procedure called by
+\texttt{FillG1Holef} in order to get the data, i.e.\ the control points
+of bicubic B\'{e}zier patches around the hole. The procedure has to
+return the pointer to an array with the control points of the appropriate
+patch.
+
+The patches around the hole are numbered with pairs of numbers $(i,j)$,
+as shown in Figure~\ref{fig:g1:patch:num:1}; the variable~$i$
+(the parameter~\texttt{i}) has the value from $0$ to $k-1$, the variable~$j$
+(the parameter~\texttt{j}) is either $1$ or~$2$.
+The figure shows also the order in which the control points are to be
+stored in the array. For each patch it is necessary to supply only $8$~points,
+whose numbers are shown.
+\begin{figure}[ht]
+  \centerline{\epsfig{file=g1patches1.ps}}
+  \caption{\label{fig:g1:patch:num:1}The numbering scheme of the
+    patches around the hole}
+  \centerline{and the order of their control points in the arrays}
+\end{figure}
+
+The patches surrounding the hole have to satisfy the compatibility
+conditions given below, which concern their corners, partial
+and mixed partial derivatives. The $m$-th control point of the
+patch $(i,j)$ is denoted by $\bm{p}^{(i,j)}_m$. In addition,
+$l=i+1\bmod k$.
+\begin{itemize}
+  \item Corner compatibility conditions:
+    \begin{align*}
+      &{}\bm{p}^{(i,1)}_0=\bm{p}^{(i,2)}_3 \quad\mbox{oraz}\quad
+      \bm{p}^{(i,2)}_0=\bm{p}^{(l,1)}_3.
+    \end{align*}
+  \item Partial derivatives compatibility conditions:
+    \begin{align*}
+      &{}\bm{p}^{(i,1)}_0-\bm{p}^{(i,1)}_1=\bm{p}^{(i,2)}_2-\bm{p}^{(i,2)}_3, \\
+      &{}\bm{p}^{(i,2)}_0-\bm{p}^{(i,2)}_1=\bm{p}^{(l,1)}_7-\bm{p}^{(l,1)}_3, \\
+      &{}\bm{p}^{(i,2)}_0-\bm{p}^{(i,2)}_4=\bm{p}^{(l,1)}_2-\bm{p}^{(l,1)}_3.
+    \end{align*}
+  \item Mixed partial derivatives compatibility conditions:
+    \begin{align*}
+      &{}\bm{p}^{(i,1)}_4-\bm{p}^{(i,1)}_5=\bm{p}^{(i,2)}_6-\bm{p}^{(i,2)}_7, \\
+      &{}\bm{p}^{(i,2)}_0-\bm{p}^{(i,2)}_1-\bm{p}^{(i,2)}_4+\bm{p}^{(i,2)}_5=
+      \bm{p}^{(l,1)}_6-\bm{p}^{(l,1)}_7-\bm{p}^{(l,1)}_2+\bm{p}^{(l,1)}_3.
+    \end{align*}
+\end{itemize}
+
+The parameters \texttt{beta1} and~\texttt{beta2} are factors, by which
+some vectors constructed by the procedure \texttt{FillG1Holef} are multiplied.
+By default, their value should be~$1$, but they may be modified to
+improve the filleting surface shape, if necessary (i.e.\ if the effect
+of using~$1$ is unsatisfactory).
+
+The parameter \texttt{hpcp} points to the array, in which the procedure
+is supposed to store the constructed control points of the B\'{e}zier
+patches filling the hole.
+
+The procedure returns \texttt{true} if the construction has been successful,
+or \texttt{false} otherwise.
+
+\vspace{\bigskipamount}
+\cprog{%
+extern void (*G1OutCentralPointf)( point3f *p ); \\
+extern void (*G1OutAuxCurvesf)( int ncurves, int degree, \\
+\ind{32}const point3f *accp, float t ); \\
+extern void (*G1OutStarCurvesf)( int ncurves, int degree, \\
+\ind{33}const point3f *sccp ); \\
+extern void (*G1OutAuxPatchesf)( int npatches, int degu, int degv, \\
+\ind{33}const point3f *apcp );}
+The variables above are ``hooks'' for procedures, which may output the
+partial results of the construction. Their initial value is \texttt{NULL}.
+If the address of the appropriate procedure is assigned to any of those
+variables before calling \texttt{FillG1Hole}, then this procedure will be
+called and it may output the data given by the parameters or
+draw the appropriate picture.
+
+The procedure pointed by the variable \texttt{G1OutCentralPointf} obtains as
+the parameter the pointer to the ``central'' point of the filleting surface
+(i.e.\ the common point of the patches filling the hole). This procedure
+is allowed to modify this point, i.e.\ assign it new coordinates, as such
+an interference with the construction is possible and sometimes desirable.
+
+The other procedures must not modify the data they get. The procedure
+pointed by the variable \texttt{G1OutAuxCurvesf} is called with the
+parameters, which describe the so called auxiliary curves --- B\'{e}zier
+curves of degree \texttt{degree} (here it is always~$3$). Each curve is
+given in a~separate call of this procedure.
+
+The procedure pointed by the variable \texttt{G1OutStarCurvesf} is
+called with the parameters, which describe the common boundary curves
+of the patches filling the hole (the construction of those curves is
+one of the first steps of the algorithm). The procedure parameters
+describe the B\'{e}zier representation of degree~$3$ of the curves.
+Each call is made to output one curve.%
+\begin{figure}[ht]
+  \centerline{\epsfig{file=g1patches2.ps}}
+  \caption{\label{fig:g1:patch:num:2}A~surface with a~hole filled by the procedure
+    \texttt{FillG1Holef}}
+\end{figure}
+
+The procedure pointed by the variable \texttt{G1OutAuxPatchesf} is
+called with the parameters, which describe the so called auxiliary patches,
+which determine the tangent planes at all points of the common curves
+of the patches filling the hole. The auxiliary patches are of degree
+$(3,1)$ (the parameters \texttt{ndegu} and \texttt{ndegv} are equal to
+$3$ and~$1$ respectively). The parameters \texttt{apcp} is a~pointer of
+an array with the control points of one auxiliary patch.
+
+\vspace{\medskipamount}
+\noindent\textbf{Caution:}
+The current version of the procedure does not contain any code to handle
+exceptional situations, which might cause the safe return in case of
+failure. Such a~code has to be added and tested if the procedure is to be
+built into a~``production'' software, to be used in industrial applications.
+Moreover, most of the library procedures are not prepared to deal with
+exceptional situations (\texttt{exit} is called in case of error),
+and therefore the package may be used mainly for experiments
+(and this is the cause, which made me write the package).

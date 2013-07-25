@@ -1,0 +1,651 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{Biblioteka \texttt{libcamera}}
+
+Biblioteka \texttt{libcamera} zawiera procedury obs"luguj"ace kamery, czyli
+obiekty, kt"ore s"lu"r"a do odwzorowania (rzutowania) punkt"ow przestrzeni
+tr"ojwymiarowej na p"laszczyzn"e, oczywi"scie w~celu wykonywania obrazk"ow.
+S"a dwa rodzaje rzut"ow: perspektywiczne i r"ownoleg"le. Te pierwsze s"lu"r"a
+do wykonywania ,,fotografii'', a~te drugie do ,,rysunk"ow technicznych''.
+
+
+\section{Kamera}
+
+\subsection{Opis kamery i algorytm rzutowania}
+
+Struktura danych i~nag"l"owki procedur obs"luguj"acych rzutowanie
+s"a opisane w~plikach \texttt{cameraf.h} i~\texttt{camerad.h}.
+Oba pliki mo"rna w"l"aczy"c do programu za po"srednictwem pliku
+\texttt{camera.h}.
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct CameraRecf \{ \\
+\ind{2}boolean parallel, upside, c\_fixed; \\
+\ind{2}byte magnification; \\
+\ind{2}short xmin, ymin, width, height; \\
+\ind{2}float aspect; \\
+\ind{2}point3f position; \\
+\ind{2}float psi, theta, phi; \\
+\ind{2}point3f g\_centre, c\_centre; \\
+\ind{2}float xscale, yscale; \\
+\ind{2}trans3f CTr, CTrInv; \\
+\ind{2}vector4f cplane[6]; \\
+\ind{2}union \{ \\
+\ind{4}struct \{ \\
+\ind{6}float f; \\
+\ind{6}float xi0, eta0; \\
+\ind{6}float dxi0, deta0; \\
+\ind{4}\} persp; \\
+\ind{4}struct \{ \\
+\ind{6}float   wdt, hgh, diag; \\
+\ind{6}boolean dim\_case; \\
+\ind{4}\} para; \\
+\ind{2}\} vd; \\
+\} CameraRecf;}
+Struktura \texttt{CameraRecf} opisuje kamer"e, tj.\ obiekt,
+kt"ory okre"s\-la rzutowanie perspektywiczne lub r"ownoleg"le na
+p"laszczyzn"e.%
+\begin{figure}[ht]
+  \centerline{\epsfig{file=camera.ps}}
+  \caption{Uk"lad wsp"o"lrz"ednych kamery i klatka dla rzutu perspektywicznego}
+\end{figure}
+
+Pola struktury maj"a nast"epuj"ace znaczenie:
+\begin{mydescription}
+  \item[]\texttt{parallel} --- je"sli pole to ma warto"s"c \texttt{false}
+    (\texttt{0}), to rzutowanie jest perspektywiczne, a~w~przeciwnym razie
+    r"ownoleg"le.
+  \item[]\texttt{upside} --- je"sli pole to ma warto"s"c \texttt{false},
+    to o"s~$y$ uk"ladu wsp"o"lrz"ednych na obrazie jest zorientowana
+    do do"lu (tak jak w~oknach systemu XWindow), a~w~przeciwnym razie --- do
+    g"ory (tak jak w~bibliotece OpenGL i~w~domy"slnym uk"ladzie w~j"ezyku
+    PostScript).
+  \item[]\texttt{c\_fixed} --- parametr okre"slaj"acy zmiany "srodka obrotu
+    kamery przy przesuwaniu. Warto"s"c \texttt{false} oznacza, "re punkt ten
+    jest nieruchomy w~uk"ladzie globalnym, za"s \texttt{true} oznacza, "re
+    jest nieruchomy w~uk"ladzie kamery.
+  \item[]\texttt{magnification} --- domy"slnie pole to ma warto"s"c~$1$,
+    co oznacza, "re jednostki osi w~uk"ladzie klatki s"a r"owne szeroko"sci
+    i~wysoko"sci piksela. Je"sli pole to ma wi"eksz"a warto"s"c, to
+    jednostki s"a o~ten czynnik kr"otsze, co mo"re by"c u"ryteczne,
+    je"sli obraz ma by"c wykonany z~nadpr"obkowaniem.
+  \item[]\texttt{xmin}, \texttt{ymin}, \texttt{width}, \texttt{height} ---
+    wsp"o"lrz"edne g"ornego lewego rogu klatki oraz jej szeroko"s"c
+    i~wysoko"s"c w~pikselach.
+  \item[]\texttt{aspect} --- wsp"o"lczynnik aspekt rastra, tj.\ iloraz
+    szeroko"sci i~wysoko"sci piksela.
+  \item[]\texttt{position} --- po"lo"renie obserwatora (wsp"o"lrz"edne
+    w~uk"ladzie globalnym).
+  \item[]\texttt{psi}, \texttt{theta},  \texttt{phi} --- k"aty Eulera
+    $\psi$, $\vartheta$, $\varphi$ okre"slaj"ace po"lo"renie kamery (tj.\
+    kierunek).
+  \item[]\texttt{g\_centre}, \texttt{c\_centre} --- wsp"o"lrz"edne "srodka
+    obrotu kamery, tj.\ punktu, kt"ory le"ry na osi obrotu kamery podczas
+    obracania jej.
+  \item[]\texttt{xscale}, \texttt{yscale} --- wsp"o"lczynniki skalowania osi
+    $x$~i~$y$ uk"ladu kamery.
+  \item[]\texttt{Ctr}, \texttt{CTrInv} --- przekszta"lcenia opisuj"ace
+    przej"scia od uk"ladu globalnego do uk"ladu kamery i~odwrotne.
+  \item[]\texttt{cplane} --- reprezentacje czterech p"o"lprzestrzeni,
+    kt"orych przeci"eciem jest ostros"lup widzenia. P"o"lprzestrze"n
+    $ax+by+cz+d>0$ jest reprezentowana przez wektor
+    o~wsp"o"lrz"ednych $a$, $b$, $c$, $d$.
+
+    Na razie s"a oprogramowane cztery p"o"lprzestrzenie, docelowo ma
+    by"c~$6$.
+  \item[]\texttt{vd} --- unia, kt"ora zawiera dane specyficzne dla rodzaju
+    rzutowania. Struktura \texttt{vd.persp} zawiera dane dla rzut"ow
+    perspektywicznych, \texttt{vd.para} dla r"ownoleg"lych.
+  \item[]\texttt{vd.persp.f} --- d"lugo"s"c ogniskowej kamery, mierzona
+    w~jednostkach, w~kt"orych przek"atna klatki ma d"lugo"s"c~$1$.
+    D"lugo"s"c~$1$ ogniskowej odpowiada obiektywowi standardowemu.
+  \item[]\texttt{vd.persp.xi0}, \texttt{vd.persp.eta0} --- przesuni"ecie
+    pikseli po rzutowaniu perspektywicznym.
+  \item[]\texttt{vd.persp.dxi0}, \texttt{vd.persp.deta0} --- wsp"o"lrz"edne
+    $x$, $y$ (w~uk"ladzie kamery) "srodka klatki. Domy"slnie maj"a
+    warto"s"c~$0$, co oznacza, "re "srodek klatki le"ry na ,,osi optycznej''
+    kamery. Nadanie innej warto"sci jest potrzebne w~programie obs"luguj"acym
+    par"e kamer w~celu tworzenia obraz"ow stereoskopowych.
+  \item[]\texttt{vd.para.wdt}, \texttt{vd.para.hgh}, \texttt{vd.para.diag}
+    --- wymiary (szeroko"s"c, wysoko"s"c i~d"lugo"s"c przek"atnej) klatki
+    mierzona w~jednostkach uk"ladu globalnego.
+  \item[]\texttt{vd.para.dim\_case} --- parametr okre"slaj"acy, kt"ory
+    z~powy"zszych trzech wymiar"ow klatki jest podany przez u"rytkownika;
+    $0$ --- d"lugo"s"c przek"atnej, $1$ --- szeroko"s"c, $2$ --- wysoko"s"c.
+    Na podstawie jednego z~tych wymiar"ow podczas obliczania macierzy
+    przekszta"lcenia zostan"a obliczone pozosta"le dwa.
+
+    Domy"slnie pole to otrzymuje warto"s"c~$0$, a~pole \texttt{vd.para.diag}
+    warto"s"c~$1$.
+\end{mydescription}
+
+\subsubsection*{Algorytm rzutowania:}
+
+Obraz punktu $\bm{p}$ reprezentowanego za pomoc"a wsp"o"lrz"ednych
+w~uk"ladzie globalnym jest obliczany tak:
+\begin{enumerate}
+  \item\begin{sloppypar}
+    Punkt $\bm{p}$ jest poddawany przekszta"lceniu afinicznemu
+    reprezentowanemu przez pole \texttt{CTr}. Krok ten jest przej"sciem do
+    uk"ladu wsp"o"lrz"ednych kamery.%
+    \end{sloppypar}
+  \item Je"sli rzutowanie jest perspektywiczne, to obliczone wsp"o"lrz"edne
+    $x$ i $y$ w uk"ladzie kamery s"a dzielone przez wsp"o"lrz"edn"a $z$, co
+    jest w"la"sciwym rzutowaniem perspektywicznym, a~nast"epnie obliczane
+    s"a wsp"o"lrz"edne $x$, $y$ punktu na obrazie, przez dodanie
+    warto"sci p"ol \texttt{xi0} i~\texttt{eta0}.
+
+    Je"sli rzutowanie jest r"ownoleg"le, to ten krok oblicze"n jest pomijany.
+  \item Je"sli o"s~$y$ na obrazie jest zorientowana do g"ory (pole
+   \texttt{upside} ma warto"s"c niezerow"a), to wsp"o"lrz"edna~$y$
+   jest zast"epowana przez $2y_{\mathrm{min}}+h-y$, gdzie $y_{\mathrm{min}}$
+   jest warto"sci"a pola \texttt{ymin}, a~$h$ jest warto"sci"a pola
+   \texttt{height}.
+\end{enumerate}
+
+
+\subsubsection*{Okre"slanie przej"scia do uk"ladu kamery:}
+
+Przekszta"lcenie, kt"ore opisuje przej"scie od globalnego uk"ladu
+wsp"o"lrz"ednych do uk"ladu kamery (wykonywane w~pierwszym kroku rzutowania
+opisanego wy"rej) jest z"lo"reniem trzech przekszta"lce"n afinicznych:
+\begin{enumerate}
+  \item Skalowania osi $x$ i~$y$ o~czynniki b"ed"ace warto"sciami
+    odpowiednio p"ol \texttt{xscale} i~\texttt{yscale}.
+  \item Obrotu opisanego za pomoc"a k"at"ow Eulera, b"ed"acych warto"sciami
+    p"ol \texttt{psi}, \texttt{theta}, \texttt{phi}.
+  \item Przesuni"ecia, kt"ore umieszcza pocz"atek uk"ladu w~punkcie
+    okre"slonym przez pole \texttt{position}.
+\end{enumerate}
+Nadawanie warto"sci powy"rszych p"ol powinno odbywa"c si"e w~zasadzie
+wy"l"acznie za~pomoc"a opisanych dalej procedur, kt"ore w~szczeg"olno"sci
+obliczaj"a po"lo"renie kamery jako wynik ci"agu jej przemieszcze"n od
+domy"slnego po"lo"renia pocz"atkowego.
+
+
+\subsection{Procedury obs"lugi kamery}
+
+\cprog{%
+void CameraInitFramef ( CameraRecf *CPos, \\
+\ind{17}boolean parallel, boolean upside, \\
+\ind{17}short width, short height, short xmin, short ymin, \\
+\ind{17}float aspect );}
+\hspace*{\parindent}Procedura \texttt{CameraInitFramef} inicjalizuje
+w~strukturze \texttt{*CPos} pola opisuj"ace spos"ob rzutowania
+i~wielko"s"c klatki kamery (w~pikselach) oraz aspekt rastra (iloraz
+szeroko"sci i~wysoko"sci piksela).
+
+\begin{sloppypar}
+Parametr \texttt{parallel} o~warto"sci \texttt{false} okre"sla rzutowanie
+perspektywiczne, a~warto"s"c \texttt{true} spowoduje okre"slenie
+rzutowania r"ownoleg"lego.%
+\end{sloppypar}
+
+\begin{sloppypar}
+Parametr \texttt{upside} o~warto"sci \texttt{false} spowoduje przyj"ecie
+na obrazie uk"ladu wsp"o"lrz"ednych z~osi"a~$y$ skierowan"a do do"lu,
+a~\texttt{true} --- do g"ory.%
+\end{sloppypar}
+
+Parametry \texttt{width} i~\texttt{height} opisuj"a szeroko"s"c
+i~wysoko"s"c klatki, za"s parametry \texttt{xmin} i~\texttt{ymin}
+po"lo"renie g"ornego lewego rogu klatki.
+
+Wywo"lanie tej procedury powinno poprzedzi"c wszystkie dalsze akcje
+z~u"ryciem kamery, ale \emph{nie wystarczy} do okre"slenia rzutowania. To
+powinno by"c zrobione przez wywo"lanie \texttt{CameraInitPosf} i~ewentualnie
+pewnej liczby wywo"la"n procedur zmieniaj"acych po"lo"renie kamery. Je"sli
+trzeba zmieni"c wielko"s"c klatki (np.\ w~celu dostosowania jej do nowych
+wymiar"ow okna zmienionego przez u"rytkownika programu na ekranie), bez
+zmieniania po"lo"renia obserwatora, to po wywo"laniu
+\texttt{CameraInitFramef} nale"ry wywo"la"c procedur"e
+\texttt{CameraSetMappingf}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraSetMagf ( CameraRecf *CPos, byte mag );}
+Procedura \texttt{CameraSetMagf} s"lu"ry do okre"slenia powi"ekszenia
+rozdzielczo"sci rastra; domy"slnie jednostkami osi uk"ladu kamery s"a
+szeroko"s"c i~wysoko"s"c jednego piksela. Wywo"luj"ac t"e procedur"e
+z~parametrem \texttt{mag}${}=n$ (gdzie $n$ jest ca"lkowit"a liczb"a dodatni"a)
+zmniejszamy te jednostki $n$~razy, co mo"re si"e przyda"c podczas tworzenia
+obrazu z~nadpr"obkowaniem (ang.\ \textsl{supersampling}).
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraSetMappingf ( CameraRecf *CPos );}
+Procedura \texttt{CameraSetMappingf} ma na celu obliczenie macierzy
+wykorzystywanych przez procedury rzutowania. Procedura ta jest wywo"lywana
+przez wszystkie procedury nadaj"ace lub zmieniaj"ace po"lo"renie kamery, tak
+wi"ec jej wywo"lywanie przez aplikacje jest zb"edne, z~wyj"atkiem sytuacji,
+gdy wielko"s"c klatki zosta"la zmieniona (za pomoc"a
+\texttt{CameraInitFramef}) i~okre"slone wcze"sniej po"lo"renie kamery
+ma pozosta"c niezmienione.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraProjectPoint3f ( CameraRecf *CPos, const point3f *p, \\
+\ind{28}point3f *q );}
+Procedura \texttt{CameraProjectPoint3f} s"lu"ry do obliczenia obrazu punktu
+\texttt{*p} w~rzucie perspektywicznym lub r"ownoleg"lym.
+Wsp"o"lrz"edne tego obrazu to wsp"o"lrz"edne $x$ i $y$ punktu \texttt{*q}.
+Jego wsp"o"lrz"edna $z$ okre"sla g"l"eboko"s"c punktu, tj.\ jego odleg"lo"s"c
+(ze znakiem) od p"laszczyzny r"ownoleg"lej do rzutni, zawieraj"acej
+po"lo"renie obserwatora. Mo"re ona si"e przyda"c do rozstrzygania
+widoczno"sci w~algorytmach linii lub powierzchni zas"loni"etej.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraUnProjectPoint3f ( CameraRecf *CPos, const point3f *p, \\
+\ind{30}point3f *q );}
+Procedura \texttt{CameraUnProjectPoint3f} oblicza przeciwobraz
+punktu~\texttt{p} w~rzucie. Wsp"o"lrz"edne $x$, $y$ punktu~\texttt{*q}
+s"a podane w~uk"ladzie obrazu, wsp"o"lrz"edna~$z$ jest g"l"eboko"sci"a
+(w~uk"ladzie kamery). Jest to wi"ec przekszta"lcenie odwrotne do
+przekszta"lcenia dokonywanego przez procedur"e
+\texttt{CameraProjectPoint3f}.
+
+Wsp"o"lrz"edne $x$, $y$, $z$ przeciwobrazu s"a przypisywane do odpowiednich
+p"ol parametru \texttt{*q}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraProjectPoint2f ( CameraRecf *CPos, const point2f *p, \\
+\ind{28}point2f *q );}
+\begin{sloppypar}
+Procedura \texttt{CameraProjectPoint2f} dokonuje rzutowania
+punktu~$\bm{p}$, kt"orego wsp"o"lrz"edne $x$, $y$ s"a dane za pomoc"a
+parametru~\texttt{p}, a~wsp"o"lrz"edna~$z$ jest r"owna~$0$.%
+\end{sloppypar}
+
+Wsp"o"lrz"edne $x$, $y$ rzutu s"a przypisywane polom parametru~\texttt{*q}.
+
+W~zasadzie stosowanie tej procedury ma sens tylko dla rzutowania
+r"ownoleg"lego.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+void CameraUnProjectPoint2f ( CameraRecf *CPos, const point2f *p, \\
+\ind{30}point2f *q );}
+Procedura \texttt{CameraUnProjectPoint2f} znajduje przeciwobraz
+punktu~$\bm{p}$, kt"orego wsp"o"lrz"edne $x$, $y$ (w~uk"ladzie obrazu)
+s"a dane za pomoc"a parametru~\texttt{p}, a~wsp"o"lrz"edna~$z$
+(w~uk"ladzie kamery) jest r"owna~$0$.
+
+Wsp"o"lrz"edne przeciwobrazu s"a przypisywane polom parametru~\texttt{*q}.
+
+Procedur"e t"e mo"rna stosowa"c tylko dla rzutowania r"ownoleg"lego.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraRayOfPixelf ( CameraRecf *CPos, float xi, float eta, \\
+\ind{25}ray3f *ray );}
+\begin{sloppypar}
+Procedura \texttt{CameraRayOfPixel} dla punktu o~wsp"o"lrz"ednych na obrazie
+$x={}$\texttt{xi}, $y={}$\texttt{eta}, znajduje reprezentacj"e promienia,
+tj.\ p"o"lprostej, kt"orej pocz"atek (dla rzutowania perspektywicznego)
+jest po"lo"reniem obserwatora, i~kt"ora przechodzi przez podany punkt rzutni.
+Dla rzutowania r"ownoleg"lego pocz"atek promienia jest punktem rzutni,
+a~jego kierunek jest kierunkiem rzutowania.%
+\end{sloppypar}
+
+\begin{sloppypar}
+Pole~\texttt{p} struktury \texttt{*ray} otrzymuje warto"s"c opisuj"ac"a
+pocz"atek promienia (we wsp"o"lrz"ednych w~uk"ladzie globalnym),
+a~przypisana przez procedur"e warto"s"c pola~\texttt{v} to jednostkowy
+wektor kierunkowy promienia. Procedura jest napisana na g"l"ownie potrzeby
+"sledzenia promieni.%
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraInitPosf ( CameraRecf *CPos );}
+Procedura \texttt{CameraInitPosf} przypisuje kamerze domy"slne po"lo"renie,
+w~kt"orym osie $x$, $y$ i~$z$ uk"ladu kamery pokrywaj"a si"e z osiami $x$,
+$y$, $z$ uk"ladu globalnego. D"lugo"s"c ogniskowej kamery otrzymuje
+warto"s"c $1$. Przed wywo"laniem tej procedury nale"ry okre"sli"c wielko"s"c
+klatki i~aspekt obrazu, za pomoc"a procedury \texttt{CameraInitFramef}.
+
+Po wywo"laniu procedury \texttt{CameraInitPosf} kamera jest gotowa do
+rzutowania punkt"ow, a~tak"re do zmieniania po"lo"renia i~ogniskowej.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraSetRotCentref ( CameraRecf *CPos, point3f *centre, \\
+\ind{22}boolean global\_coord, boolean global\_fixed );}
+Procedura \texttt{CameraSetRotCentref} s"lu"ry do okre"slania punktu, przez
+kt"ory przechodz"a osie nast"epnie wykonywanych obrot"ow kamery. Parametr
+\texttt{*centre} okre"sla ten punkt, parametr \texttt{global\_coord}
+okre"sla, czy wsp"o"lrz"edne tego punktu s"a podane w~uk"ladzie globalnym
+(je"sli ma warto"s"c \texttt{true}), czy w~uk"ladzie kamery (je"sli
+\texttt{false}). Parametr \texttt{global\_fixed} okre"sla, czy przy
+przesuni"eciach kamery punkt ten jest nieruchomy w uk"ladzie globalnym
+(je"sli \texttt{true}), czy w~uk"ladzie kamery (je"sli \texttt{false}).
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraMoveToGf ( CameraRecf *CPos, point3f *pos );}
+Procedura \texttt{CameraMoveToGf} przesuwa (bez obrotu) kamer"e do
+po"lo"renia \texttt{*pos}, wyspecyfikowanego w~uk"ladzie globalnym.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraTurnGf ( CameraRecf *CPos, \\
+\ind{20}float psi, float theta, float phi );}
+Procedura \texttt{CameraTurnGf} nadaje kamerze po"lo"renie k"atowe
+okre"slone przez podanie k"at"ow Eulera (precesji,
+\texttt{psi}, nutacji, \texttt{theta}, i~obrotu w"la"sciwego, \texttt{phi}),
+w~globalnym uk"ladzie wsp"o"lrz"ednych.
+
+\vspace{\medskipamount}
+\begin{sloppypar}\noindent
+\textbf{Uwaga:} Przewiduj"e zmian"e sposobu okre"slania po"lo"renia
+k"atowego kamery, w~zwi"azku z~czym bezpo"srednie u"rywanie tej procedury
+jest \emph{niewskazane}.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraMoveGf ( CameraRecf *CPos, vector3f *v );}
+Procedura \texttt{CameraMoveGf} poddaje kamer"e przesuni"eciu o~wektor
+\texttt{v}, podany w~globalnym uk"ladzie wsp"o"lrz"ednych.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraMoveCf ( CameraRecf *CPos, vector3f *v );}
+Procedura \texttt{CameraMoveGf} poddaje kamer"e przesuni"eciu o~wektor
+\texttt{v}, podany w~uk"ladzie wsp"o"lrz"ednych kamery.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraRotGf ( CameraRecf *CPos, \\
+\ind{19}float psi, float theta, float phi );}
+Procedura \texttt{CameraRotGf} dokonuje obrotu kamery. Obr"ot jest
+okre"slony za~pomoc"a k"at"ow Eulera w~uk"ladzie globalnym.
+O"s obrotu przechodzi przez pocz"atek globalnego uk"ladu wsp"o"lrz"ednych
+lub przez punkt okre"slony za pomoc"a procedury~\texttt{SetCameraRotCentref}.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define CameraRotXGf(Camera,angle) \bsl \\
+\ind{2}CameraRotGf(Camera, 0.0, angle, 0.0) \\
+\#define CameraRotYGf(Camera,angle) \bsl \\
+\ind{2}CameraRotGf(Camera, 0.5 * PI, angle, -0.5 * PI) \\
+\#define CameraRotZGf(Camera,angle) \bsl \\
+\ind{2}CameraRotGf(Camera, angle, 0.0, 0.0)}
+Trzy makra dokonuj"a obrot"ow kamery wok"o"l trzech osi uk"ladu
+globalnego.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraRotVGf ( CameraRecf *CPos, vector3f *v, float angle );}
+Procedura \texttt{CameraRotVGf} dokonuje obrotu kamery wok"o"l osi
+o~kierunku wektora \texttt{v} i~k"at~\texttt{angle}. Wsp"o"lrz"edne
+wektora~\texttt{v} s"a dane w~globalnym uk"ladzie wsp"o"lrz"ednych.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraRotCf ( CameraRecf *CPos, \\
+\ind{19}float psi, float theta, float phi );}
+Procedura \texttt{CameraRotCf} dokonuje obrotu kamery. Obr"ot jest
+okre"slony za pomoc"a k"at"ow Eulera w~uk"ladzie kamery. O"s obrotu
+przechodzi przez pocz"atek \emph{globalnego} uk"ladu wsp"o"lrz"ednych lub
+przez punkt okre"slony za pomoc"a procedury~\texttt{SetCameraRotCentref}.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define CameraRotXCf(Camera,angle) \bsl \\
+\ind{2}CameraRotCf ( Camera, 0.0, angle, 0.0 ) \\
+\#define CameraRotYCf(Camera,angle) \bsl \\
+\ind{2}CameraRotCf ( Camera, 0.5 * PI, angle, -0.5 * PI ) \\
+\#define CameraRotZCf(Camera,angle) \bsl \\
+\ind{2}CameraRotCf ( Camera, angle, 0.0, 0.0 )}
+Trzy makra dokonuj"a obrot"ow kamery wok"o"l trzech osi uk"ladu kamery.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraRotVCf ( CameraRecf *CPos, vector3f *v, float angle );}
+Procedura \texttt{CameraRotVCf} dokonuje obrotu kamery wok"o"l osi
+o~kierunku wektora \texttt{v} i~k"at~\texttt{angle}. Wsp"o"lrz"edne
+wektora~\texttt{v} s"a dane w~uk"ladzie wsp"o"lrz"ednych kamery.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraSetFf ( CameraRecf *CPos, float f );}
+Procedura \texttt{CameraSetFf} ustawia ,,d"lugo"s"c ogniskowej'' kamery.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraZoomf ( CameraRecf *CPos, float fchange );}
+Procedura \texttt{CameraZoomf} zmienia ,,d"lugo"s"c ogniskowej'' kamery,
+mno"r"ac d"lugo"s"c dotychczasow"a przez parametr \texttt{fchange}, kt"ory
+musi by"c dodatni.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean CameraClipPoint3f ( CameraRecf *CPos, \\
+\ind{28}point3f *p, point3f *q );}
+Procedura \texttt{CameraClipPoint3f} sprawdza, czy obraz punktu~\texttt{p}
+mie"sci si"e w~klatce i~je"sli tak, to dokonuje rzutowania tego punktu.
+Wsp"o"lrz"edne obrazu punktu s"a przekazywane za pomoc"a parametru~\texttt{q}.
+Warto"s"c \texttt{true} oznacza, "re obraz punktu jest widoczny, \texttt{false},
+"re nie.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean CameraClipLine3f ( CameraRecf *CPos, \\
+\ind{22}point3f *p0, float t0, point3f *p1, float t1, \\
+\ind{22}point3f *q0, point3f *q1 );}
+Procedura \texttt{CameraClipLine3f} obcina do ostros"lupa widoczno"sci
+odcinek $\{\,(1-t)\bm{p}_0+t\bm{p}_1\colon t\in[t_0,t_1]\,\}$.
+Je"sli przeci"ecie odcinka z~ostros"lupem widoczno"sci jest niepuste,
+to ko"nce tej cz"e"sci s"a rzutowane i~wyprowadzane za pomoc"a parametr"ow
+\texttt{q0} i~\texttt{q1}. Warto"sci"a procedury jest wtedy \texttt{true}.
+
+Procedura jest implementacj"a algorytmu Lianga-Barsky'ego.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean CameraClipPolygon3f ( CameraRecf *CPos, \\
+\ind{30}int n, const point3f *p, \\
+\ind{30}void (*output)(int n, point3f *p) );}
+Procedura \texttt{CameraClipPolygon3f} dokonuje obcinania wielok"ata
+do ostros"lupa widzenia, przy u"ryciu algorytmu Sutherlanda-Hodgmana.
+Parametr~\texttt{n} okre"sla liczb"e wierzcho"lk"ow wielok"ata
+w przestrzeni, podanych w tablicy~\texttt{p}; brzeg tego wielok"ata
+jest jedn"a "laman"a zamkni"et"a.
+
+\begin{sloppypar}
+Parametr \texttt{output} wskazuje procedur"e, kt"ora zostanie wywo"lana,
+je"sli cz"e"s"c wsp"ol\-na wielok"ata z~ostros"lupem widzenia jest niepusta.
+Parametr~\texttt{n} tej procedury okre"sla liczb"e wierzcho"lk"ow
+obci"etego wielok"ata. W~tablicy~\texttt{p} s"a podane rzuty tych
+wierzcho"lk"ow.%
+\end{sloppypar}
+
+
+\newpage
+\section{Para kamer do obraz"ow stereoskopowych}
+
+Aby wykona"c par"e obraz"ow stereoskopowych trzeba umie"sci"c w~przestrzeni
+dwie kamery, a~nast"epnie wykona"c obrazy, dokonuj"ac rzutowania za pomoc"a
+ka"rdej z~nich. Opisane ni"rej procedury u"latwiaj"a manipulowanie tak"a
+par"a kamer; ka"rda z~nich odpowiada pewnej procedurze manipulacji jedn"a
+kamer"a. Procedur tych u"rywa si"e \emph{zamiast} opisanych wy"rej procedur
+ustawiania kamer w~przestrzeni. Natomiast podczas tworzenia obraz"ow
+b"ed"a u"rywane procedury rzutowania lub generowania promieni, dla ka"rdej
+kamery niezale"rnie od drugiej.
+\begin{figure}[ht]
+  \centerline{\epsfig{file=stereo.ps}}
+  \caption{Para kamer stereo i ich wsp"olna klatka}
+\end{figure}%
+
+Struktura danych i nag"l"owki procedur obs"luguj"acych par"e kamer
+stereoskopowych s"a opisane w~pliku nag"l"owkowym \texttt{stereo.h}.
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct StereoRecf \{ \\
+\ind{2}point3f\ind{4}position; \\
+\ind{2}float\ind{6}d; \\
+\ind{2}float\ind{6}l; \\
+\ind{2}CameraRecf left, right; \\
+\ind{2}trans3f\ind{4}STr, STrInv; \\
+\} StereoRecf;}
+Struktura typu \texttt{StereoRecf} zawiera opisy dw"och kamer (lewej
+i~prawej).
+
+\vspace{\bigskipamount}
+\cprog{%
+void StereoInitFramef ( StereoRecf *Stereo, boolean upside, \\
+\ind{17}short width, short height, short xmin, short ymin, \\
+\ind{17}float aspect );}
+\begin{sloppypar}
+Procedura \texttt{StereoInitFramef} s"lu"ry do okre"slenia wymiar"ow klatek
+kamer w~pikselach i~wsp"o"lczynnika aspect. W~tym celu procedura wywo"luje
+dla ka"rdej z~kamer procedur"e \texttt{CameraInitFramef} z~tymi samymi
+parametrami. Procedur"e t"e nale"ry wywo"la"c jako pierwsz"a w~procesie
+inicjalizacji pary kamer. Po jej wywo"laniu jeszcze procedura \emph{nie jest}
+gotowa do u"rycia.%
+\end{sloppypar}
+
+Parametr \texttt{upside} okre"sla zwrot osi~$y$ w~uk"ladzie wsp"olrz"ednych
+obrazu --- zobacz opis procedury \texttt{CameraInitFramef}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void StereoSetDimf ( StereoRecf *Stereo, \\
+\ind{21}float f, float d, float l );}
+Procedura \texttt{StereoSetDimf} s"lu"ry do okre"slenia wymiar"ow pary kamer
+w~jednostkach d"lugo"sci zwi"azanych z~podstawowym uk"ladem
+wsp"o"lrz"ednych, w~kt"orym opisuje si"e obiekty do narysowania.
+Parametr~\texttt{f} okre"sla bezwymiarow"a d"lugo"s"c ogniskowej, tj.\ iloraz
+odleg"lo"sci p"laszczyzny klatki od "srodka rzutowania i~przek"atnej klatki.
+Parametr~\texttt{d} okre"sla odleg"lo"s"c mi"edzy "zrenicami oczu
+obserwatora (tj.\ mi"edzy "srodkami rzutowania kamer), a~parametr~\texttt{l}
+okre"sla odleg"lo"s"c "srodk"ow rzutowania od p"laszczyzny klatki (tj.\
+ekranu). Przek"atna klatki ma zatem d"lugo"s"c $l/f$ w~jednostkach
+zwi"azanych ze stosowanym uk"ladem. D"lugo"s"c przek"atnej klatki w~calach
+zale"ry od monitora.
+
+\vspace{\medskipamount}\noindent
+\textbf{Uwaga:} Procedura \texttt{StereoInitPosf} przypisuje atrybuty $f=1$,
+$d=0$ i~$l=1$, kt"ore nie s"a zbyt u"ryteczne. Trzeba im zatem nada"c
+bardziej sensowne warto"sci, w"la"snie przez wywo"lanie procedury
+\texttt{StereoSetDimf}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void StereoSetMagf ( StereoRecf *Stereo, char mag );}
+Procedura \texttt{SetStereoMagf} okre"sla wsp"o"lczynnik powi"ekszenia
+rozdzielczo"sci kamer (np.\ dla cel"ow antyaliasowania) przez wywo"lanie
+procedury \texttt{CameraSetMagf} dla obu kamer. Domy"slna warto"s"c tego
+wsp"o"lczynnika (bez wywo"lywania tej procedury) jest r"owna~$1$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void StereoSetMappingf ( StereoRecf *Stereo );}
+Procedura \texttt{StereoSetMappingf} okre"sla po"lo"renie "srodk"ow rzutowania
+kamer i~przygotowuje je do u"rycia (tj.\ rzutowania punkt"ow itd.), przez
+wywo"lanie procedury \texttt{CameraSetMappingf}. Przed wywo"laniem tej procedury
+nale"ry wywo"la"c \texttt{StereoInitFramef}, \texttt{StereoInitPosf}
+i~\texttt{StereoSetDimf}.
+
+Opisane ni"rej procedury ustawiaj"ace i~zmieniaj"ace pozycj"e pary kamer
+wywo"luj"a t"e procedur"e, a~wi"ec typowe aplikacje nie musz"a jej
+wywo"lywa"c bezpo"srednio.
+
+\vspace{\bigskipamount}
+\cprog{%
+void StereoInitPosf ( StereoRecf *Stereo );}
+Procedura \texttt{StereoInitPosf} ustawia par"e kamer w~domy"slnym
+po"lo"reniu wyj"s\-cio\-wym. Obie kamery s"a ustawiane jednakowo, w~takiej
+pozycji, jak przez procedur"e \texttt{CameraInitPosf}.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+void StereoSetRotCentref ( StereoRecf *Stereo, \\
+\ind{22}point3f *centre, \\
+\ind{22}boolean global\_coord, boolean global\_fixed );}
+Procedura okre"sla punkt, przez kt"ory przechodzi o"s obrotu pary kamer
+podczas zmian jej po"lo"renia wykonywanego przez procedury opisane ni"rej.
+Spos"ob jego okre"slania i~przetwarzania jest identyczny jak w~przypadku
+jednej kamery.
+
+\vspace{\bigskipamount}
+\cprog{%
+void StereoMoveGf ( StereoRecf *Stereo, vector3f *v );}
+Procedura \texttt{StereoMoveGf} dokonuje przemieszczenia pary kamer (bez
+zmiany kierunku) o~wektor~$\bm{v}$, okre"slony w~uk"ladzie globalnym.
+
+\vspace{\bigskipamount}
+\cprog{%
+void StereoMoveCf ( StereoRecf *Stereo, vector3f *v );}
+Procedura \texttt{StereoMoveCf} dokonuje przemieszczenia pary kamer (bez
+zmiany kierunku) o~wektor~$\bm{v}$, okre"slony w~uk"ladzie kamer.
+
+\vspace{\bigskipamount}
+\cprog{%
+void StereoRotGf ( StereoRecf *Stereo, \\
+\ind{19}float psi, float theta, float phi );}
+Procedura \texttt{StereoRotGf} dokonuje obrotu pary kamer, okre"slonego
+za~pomoc"a k"at"ow Eulera $\psi$, $\vartheta$, $\varphi$ w~uk"ladzie globalnym.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define StereoRotXGf(Stereo,angle) \bsl \\                         
+\ind{2}StereoRotGf ( Stereo, 0.0, angle, 0.0 ) \\
+\#define StereoRotYGf(Stereo,angle) \bsl \\
+\ind{2}StereoRotGf ( Stereo, 0.5*PI, angle, -0.5*PI ) \\
+\#define StereoRotZGf(Stereo,angle) \bsl \\
+\ind{2}StereoRotGf ( Stereo, angle, 0.0, 0.0 )}
+Powy"rsze makra dokonuj"a obrotu pary kamer wok"o"l osi r"ownoleg"lych
+odpowiednio do osi $x$, $y$ i~$z$ globalnego uk"ladu wsp"o"lrz"ednych.
+
+\vspace{\bigskipamount}
+\cprog{%
+void StereoRotVGf ( StereoRecf *Stereo, vector3f *v, float angle );}
+Procedura \texttt{StereoRotVGf} dokonuje obrotu pary kamer wok"o"l osi
+o~kierunku wektora~$\bm{v}$, okre"slonego w~uk"ladzie globalnym.
+
+\vspace{\bigskipamount}
+\cprog{%
+void StereoRotCf ( StereoRecf *Stereo, \\
+\ind{19}float psi, float theta, float phi );}
+Procedura \texttt{StereoRotCf} dokonuje obrotu pary kamer okre"slonego przez
+k"aty Eulera $\psi$, $\vartheta$, $\varphi$ w~uk"ladzie wp"o"lrz"ednych pary
+kamer.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+\#define StereoRotXCf(Stereo,angle) \bsl \\
+\ind{2}StereoRotCf ( Stereo, 0.0, angle, 0.0 ) \\
+\#define StereoRotYCf(Stereo,angle) \bsl \\
+\ind{2}StereoRotCf ( Stereo, 0.5*PI, angle, -0.5*PI ) \\
+\#define StereoRotZCf(Stereo,angle) \bsl \\
+\ind{2}StereoRotCf ( Stereo, angle, 0.0, 0.0 )}
+Powy"rsze makra dokonuj"a obrotu pary kamer wok"o"l osi r"ownoleg"lych
+odpowiednio do osi $x$, $y$ i~$z$ uk"ladu wsp"o"lrz"ednych pary kamer.
+
+\vspace{\bigskipamount}
+\cprog{%
+void StereoRotVCf ( StereoRecf *Stereo, vector3f *v, float angle );}
+Procedura \texttt{StereoRotVCf} dokonuje obrotu pary kamer wok"o"l osi
+o~kierunku wektora~$\bm{v}$, okre"slonego w~uk"ladzie wsp"o"lrz"ednych pary
+kamer.
+
+\vspace{\bigskipamount}
+\cprog{%
+void StereoZoomf ( StereoRecf *Stereo, float fchange );}
+Procedura \texttt{StereoZoomf} mno"ry d"lugo"s"c ogniskowej kamer przez
+warto"s"c parametru \texttt{fchange}. Lepiej jej nie u"rywa"c.
+
+

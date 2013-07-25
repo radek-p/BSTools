@@ -1,0 +1,45 @@
+JAKTO zrobic
+
+Na wstepie nalezy miec zainstalowane nastepujace oprogramowanie:
+
+- Program GNU make (uzycie innego programu make moze wymagac nie wiem
+  jakich zmian plikow Makefile).
+
+- Kompilator gcc i program ar. Nie prowadzilem badan nad jakoscia kodu
+  generowanego przez konkretne wersje.
+
+- System skladu TeX (do wygenerowania dokumentacji); w dokumentacji
+  sa uzyte fonty Computer Modern, Concrete Roman oraz Euler.
+
+- Pakiet pstools (program psnup, formatuje dokumentacje ukladajac dwie
+  strony na jednej stronie papieru).
+
+- Program Ghostscript i (dla wygody, ale niekoniecznie) Ghostview.
+
+- System X Window (do uruchamiania programow demonstracyjnych),
+  nie ma zadnych wymagan szczegolowych (na przyklad nie jest potrzebny
+  OpenGL, Motif, Gnome, KDE, Athena widgets itp.).
+
+W Linuksie na ogol wsystkie te programy sa obecne. Co nalezy zrobic, aby
+byly dostepne w innym systemie, nie wiem, ale komu zalezy ten sie dowie
+(nie ode mnie).
+
+Aby skompilowac caly pakiet, nalezy w tym katalogu wydac polecenia
+
+	make mrproper
+	make
+
+Domyslnie bedzie uzyty kompilator GNU gcc, z wlaczonymi opcjami
+optymalizacji kodu. Napisanie 'make debug' zamiast 'make' spowoduje
+kompilacje z wlaczeniem opcji -g, umozliwiajacej uzycie debuggera DDD.
+Napisanie 'make icc' spowoduje uzycie kompilatora Intel icc
+(ale trzeba go miec zainstalowanego).
+
+Po skompilowaniu pakietu mozna wydac polecenie
+
+	make clean
+
+ktore zostawia koncowe produkty (tj. biblioteki i programy demonstracyjne),
+ale usuwa pliki *.o oraz obrazki w PostScripcie, jesli nie sa one domyslnym
+celem uzycia programu make.
+ 

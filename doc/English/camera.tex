@@ -1,0 +1,664 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{The \texttt{libcamera} library}
+
+The \texttt{libcamera} library consists of procedures, which manage the
+cameras, i.e.\ objects, which represent projections of the 3d space
+onto a~plane, in order to make pictures. There are two kinds of projections:
+perspective and parallel. The former are intended to make ``photographs'',
+the latter are better to produce technical drawings.
+
+
+\section{The camera}
+
+\subsection{A description of the camera and the projection algorithm}
+
+The data structure and the headers of procedures are giben in the header
+files \texttt{cameraf.h} andf \texttt{camerad.h}.
+Both files may be included via the file \texttt{camera.h}.
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct CameraRecf \{ \\
+\ind{2}boolean parallel, upside, c\_fixed; \\
+\ind{2}byte magnification; \\
+\ind{2}short xmin, ymin, width, height; \\
+\ind{2}float aspect; \\
+\ind{2}point3f position; \\
+\ind{2}float psi, theta, phi; \\
+\ind{2}point3f g\_centre, c\_centre; \\
+\ind{2}float xscale, yscale; \\
+\ind{2}trans3f CTr, CTrInv; \\
+\ind{2}vector4f cplane[6]; \\
+\ind{2}union \{ \\
+\ind{4}struct \{ \\
+\ind{6}float f; \\
+\ind{6}float xi0, eta0; \\
+\ind{6}float dxi0, deta0; \\
+\ind{4}\} persp; \\
+\ind{4}struct \{ \\
+\ind{6}float   wdt, hgh, diag; \\
+\ind{6}boolean dim\_case; \\
+\ind{4}\} para; \\
+\ind{2}\} vd; \\
+\} CameraRecf;}
+The \texttt{CameraRecf} structure describes the camera, i.e.\ an object
+representing a~perspective or a~parallel projection.%
+\begin{figure}[ht]
+  \centerline{\epsfig{file=camera.ps}}
+  \caption{The camera system of coordinates and the frame for
+      a~perspective projection}
+\end{figure}
+
+The structure fields contain the following information:
+\begin{mydescription}
+  \item[]\texttt{parallel} --- if its value is \texttt{false}
+    (\texttt{0}), then the projection is perspective, else it is parallel.
+  \item[]\texttt{upside} --- if its value is \texttt{false},
+    then the $y$~axis of the image system of coordinates is oriented
+    downward (like in XWindow system windows), else it is oriented
+    up (like in the OpenGL library or in the default PostScript system
+    of coordinates).
+  \item[]\texttt{c\_fixed} --- this parameter specifies the changes of the
+    camera rotations centre when the camera is moved --- if \texttt{false},
+    then this point is fixed in the global system of coordinates, else
+    if is fixed in the camera system.
+  \item[]\texttt{magnification} --- by default this field has the value~$1$,
+    which means that the axis unit in the image system of coordinate is the
+    width or height of one pixel. Greater values select appropriately
+    shorter units, which may be useful for supersampling.
+  \item[]\texttt{xmin}, \texttt{ymin}, \texttt{width}, \texttt{height} ---
+    coordinates of the upper left point of the frame and its dimensions in
+    pixels.
+  \item[]\texttt{aspect} --- the aspect factor, i.e.\ the ratio of the width
+    and height of one pixel.
+  \item[]\texttt{position} --- position of the view point (in global
+    coordinates).
+  \item[]\texttt{psi}, \texttt{theta},  \texttt{phi} --- Euler angles
+    $\psi$, $\vartheta$, $\varphi$, which describe the direction of the
+    camera.
+  \item[]\texttt{g\_centre}, \texttt{c\_centre} --- coordinates of the
+    centre of rotations of the camera, i.e.\ the point on the axes of
+    rotations of the camera, in global and camera coordinates respectively.
+  \item[]\texttt{xscale}, \texttt{yscale} --- factors of scaling of the axes
+    $x$~and~$y$ of the camera system of coordinates.
+  \item[]\texttt{Ctr}, \texttt{CTrInv} --- the transformation from the global
+    to camera coordinates and its inverse.
+  \item[]\texttt{cplane} --- representations of four halfspaces, ahose
+    intersection is the visibility frustum. The halfspace
+    $ax+by+cz+d>0$ is represented by the vector, whose coordinates are
+    $a$, $b$, $c$, $d$.
+
+    So far only four halfspaces are used, the other two (near and far) are
+    to be done.
+  \item[]\texttt{vd} --- a~union with data specific for the methods of
+    projection. The structure \texttt{vd.persp} contains the data specific
+    for perspective projections, while \texttt{vd.para} for the parallel
+    ones.
+  \item[]\texttt{vd.persp.f} --- focal length of the camera, in the units
+    such that the diagonal of the frame has the length~$1$.
+    Focal length~$1$ corresponds to a~standard photographic objective.
+  \item[]\texttt{vd.persp.xi0}, \texttt{vd.persp.eta0} --- shift of pixels
+   after the perspective projection.
+  \item[]\texttt{vd.persp.dxi0}, \texttt{vd.persp.deta0} --- coordinates
+    $x$, $y$ (in the camera system) of the frame centre. By default they are
+    zero, and then the frame centre is located on the ``optical axis'' of
+    the camera. Other values are necessary with cameras forming a~stereo
+    pair.
+  \item[]\texttt{vd.para.wdt}, \texttt{vd.para.hgh}, \texttt{vd.para.diag}
+    --- dimensions (width, height, diagonal) of the frame, measured in the
+    units of the global system of coordinates.
+  \item[]\texttt{vd.para.dim\_case} --- the parameter, which specifies,
+    which of the three above dimensions of the frame is specified by the
+    user; $0$ --- diagonal, $1$ --- width, $2$ --- height.
+    The other two dimensions will be computed by the library procedures.
+
+    By default this parameter obtains the value~$0$, and the parameter
+    \texttt{vd.para.diag} is set to~$1$.
+\end{mydescription}
+
+\subsubsection*{Projection algorithm:}
+
+The image of the point $\bm{p}$, represented in the global coordinates, is
+computed as follows:
+\begin{enumerate}
+  \item\begin{sloppypar}
+    The point $\bm{p}$ is subject to the affine transformation represented
+    by the \texttt{CTr} attribute of the camera. In this way the camera
+    coordinates are obtained.%
+    \end{sloppypar}
+  \item For a~perspective projection the $x$ and~$y$ coordinates are divided
+    by the~$z$ coordinate. Then the values of \texttt{xi0} and \texttt{eta0}
+    are added to the quotients.
+
+    For parallel projections this step is omitted.
+  \item If the~$y$ axis is oriented upward (the \texttt{upside} attribute is
+   nonzero) then the~$y$ coordinate is replaced by $2y_{\mathrm{min}}+h-y$,
+   where $y_{\mathrm{min}}$ is the value of the attribute \texttt{ymin}, and~$h$
+   is the value of the attribute \texttt{height}.
+\end{enumerate}
+
+
+\subsubsection*{Setting up the transformation to the camera coordinates:}
+
+The transformation from the global to camera coordinates (done in the first
+step of the algorithm describd above) is the composition of thee affine
+transformations:
+\begin{enumerate}
+  \item Scaling of the axes $x$ and~$y$ by the factors, being values of the
+    attributes \texttt{xscale} and~\texttt{yscale}.
+  \item Rottaion described with use of the Euler angles, being values of the
+    attributes \texttt{psi}, \texttt{theta}, \texttt{phi}.
+  \item Translation, which sets the origin of the system at the point
+    \texttt{position}.
+\end{enumerate}
+The values of the attributes, which specify the above transformations,
+should be assigned by the procedures described later. These procedures
+may compute the proper values representing a~composition of a~series of
+camera movements from the default initial position.
+
+
+\subsection{Camera procedures}
+
+\cprog{%
+void CameraInitFramef ( CameraRecf *CPos, \\
+\ind{17}boolean parallel, boolean upside, \\
+\ind{17}short width, short height, short xmin, short ymin, \\
+\ind{17}float aspect );}
+\hspace*{\parindent}The procedure \texttt{CameraInitFramef} sets initial
+values of the \texttt{*CPos} attributes, which specify the kind of
+projection and the size of the frame (in pixels), and the aspect factor
+(ratio of the width and height of one pixel).
+
+\begin{sloppypar}
+The parameter \texttt{parallel} equal to \texttt{false} determines the
+prespective projection, its value \texttt{true} results in a~paralell
+projection.%
+\end{sloppypar}
+
+\begin{sloppypar}
+The parameter \texttt{upside} equal to \texttt{false} causes assuming the
+downward orientation of the $y$~axis of the image, its value
+\texttt{true} --- upward.%
+\end{sloppypar}
+
+The parameters \texttt{width} and~\texttt{height} describe the width and
+height of the frame (in pixels), and the parameters \texttt{xmin}
+and~\texttt{ymin} the position of the upper left corner.
+
+The call to this procedure should precede calling all other actions with
+a~camera, but it is \emph{insufficient} to fully specify the projection.
+This must be done by calling \texttt{CameraInitPosf} and perhaps a~number of
+calls to the procedures changing the camera position. If the frame size is
+to be changed without changing the current position (e.g.\ after changing
+the size of a~program window), after calling \texttt{CameraInitFramef}
+it is necessary to call the procedure \texttt{CameraSetMappingf}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraSetMagf ( CameraRecf *CPos, byte mag );}
+The procedure \texttt{CameraSetMagf} sets the magnification factor, e.g.\
+for supersampling. The default units of the image axes are the width and
+height of a~pixel. By calling this procedure with the parameter
+\texttt{mag}${}=n$ (where $n$ is a~positive integer),
+we decrease these units $n$~times, which may be useful during an image
+synthesis with supersampling.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraSetMappingf ( CameraRecf *CPos );}
+The procedure \texttt{CameraSetMappingf} computes the transformation
+matrices between the global and camera coordinate systems. This procedure
+is called by all procedures setting or changing the camera position,
+and therefore calling it directly from applications is usually unnecessary.
+One exception is after changing the size of the frame (with use of
+\texttt{CameraInitFramef}) and the current camera position is to be left
+unchanged.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraProjectPoint3f ( CameraRecf *CPos, const point3f *p, \\
+\ind{28}point3f *q );}
+The procedure \texttt{CameraProjectPoint3f} computes the image of a~point
+\texttt{*p} in a~perspective or parallel projection. The coordinates of this
+image are assigned to the attributes \texttt{x} and \texttt{y} of the
+parameter~\texttt{*q}. Its \texttt{z} attribute is the depth of the point,
+i.e.\ its signed distance from the plane contatining the camera position and
+parallel to the projection plane. This may be needed by a~hidden line or
+surface algorithm.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraUnProjectPoint3f ( CameraRecf *CPos, const point3f *p, \\
+\ind{30}point3f *q );}
+\begin{sloppypar}
+The procedure \texttt{CameraUnProjectPoint3f} computes the counterimage
+of a~point \texttt{p}. The coordinates $x$, $y$ of the point~\texttt{*q}
+are specified in the image coordinates, the $z$~coordinate is the depth
+(in the camera system). This is thus the inversion of the transformation
+computed by the procedure \texttt{CameraProjectPoint3f}.%
+\end{sloppypar}
+
+The coordinates $x$, $y$, $z$ of the counterimage are assigned to the
+appropriate attributes of the parameter~\texttt{*q}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraProjectPoint2f ( CameraRecf *CPos, const point2f *p, \\
+\ind{28}point2f *q );}
+\begin{sloppypar}
+The procedure \texttt{CameraProjectPoint2f} computes a~projection
+of the point~$\bm{p}$, whose coordinates $x$, $y$ are these of the
+parameter~\texttt{p}, and the coordinate~$z$ is~$0$.%
+\end{sloppypar}
+
+The coordinates $x$, $y$ of the image are assigned to the attributes of the
+parameter~\texttt{*q}.
+
+In principle using this procedure makes sense only with parallel
+projections.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraUnProjectPoint2f ( CameraRecf *CPos, const point2f *p, \\
+\ind{30}point2f *q );}
+\begin{sloppypar}
+The procedure \texttt{CameraUnProjectPoint2f} computes a~counterimage
+of the point~$\bm{p}$, whose coordinates $x$, $y$ (in the image system) are
+given by the parameter~\texttt{p}, and the $z$~coordinate (in the camera
+system) is~$0$.%
+\end{sloppypar}
+
+The coordinates of the counterimage are assigned to the attributes of the
+parameter~\texttt{*q}.
+
+This procedure may be used only with parallel projections.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraRayOfPixelf ( CameraRecf *CPos, float xi, float eta, \\
+\ind{25}ray3f *ray );}
+\begin{sloppypar}
+The procedure \texttt{CameraRayOfPixel} for a~point of the projection plane,
+whose image coordinates are $x={}$\texttt{xi}, $y={}$\texttt{eta}, finds
+the representation of a~ray, i.e.\ a~halfline, whose origin (for
+a~perspective projection) is the viewer position, and which intersect the
+projection plane at that point. For a~parallel projection the ray origin is
+that point and its direction is the projection direction.%
+\end{sloppypar}
+
+\begin{sloppypar}
+The ray origin is assigned to the~\texttt{p} attribute of the structure
+\texttt{*ray} and the unit vector, representing the ray direction is
+assigned to the attribute~\texttt{v}. The ray is specified in the global
+system of coordinates. The main use of this procedure is ray tracing.%
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraInitPosf ( CameraRecf *CPos );}
+The procedure \texttt{CameraInitPosf} sets the camera to the default initial
+position, in which the axes $x$, $y$ and~$z$ of the camera system of
+coordinates coincide with the axes $x$, $y$, $z$ of the global system. The
+focal length is set to~$1$. Before calling this procedure it is necessary to
+specify the frame dimensions and the image aspect, by calling
+\texttt{CameraInitFramef}.
+
+After calling \texttt{CameraInitPosf} the camera is ready to projecting
+points and to the manipulations with the position, direction and the focal
+length.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraSetRotCentref ( CameraRecf *CPos, point3f *centre, \\
+\ind{22}boolean global\_coord, boolean global\_fixed );}
+The procedure \texttt{SetCameraRotCentref} may be used to specify
+the point of axes of rotations of the camera. The parameter
+\texttt{*centre} is this point, \texttt{global\_coord}
+specifies, whether its coordinates are specified in the global system
+(\texttt{true}) or in the camera system (\texttt{false}).
+The parameter \texttt{global\_fixed} specifies, whether this point
+is fixed in the global (\texttt{true}), or in the camera (\texttt{false})
+system, when the camera is moved.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraMoveToGf ( CameraRecf *CPos, point3f *pos );}
+The procedure \texttt{CameraMoveToGf} translates (without rotation) the
+camera to the position \texttt{*pos}, specified in the global system.  
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraTurnGf ( CameraRecf *CPos, \\
+\ind{20}float psi, float theta, float phi );}
+The procedure \texttt{CameraTurnGf} sets the camera orientation specified
+by the Euler angles (precession, \texttt{psi}, nutation, \texttt{theta}, 
+and revolution \texttt{phi}),
+in the global coordinate system.
+
+\vspace{\medskipamount}
+\begin{sloppypar}\noindent
+\textbf{Remark:} The way of representing the camera orientation will some
+day
+be changed, and using this procedure is therefore \emph{not recommended}.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraMoveGf ( CameraRecf *CPos, vector3f *v );}
+The procedure \texttt{CameraMoveGf} translates the camera by the
+vector~\texttt{v}, specified in the global system of coordinates.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraMoveCf ( CameraRecf *CPos, vector3f *v );}
+The procedure \texttt{CameraMoveGf} translates the camera by the
+vector~\texttt{v}, specified in the camera system of coordinates.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraRotGf ( CameraRecf *CPos, \\
+\ind{19}float psi, float theta, float phi );}
+The procedure \texttt{CameraRotGf} turns the camera. The rotation is
+specified by the Euler angles in the global system of coordinates.  
+The axis of the rotation passes through the point set with
+the procedure~\texttt{SetCameraRotCentref} (default is the origin of
+the global system of coordinates).
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define CameraRotXGf(Camera,angle) \bsl \\
+\ind{2}CameraRotGf(Camera, 0.0, angle, 0.0) \\
+\#define CameraRotYGf(Camera,angle) \bsl \\
+\ind{2}CameraRotGf(Camera, 0.5 * PI, angle, -0.5 * PI) \\
+\#define CameraRotZGf(Camera,angle) \bsl \\
+\ind{2}CameraRotGf(Camera, angle, 0.0, 0.0)}
+Three macrodefinitions, which turn the camera around the three axes of the
+global system of coordinates.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraRotVGf ( CameraRecf *CPos, vector3f *v, float angle );}
+The procedure \texttt{CameraRotVGf} turns the camera around the axis,
+whose direction is that of the vector~\texttt{v}, by the
+angle~\texttt{angle}.
+The coordinates of the vector~\texttt{v} are specified in the global system   
+of coordinates.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraRotCf ( CameraRecf *CPos, \\
+\ind{19}float psi, float theta, float phi );}
+The procedure \texttt{CameraRotCf} turns the camera. The rotation
+is specified by the Euler angles in the camera system of coordinates.
+The axis of the rotation passes through the point set with
+the procedure~\texttt{SetCameraRotCentref} (default is the origin of
+the global system of coordinates).
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define CameraRotXCf(Camera,angle) \bsl \\
+\ind{2}CameraRotCf ( Camera, 0.0, angle, 0.0 ) \\
+\#define CameraRotYCf(Camera,angle) \bsl \\
+\ind{2}CameraRotCf ( Camera, 0.5 * PI, angle, -0.5 * PI ) \\
+\#define CameraRotZCf(Camera,angle) \bsl \\
+\ind{2}CameraRotCf ( Camera, angle, 0.0, 0.0 )}
+Three macrodefinitions, which turn the camera around the three axes of the
+camera system of coordinates.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraRotVCf ( CameraRecf *CPos, vector3f *v, float angle );}
+The procedure \texttt{CameraRotVCf} turns the camera around the axis,
+whose direction is that of the vector~\texttt{v}, by the
+angle~\texttt{angle}.
+The coordinates of the vector~\texttt{v} are specified in the camera system   
+of coordinates.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraSetFf ( CameraRecf *CPos, float f );}
+The procedure \texttt{CameraSetFf} sets the focal length of the camera.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CameraZoomf ( CameraRecf *CPos, float fchange );}
+The procedure \texttt{CameraZoomf} changes the focal length of the camera
+by the factor \texttt{fchange}, which must be positive.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean CameraClipPoint3f ( CameraRecf *CPos, \\
+\ind{28}point3f *p, point3f *q );}
+The procedure \texttt{CameraClipPoint3f} checks, whether the image
+of the point~\texttt{p} fits into the frame and if it does, then it
+computes the image. Its coordinates are passed using the
+parameter~\texttt{q}.
+The value \texttt{true} indicates that the image has been computed,
+\texttt{false} is returned for points outside the visibility pyramid.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean CameraClipLine3f ( CameraRecf *CPos, \\
+\ind{22}point3f *p0, float t0, point3f *p1, float t1, \\
+\ind{22}point3f *q0, point3f *q1 );}
+The procedure \texttt{CameraClipLine3f} clips the line segment
+$\{\,(1-t)\bm{p}_0+t\bm{p}_1\colon t\in[t_0,t_1]\,\}$ to the visibility
+pyramid.
+If the intersection is nonempty, its end points are projected and returned
+with use of the parameters
+\texttt{q0} and~\texttt{q1}. The procedure value is then \texttt{true}.
+
+The procedure is an implementation of the Liang-Barsky algorithm.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean CameraClipPolygon3f ( CameraRecf *CPos, \\
+\ind{30}int n, const point3f *p, \\
+\ind{30}void (*output)(int n, point3f *p) );}
+The procedure \texttt{CameraClipPolygon3f} finds the intersection of
+a~polygon with the visibility pyramid, using the Sutherland-Hodgman 
+algorithm.
+The parameter~\texttt{n} specifies the number of vertices in the space,
+whose coordinates are given in the array~\texttt{p}; the polygon boundary
+is one closed polyline.
+
+\begin{sloppypar}
+The parameter \texttt{output} points to a~procedure, which will be called if
+the intersection is nonempty. The parameter~\texttt{n} of this procedure
+specifies the number of vertices of the intersection. Projections of those
+vertices are given in the array~\texttt{p}.%
+\end{sloppypar}
+
+
+
+\newpage
+\section{Stereo camera pair}
+
+To make a~stereo pair of images it is necessary to place two cameras
+in the space, and then to render the images using the cameras.
+The procedures described in this section make it easier to manipulate with
+such a~pair of cameras; each procedure corresponds to some procedure of   
+manipulating with one camera and it should be used \emph{instead} of that 
+procedure. To project points or to cast rays one should use the procedures
+described in the previous section for each camera of the pair.
+\begin{figure}[ht]
+  \centerline{\epsfig{file=stereo.ps}}
+  \caption{Stereo pair of cameras and their common frame}
+\end{figure}%
+
+The data structure and the headers of procedures related with the
+stereo pair of cameras are described in the header file \texttt{stereo.h}.
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct StereoRecf \{ \\
+\ind{2}point3f\ind{4}position; \\
+\ind{2}float\ind{6}d; \\
+\ind{2}float\ind{6}l; \\
+\ind{2}CameraRecf left, right; \\
+\ind{2}trans3f\ind{4}STr, STrInv; \\
+\} StereoRecf;}
+The structure \texttt{StereoRecf} contains two data structures, which
+describe
+the left and the right camera.
+
+\vspace{\bigskipamount}
+\cprog{%
+void StereoInitFramef ( StereoRecf *Stereo, boolean upside, \\
+\ind{17}short width, short height, short xmin, short ymin, \\
+\ind{17}float aspect );}
+\begin{sloppypar}
+The procedure \texttt{StereoInitFramef} initializes the dimensions of the frame
+of the cameras (in pixels) and the aspect factor. This is done by calling 
+\texttt{CameraInitFramef} for each camera of the pair, with these
+parameters.
+This procedure should be called first in the sequence of procedure calls
+of the camera initialization. After calling it the cameras are \emph{not}
+ready to use.%
+\end{sloppypar}
+
+The parameter \texttt{upside} specifies the orientation of the~$y$ axis in
+the image system of coordinates --- see the description of
+the procedure \texttt{CameraInitFramef}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void StereoSetDimf ( StereoRecf *Stereo, \\
+\ind{21}float f, float d, float l );}
+The procedure \texttt{SetStereoDimf} initialize the dimensions of the
+cameras,
+using the units of length of the global system of coordinates (used to
+represent objects to be drawn). The parameter~\texttt{f} specifies the
+focal length, i.e.\ the ratio of the distance of the frame from the   
+central points of projection and the diagonal of the frame.
+The parameter~\texttt{d} specifies the distance between the pupils of the
+eyes of the viewer (i.e.\ the distance between the centres of projections),
+and the parameter~\texttt{l} specifies the distance of the viewer from the 
+plane of the frame (i.e.\ from the monitor screen). The length of diagonal 
+of the frame is therefore $l/f$ units of the global system. The same length
+in inches depends on the monitor.
+
+\vspace{\medskipamount}\noindent
+\textbf{Remark.} The procedure \texttt{StereoInitPosf} initialises
+the attributes $f=1$, $d=0$ and~$l=1$, and these values are not very
+useful. A~more proper values must therefore be assigned, by calling 
+\texttt{StereoSetDimf}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void StereoSetMagf ( StereoRecf *Stereo, char mag );}
+The procedure \texttt{StereoSetMagf} sets the magnification factor
+of the cameras (e.g.\ for antialiasing) by calling
+\texttt{CameraSetMagf} for each camera. The default value of this
+factor (after this procedure has not been called) is~$1$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void StereoSetMappingf ( StereoRecf *Stereo );}
+The procedure \texttt{StereoSetMappingf} computes the positions of the centres
+of projections of the cameras and it prepares the cameras for using
+(e.g.\ projecting points), by calling \texttt{CameraSetMappingf}.
+Before calling this procedure one should call
+\texttt{StereoInitFramef} and \texttt{StereoInitPosf}.
+
+The procedures described below, which manipulate with the cameras,
+call this procedure, therefore typical applications need not call it
+directly.
+
+\vspace{\bigskipamount}
+\cprog{%
+void StereoInitPosf ( StereoRecf *Stereo );}
+\begin{sloppypar}
+The procedure \texttt{StereoInitPosf} moves both cameras to the default
+position. Both cameras get the same position, assigned by
+the procedure \texttt{CameraInitPosf}.%
+\end{sloppypar}
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+void StereoSetRotCentref ( StereoRecf *Stereo, \\
+\ind{22}point3f *centre, \\
+\ind{22}boolean global\_coord, boolean global\_fixed );}
+The procedure sets the point, through which axes of rotations of the cameras
+pass. The way of specifying it is the same as in case of a~single camera.   
+
+\vspace{\bigskipamount}
+\cprog{%
+void StereoMoveGf ( StereoRecf *Stereo, vector3f *v );}
+The procedure \texttt{StereoMoveGf} translates the pair of cameras
+(without rotating) by the vector~$\bm{v}$, specified in the global
+system of coordinates.
+
+\vspace{\bigskipamount}
+\cprog{%
+void StereoMoveCf ( StereoRecf *Stereo, vector3f *v );}
+The procedure \texttt{StereoMoveCf} translates the pair of cameras
+(without rotating) by the vector~$\bm{v}$, specified in the
+system of coordinates of the stereo pair.
+
+\vspace{\bigskipamount}
+\cprog{%
+void StereoRotGf ( StereoRecf *Stereo, \\
+\ind{19}float psi, float theta, float phi );}
+The procedure \texttt{StereoRotGf} turns the pair of cameras. The rotation
+is specified by the Euler angles $\psi$, $\vartheta$, $\varphi$ in the
+global system of coordinates.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define StereoRotXGf(Stereo,angle) \bsl \\                         
+\ind{2}StereoRotGf ( Stereo, 0.0, angle, 0.0 ) \\
+\#define StereoRotYGf(Stereo,angle) \bsl \\
+\ind{2}StereoRotGf ( Stereo, 0.5*PI, angle, -0.5*PI ) \\
+\#define StereoRotZGf(Stereo,angle) \bsl \\
+\ind{2}StereoRotGf ( Stereo, angle, 0.0, 0.0 )}
+The above macrodefinitions turn the stereo pair around axes parallel to the
+axes $x$, $y$ and~$z$ of the global system of coordinates.
+
+\vspace{\bigskipamount}
+\cprog{%
+void StereoRotVGf ( StereoRecf *Stereo, vector3f *v, float angle );}
+The procedure \texttt{StereoRotVGf} turns the stereo pair around the axis,
+whose direction is given by the vector~$\bm{v}$, specified in the global  
+system of coordinates.
+
+\vspace{\bigskipamount}
+\cprog{%
+void StereoRotCf ( StereoRecf *Stereo, \\
+\ind{19}float psi, float theta, float phi );}
+The procedure \texttt{StereoRotCf} turns the stereo pair of cameras.
+The rotation is specified by the Euler angles $\psi$, $\vartheta$,  
+$\varphi$ in the stereo pair system of coordinates.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+\#define StereoRotXCf(Stereo,angle) \bsl \\
+\ind{2}StereoRotCf ( Stereo, 0.0, angle, 0.0 ) \\
+\#define StereoRotYCf(Stereo,angle) \bsl \\
+\ind{2}StereoRotCf ( Stereo, 0.5*PI, angle, -0.5*PI ) \\
+\#define StereoRotZCf(Stereo,angle) \bsl \\
+\ind{2}StereoRotCf ( Stereo, angle, 0.0, 0.0 )}
+The above macrodefinitions turn the stereo pair around axes parallel to the
+axes $x$, $y$ and~$z$ of the stereo pair system of coordinates.  
+
+\vspace{\bigskipamount}
+\cprog{%
+void StereoRotVCf ( StereoRecf *Stereo, vector3f *v, float angle );}
+The procedure \texttt{StereoRotVCf} turns the stereo pair of cameras
+around the axis, whose direction is given by the vector~$\bm{v}$, specified
+in the system of coordinates of the stereo pair.
+
+\vspace{\bigskipamount}
+\cprog{%
+void StereoZoomf ( StereoRecf *Stereo, float fchange );}
+The procedure \texttt{StereoZoomf} multiplies the focal length of the
+cameras by the parameter \texttt{fchange}. It is better not to use it at all.
+
+

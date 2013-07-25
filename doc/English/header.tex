@@ -1,0 +1,279 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\documentclass[b5paper]{book}
+\usepackage{t1enc}
+\usepackage{beton}
+\usepackage{euler}
+\usepackage{bm}
+\usepackage{epsfig}
+\usepackage{amsmath}
+\usepackage{fancybox}
+\usepackage{fancyhdr}
+\usepackage{listings}
+
+\newcommand{\LP}{\bigl(}
+\newcommand{\RP}{\bigr)} 
+\newcommand{\unl}[1]{\underline{\raisebox{0pt}[1.5ex][0ex]{#1}}}
+\newcommand{\scp}[2]{\langle{#1},{#2}\rangle}
+\newcommand{\bsl}{\char'134}
+\makeatletter
+\long\def\@makecaption#1#2{%
+  \vskip\abovecaptionskip
+  \sbox\@tempboxa{#1. #2}%
+  \ifdim \wd\@tempboxa >\hsize
+    \small #1. #2\par
+  \else
+    \global \@minipagefalse 
+    \hb@xt@\hsize{\hfil\box\@tempboxa\hfil}%
+  \fi
+  \vskip\belowcaptionskip}  
+
+\newcommand{\clearemptydoublepage}{\newpage{\pagestyle{empty}\cleardoublepage}}
+\renewcommand\chapter{\if@openright\clearemptydoublepage\else\clearpage\fi
+                      \thispagestyle{empty}%
+                      \setcounter{page}{1}
+                      \global\@topnum\z@
+                      \@afterindentfalse
+                      \secdef\@chapter\@schapter}
+\setlength{\unitlength}{0.12pt}
+\def\@makechapterhead#1{%
+  \centerline{%
+  \begin{picture}(3011,445)(0,0) % 5in wide, 14cc high
+    \put(0,429){
+      \ifnum \c@secnumdepth >\m@ne
+        \if@mainmatter
+          \makebox[\textwidth]{\raisebox{0pt}[0pt][0pt]{%
+          \normalfont\Huge\thechapter. #1}\hspace{\fill}}
+        \fi
+      \fi
+    }
+  \end{picture}}}
+\def\@makeschapterhead#1{%
+  \centerline{%
+  \begin{picture}(3011,1245)(0,0) % 5in wide, 14cc high
+%    \put(0,0){\line(1,0){3011.25}} % for tests
+%    \put(0,0){\line(0,1){1498}}    %
+    \put(0,996){%
+      \begin{minipage}[t]{5in}%
+        \normalfont\Huge #1
+      \end{minipage}}
+  \end{picture}}}
+\renewcommand\section{\@startsection {section}{1}{\z@}%
+                      {-3.5ex \@plus -1ex \@minus -.2ex}%
+                      {2.3ex \@plus.2ex}%
+                      {\normalfont\Large}}
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+                         {-3.25ex\@plus -1ex \@minus -.2ex}%
+                         {1.5ex \@plus .2ex}%
+                         {\normalfont\large}}
+\renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+                            {-3.25ex\@plus -1ex \@minus -.2ex}%
+                            {1.5ex \@plus .2ex}%
+                            {\normalfont\normalsize}}
+
+
+% \uframebox, \dframebox, \mframebox - boxes with a partial frame,
+% without the lower, upper and both horizontal rules.
+%
+\long\def\ufbox#1{%
+  \leavevmode
+  \setbox\@tempboxa\hbox{%
+    \color@begingroup
+      \kern\fboxsep{#1}\kern\fboxsep
+    \color@endgroup}%
+  \@uframeb@x\relax}
+\def\uframebox{%
+  \@ifnextchar(%)
+    \@framepicbox{\@ifnextchar[\@uframebox\ufbox}}
+\def\@uframebox[#1]{%
+  \@ifnextchar[%]
+    {\@uiframebox[#1]}%
+    {\@uiframebox[#1][c]}}
+\long\def\@uiframebox[#1][#2]#3{%
+  \leavevmode
+  \@begin@tempboxa\hbox{#3}%
+    \setlength\@tempdima{#1}%
+    \setbox\@tempboxa\hb@xt@\@tempdima
+         {\kern\fboxsep\csname bm@#2\endcsname\kern\fboxsep}%
+    \@uframeb@x{\kern-\fboxrule}%
+  \@end@tempboxa}
+\def\@uframeb@x#1{%
+  \@tempdima\fboxrule
+  \advance\@tempdima\fboxsep
+  \advance\@tempdima\dp\@tempboxa
+  \hbox{%
+    \lower\@tempdima\hbox{%
+      \vbox{%
+        \hrule\@height\fboxrule
+        \hbox{%
+          \vrule\@width\fboxrule
+          #1%
+          \vbox{%
+            \vskip\fboxsep
+            \box\@tempboxa
+            \vskip\fboxsep}%
+          #1%
+          \vrule\@width\fboxrule}%
+%        \hrule\@height\fboxrule
+}%
+                          }%
+        }%
+}
+
+\long\def\dfbox#1{%
+  \leavevmode
+  \setbox\@tempboxa\hbox{%
+    \color@begingroup
+      \kern\fboxsep{#1}\kern\fboxsep
+    \color@endgroup}%
+  \@dframeb@x\relax}
+\def\dframebox{%
+  \@ifnextchar(%)
+    \@framepicbox{\@ifnextchar[\@dframebox\dfbox}}
+\def\@dframebox[#1]{%
+  \@ifnextchar[%]
+    {\@diframebox[#1]}%
+    {\@diframebox[#1][c]}}
+\long\def\@diframebox[#1][#2]#3{%
+  \leavevmode
+  \@begin@tempboxa\hbox{#3}%
+    \setlength\@tempdima{#1}%
+    \setbox\@tempboxa\hb@xt@\@tempdima
+         {\kern\fboxsep\csname bm@#2\endcsname\kern\fboxsep}%
+    \@dframeb@x{\kern-\fboxrule}%
+  \@end@tempboxa}
+\def\@dframeb@x#1{%
+  \@tempdima\fboxrule
+  \advance\@tempdima\fboxsep
+  \advance\@tempdima\dp\@tempboxa
+  \hbox{%
+    \lower\@tempdima\hbox{%
+      \vbox{%
+%        \hrule\@height\fboxrule
+        \hbox{%
+          \vrule\@width\fboxrule
+          #1%
+          \vbox{%
+            \vskip\fboxsep
+            \box\@tempboxa
+            \vskip\fboxsep}%
+          #1%
+          \vrule\@width\fboxrule}%
+        \hrule\@height\fboxrule}%
+                          }%
+        }%
+}
+
+\long\def\mfbox#1{%
+  \leavevmode
+  \setbox\@tempboxa\hbox{%
+    \color@begingroup
+      \kern\fboxsep{#1}\kern\fboxsep
+    \color@endgroup}%
+  \@mframeb@x\relax}
+\def\mframebox{%
+  \@ifnextchar(%)
+    \@framepicbox{\@ifnextchar[\@mframebox\mfbox}}
+\def\@mframebox[#1]{%
+  \@ifnextchar[%]
+    {\@miframebox[#1]}%
+    {\@miframebox[#1][c]}}
+\long\def\@miframebox[#1][#2]#3{%
+  \leavevmode
+  \@begin@tempboxa\hbox{#3}%
+    \setlength\@tempdima{#1}%
+    \setbox\@tempboxa\hb@xt@\@tempdima
+         {\kern\fboxsep\csname bm@#2\endcsname\kern\fboxsep}%
+    \@mframeb@x{\kern-\fboxrule}%
+  \@end@tempboxa}
+\def\@mframeb@x#1{%
+  \@tempdima\fboxrule
+  \advance\@tempdima\fboxsep
+  \advance\@tempdima\dp\@tempboxa
+  \hbox{%
+    \lower\@tempdima\hbox{%
+      \vbox{%
+%        \hrule\@height\fboxrule
+        \hbox{%
+          \vrule\@width\fboxrule
+          #1%
+          \vbox{%
+            \vskip\fboxsep
+            \box\@tempboxa
+            \vskip\fboxsep}%
+          #1%
+          \vrule\@width\fboxrule}%
+%        \hrule\@height\fboxrule
+}%
+                          }%
+        }%
+}
+\makeatother
+
+\newenvironment{mydescription}%
+  {\begin{list}{}%
+    {\labelsep 0cm %
+     \leftmargin \parindent %
+     \rightmargin 0pt %
+     \itemindent -0.5cm %
+     \itemsep 0pt%
+     }}%
+  {\end{list}}
+
+\textwidth 5in
+\textheight 46.1\baselineskip
+\oddsidemargin -2pt
+\evensidemargin -2pt
+\topmargin -26pt
+\pagestyle{plain}
+
+\newcommand{\cprog}[1]{\centerline{\framebox{\begin{minipage}{4.9in}%
+   \obeylines\obeyspaces\texttt{#1}\end{minipage}}}\vspace{2pt}}
+\newcommand{\ucprog}[1]{\centerline{\uframebox{\begin{minipage}{4.9in}%
+   \obeylines\obeyspaces\texttt{#1}\end{minipage}}}\vspace{2pt}}
+\newcommand{\dcprog}[1]{\centerline{\dframebox{\begin{minipage}{4.9in}%
+   \obeylines\obeyspaces\texttt{#1}\end{minipage}}}\vspace{2pt}}
+\newcommand{\mcprog}[1]{\centerline{\mframebox{\begin{minipage}{4.9in}%
+   \obeylines\obeyspaces\texttt{#1}\end{minipage}}}\vspace{2pt}}
+
+\newlength{\emt}
+\newcommand{\ind}[1]{\settowidth{\emt}{m}\hspace*{#1\emt}}
+
+\newfont{\msbm}{msbm10 at 10.0pt}
+\newcommand{\R}{\mbox{\msbm R}}
+\newcommand{\N}{\mbox{\msbm N}}
+\newcommand{\comp}{\circ}
+
+\lstnewenvironment{listingC}[1][]%
+{\lstset{language=C,%
+basicstyle=\ttfamily,%
+keywordstyle=\ttfamily,%
+showstringspaces=false,%
+columns=flexible,%
+mathescape=true,%
+frame=lrtb,%
+#1}}
+{}
+
+\newcommand{\ppict}[4]{\medskip\centerline{\begin{picture}(#1,#2)%
+\put(0,0){\scalebox{#3}{\epsfig{file=#4}}}\end{picture}}\medskip}
+\newcommand{\button}[1]{\fbox{#1}}
+
+\raggedbottom
+\def\topfraction{1.0}
+\def\bottomfraction{1.0}
+\def\textfraction{0.0}
+
+\addtolength{\headheight}{1.0pt}
+\pagestyle{fancy}
+\lhead[\thechapter.\thepage]{}
+\chead{}
+\rhead[]{\thechapter.\thepage}
+\lfoot{}
+\cfoot{}
+\rfoot{}
+

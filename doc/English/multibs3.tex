@@ -1,0 +1,768 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\newpage
+\section{Knot insertion and removal}
+
+\subsection{\label{ssect:knot:ins}The Boehm algorithm}
+
+The purpose of the procedure and the macros described below is
+to insert a~single knot into the representation of B-spline curves,
+using the Boehm algorithm. The representation of the curves is
+\emph{modified}, i.e.\ the memory area occupied by the initial representation
+(knot sequence and control points) after return contains the new
+representation, with the additional knot. If both representations are
+necessary, then the original representation should be copied by the
+application, and then the copy may be modified.
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_multiKnotInsf ( int degree, int *lastknot, \\
+\ind{24}float *knots, \\
+\ind{24}int ncurves, int spdimen, \\
+\ind{24}int inpitch, int outpitch, \\
+\ind{24}float *ctlpoints, float t );}
+The procedure \texttt{mbs\_multiKnotInsf} inserts the knot~$t$ to
+the representation of B-spline curves of degree $n=$\texttt{degree}.
+In this way a~new representation of those curves is constructed, and it replaces
+the original representation. The number~$t$ must be from the interval
+$[\mbox{\texttt{knots[degree]}},\mbox{\texttt{knots[lastknot-degree]}}]$.
+
+Initially the parameter \texttt{*lastknot} specifies the index~$N$ of the
+last knot of the initial knot sequence; on return it is increased by~$1$,
+which indicates the growth of the knot sequence by one number --- the
+value of the parameter~\texttt{t}, inserted into the array
+\texttt{knots}. Therefore this array must have the capacity at least
+\texttt{*lastknot+2}, to accomodate the longer knot sequence.
+
+\begin{sloppypar}
+The parameter \texttt{ncurves} specifies the number of curves, and the
+parameter \texttt{spdimen} is the dimension~$d$ of the space with the curves.
+Each curve is initially represented by $N-n$ points
+in the $d$-dimensional space.
+The coordinates of those points ($(N-n)d$ numbers)
+are stored in the array \texttt{ctlpoints}. The first coordinate of the first
+control point of the first curve is at the begining of the array.
+As on return the representation of each curve has one control point more,
+there are two parameters to describe the pitch, i.e.\ the distance between
+the beginnings of representations of two consecutive curves:
+\texttt{inpitch} specifies the initial pitch, at least $(N-n)d$,
+the parameter \texttt{outpitch} specifies the final pitch, which must not
+be less than~$(N-n+1)d$.
+\end{sloppypar}
+
+The value returned by the procedure is the number~$k$ of the interval $[u_k,u_{k+1})$
+for the initial knot sequence, whose element is the new knot~$t$.
+Upon return it is inserted into the array \texttt{knots} at the position
+$k+1$ and \texttt{*lastknot} is increased by one.
+
+\vspace{\medskipamount}
+\noindent
+\textbf{Remark:} To insert a~knot into the representation of a~closed curve,
+instead of \texttt{mbs\_multiKnotInsf} one should use the procedure
+\texttt{mbs\_multiKnotInsClosedf}.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_KnotInsC1f(degree,lastknot,knots,coeff,t) \bsl \\
+\ind{2}mbs\_multiKnotInsf(degree,lastknot,knots,1,1,0,0,coeff,t) \\
+\#define mbs\_KnotInsC2f(degree,lastknot,knots,coeff,t) \bsl \\
+\ind{2}mbs\_multiKnotInsf(degree,lastknot,knots,1,2,0,0,coeff,t) \\
+\#define mbs\_KnotInsC3f(degree,lastknot,knots,coeff,t) ... \\
+\#define mbs\_KnotInsC4f(degree,lastknot,knots,coeff,t) ...}
+The four macros above call \texttt{mbs\_multiKnotInsf} in order to insert
+a~knot to the representation of \emph{one} scalar spline function or
+B-spline curve in the space of dimension $2$, $3$ and $4$.
+The parameters must satisfy the conditions given in the description of
+the procedure \texttt{mbs\_multiKnotInsf}.
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_multiKnotInsClosedf ( int degree, int *lastknot, \\
+\ind{30}float *knots, \\
+\ind{30}int ncurves, int spdimen, \\
+\ind{30}int inpitch, int outpitch, \\
+\ind{30}float *ctlpoints, float t );}
+The procedure \texttt{mbs\_multiKnotInsClosedf} inserts a~knot~$t$ to
+the representation of \emph{closed} B-spline curves of degree
+\texttt{degree}. It may also be used to insert a~knot to a~closed
+B-spline patch (being a~tube or a~torus). The main conputation is done
+by the procedure \texttt{mbs\_multiKnotInsf}. After it returns, the result
+is further processed in order to restore the periodicity of the curves
+representation.
+
+The parameters: \texttt{degree} --- degree of the curves, \texttt{*lastknot}
+--- on entry its value is the number of the last knot in the initial sequence,
+on return its value is increased by~$1$. The array \texttt{knots} contains
+the knot sequences, the initial and final one respectively. The parameter
+\texttt{ncurves} specifies the number of curves. The parameter \texttt{spdimen}
+specifies the space dimension. The parameters \texttt{inpitch} and \texttt{outpitch}
+specify the pitch of the array \texttt{ctlpoints} with the control points,
+before and after the knot insertion, see the description of the procedure
+\texttt{mbs\_multiKnotInsf}.
+The parameter \texttt{t} specifies the new knot, to be inserted.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_KnotInsClosedC1f(degree,lastknot,knots,coeff,t) \bsl \\
+\ind{2}mbs\_multiKnotInsClosedf(degree,lastknot,knots,1,1,0,0,coeff,t) \\
+\#define mbs\_KnotInsClosedC2f(degree,lastknot,knots,coeff,t) \bsl \\
+\ind{2}mbs\_multiKnotInsClosedf(degree,lastknot,knots,1,2,0,0,coeff,t) \\
+\#define mbs\_KnotInsClosedC3f(degree,lastknot,knots,coeff,t) ... \\
+\#define mbs\_KnotInsClosedC4f(degree,lastknot,knots,coeff,t) ...}
+The four macros above call \texttt{mbs\_multiKnotInsClosedf} in order to
+insert a~knot to the representation of \emph{one} periodic spline function
+or a~closed B-spline curve in the spaces of dimension $2$, $3$ and $4$.
+The parameters must satisfy the condition given in the description
+of the procedure \texttt{mbs\_multiKnotInsClosedf}.
+
+
+
+\subsection{Removing knots}
+
+This section describes a~procedure of removing a~single knot from the
+representation of B-spline curves, and the macros, which make it easier to
+use this procedure for a~single curve in the spaces of dimensions
+$1$--$4$. The procedure sets up a~system of equations related with two
+representations of the curves, with the matrix corresponding to the
+change of representation by the Boehm algorithm, and then it solves this
+system as a~linear least-squares problem. The curves obtained by
+removing a~knot may differ from the original curves.
+
+The knot removal takes place ``at the spot'', i.e.\ the memory area initially
+occupied by the given representation, upon return contains a~new, shorter knot
+sequence and new control points. If both representations are necessary,
+then the application should copy the original representation of the curves
+and remove a~knot from the copy.
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_multiKnotRemovef ( int degree, int *lastknot, \\
+\ind{27}float *knots, \\
+\ind{27}int ncurves, int spdimen, \\
+\ind{27}int inpitch, int outpitch, \\
+\ind{27}float *ctlpoints, \\
+\ind{27}int knotnum );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_multiKnotRemovef} removes a~knot from the
+representation of B-spline curves of degree \texttt{degree}, located in
+the space of dimension \texttt{spdimen}.
+The representation is defined for a~knot sequence of length
+\texttt{*lastknot+1}, given in the array \texttt{knots}.
+The control points of the curves are given in the array \texttt{ctlpoints}.
+The parameter \texttt{inpitch} specifies the pitch, i.e.\ the initial distance
+between the beginnings of the areas in the array \texttt{ctlpoints} with the
+control points of the consecutive curves. The parameter \texttt{outpitch}
+specifies the final pitch of this array (rearranged after the knot removal).
+\end{sloppypar}
+
+The knot to be removed is indicated by the parameter \texttt{knotnum},
+whose value must be from \texttt{degree+1} to
+\texttt{lastknot-degree-1}.
+
+The new representation of the curves replaces the initial one
+in the arrays \texttt{knots} and \texttt{ctlpoints}. The parameter
+\texttt{*lastknot} is decreased by~$1$.
+
+\begin{figure}[b]
+  \centerline{\epsfig{file=knotrem.ps}}
+  \caption{\label{fig:knotrem}Example of knot removal.}
+\end{figure}
+If the multiplicity of the knot being removed is equal to $r$ and the
+derivative of the curve of order $\mbox{\texttt{degree}}-r+1$ is not
+continuous at this knot, then the knot removal will change the curve.
+The new control points are computed by solving a~linear least squares
+problem, which is a~method of solving an approximation problem
+(see example given below).
+
+The value of the procedure is the number $k$, such that the removed
+knot is the element of the interval $[u_k,u_{k+1})$ determined by the
+\emph{final} knot sequence. If the knot, whose number is
+\texttt{knotnum} is less than the next knot in the sequence, then
+$k=\texttt{knotnum}-1$, but in general it may not be the case.
+
+\vspace{\medskipamount}
+\noindent
+\textbf{Remark:} To remove a~knot from the representation of closed curves
+one should call \texttt{mbs\_multiKnotRemoveClosedf}.
+Using the procedure \texttt{mbs\_multiKnotRemovef} may result in getting
+non-closed curves.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_KnotRemoveC1f(degree,lastknot,knots,coeff,knotnum) \bsl \\
+\ind{2}mbs\_multiKnotRemovef(degree,lastknot,knots,1,1,0,0,coeff,knotnum) \\
+\#define mbs\_KnotRemoveC2f(degree,lastknot,knots,ctlpoints, \bsl \\
+\ind{4}knotnum) \bsl \\
+\ind{2}mbs\_multiKnotRemovef(degree,lastknot,knots,1,2,0,0, \bsl \\
+\ind{4}(float*)ctlpoints,knotnum) \\
+\#define mbs\_KnotRemoveC3f(degree,lastknot,knots,ctlpoints, \bsl \\
+\ind{4}knotnum) ... \\
+\#define mbs\_KnotRemoveC4f(degree,lastknot,knots,ctlpoints, \bsl \\
+\ind{4}knotnum) ...}
+The four macros above call \texttt{mbs\_multiKnotRemovef} in order to
+remove a~knot from the representation of \emph{one} scalar spline function
+or one B-spline curve in the space of dimension $2$, $3$ and $4$.
+The parameters must be as described in the description of the procedure
+\texttt{mbs\_multiKnotRemovef}.
+
+Example of knot removal for a~planar cubic B-spline curve is shown in
+Figure~\ref{fig:knotrem} (see the program \texttt{test/knotrem.c}).
+The initial multiplicity of the knot being removed is the degree of the curve
+plus two; the curve consists of two disjoint pieces and one of its
+control points does not influence its shape. Removing the knot causes
+rejecting this point, without changing the curve.
+
+Removing the knot of multiplicity degree plus one causes connecting the
+curve pieces --- two control points are replaced by one, their midpoint.
+Subsequent knot removal is done by solving the appropriate linear least
+squares problems.
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_multiKnotRemoveClosedf ( int degree, int *lastknot, \\
+\ind{33}float *knots, \\
+\ind{33}int ncurves, int spdimen, \\
+\ind{33}int inpitch, int outpitch, \\
+\ind{33}float *ctlpoints, \\
+\ind{33}int knotnum );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_multiKnotRemoveClosedf} removes knots from
+representations of closed B-spline curves.
+\end{sloppypar}
+
+The parameters \texttt{degree}, \texttt{ncurves} and~\texttt{spdimen} specify
+the degree and number of curves and space dimension respectively.
+The parameters \texttt{*lastknot} and~\texttt{knots} initially describe
+the initial knot sequence. After return these parameters describe the final
+knot sequence.
+The parameter \texttt{knotnum} specifies the number of knot to be removed.
+The parameters \texttt{inpitch} and \texttt{outpitch} specify the initial and
+final pitch of the array of control points,
+\texttt{ctlpoints}, i.e.\ the distances between the beginnings
+of control polygons of consecutive curves. The array \texttt{ctlpoints}
+initially contains the control points of the initial representation of the
+curves; the procedure replaces them by the control points of the final
+representation, obtained by removing the knot.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_KnotRemoveClosedC1f(degree,lastknot,knots,coeff, \bsl \\
+\ind{4}knotnum) \bsl \\
+\ind{2}mbs\_multiKnotRemoveClosedf(degree,lastknot,knots,1,1,0,0,coeff,
+\bsl \\
+\ind{4}knotnum) \\
+\#define mbs\_KnotRemoveClosedC2f(degree,lastknot,knots,ctlpoints, \bsl \\
+\ind{4}knotnum) \bsl \\
+\ind{2}mbs\_multiKnotRemoveClosedf(degree,lastknot,knots,1,2,0,0, \bsl \\
+\ind{4}(float*)ctlpoints,knotnum) \\
+\#define mbs\_KnotRemoveClosedC3f(degree,lastknot,knots,ctlpoints, \bsl \\
+\ind{4}knotnum) ... \\
+\#define mbs\_KnotRemoveClosedC4f(degree,lastknot,knots,ctlpoints, \bsl \\
+\ind{4}knotnum) ...}
+The four macros above call \texttt{mbs\_multiKnotRemoveClosedf} in order to
+remove the indicated knot from the representation of \emph{one} periodic
+spline function or closed B-spline curve in the space of dimension
+two, three and four. The parameters are described with the procedure
+\texttt{mbs\_multiKnotRemoveClosedf}.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiRemoveSuperfluousKnotsf ( int ncurves, \\
+\ind{40}int spdimen, int degree, \\
+\ind{40}int *lastknot, \\
+\ind{40}float *knots, \\
+\ind{40}int inpitch, int outpitch, \\
+\ind{40}float *ctlpoints );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_multiRemoveSuperfluousKnotsf} removes knots
+from the representation of B-spline curves in such a~way, that all
+the remaining knots have multiplicity of the degree (the parameter
+\texttt{degree}) plus one. The curves are not changed, but problems caused
+by the presence of such knots, may be avioded (e.g.\
+a~B-spline function, whose all knots are the same, is the zero function,
+hence any set of B-spline functions with a~knot of multiplicity
+greater than $n+1$ is not a~basis).
+\end{sloppypar}
+
+The computation is done ,,at the spot'', i.e.\ the area initially occupied
+by the initial representation, after return contains the new representation
+of the curves. The knots are removed by moving the data (knots and control
+points) in the arrays, without any
+numerical computations.
+
+
+\subsection{The Oslo algorithm}
+
+The Oslo algorithm is a~method of finding a~representation of B-spline curves
+corresponding to a~knot sequence $\hat{u}_0,\ldots,\hat{u}_{\hat{N}}$
+given a~representation based on a~subsequence $u_0,\ldots,u_N$.
+As opposed to the Boehm algorithm (see Section~\ref{ssect:knot:ins}),
+which inserts one knot at a~time (and which may be used a~number of times
+if necessary), here all knots are inserted at the same time.
+
+If the control points $\bm{d}_i$ of a~B-spline curve of degree~$n$
+correspond to the knots $u_0,\ldots,\allowbreak u_N$, and the control points
+$\hat{\bm{d}}_l$ correspond to the knots
+$\hat{u}_0,\ldots,\hat{u}_{\hat{N}}$, then
+\begin{align}
+  \hat{\bm{d}}_l = \sum_{i=0}^{N-n-1}a_{il}^n\bm{d}_i,
+\end{align}
+where the coefficients $a^{n}_{kl}$ are given by the recursive
+formulae
+\begin{align}\label{eq:Oslo:0}
+  a^0_{kl} &{}= \left\{\begin{array}{ll}1 & \mbox{for $u_k\leq \hat{u}_l<u_{k+1}$,} \\
+    0 & \mbox{else,} \end{array}\right. \\
+  \label{eq:Oslo:j}
+  a^n_{il} &{}= \frac{\hat{u}_{l+n}-u_i}{u_{i+n}-u_i} a^{n-1}_{il} +
+    \frac{u_{i+n+1}-\hat{u}_{l+n}}{u_{i+n+1}-u_{i+1}} a^{n-1}_{i+1,l}.
+\end{align}
+The implementation of the Oslo algorithm in the library \texttt{libmultibs}
+is such that initially the matrix~$A$, whose coefficients are
+$a^n_{il}$, is computed and then it is multiplied by the matrix of the
+control points $\bm{d}_0,\ldots,\bm{d}_{N-n-1}$.
+\begin{figure}[htb]
+  \centerline{\epsfig{file=oslo.ps}}
+  \caption{Inserting knots with the Oslo algorithm.}
+\end{figure}
+
+The matrix~$A$ makes it possible also to remove a~number of knots at
+a~time, by solving an over-definite system of linear equations
+(with more equations than unknowns).
+Such a~system, even when it is consistent, is solved best as a~linear least
+squares problem.
+
+The matrix~$A$ is represented as a~band matrix, by an array with its profile
+(i.e.\ table of positions of nonzero coefficients in consecutive
+columns) and an array with nonzero coefficients. A~detailed description
+of this representation and the related procedures is in
+Section~\ref{sect:band:matrix}.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_OsloKnotsCorrectf ( int lastuknot, const float *uknots, \\
+\ind{30}int lastvknot, const float *vknots );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_OsloKnotsCorrectf} verifies, whether two given
+sequences of knots make it possible to construct the matrix~$A$. The
+conditions verified are as follows: both sequences are nondecreasing,
+and the first sequence of ($\mathord{\mbox{\texttt{lastuknot}}}+1$
+numbers, given in the array \texttt{uknots}), is a~subsequence of the
+second sequence of length ($\mathord{\mbox{\texttt{lastvknot}}}+1$,
+given in the array \texttt{vknots}). If these conditions are satisfied,
+the procedure returns \texttt{true}, otherwise it returns \texttt{false}.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_BuildOsloMatrixProfilef ( int degree, \\
+\ind{32}int lastuknot, const float *uknots, \\
+\ind{32}int lastvknot, const float *vknots, \\
+\ind{32}bandm\_profile *prof );}
+The procedure \texttt{mbs\_BuildOsloMatrixProfilef}, given the degree
+of the representation (\texttt{degree}) and two knot sequences
+(see description of the procedure \texttt{mbs\_OsloKnotsCorrectf} above),
+constructs the profile of the matrix of the representation transformation.
+The profile is stored in the array \texttt{prof}, whose length must be
+at least
+$\mathord{\mbox{\texttt{lastuknot}}}-\mathord{\mbox{\texttt{degree}}}+1$
+(the number of columns plus one).
+
+The procedure returns the number of nonzero coefficients of the matrix,
+which is the length of the array to be allocated for storing the coefficients.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BuildOsloMatrixf ( int degree, int lastuknot, \\
+\ind{28}const float *uknots, \\
+\ind{28}const float *vknots, \\
+\ind{28}const bandm\_profile *prof, float *a );}
+The procedure \texttt{mbs\_BuildOsloMatrixf} computes the coefficients of the
+matrix of curve representation transformation, using the Oslo algorithm.
+The parameters are:
+\texttt{degree} --- degree of the curve, \texttt{uknots} --- array
+of knots of the initial representation, of length
+$\mathord{\mbox{\texttt{lastuknot}}}+1$, \texttt{vknots} --- array
+of knots of the final representation, whose length is determined
+based on the contents of the arrays, therefore there is no parameter
+to specify it. The knot sequences have to satisfy the conditions
+verified by the procedure \texttt{mbs\_OsloKnotsCorrectf}.
+
+The array \texttt{prof} contains the description of the matrix structure (the
+profile), which has to be found earlier, with the procedure
+\texttt{mbs\_BuildOsloMatrixProfilef}. The coefficients
+computed by the \texttt{mbs\_BuildOsloMatrixf} are stored in the
+array \texttt{a}, whose length has been computed by
+\texttt{mbs\_BuildOsloMatrixProfilef}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiOsloInsertKnotsf ( int ncurves, int spdimen, \\
+\ind{28}int degree, \\
+\ind{28}int inlastknot, const float *inknots, \\
+\ind{28}int inpitch, float *inctlpoints, \\
+\ind{28}int outlastknot, const float *outknots, \\
+\ind{28}int outpitch, float *outctlpoints );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_multiOsloInsertKnotsf} inserts a~number of knots
+to the representation of \texttt{ncurves} B-spline curves located in the space
+of dimension \texttt{spdimen}.
+The degree of the curves is specified by the parameter \texttt{degree}.
+The initial representation consists of the knots given in the array
+\texttt{inknots} (of length $\mathord{\mbox{\texttt{inlastknot}}}+1$)
+and the control polygons stored in the array \texttt{inctlpoints},
+whose pitch is given by \texttt{inpitch}.
+
+The final representation is based on the knot sequence of length
+$\mathord{\mbox{\texttt{outlastknot}}}+1$, given in the array
+\texttt{outknots}, and the initial knot sequence must be a~subsequence of
+this sequence.
+\end{sloppypar}
+
+The procedure sets up the appropriate matrix with the Oslo algorithm,
+and then it multiplies it by the matrix of the given control points
+of the curves.
+
+If the values of the parameters \texttt{inlastknot} and~\texttt{outlastknot}
+are the same, then the procedure assumes that the knot sequences are
+identical (which is \emph{not} verified) only copies data from the array
+\texttt{inctlpoints} to \texttt{outctlpoints} (according to the pitches
+of the arrays, specified by the parameters \texttt{inpitch}
+and~\texttt{outpitch} respectively).
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiOsloRemoveKnotsLSQf ( int ncurves, int spdimen, \\
+\ind{28}int degree, \\
+\ind{28}int inlastknot, const float *inknots, \\ 
+\ind{28}int inpitch, float *inctlpoints, \\ 
+\ind{28}int outlastknot, const float *outknots, \\ 
+\ind{28}int outpitch, float *outctlpoints );}
+The procedure \texttt{mbs\_multiOsloRemoveKnotsLSQf} removes a~number
+of knots from the representation of given \texttt{ncurves} B-spline curves
+located in the space of dimension \texttt{spdimen}.
+The degree of the curves is the value of the parameter \texttt{degree}.
+The initial representation constsis of the knot sequence stored in the
+array \texttt{inknots} (of length $\mathord{\mbox{\texttt{inlastknot}}}+1$)
+and the control polygons stored in the array \texttt{inctlpoints},
+whose pitch is \texttt{inpitch}.
+
+The final representation is based on the knot sequence of length
+$\mathord{\mbox{\texttt{outlastknot}}}+1$, given in the array
+\texttt{outknots}, and this sequence must be a~subsequence of
+the initial sequence. Moreover, no knot of the final knot sequence may have
+multiplicity greater than $\mathord{\mbox{\texttt{degree}}}+1$ (otherwise
+the matrix described above would have columns linearly dependent).
+
+The procedure constructs the appropriate matrix, and then it solves a~linear
+least squares problem with this matrix.
+
+If the parameters \texttt{inlastknot} and~\texttt{outlastknot}
+have the same value, then the procedure assumes that the knot
+sequences are identical (which is not verified) and it only copies
+data from the array \texttt{inctlpoints} to \texttt{outctlpoints}
+according to the pitches of the arrays, specified by the parameters
+\texttt{inpitch} and~\texttt{outpitch} respectively).
+
+
+\subsection{\label{ssect:max:knot:ins}Maximal knot insertion}
+
+The procedures described in this section may be used to insert knots
+into the representation of B-spline curves and patches in such a~way,
+that the multiplicity of each knot be equal to the degree plus one.
+In this way a~particular B-spline representation is obtained; it consists
+of the representations of polynomial arcs in local Bernstein bases,
+i.e. a~piecewise B\'{e}zier representation. Such a~representation
+makes it possible e.g.\ to quickly compute points of the curves
+(with the Horner scheme) and algebraic operations (like multiplication)
+on spline functions and curves. The procedures described here do not
+remove unnecessary knots (of multiplicity greater than degree$+1$).
+The procedures which do remove the unnecessary knots (thus producing
+a~``clean'' result) are described in the next section.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiMaxKnotInsf ( int ncurves, int spdimen, int degree, \\
+\ind{28}int inlastknot, const float *inknots, \\
+\ind{28}int inpitch, const float *inctlpoints, \\
+\ind{28}int *outlastknot, float *outknots, \\
+\ind{28}int outpitch, float *outctlpoints, \\
+\ind{28}int *skipl, int *skipr );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_multiMaxKnotInsf} inserts knots to the
+representation of \texttt{ncurves} B-spline curves of degree \texttt{degree}
+in the space of dimension \texttt{spdimen}.
+
+The initial representation of the curves is given by the parameters
+\texttt{inlastknot} (number of the last knot),
+\texttt{inctlpoints} (array with the knots),
+\texttt{inpitch} (pitch, i.e.\ the distance between the beginnings of
+the given control polylines),
+and \texttt{inctlpoints} (array with the control points).
+
+The procedure constructs the representation of the curves corresponding
+to the knot sequence with all internal knots (see Section~\ref{ssect:BSC})
+of multiplicity $\mathord{\makebox{\texttt{degree}}}+1$, and the
+boundary knots have multiplicity \texttt{degree} or
+$\mathord{\makebox{\texttt{degree}}}+1$.
+
+The multiplicities of the extremal knots remain unchanged, therefore
+the resulting representation may contain unnecessary knots and control
+points. The parameters \texttt{*skipl} and \texttt{*skipr} upon return
+indicate the number of unnecessary knots and control points
+from the left side and the right side respectively.
+
+The new representation is stored in the arrays
+\texttt{outknots} (knot sequence, the index of the last knot is assigned
+to the parameter \texttt{*outlastknot}) and \texttt{outctlpoints}
+(control polygons, the pitch of this array is specified by the
+\emph{input} parameter \texttt{outpitch}).
+
+If the initial knot sequence contains knots of multiplicity greater than
+desired, the procedure begins the computations with removing them
+(from a~copy of the data), with use of the procedure
+\texttt{mbs\_multiRemoveSuperfluousKnots}).
+Then the procedure \texttt{mbs\_multiOsloInsertKnotsf}) is called
+in order to insert the knots using the Oslo algorithm.
+
+The lengths of the arrays necessaty to accomodate the new representation
+of the curves may be found with use of the procedure
+\texttt{mbs\_LastknotMaxInsf}, which computes the index of the last knot
+of the new representation.
+\end{sloppypar}
+
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_MaxKnotInsC1f(degree,inlastknot,inknots,incoeff, \bsl \\
+\ind{4}outlastknot,outknots,outcoeff,skipl,skipr) \bsl \\
+\ind{2}mbs\_multiMaxKnotInsf(1,1,degree,inlastknot,inknots,0,incoeff, \bsl \\
+\ind{4}outlastknot,outknots,0,outcoeff,skipl,skipr) \\
+\#define mbs\_MaxKnotInsC2f(degree,inlastknot,inknots,inctlpoints, \bsl \\
+\ind{4}outlastknot,outknots,outctlpoints,skipl,skipr) \bsl \\
+\ind{2}mbs\_multiMaxKnotInsf(1,2,degree,inlastknot,inknots,0, \bsl \\
+\ind{4}(float*)inctlpoints,outlastknot,outknots,0, \bsl \\
+\ind{4}(float*)outctlpoints,skipl,skipr) \\
+\#define mbs\_MaxKnotInsC3f(degree,inlastknot,inknots,inctlpoints, \bsl \\
+\ind{4}outlastknot,outknots,outctlpoints,skipl,skipr) ... \\
+\#define mbs\_MaxKnotInsC4f(degree,inlastknot,inknots,inctlpoints, \bsl \\
+\ind{4}outlastknot,outknots,outctlpoints,skipl,skipr) ...}
+The four macros above call \texttt{mbs\_multiMaxKnotInsf} in order to
+construct the representation of one scalar spline function or a~B-spline
+curve in the space of dimension $2$, $3$, $4$, with all internal knots
+of multiplicity equal to the degree plus one. The parameters are
+described with the procedure \texttt{mbs\_multiMaxKnotInsf}.
+
+
+\subsection{Conversion of curves and patches to the piecewise B\'{e}zier form}
+
+The procedures described below convert B-spline curves and patches to the
+piecewise B\'{e}zier form, using the procedure
+\texttt{mbs\_multiMaxKnotInsf}. They may help to draw curves and patches.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBSCurvesToBezf ( int spdimen, int ncurves, \\
+\ind{31}int degree, int lastinknot, \\
+\ind{31}const float *inknots, \\
+\ind{31}int inpitch, const float *inctlp, \\
+\ind{31}int *kpcs, int *lastoutknot, \\
+\ind{31}float *outknots, \\
+\ind{31}int outpitch, float *outctlp );}
+The procedure \texttt{mbs\_multiBSCurvesToBezf} converts
+\texttt{ncurves} B-spline curves of degree \texttt{degree}, located in the
+space of dimension \texttt{spdimen} to the piecewise B\'{e}zier form.
+
+The parameters, which describe the given representation are
+\texttt{lastinknot} (index of the last knot), \texttt{inknots}
+(array with the knot sequence),
+\texttt{inpitch} and~\texttt{inctlp} (pitch and the array with the control
+points).
+
+The value of \texttt{*kpcs} upon return from the proceure is equal to
+the number of polynomial arcs of each curve.
+The parameter \texttt{*lastoutknot} is the index of the last knot
+of the sequence of the resulting representation, the array
+\texttt{outknots} contains these knots, the \emph{input} parameter
+\texttt{outpitch} specifies the pitch of the array \texttt{outctlp},
+in which the procedure stores the control points of the B\'{e}zier
+representations of the polynomial arcs.
+More precisely, to each of the B-spline curves there correspond
+\texttt{*kpcs*(degree+1)*spdimen} floating point numbers; each polynomial
+arc is represented by \texttt{(degree+1)*spdimen} consecutive numbers
+(coordinates of \texttt{degree+1} points); the value of the parameter
+\texttt{outpitch} is the distance between the beginnings of
+the representations of the first arcs of the consecutive B-spline curves.
+
+If the parameter \texttt{kpcs}, \texttt{lastoutknot} or \texttt{outknots}
+is \texttt{NULL}, then the procedure does not output the corresponding
+information.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BSToBezC1f(degree,lastinknot,inknots,incoeff,kpcs, \bsl \\
+\ind{4}lastoutknot,outknots,outcoeff) \bsl \\
+\ind{2}mbs\_multiBSCurvesToBezf(1,1,degree,lastinknot,inknots,0,incoeff,\bsl \\
+\ind{4}kpcs,lastoutknot,outknots,0,outcoeff) \\
+\#define mbs\_BSToBezC2f(degree,lastinknot,inknots,inctlp,kpcs, \bsl \\
+\ind{4}lastoutknot,outknots,outctlp) \bsl \\
+\ind{2}mbs\_multiBSCurvesToBezf(2,1,degree,lastinknot,inknots,0, \bsl \\
+\ind{4}(float*)inctlp,kpcs,lastoutknot,outknots,0,(float*)outctlp) \\
+\#define mbs\_BSToBezC3f(degree,lastinknot,inknots,inctlp,kpcs, \bsl \\
+\ind{4}lastoutknot,outknots,outctlp) ... \\
+\#define mbs\_BSToBezC4f(degree,lastinknot,inknots,inctlp,kpcs, \bsl \\
+\ind{4}lastoutknot,outknots,outctlp) ...}
+\begin{sloppypar}
+The above macros call \texttt{mbs\_multiBSCurvesToBezf} in order to
+obtain the piecewise B\'{e}zier representation of \emph{one} spline function or
+a~B-spline curve in the space of dimension $2$, $3$ and $4$. The
+parameters are described with the procedure
+\texttt{mbs\_multiBSCurvesToBezf}.
+\end{sloppypar}
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BSPatchToBezf ( int spdimen, \\
+\ind{25}int degreeu, int lastuknot, \\
+\ind{25}const float *uknots, \\
+\ind{25}int degreev, int lastvknot, \\
+\ind{25}const float *vknots, \\
+\ind{25}int inpitch, const float *inctlp, \\
+\ind{25}int *kupcs, int *lastoutuknot, \\
+\ind{25}float *outuknots, \\
+\ind{25}int *kvpcs, int *lastoutvknot, \\
+\ind{25}float *outvknots, \\
+\ind{25}int outpitch, float *outctlp );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_BSPatchToBezf} finds the representation of
+a~B-spline patch with knots of multiplicities equal to the degree plus one,
+for both parameters. In other words, it is a~piecewise B\'{e}zier representation.
+Such a~represnetation may be convenient when the patch is to be drawn.
+The procedure may process patches with clamped boundary as well as with
+free boundary.
+\end{sloppypar}
+
+The parameter \texttt{spdimen} specifies the space dimension.
+The degree of the patch is given by the parameters
+\texttt{degreeu} and \texttt{degreev}, the knot sequences of the given
+representation are given by the parameters
+\texttt{lastuknot}, \texttt{uknots}, \texttt{lastvknot} and \texttt{vknots},
+and the control points are given in the array \texttt{inctlp}, whose pitch
+(distance between the beginnings of consecutive columns of the control net)
+specified with the parameter \texttt{inpitch}.
+
+\begin{sloppypar}
+The parameters \texttt{*kupcs} and \texttt{*kvpcs} may be used to pass
+the information about the number of polynomial pieces of the patch;
+the patch consists of \texttt{*kupcs} ``strips'', each of which consisting
+of \texttt{*kvpcs} polynomial patches. The parameters \texttt{lastoutuknot},
+\texttt{outuknots}, \texttt{lastvknot} and \texttt{outvknots} are used to
+output the knot sequences of the final representation. If any of the four
+parameters is \texttt{NULL}, then the corresponding information is not
+output by the procedure (it is unnecessary for drawing the patch).%
+\end{sloppypar}
+
+\begin{sloppypar}
+The control points of the final patch representation are stored in the array
+\texttt{outctlp}, whose pitch is \texttt{outpitch} (it is an~\emph{input}
+parameter). The pitch should be greater than 
+$d(m+1)k_v$, where~$d$ is the dimension of the space (the value of the
+parameter \texttt{spdimen}), $m$~(the value of \texttt{degreev}) is the degree
+of the patch with respect to~$v$, and $k_v$ is the number of intervals between
+knots in the interval $[v_m,v_{M-m}]$
+(the number~$M$ is the value of the parameter \texttt{lastvknot}).
+The number $k_v$ is assigned by the procedure \texttt{mbs\_BSPatchToBezf}
+to the parameter $\texttt{kvpcs}$, but it may be obtained before calling it,
+with the \texttt{mbs\_NumKnotIntervalsf} procedure.
+
+The number of columns of the final representation of the patch is $(n+1)k_u$,
+where $n$~is the degree of the patch with respect to~$u$, and $k_u$ is
+the number of ``strips'', of which the patch consists.
+It may also be computed earlier, by calling \texttt{mbs\_NumKnotIntervalsf}.
+\end{sloppypar}
+
+\begin{sloppypar}
+The main computation (mainly knot insertion) is done by the procedure
+\texttt{mbs\_multiMaxKnotInsf}.%
+\end{sloppypar}
+
+
+\vspace{\medskipamount}\noindent
+\textbf{Example.}
+Suppose that the patch is defined by Formula~(\ref{eq:BSpatch:def}) with two
+nondecreasing knot sequences, $u_0,\ldots,u_N$ and~$v_0,\ldots,v_M$,
+stored respectively in the arrays \texttt{u} and~\texttt{v}.
+The degree is $n$ with respect to $u$ and $m$ with respect to $v$.
+The control points in the $d$-dimensional space are orgaanized in the columns
+and stored in the array \texttt{cp}. The $i$-th column, for
+$i\in\{0,\ldots,N-n-1\}$, consists of $M-m$ points, therefore it is
+represented by $(M-m)d$ floating point answers.
+
+\vspace{\medskipamount}
+\noindent{\ttfamily
+\ind{2}ku = mbs\_NumKnotIntervalsf ( $n$, $N$, u ); \\
+\ind{2}kv = mbs\_NumKnotIntervalsf ( $m$, $M$, v ); \\
+\ind{2}pitch = $(m+1)d$*kv; \\
+\ind{2}b = pkv\_GetScratchMemf ( pitch*ku*(n+1) ); \\
+\ind{2}mbs\_BSPatchToBezf ( $d$, $n$, $N$, u, $m$, $M$, v, $d$*($M-m$), cp, \\
+\ind{22}\&ku, NULL, NULL, \&kv, NULL, NULL, pitch, b );}
+\vspace{\medskipamount}
+
+After executing the above code the array~\texttt{b} contains the
+B\'{e}zier control points of the polynomial pieces of the B-spline patch.
+To move the control points of the $j$-th B\'{e}zier patch from the $i$-th
+strip (counting from~$0$) to the array~\texttt{c} (of length at least
+$(n+1)(m+1)d$), and obtain a~``packed'' control net (without unused areas
+between he columns), one may use the code
+
+\vspace{\medskipamount}
+\noindent{\ttfamily
+\ind{2}md = $(m+1)d$;\ind{6}\,/* length of one column of each B\'{e}zier patch */ \\
+\ind{2}start = $(n+1)i$*pitch + md*$j$;\ind{4}/* position of the first point */\\
+\ind{2}pkv\_Selectf ( $n+1$, md, pitch, md, \&b[start], c );
+}\vspace{\medskipamount}
+
+\begin{figure}[ht]
+  \centerline{\epsfig{file=bspbez.ps}}
+  \caption{A~B-spline patch and its piecewise B\'{e}zier representation.}
+\end{figure}
+
+
+\section{Lane-Riesenfeld algorithm}
+
+\cprog{%
+boolean mbs\_multiLaneRiesenfeldf ( int spdimen, int ncurves, \\
+\ind{20}int degree, \\
+\ind{20}int inlastknot, int inpitch, const float *incp, \\
+\ind{20}int *outlastknot, int outpitch, float *outcp );}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_LaneRiesenfeldC1f(degree,inlastknot,incp,outlastknot, \bsl \\
+\ind{4}outcp) \bsl \\
+\ind{2}mbs\_multiLaneRiesenfeldf ( 1, 1, degree, inlastknot, 0, incp, \bsl \\
+\ind{4}outlastknot, 0, outcp ) \\
+\#define mbs\_LaneRiesenfeldC2f(degree,inlastknot,incp,outlastknot, \bsl \\
+\ind{4}outcp) \bsl \\
+\ind{2}mbs\_multiLaneRiesenfeldf ( 2, 1, degree, inlastknot, 0, \bsl \\
+\ind{4}(float*)incp, outlastknot, 0, (float*)outcp ) \\
+\#define mbs\_LaneRiesenfeldC3f(degree,inlastknot,incp,outlastknot, \bsl \\
+\ind{4}outcp) ... \\
+\#define mbs\_LaneRiesenfeldC4f(degree,inlastknot,incp,outlastknot, \bsl \\
+\ind{4}outcp) ...}
+
+\begin{figure}[ht]
+  \centerline{\epsfig{file=bsplane.ps}}
+  \caption{Application of the Lane-Riesenfeld algorithm to a~B-spline patch}
+\end{figure}
+
+
+
+\clearpage

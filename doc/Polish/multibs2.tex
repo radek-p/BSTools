@@ -1,0 +1,1528 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\newpage
+\section{Operacje na ci"agach w"ez"l"ow}
+
+W tym punkcie s"a zamieszczone opisy procedur dokonuj"acych r"o"rnych
+pomocniczych dzia"la"n na ci"agach w"ez"l"ow, takich jak wyszukiwanie,
+tworzenie nowych ci"ag"ow i~obliczanie ich d"lugo"sci (przed utworzeniem, co
+przydaje si"e w~celu zarezerwowania tablic o~odpowiedniej d"lugo"sci).
+
+\subsection{Przeszukiwanie ci"agu w"ez"l"ow}
+
+Ci"agi w"ez"l"ow $u_0,\ldots,u_N$ przekazywane w~tablicach jako parametry
+wszystkich procedur musz"a by"c niemalej"ace i~musz"a spe"lnia"c warunek
+$u_n<u_{N-n}$. Odpowiedzialno"s"c za spe"lnienie tych warunk"ow spoczywa na
+procedurach wywo"luj"acych (bo ka"rdorazowe sprawdzanie zabiera czas).
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_KnotMultiplicityf ( int lastknot, const float *knots, \\
+\ind{28}float t );}
+Procedura \texttt{mbs\_KnotMultiplicityf} otrzymuje
+tablic"e \texttt{knots}, kt"ora zawiera niemalej"acy ci"ag liczb
+o~d"lugo"sci $N+1$, gdzie $N$~jest warto"sci"a parametru \texttt{lastknot}.
+Warto"sci"a procedury jest liczba wyst"apie"n liczby \texttt{t} w~tym ci"agu.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_FindKnotIntervalf ( int degree, \\
+\ind{28}int lastknot, const float *knots, \\
+\ind{28}float t, int *mult );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_FindKnotIntervalf} otrzymuje tablic"e \texttt{knots},
+kt"ora zawiera niemalej"acy ci"ag liczb o d"lugo"sci $N+1$ (liczba $N$ jest
+warto"sci"a parametru \texttt{lastknot}). Je"sli parametr \texttt{degree} ma
+warto"s"c $-1$, to warto"sci"a procedury jest indeks $k$ do tablicy, taki "re
+$\mbox{\texttt{knots[$k$]}}\leq\mbox{\texttt{t}}<\mbox{\texttt{knots[$k+1$]}}$.
+Mo"re te"r by"c $-1$ je"sli $t<\mbox{\texttt{knots[$0$]}}$ lub
+$N$ je"sli $t\geq\mbox{\texttt{knots[$N$]}}$.
+\end{sloppypar}
+
+Je"sli warto"s"c $n$ parametru \texttt{degree} jest nieujemna, to najmniejsza
+zwracana warto"s"c procedury mo"re by"c r"owna~$n$, a~najwi"eksza $N-n-1$.
+Nast"epuje domniemanie, "re procedura jest wywo"lana w~celu wyznaczenia
+przedzia"lu mi"edzy w"ez"lami, kt"oremu odpowiada pewien wielomian lub "luk
+wielomianowy opisuj"acy funkcj"e lub krzyw"a sklejan"a stopnia~$n$. Po
+znalezieniu numeru tego "luku mo"rna oblicza"c jego punkty (np.\ algorytmem
+de~Boora). W~ten spos"ob je"sli $t\notin[u_n,u_{N-1})$, to b"ed"a obliczane
+punkty pierwszego albo ostatniego "luku opisuj"acego krzyw"a.
+
+Parametr \texttt{mult} s"lu"ry do przekazania krotno"sci w"ez"la~$t$. Je"sli
+jego warto"sci"a jest wska"znik pusty (\texttt{NULL}), to parametr ten jest
+ignorowany. W~przeciwnym razie je"sli $t=u_k$ (dla $k$ r"ownego warto"sci
+procedury), to zmienna \texttt{*mult} otrzymuje warto"s"c r"own"a liczbie
+wyst"apie"n liczby $t$ w~podanym ci"agu w"ez"l"ow.
+
+
+
+\subsection{Tworzenie ci"ag"ow w"ez"l"ow}
+
+\cprog{%
+int mbs\_NumKnotIntervalsf ( int degree, int lastknot, \\
+\ind{28}const float *knots );}
+\hspace*{\parindent}Procedura \texttt{mbs\_NumKnotIntervalsf} oblicza,
+z~ilu przedzia"l"ow mi"edzy
+w"ez"lami sk"lada si"e dziedzina funkcji (albo krzywych) sklejanych stopnia
+\texttt{degree}, okre"slonych dla ci"agu w"ez"l"ow o~d"lugo"sci
+\texttt{*lastknot+1}, podanego w tablicy \texttt{knots}.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_LastknotMaxInsf ( int degree, int lastknot, \\
+\ind{26}const float *knots, \\
+\ind{26}int *numknotintervals );}
+Procedura \texttt{mbs\_LastknotMaxInsf} oblicza indeks ostatniego w"ez"la
+reprezentacji krzywych, kt"ora zostanie utworzona przez
+procedur"e \texttt{mbs\_MaxKnotInsf}.
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_NumMaxKnotsf ( int degree, int lastknot, \\
+\ind{23}const float *knots );}
+Procedura \texttt{mbs\_NumMaxKnotsf} oblicza d"lugo"s"c ci"agu w"ez"l"ow
+potrzebn"a do reprezentowania w lokalnych bazach Bernsteina stopnia
+\texttt{degree} funkcji lub krzywej sklejanej okre"slonej dla ci"agu
+w"ez"l"ow o d"lugo"sci \texttt{lastknot+1}, podanego w tablicy
+\texttt{knots}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_SetKnotPatternf ( int lastinknot, const float *inknots, \\
+\ind{27}int multipl, \\
+\ind{27}int *lastoutknot, float *outknots );}
+Procedura \texttt{mbs\_SetKnotPatternf} s"lu"ry do wygenerowania ci"agu
+w"ez"l"ow, kt"ory sk"lada si"e z~liczb podanych w~tablicy \texttt{inknots}
+(o~d"lugo"sci $\mathord{\mbox{\texttt{lastinknot}}}+1$),
+ale w~kt"orym ka"rdy w"eze"l ma krotno"s"c \texttt{multipl}.
+
+Ci"ag w"ez"l"ow
+jest wpisywany do tablicy \texttt{outknots}, a~indeks ostatniego w"ez"la
+jest zwracana poprzez parametr \texttt{*lastoutknot}.
+
+
+\newpage
+\subsection{Reparametryzacja krzywych i~p"lat"ow}
+
+%\vspace{\bigskipamount}
+\cprog{%
+void mbs\_TransformAffKnotsf ( int degree, int lastknot, \\
+\ind{30}const float *inknots, \\
+\ind{30}float a, float b, float *outknots );}
+\begin{sloppypar}
+\hspace*{\parindent}Procedura \texttt{mbs\_TransformAffKnotsf} dokonuje
+przekszta"lcenia
+afinicznego dziedziny krzywej B-sklejanej, tj.\ oblicza ci"ag w"ez"l"ow
+zwi"azany z~now"a dziedzin"a, co~jest r"ownowa"rne reparametryzacji krzywej.
+,,Star"a'' dziedzin"a jest przedzia"l
+$[u_n,u_{N-n}]$, za"s now"a przedzia"l $[a,b]$. Parametr \texttt{degree}
+okre"sla stopie"n $n$ krzywej, parametr \texttt{lastknot} okre"sla indeks
+ostatniego w"ez"la, tablica \texttt{inknots} zawiera ci"ag w"ez"l"ow
+$u_0,\ldots,u_N$.
+\end{sloppypar}
+
+Parametry \texttt{a}, \texttt{b} okre"slaj"a brzegi przedzia"lu $[a,b]$,
+przy czym powinien by"c spe"lniony warunek $a<b$ (procedura go nie sprawdza).
+Nowy ci"ag w"ez"l"ow procedura wpisuje do tablicy \texttt{outknots}.
+
+Parametry \texttt{inknots} i~\texttt{outknots} mog"a wskazywa"c dwie r"o"rne
+(roz"l"aczne) tablice o~d"lugo"sci $N+1$, lub te"r t"e sam"a tablic"e.
+W~drugim przypadku procedura dokonuje zmiany reprezentacji
+(reparametryzacji) krzywej ,,w~miejscu''.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiReverseBSCurvef ( int degree, int lastknot, \\
+\ind{32}float *knots, \\
+\ind{32}int ncurves, int spdimen, \\
+\ind{32}int pitch, float *ctlpoints );}
+Procedura \texttt{mbs\_multiReverseBSCurvef} dokonuje reparametryzacji
+krzywych \mbox{B-sklejanych} stopnia $n$, polegaj"acej na podstawieniu
+parametru $-t$ w~miejsce~$t$.
+
+Parametr \texttt{degree} okre"sla stopie"n $n$ krzywych. Parametry
+\texttt{lastknot} i~\texttt{knots} opisuj"a ci"ag w"ez"l"ow, na kt"orym
+oparta jest reprezentacja krzywych. Parametr \texttt{ncurves} okre"sla
+liczb"e krzywych, a~\texttt{spdimen} wymiar przestrzeni, w~kt"orej le"r"a
+krzywe.
+
+Je"sli parametr \texttt{knots} jest r"owny \texttt{NULL}, to procedura tylko
+odwraca kolejno"s"c punkt"ow kontrolnych. Dzi"eki temu mo"rna jej u"ry"c do
+,,odwracania'' krzywych (lub p"lat"ow) B\'{e}ziera. W~tym przypadku
+warto"s"c parametru \texttt{lastknot} jest ignorowana (krzywa stopnia~$n$ ma
+$n+1$ punkt"ow kontrolnych).
+
+Parametr \texttt{pitch} okre"sla podzia"lk"e tablicy \texttt{ctlpoints},
+w~kt"orej s"a podane punkty kontrolne krzywych.
+
+Obliczenie realizowane jest ,,w~miejscu'' i~polega na zmianie znaku na
+przeciwny i~odwr"oceniu kolejno"sci w"ez"l"ow oraz na odwr"oceniu
+kolejno"sci punkt"ow kontrolnych ka"rdej krzywej. Obliczenie to jest
+wykonywane bez b"l"ed"ow zaokr"agle"n.
+
+
+\newpage
+\subsection{Modyfikowanie w"ez"l"ow}
+
+\cprog{%
+int mbs\_SetKnotf ( int lastknot, float *knots, \\
+\ind{19}int knotnum, int mult, float t );}
+Procedura \texttt{mbs\_SetKnotf} zmienia w"eze"l w~danym ci"agu,
+z~zachowaniem uporz"adkowania. Parametry:
+\texttt{lastknot} --- numer ostatniego w"ez"la w~ci"agu, \texttt{knots} ---
+wska"znik tablicy z~ci"agiem w"ez"l"ow, \texttt{knotnum} --- indeks zmienianego
+w"ez"la w~ci"agu, \texttt{mult} --- krotno"s"c (now"a warto"s"c otrzymaj"a
+w"ez"ly o~indeksach \texttt{knotnum-i+1 \ldots\ knotnum}),
+\texttt{t} --- nowa warto"s"c w"ez"la.
+
+Po zmianie w"ez"l"ow ci"ag jest sortowany. Warto"sci"a procedury jest
+nowy indeks w"ez"la, a~dok"ladniej liczba~$k$, taka "re $t=u_k<u_{k+1}$.
+
+Warto"s"c procedury $-1$ oznacza b"l"edn"a warto"s"c parametru \texttt{knotnum};
+musi ona by"c od~$0$ do \texttt{lastknot}.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_SetKnotClosedf ( int degree, int lastknot, float *knots, \\
+\ind{25}float T, int knotnum, int mult, float t );}
+Procedura \texttt{mbs\_SetKnotClosedf} zmienia w"eze"l w~danym ci"agu,
+z~zachowaniem uporz"adkowania i~okresowo"sci wymaganej przez reprezentacj"e
+zamkni"etej krzywej B-sklejanej. Parametry: \texttt{degree} --- stopie"n krzywej,
+\texttt{lastknot} --- numer ostatniego w"ez"la w~ci"agu, \texttt{knots} ---
+wska"znik tablicy z~ci"agiem w"ez"l"ow, \texttt{T} --- d"lugo"s"c dziedziny
+krzywej (po zmianie ma by"c \texttt{knots[lastknot-degree]-knots[degree]})
+ \texttt{knotnum} --- indeks zmienianego
+w"ez"la w~ci"agu, \texttt{mult} --- krotno"s"c (now"a warto"s"c otrzymaj"a
+w"ez"ly o~indeksach \texttt{knotnum-i+1 \ldots\ knotnum}),
+\texttt{t} --- nowa warto"s"c w"ez"la.
+
+Po zmianie w"ez"l"ow ci"ag jest sortowany. Warto"sci"a procedury jest
+nowy indeks w"ez"la, a~dok"ladniej liczba~$k$, taka "re $t=u_k<u_{k+1}$.
+
+Warto"s"c procedury $-1$ oznacza b"l"edn"a warto"s"c parametru \texttt{knotnum};
+musi ona by"c od~$0$ do \texttt{lastknot}, lub \texttt{lastknot},
+kt"ora musi by"c wi"eksza ni"r \texttt{3*degree}.
+
+
+\subsection{Sprawdzanie poprawno"sci}
+
+\cprog{%
+boolean mbs\_ClosedKnotsCorrectf ( int degree, int lastknot, \\
+\ind{34}float *knots, \\
+\ind{34}float T, int K, float tol );}
+Procedura \texttt{mbs\_ClosedKnotsCorrectf} sprawdza poprawno"s"c ci"agu
+w"ez"l"ow przeznaczonego do reprezentowania zamkni"etej krzywej B-sklejanej.
+Poprawny ci"ag musi by"c niemalej"acy i~spe"lnia"c warunek $u_{i+K}=u_i+T$
+dla $i=1,\ldots,n$, gdzie $K=N-2n$, $N>3n$. Krotno"sci w"ez"l"ow nie mog"a
+przekracza"c stopnia~$n$. Parametr \texttt{tol} okre"sla
+tolerancj"e (tj.\ dopuszczaln"a r"o"rnic"e $u_{i+K}-T-u_i$);
+musi to by"c ma"la liczba dodatnia, nie mo"re by"c~$0$ z~powodu b"l"ed"ow
+zaokr"agle"n.
+
+
+\newpage
+\section{Obliczanie warto"sci funkcji B-sklejanych}
+
+Wyznaczenie warto"sci funkcji B-sklejanych mo"re by"c potrzebne do
+rozwi"azywania zada"n interpolacyjnych. Funkcje te s"a obliczane na
+podstawie wzor"ow~(\ref{eq:BS:basis0}) i~(\ref{eq:BS:basisn}).
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_deBoorBasisf ( int degree, int lastknot, \\
+\ind{24}const float *knots, \\
+\ind{24}float t, int *fnz, int *nnz, float *bfv );}
+
+\begin{sloppypar}
+Procedura \texttt{mbs\_deBoorBasisf} oblicza warto"sci funkcji B-sklejanych
+stopnia $n$ (parametr \texttt{degree}) w~punkcie \texttt{t}. Funkcje
+s"a okre"s\-lo\-ne przez podanie niemalej"acego ci"agu w"ez\-"l"ow
+$u_0,\ldots,u_M$ w tablicy \texttt{knots}. Liczba w"ez\-"l"ow jest
+r"owna \texttt{lastknot+1}.
+Warto"s"c parametru \texttt{t} musi by"c liczb"a z przedzia"lu
+$[u_n,u_{N-n}]$.
+\end{sloppypar}
+
+Obliczone warto"sci funkcji B-sklejanych s"a umieszczane w tablicy
+\texttt{bfv}, przy czym warto"s"c parametru \texttt{*fnz} na wyj"sciu jest
+r"owna numerowi pierwszej funkcji r"o"rnej od $0$ dla podanego \texttt{t};
+tablica \texttt{bfv} musi mie"c d"lugo"s"c \texttt{degree+1}.
+
+Parametr \texttt{*nnz} s"lu"ry do przekazania inormacji o~liczbie funkcji
+bazowych r"o"rnych od $0$ w punkcie $t$. Zawarto"s"c miejsc w tablicy
+\texttt{bfv} zaczynaj"ac od miejsca \texttt{*nnz} jest nieokre"slona
+(ale procedura mo"re wpisywa"c po"srednie wyniki swoich oblicze"n do
+pierwszych $\mbox{\texttt{degree}}+1$ miejsc w tej tablicy).
+
+
+\newpage
+\section{Wyznaczanie punkt"ow krzywych i p"lat"ow}
+
+\subsection{Algorytm de Boora}
+
+Algorytm de~Boora obliczania punktu $\bm{s}(t)$ krzywej $\bm{s}$ danej
+wzorem~(\ref{eq:BScurve:def}), dla $t\in[u_k,u_{k+1})$,
+$k\in\{n,\ldots,N-n-1\}$, polega na rekurencyjnym obliczeniu
+punkt"ow $\bm{d}^{(j)}_i$ dla $j=1,\ldots,n-r$ oraz $i=k-n,\ldots,k-r$,
+na podstawie wzoru
+\begin{align}
+  \bm{d}^{(j)}_i ={}&
+  (1-\alpha^{(j)}_i)\bm{d}^{(j-1)}_{i-1} + \alpha^{(j)}_i\bm{d}^{(j-1)}_i, \\
+  \mbox{gdzie}\quad \alpha^{(j)}_i ={}& \frac{t-u_i}{u_{i+n+1-j}-u_i}. \nonumber
+\end{align}
+Punkty $\bm{d}^{(0)}_i=\bm{d}_i$ s"a punktami kontrolnymi krzywej,
+za"s liczba~$r$ jest liczba"a wyst"apie"n (krotno"sci"a) liczby $t$ w~ci"agu
+w"ez"l"ow $u_0,\ldots,u_N$.
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_multideBoorf ( int degree, int lastknot, \\
+\ind{23}const float *knots, \\
+\ind{23}int ncurves, int spdimen, \\
+\ind{23}int pitch, const float *ctlpoints, \\
+\ind{23}float t, float *cpoints );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_multideBoorf} jest implementacj"a
+algorytmu de~Boora
+obliczania punk\-tu na krzywej B-sklejanej. Dane dla procedury to
+\texttt{ncurves} krzywych B-sklejanych stopnia \texttt{degree}, po"lo"ronych
+w~przestrzeni o wymiarze \texttt{spdimen}. Ka"rda z tych krzywych jest
+okre"slona za pomoc"a tego samego niemalej"acego ci"agu \texttt{lastknot+1}
+w"ez"l"ow przechowywanych w tablicy \texttt{knots}.
+\end{sloppypar}
+
+"Lamane kontrolne s"a przekazywane w tablicy \texttt{ctlpoints}; ka"rda z
+nich jest opisana przez \texttt{(lastknot-degree)*spdimen} liczb
+zmiennopozycyjnych, przy czym pocz"atek opisu kolejnej "lamanej jest
+\texttt{pitch} miejsc po poprzedniej.
+
+Parametr \texttt{t} ma warto"s"c parametru, dla kt"orego nale"ry obliczy"c
+punkt na ka"rdej z krzywych. Wsp"o"lrz"edne tych punkt"ow s"a wpisywane do
+tablicy \texttt{cpoints}, kt"ora musi mie"c d"lugo"s"c co najmniej
+\texttt{ncurves*spdimen}.
+
+Warto"sci"a procedury jest liczba $n-r$, tj.\ r"o"rnica stopnia krzywych
+i~krotno"sci liczby~$t$ w~ci"agu w"ez"l"ow. Je"sli liczba ta jest nieujemna,
+to okre"sla minimaln"a klas"e ci"ag"lo"sci krzywych w~otoczeniu~$t$.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_deBoorC1f(degree,lastknot,knots,coeff,t,value) \bsl \\
+\ind{2}mbs\_multideBoorf(degree,lastknot,knots,1,1,0,coeff,t,value) \\
+\#define mbs\_deBoorC2f(degree,lastknot,knots,coeff,t,value) \bsl \\
+\ind{2}mbs\_multideBoorf(degree,lastknot,knots,1,2,0,coeff,t,value) \\
+\#define mbs\_deBoorC3f(degree,lastknot,knots,coeff,t,value) ... \\
+\#define mbs\_deBoorC4f(degree,lastknot,knots,coeff,t,value) ...}
+Cztery makra, kt"ore wywo"luj"a procedur"e \texttt{mbs\_multideBoorf} w celu
+obliczenia warto"sci \emph{jednej} skalarnej funkcji sklejanej lub
+B-sklejanej krzywej p"laskiej, przestrzennej lub czterowymiarowej. Parametry
+makra powinny spe"lnia"c warunki podane w~opisie procedury
+\texttt{mbs\_multideBoorf}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_deBoorC2Rf ( int degree, \\
+\ind{22}int lastknot, const float *knots, \\
+\ind{22}const point3f *ctlpoints, float t, \\
+\ind{22}point2f *cpoint );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_deBoorC2Rf} oblicza punkt wymiernej B-sklejanej
+krzywej p"las\-kiej stopnia \texttt{degree}, okre"slonej dla
+niemalej"acego ci"agu \texttt{lastknot+1} w"ez"l"ow podanych w~tablicy
+\texttt{knots}. W~tablicy \texttt{ctlpoints} nale"ry poda"c punkty kontrolne
+\emph{krzywej jednorodnej} (po"lo"ronej w $\R^3$).
+
+Argument krzywej jest warto"sci"a parametru \texttt{t} i~musi nale"re"c
+do przedzia"lu
+$[\mbox{\texttt{knots[degree]}},\mbox{\texttt{knots[lastknot-degree]}}]$.
+Wsp"o"l\-rz"ed\-ne obliczonego punktu
+krzywej s"a przekazywane za pomoc"a parametru \texttt{cpoint}.
+\end{sloppypar}
+
+W"la"sciwe obliczenie wykonuje procedura \texttt{mbs\_multideBoorf}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_deBoorC3Rf ( int degree, \\
+\ind{22}int lastknot, const float *knots, \\
+\ind{22}const point4f *ctlpoints, float t, \\
+\ind{22}point3f *cpoint );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_deBoorC3Rf} oblicza punkt wymiernej krzywej
+B-sklejanej stopnia \texttt{degree} w przestrzeni tr"ojwymiarowej,
+okre"slonej dla niemalej"acego ci"agu \texttt{lastknot+1} w"ez"l"ow
+podanych w tablicy \texttt{knots}.
+
+W tablicy \texttt{ctlpoints}
+nale"ry poda"c punkty kon\-trol\-ne \emph{krzywej jednorodnej}
+(po"lo"ronej w $\R^4$).
+Argument krzywej jest warto"sci"a parametru \texttt{t} i musi nale"re"c
+do przedzia"lu
+$[\mbox{\texttt{knots[degree]}},\mbox{\texttt{knots[lastknot-degree]}}]$.
+Wsp"o"lrz"edne obliczonego punktu
+krzywej s"a przekazywane za pomoc"a parametru \texttt{cpoint}.
+\end{sloppypar}
+
+W"la"sciwe obliczenie wykonuje procedura \texttt{mbs\_multideBoorf}.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_deBoorP3f ( int degreeu, \\
+\ind{21}int lastknotu, const float *knotsu, \\
+\ind{21}int degreev, \\
+\ind{21}int lastknotv, const float *knotsv, \\
+\ind{21}int pitch, \\
+\ind{21}const point3f *ctlpoints, \\
+\ind{21}float u, float v, point3f *ppoint );}
+Procedura \texttt{mbs\_deBoorP3f} oblicza punkt p"lata B-sklejanego
+w~przestrzeni tr"ojwymiarowej. Stopie"n p"lata ze wzgl"edu na parametry
+$u$~i~$v$ s"a r"owne odpowiednio \texttt{degreeu} i~\texttt{degreev}.
+Ci"ag w"ez"l"ow ,,$u$'' o d"lugo"sci \texttt{lastknotu+1} jest podany
+w~tablicy \texttt{knotsu}, podobnie ci"ag w"ez"l"ow ,,$v$'' o d"lugo"sci
+\texttt{lastknotv+1} jest podany w~tablicy \texttt{knotsv}.
+
+Punkty kontrolne p"lata s"a podane w tablicy \texttt{ctlpoints}, przy czym
+ich kolejno"s"c jest nast"epuj"aca: najpierw s"a punkty z~pierwszej kolumny
+siatki, potem z drugiej itd, przy czym kolumna sk"lada si"e z
+\texttt{lastknotv-degreev} punkt"ow.
+
+Parametry \texttt{u} i \texttt{v} okre"slaj"a punkt w dziedzinie, dla
+kt"orego nale"ry obliczy"c punkt p"lata. Wsp"o"lrz"edne tego punktu s"a
+zwracane za pomoc"a parametru \texttt{ppoint}.
+
+W"la"sciwe obliczenie polega na wywo"laniu procedury
+\texttt{mbs\_multideBoorf}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_deBoorP3Rf ( int degreeu, \\
+\ind{22}int lastknotu, const float *knotsu, \\
+\ind{22}int degreev, \\
+\ind{22}int lastknotv, const float *knotsv, \\
+\ind{22}int pitch, \\
+\ind{22}const point4f *ctlpoints, \\
+\ind{22}float u, float v, point3f *ppoint );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_deBoorP3Rf} wyznacza punkt wymiernego p"lata
+B-sklejanego
+w~przes\-trze\-ni tr"ojwymiarowej. Stopie"n p"lata ze wzgl"edu na parametry
+$u$~i~$v$ s"a r"owne odpowiednio \texttt{degreeu} i~\texttt{degreev}.
+Ci"ag w"ez"l"ow ,,$u$'' o d"lugo"sci \texttt{lastknotu+1} jest podany
+w~tablicy \texttt{knotsu}, podobnie ci"ag w"ez"l"ow ,,$v$'' o d"lugo"sci
+\texttt{lastknotv+1} jest podany w~tablicy \texttt{knotsv}.
+\end{sloppypar}
+
+W tablicy \texttt{ctlpoints} nale"ry poda"c punkty kontrolne \emph{p"lata
+jednorodnego}, przy czym ich kolejno"s"c jest nast"epuj"aca: najpierw s"a
+punkty z~pierwszej kolumny siatki, potem z drugiej itd, przy czym kolumna
+sk"lada si"e z \texttt{lastknotv-degreev} punkt"ow.
+
+Parametry \texttt{u} i \texttt{v} okre"slaj"a punkt w dziedzinie, dla
+kt"orego nale"ry obliczy"c punkt p"lata. Wsp"o"lrz"edne tego punktu s"a
+zwracane za pomoc"a parametru \texttt{ppoint}.
+
+W"la"sciwe obliczenie polega na wywo"laniu procedury
+\texttt{mbs\_multideBoorf}.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_deBoorP4f ( int degreeu, \\
+\ind{21}int lastknotu, const float *knotsu, \\
+\ind{21}int degreev, \\
+\ind{21}int lastknotv, const float *knotsv, \\
+\ind{21}int pitch, \\
+\ind{21}const point4f *ctlpoints, \\
+\ind{21}float u, float v, point4f *ppoint );}
+Procedura \texttt{mbs\_deBoorP4f} oblicza punkt p"lata B-sklejanego
+w~przestrzeni czterowymiarowej. Stopie"n p"lata ze wzgl"edu na parametry
+$u$~i~$v$ s"a r"owne odpowiednio \texttt{degreeu} i~\texttt{degreev}.
+Ci"ag w"ez"l"ow ,,$u$'' o d"lugo"sci \texttt{lastknotu+1} jest podany
+w~tablicy \texttt{knotsu}, podobnie ci"ag w"ez"l"ow ,,$v$'' o d"lugo"sci
+\texttt{lastknotv+1} jest podany w~tablicy \texttt{knotsv}.
+
+Punkty kontrolne p"lata s"a podane w tablicy \texttt{ctlpoints}, przy czym
+ich kolejno"s"c jest nast"epuj"aca: najpierw s"a punkty z~pierwszej kolumny
+siatki, potem z drugiej itd, przy czym kolumna sk"lada si"e z
+\texttt{lastknotv-degreev} punkt"ow.
+
+Parametry \texttt{u} i \texttt{v} okre"slaj"a punkt w dziedzinie, dla
+kt"orego nale"ry obliczy"c punkt p"lata. Wsp"o"lrz"edne tego punktu s"a
+zwracane za pomoc"a parametru \texttt{ppoint}.
+
+W"la"sciwe obliczenie polega na wywo"laniu procedury
+\texttt{mbs\_multideBoorf}.
+
+
+\vspace{\bigskipamount}
+Pochodna krzywej sklejanej $\bm{s}$ danej wzorem~(\ref{eq:BScurve:def})
+w~punkcie $t$ wyra"ra si"e wzorem
+\begin{align}
+  \bm{s}'(t) = \frac{n}{u_{k+1}-u_k}(\bm{d}^{(n-r-1)}_{k-r} -
+  \bm{d}^{(n-r-1)}_{k-r-1}),
+\end{align}
+w~kt"orym wyst"epuj"a punkty $\bm{d}^{(n-r-1)}_{k-r}$
+i~$\bm{d}^{(n-r-1)}_{k-r-1}$ obliczane w~algorytmie de~Boora. Opisane ni"rej
+procedury realizuj"a ten algorytm uzupe"lniony o~obliczenie pochodnej.
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_multideBoorDerf ( int degree, int lastknot, \\
+\ind{26}const float *knots, \\
+\ind{26}int ncurves, int spdimen, \\
+\ind{26}int pitch, \\
+\ind{26}const float *ctlpoints, \\
+\ind{26}float t, float *cpoints, \\
+\ind{26}float *dervect );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_multideBoorDerf} s"lu"ry do obliczenia punkt"ow na
+\texttt{ncurves} krzywych B-sklejanych stopnia \texttt{degree}, po"lo"ronych
+w~przestrzeni o~wymiarze \texttt{spdimen}. Dodatkowo procedura oblicza wektory
+pochodnych tych krzywych dla podanego argumentu~\texttt{t}.
+\end{sloppypar}
+
+Spos"ob reprezentowania krzywych jest taki sam jak spos"ob reprezentowania
+krzywych dla potrzeb procedury \texttt{mbs\_multideBoorf}. Obliczone
+wsp"o"lrz"edne punkt"ow krzywych s"a wpisywane (w taki sam spos"ob) do
+tabliy \texttt{cpoints}, a wsp"o"lrz"edne wektor"ow pochodnych do tablicy
+\texttt{dervect}.
+
+\begin{sloppypar}
+Je"sli warto"s"c $t$ parametru \texttt{t} jest r"owna w"ez"lowi o krotno"sci
+\texttt{degree} lub wi"ekszej, to procedura oblicza warto"sci pochodnych
+prawostronnych krzywych w punkcie $t$, z~wyj"atkiem przypadku, gdy liczba
+$t$ okre"sla koniec dziedziny krzywych (to znaczy gdy
+$t=\mbox{\texttt{knots[lastknot-degree]}}$). W~tym przypadku obliczane s"a
+pochodne lewostronne. Wartosci"a procedury jest r"o"znica stopnia krzywych
+i~krotno"sci liczby~$t$ w~ci"agu w"ez"l"ow, kt"ora okre"sla klas"e
+ci"ag"lo"sci krzywych w~otoczeniu punktu~$t$.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_deBoorDerC1f(degree,lastknot,knots,ctlpoints,t,\bsl \\
+\ind{4}cpoint,cder)\bsl \\
+\ind{2}mbs\_multideBoorDerf(degree,lastknot,knots,1,1,0,ctlpoints,t,\bsl\\
+\ind{4}cpoint,cder) \\
+\#define mbs\_deBoorDerC2f(degree,lastknot,knots,ctlpoints,t,\bsl \\
+\ind{4}cpoint,cder)\bsl \\
+\ind{2}mbs\_multideBoorDerf(degree,lastknot,knots,1,2,0,ctlpoints,t,\bsl\\
+\ind{4}cpoint,cder) \\
+\#define mbs\_deBoorDerC3f(degree,lastknot,knots,ctlpoints,t,\bsl \\
+\ind{4}cpoint,cder)\ ... \\
+\#define mbs\_deBoorDerC4f(degree,lastknot,knots,ctlpoints,t,\bsl \\
+\ind{4}cpoint,cder)\ ...}
+\begin{sloppypar}
+Cztery makra wywo"luj"ace procedur"e \texttt{mbs\_multideBoorDerf} w celu
+obliczenia warto"sci \emph{jednej} funkcji sklejanej lub punktu krzywej
+B-sklejanej wraz pochodn"a w punkcie \texttt{t}. Parametry musz"a spe"lnia"c
+warunki podane w opisie procedury \texttt{mbs\_multideBoorDerf}.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_multideBoorDer2f ( int degree, \\
+\ind{23}int lastknot, const float *knots, \\
+\ind{23}int ncurves, int spdimen, \\
+\ind{23}int pitch, const float *ctlpoints, \\
+\ind{23}float t, float *p, float *d1, float *d2 );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_multideBoorDer2f} oblicza punkty $\bm{s}_i(t)$ oraz
+wektory $\bm{s}'_i(t)$ i~$\bm{s}''_i(t)$ krzywych B-sklejanych $\bm{s}_i$
+stopnia~$n$ dla ustalonego~$t$.
+\end{sloppypar}
+
+Parametry wej"sciowe: \texttt{degree} --- stopie"n~$n$,
+\texttt{lastknot} --- numer~$N$ ostatniego w"ez"la,
+\texttt{knots} --- tablica w"ez"l"ow, \texttt{ncurves}
+--- liczba krzywych, \texttt{pitch} --- podzia"lka tablicy punkt"ow
+kontrolnych, \texttt{ctlpoints} --- tablica punkt"ow kontrolnych,
+\texttt{t} --- liczba~$t$.
+
+Parametry wyj"sciowe: \texttt{p} --- tablica, do kt"orej procedura wstawia
+punkty $\bm{s}_i(t)$, \texttt{d1} --- tablica, do~kt"orej procedura wstawia
+wektory $\bm{s}'_i(t)$, \texttt{d2} --- tablica, do~kt"orej procedura
+wstawia wektory $\bm{s}''_i(t)$. Podzia"lka wszystkich tych tablic jest
+r"owna wymiarowi przestrzeni, \texttt{spdimen}.
+
+Warto"sci"a procedury jest liczba $n-r$, gdzie $r$ oznacza krotno"s"c
+(liczb"e wyst"apie"n) liczby~$t$ w~ci"agu w"ez"l"ow. Okre"sla ona klas"e
+ci"ag"lo"sci krzywych $\bm{s}_i$ w~otoczeniu punktu~$t$.
+
+Je"sli krzywa lub kt"ora"s pochodna jest nieci"ag"la w~otoczeniu~$t$, to
+obliczony punkt lub wektor jest r"owny granicy lewostronnej (np.\
+$\lim_{x\searrow t}\bm{s}'(x)$).
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_deBoorDer2C1f(degree,lastknot,knots,coeff,t,p,d1,d2) \bsl \\
+\ind{2}mbs\_multideBoorDer2f(degree,lastknot,knots,1,1,0,coeff,t,p,d1,d2) \\
+\#define mbs\_deBoorDer2C2f(degree,lastknot,knots,ctlpoints,t, \bsl \\
+\ind{4}p,d1,d2) \bsl \\
+\ind{2}mbs\_multideBoorDer2f(degree,lastknot,knots,1,2,0, \bsl \\
+\ind{4}(float*)ctlpoints,t,(float*)p,(float*)d1,(float*)d2) \\
+\#define mbs\_deBoorDer2C3f(degree,lastknot,knots,ctlpoints,t, \bsl \\
+\ind{4}p,d1,d2)\ ... \\
+\#define mbs\_deBoorDer2C4f(degree,lastknot,knots,ctlpoints,t, \bsl \\
+\ind{4}p,d1,d2)\ ...}
+\begin{sloppypar}
+Powy"rsze makra s"lu"r"a do wywo"lywania procedury
+\texttt{mbs\_multideBoorDer2f} w~sytuacji, gdy nale"ry obliczy"c punkt
+i~pochodne rz"edu $1$ i $2$ jednej krzywej \mbox{B-sklejanej} po"lo"ronej
+w~przestrzeni o~wymiarze $1$, $2$, $3$ lub $4$.
+\end{sloppypar}
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+int mbs\_multideBoorDer3f ( int degree, \\
+\ind{23}int lastknot, const float *knots, \\
+\ind{23}int ncurves, int spdimen, \\
+\ind{23}int pitch, const float *ctlpoints, float t, \\
+\ind{23}float *p, float *d1, float *d2, float *d3 );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_multideBoorDer3f} oblicza punkty $\bm{s}_i(t)$ oraz
+wektory $\bm{s}'_i(t)$, $\bm{s}''_i(t)$ i~$\bm{s}'''_i(t)$ krzywych
+B-sklejanych $\bm{s}_i$ stopnia~$n$ dla ustalonego~$t$.
+\end{sloppypar}
+
+Parametry wej"sciowe: \texttt{degree} --- stopie"n~$n$,
+\texttt{lastknot} --- numer~$N$ ostatniego w"ez"la,
+\texttt{knots} --- tablica w"ez"l"ow, \texttt{ncurves}
+--- liczba krzywych, \texttt{pitch} --- podzia"lka tablicy punkt"ow
+kontrolnych, \texttt{ctlpoints} --- tablica punkt"ow kontrolnych,
+\texttt{t} --- liczba~$t$.
+
+Parametry wyj"sciowe: \texttt{p} --- tablica, do kt"orej procedura wstawia
+punkty $\bm{s}_i(t)$, \texttt{d1} --- tablica, do~kt"orej procedura wstawia
+wektory $\bm{s}'_i(t)$, \texttt{d2} --- tablica, do~kt"orej procedura
+wstawia wektory $\bm{s}''_i(t)$, \texttt{d3} --- tablica, do~kt"orej procedura
+wstawia wektory $\bm{s}'''_i(t)$. Podzia"lka wszystkich tych tablic jest
+r"owna wymiarowi przestrzeni, \texttt{spdimen}.
+
+Warto"sci"a procedury jest liczba $n-r$, gdzie $r$ oznacza krotno"s"c
+(liczb"e wyst"apie"n) liczby~$t$ w~ci"agu w"ez"l"ow. Okre"sla ona klas"e
+ci"ag"lo"sci krzywych $\bm{s}_i$ w~otoczeniu punktu~$t$.
+
+Je"sli krzywa lub kt"ora"s pochodna jest nieci"ag"la w~otoczeniu~$t$, to
+obliczony punkt lub wektor jest r"owny granicy lewostronnej (np.\
+$\lim_{x\searrow t}\bm{s}'(x)$).
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_deBoorDer3C1f(degree,lastknot,knots,coeff,t, \bsl \\
+\ind{4}p,d1,d2,d3) \bsl \\
+\ind{2}mbs\_multideBoorDer3f(degree,lastknot,knots,1,1,0,coeff,t, \bsl \\
+\ind{4}p,d1,d2,d3) \\
+\#define mbs\_deBoorDer3C2f(degree,lastknot,knots,ctlpoints,t, \bsl \\
+\ind{4}p,d1,d2,d3) \bsl \\
+\ind{2}mbs\_multideBoorDer3f(degree,lastknot,knots,1,2,0, \bsl \\
+\ind{4}(float*)ctlpoints,t,(float*)p,(float*)d1,(float*)d2,(float*)d3) \\
+\#define mbs\_deBoorDer3C3f(degree,lastknot,knots,ctlpoints,t, \bsl \\
+\ind{4}p,d1,d2,d3)\ ... \\
+\#define mbs\_deBoorDer3C4f(degree,lastknot,knots,ctlpoints,t, \bsl \\
+\ind{4}p,d1,d2,d3)\ ...}
+\begin{sloppypar}
+Powy"rsze makra s"lu"r"a do wywo"lywania procedury
+\texttt{mbs\_multideBoorDer3f} w~sytuacji, gdy nale"ry obliczy"c punkt
+i~pochodne rz"edu $1$, $2$ i~$3$ jednej krzywej \mbox{B-sklejanej}
+po"lo"ronej w~przestrzeni o~wymiarze $1$, $2$, $3$ lub $4$.
+\end{sloppypar}
+
+\begin{figure}[ht]
+  \centerline{\epsfig{file=bsder123.ps}}
+  \caption{Wektory pochodnych rz"edu $1$, $2$ i~$3$ krzywej B-sklejanej}
+  \centerline{pi"atego stopnia, obliczone przez procedury
+    \texttt{mbs\_multideBoorDerf},}
+  \centerline{\texttt{mbs\_multideBoorDer2f} i~\texttt{mbs\_multideBoorDer3f}}
+\end{figure}
+
+\vspace{\bigskipamount}
+\cprog{%
+char mbs\_deBoorDerPf ( int degreeu, int lastknotu, \\
+\ind{20}const float *knotsu, \\
+\ind{20}int degreev, int lastknotv, \\
+\ind{20}const float *knotsv, \\
+\ind{20}int spdimen, int pitch, const float *ctlpoints, \\
+\ind{20}float u, float v, \\
+\ind{20}float *ppoint, \\
+\ind{20}float *uder, float *vder );}
+Procedura \texttt{mbs\_deBoorDerPf} s"lu"ry do obliczenia punktu p"lata
+B-sklejanego, odpowiadaj"acego punktowi
+dziedziny o wsp"o"lrz"ednych \texttt{u} i \texttt{v}, oraz wektor"ow
+pochodnych cz"astkowych w tym punkcie.
+
+\vspace{\bigskipamount}
+\cprog{%
+char mbs\_deBoorDer2Pf ( int degreeu, int lastknotu, \\
+\ind{20}const float *knotsu, \\
+\ind{20}int degreev, int lastknotv, \\
+\ind{20}const float *knotsv, \\
+\ind{20}int spdimen, int pitch, const float *ctlpoints, \\
+\ind{20}float u, float v, \\
+\ind{20}float *ppoint, \\
+\ind{20}float *uder, float *vder, \\
+\ind{20}float *uuder, float *uvder, float *vvder );}
+Procedura \texttt{mbs\_deBoorDer2Pf} s"lu"ry do obliczenia punktu p"lata
+B-sklejanego, odpowiadaj"acego punktowi
+dziedziny o wsp"o"lrz"ednych \texttt{u} i \texttt{v}, oraz wektor"ow
+pochodnych cz"astkowych pierwszego i~drugiego rz"edu w~tym punkcie.
+
+\vspace{\bigskipamount}
+\cprog{%
+char mbs\_deBoorDer3Pf ( int degreeu, int lastknotu, \\
+\ind{6}const float *knotsu, \\
+\ind{6}int degreev, int lastknotv, \\
+\ind{6}const float *knotsv, \\
+\ind{6}int spdimen, int pitch, const float *ctlpoints, \\
+\ind{6}float u, float v, \\
+\ind{6}float *ppoint, \\
+\ind{6}float *uder, float *vder, \\
+\ind{6}float *uuder, float *uvder, float *vvder, \\
+\ind{6}float *uuuder, float *uuvder, float *uvvder, float *vvvder );}
+Procedura \texttt{mbs\_deBoorDer3Pf} s"lu"ry do obliczenia punktu p"lata
+B-sklejanego, odpowiadaj"acego punktowi
+dziedziny o wsp"o"lrz"ednych \texttt{u} i \texttt{v}, oraz wektor"ow
+pochodnych cz"astkowych pierwszego, drugiego i~trzeciego rz"edu w~tym punkcie.
+
+
+
+\subsection{Schemat Hornera dla krzywych i p"lat"ow B\'{e}ziera}
+
+Schemat Hornera jest algorytmem obliczania warto"sci wielomianu (lub punktu
+krzywej) o~z"lo"rono"sci proporcjonalnej do stopnia (algorytmy de~Casteljau
+i~de~Boora maj"a z"lo"rono"s"c proporcjonaln"a do kwadratu stopnia). Aby go
+stosowa"c do krzywych B-sklejanych (co op"laca si"e wtedy, gdy obliczamy
+wiele punkt"ow), trzeba przej"s"c do reprezentacji kawa"lkami B\'{e}ziera,
+przy u"ryciu procedury \texttt{mbs\_multiMaxKnotInsf} (zobacz
+p.~\ref{ssect:max:knot:ins}).
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBCHornerf ( int degree, int ncurves, \\
+\ind{26}int spdimen, int pitch, \\
+\ind{26}const float *ctlpoints, \\
+\ind{26}float t, float *cpoints );}
+Procedura \texttt{mbs\_multiBCHornerf} oblicza punkty na \texttt{ncurves}
+krzywych B\'{e}ziera stopnia \texttt{degree} w przestrzeni o wymiarze
+\texttt{spdimen}. Punkty kontrolne tych krzywych s"a podane w tablicy
+\texttt{ctlpoints}. Wsp"o"lrz"edne punkt"ow kontrolnych ka"rdej krzywej
+s"a upakowane w tej tablicy, przy czym odleg"lo"s"c mi"edzy pocz"atkami
+reprezentacji kolejnych dw"och krzywych jest warto"sci"a parametru
+\texttt{pitch}.
+Parametr \texttt{t} okre"sla parametr krzywych,
+dla kt"orego maj"a by"c obliczone punkty. Obliczone punkty s"a wstawiane do
+tablicy \texttt{cpoints}, kt"ora musi mie"c d"lugo"s"c co najmniej
+\texttt{ncurves*spdimen}.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BCHornerC1f(degree,coeff,t,value) \bsl \\
+\ind{2}mbs\_multiBCHornerf ( degree, 1, 1, 0, coeff, t, value ) \\
+\#define mbs\_BCHornerC2f(degree,coeff,t,value) \bsl \\
+\ind{2}mbs\_multiBCHornerf ( degree, 1, 2, 0, coeff, t, value ) \\
+\#define mbs\_BCHornerC3f(degree,coeff,t,value) ... \\
+\#define mbs\_BCHornerC4f(degree,coeff,t,value) ...}
+Cztery makra, kt"ore wywo"luj"a procedur"e \texttt{mbs\_multiBCHornerf}
+w~celu obliczenia warto"sci wielomianu danego w bazie Bernsteina albo punktu
+na jednej krzywej B\'{e}ziera w przestrzeni dwu-, tr"oj- i czterowymiarowej.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCHornerC2Rf ( int degree, \\
+\ind{24}const point3f *ctlpoints, \\
+\ind{24}float t, point2f *cpoint ); \\
+void mbs\_BCHornerC3Rf ( int degree, \\
+\ind{24}const point4f *ctlpoints, \\
+\ind{24}float t, point3f *cpoint );}
+Powy"rsze procedury obliczaj"a punkt p"laskiej lub tr"ojwymiarowej wymiernej
+krzywej B\'{e}ziera, za pomoc"a schematu Hornera (zastosowanego do
+reprezentacji jednorodnej).
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_FindBezPatchDiagFormf ( int degreeu, int degreev, \\
+\ind{33}int spdimen, const float *cpoints, \\
+\ind{33}int k, int l, float u, float v, \\
+\ind{33}float *dfcp );}
+Procedura \texttt{mbs\_FindBezPatchDiagFormf} wyznacza form"e diagonaln"a
+stopnia $(k,l)$ p"lata B\'{e}ziera $\bm{p}$ stopnia $(n,m)$ w~punkcie $(u,v)$;
+jest to prostok"atny p"lat B\'{e}ziera stopnia $(k,l)$, kt"ory mo"rna otrzyma"c
+wykonuj"ac $n-k$ krok"ow algorytmu de~Casteljau na wierszach i~$m-l$ krok"ow
+na kolumnach; p"lat ten umo"rliwia obliczenie punktu p"lata $\bm{p}$ i~jego
+pochodnych rz"edu $1,\ldots,k$ ze wzgl"edu na $u$ i~$1,\ldots,l$ ze wzgl"edu
+na $v$. Zamiast algorytmu de~Casteljau procedura u"rywa szybszego
+schematu Hornera (procedury \texttt{mbs\_multiBCHornerf}).
+
+Wszystkie procedury obliczania punktu i~pochodnych (a~tak"re krzywizn)
+p"lata B\'{e}ziera opisane dalej w~tym punkcie powinny by"c zrealizowane
+przy u"ryciu tej procedury, ale na razie tylko procedura
+\texttt{mbs\_BCHornerDer3Pf} jest taka (i~trzeba j"a jeszcze dopracowa"c).
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCHornerPf ( int degreeu, int degreev, int spdimen, \\
+\ind{22}const float *ctlpoints, \\
+\ind{22}float u, float v, float *ppoint );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_BCHornerPf} oblicza punkt $\bm{p}(u,v)$ p"lata
+B\'{e}ziera $\bm{p}$ stopnia $(n,m)$, po"lo"ronego w~przestrzeni
+o~wymiarze~$d$. Parametry \texttt{degreeu} i~\texttt{degreev} okre"slaj"a
+stopie"n p"lata (ich warto"sciami s"a liczby $n$ i $m$). Parametr
+\texttt{spdimen} okre"sla wymiar $d$ przestrzeni, w~kt"orej le"ry p"lat.
+W~tablicy \texttt{ctlpoints} nale"ry poda"c punkty kontrolne ($(n+1)(m+1)d$
+liczb).%
+\end{sloppypar}
+
+Procedura umieszcza obliczony wynik (wsp"o"lrz"edne punktu p"lata) w~tablicy
+\texttt{ppoint}, kt"ora musi mie"c d"lugo"s"c co najmniej \texttt{spdimen}.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BCHornerP1f(degreeu,degreev,coeff,u,v,ppoint) \bsl \\
+\ind{2}mbs\_BCHornerPf ( degreeu, degreev, 1, coeff, u, v, ppoint ) \\
+\#define mbs\_BCHornerP2f(degreeu,degreev,ctlpoints,u,v,ppoint ) \bsl \\
+\ind{2}mbs\_BCHornerPf ( degreeu, degreev, 2, (float*)ctlpoints, \bsl \\
+\ind{4}u, v, (float*)ppoint ) \\
+\#define mbs\_BCHornerP3f(degreeu,degreev,ctlpoints,u,v,ppoint ) \ldots \\
+\#define mbs\_BCHornerP4f(degreeu,degreev,ctlpoints,u,v,ppoint ) \ldots}
+\begin{sloppypar}
+Powy"rsze makra s"lu"r"a do obliczania punktu p"lata B\'{e}ziera
+w~przestrzeni o~wymiarze $1$, $2$, $3$ i~$4$, za pomoc"a procedury
+\texttt{mbs\_BCHornerPf}.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCHornerP3Rf ( int degreeu, int degreev, \\
+\ind{24}const point4f *ctlpoints, float u, float v, \\
+\ind{24}point3f *p );}
+Procedura \texttt{mbs\_BCHornerP3Rf} oblicza punkt wymiernego p"lata
+B\'{e}ziera w przes\-trze\-ni tr"ojwymiarowej, reprezentowanego w~postaci
+jednorodnej.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBCHornerDerf ( int degree, int ncurves, \\
+\ind{29}int spdimen, int pitch, \\
+\ind{29}const float *ctlpoints, \\
+\ind{29}float t, float *p, float *d );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_multiBCHornerDerf} oblicza za pomoc"a schematu
+Hornera punk\-ty $\bm{c}_i(t)$ i~wektory pochodnej $\bm{c}_i'(t)$ krzywych
+B\'{e}ziera $\bm{c}_i$ po"lo"ronych w~przestrzeni o~wymiarze~$d$.
+\end{sloppypar}
+
+Parametry: \texttt{degree} --- okre"sla stopie"n krzywej, \texttt{ncurves}
+--- liczb"e krzywych, \texttt{spdimen} --- wymiar $d$ przestrzeni,
+\texttt{pitch} --- podzia"lk"e tablicy \texttt{ctlpoints} zawieraj"acej
+punkty kontrolne. Parametr \texttt{t} ma warto"s"c~$t$.
+
+Wsp"o"lrz"edne punkt"ow $\bm{c}_i(t)$ i~wektor"ow $\bm{c}_i'(t)$ procedura
+wpisuje odpowiednio do tablic \texttt{p} i~\texttt{d}, kt"ore musz"a mie"c
+d"lugo"s"c co najmniej \texttt{ncurves*spdimen}.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BCHornerDerC1f(degree,coeff,t,p,d) \bsl \\
+\ind{2}mbs\_multiBCHornerDerf ( degree, 1, 1, 0, coeff, t, p, d ) \\
+\#define mbs\_BCHornerDerC2f(degree,ctlpoints,t,p,d) \bsl \\
+\ind{2}mbs\_multiBCHornerDerf ( degree, 1, 2, 0, (float*)ctlpoints, t, \bsl \\
+\ind{4}(float*)p, (float*)d ) \\
+\#define mbs\_BCHornerDerC3f(degree,ctlpoints,t,p,d) \ldots \\
+\#define mbs\_BCHornerDerC4f(degree,ctlpoints,t,p,d) \ldots}
+Powy"rsze makra s"lu"r"a do obliczenia punktu i~pochodnej w~punkcie~$t$
+jednej krzywej B\'{e}ziera w~przestrzeni o~wymiarze $1$, $2$, $3$ lub $4$,
+przez wywo"lanie procedury \texttt{mbs\_multiBCHornerDerf}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCHornerDerC2Rf ( int degree, const point3f *ctlpoints, \\
+\ind{27}float t, point2f *p, vector2f *d ); \\
+void mbs\_BCHornerDerC3Rf ( int degree, const point4f *ctlpoints, \\
+\ind{27}float t, point3f *p, vector3f *d );}
+Procedury \texttt{mbs\_BCHornerDerC2Rf} i~\texttt{mbs\_BCHornerDerC3Rf}
+obliczaj"a punkt $\bm{p}(t)$ i~wektor $\bm{p}'(t)$ wymiernej krzywej
+B\'{e}ziera $\bm{p}$ odpowiednio w~przestrzeni dwu- i~tr"ojwymiarowej.
+
+Parametry: \texttt{degree} --- stopie"n krzywej, \texttt{ctlpoints} ---
+tablica punkt"ow kon\-trol\-nych krzywej jednorodnej, \texttt{t} ---
+liczba~$t$.
+Procedury przypisuj"a obliczony punkt $\bm{p}(t)$ parametrowi~\texttt{p},
+a~wektor~$\bm{p}'(t)$ parametrowi~\texttt{d}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCHornerDerPf ( int degreeu, int degreev, int spdimen, \\
+\ind{25}const float *ctlpoints, \\
+\ind{25}float u, float v, \\
+\ind{25}float *p, float *du, float *dv );}
+Procedura \texttt{mbs\_BCHornerDerPf} oblicza punkt $\bm{p}(u,v)$ oraz
+pochodne cz"astkowe $\frac{\partial}{\partial u}\bm{p}(u,v)$
+i~$\frac{\partial}{\partial v}\bm{p}(u,v)$ p"lata B\'{e}ziera~$\bm{p}$
+stopnia $(n,m)$, po"lo"ronego w~przestrzeni o~wymiarze~$d$.
+
+Parametry: \texttt{degreeu}, \texttt{degreev} --- okre"slaj"a stopie"n
+p"lata (liczby $n$~i~$m$). Parametr \texttt{spdimen} okre"sla wymiar~$d$
+przestrzeni, tablica \texttt{ctlpoints} zawiera wsp"o"lrz"edne punkt"ow
+kontrolnych.
+
+Wyniki (punkt p"lata i~wektory pochodnych) procedura wpisuje do tablic
+\texttt{p}, \texttt{du} i~\texttt{dv}, kt"ore musz"a mie"c d"lugo"s"c co
+najmniej \texttt{spdimen}.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BCHornerDerP1f(degreeu,degreev,coeff,u,v,p,du,dv) \bsl \\
+\ind{2}mbs\_BCHornerDerPf ( degreeu, degreev, 1, coeff, u, v, p, du, dv ) \\
+\#define mbs\_BCHornerDerP2f(degreeu,degreev,ctlpoints,u,v,p,du,dv) \bsl \\
+\ind{2}mbs\_BCHornerDerPf ( degreeu,degreev,2,(float*)ctlpoints,u,v, \bsl \\
+\ind{4}(float*)p, (float*)du, (float*)dv ) \\
+\#define mbs\_BCHornerDerP3f(degreeu,degreev,ctlpoints,u,v,p,du,dv) \bsl \\
+\ind{2}\ldots \\
+\#define mbs\_BCHornerDerP4f(degreeu,degreev,ctlpoints,u,v,p,du,dv) \bsl \\
+\ind{2}\ldots }
+Powy"rsze makra s"lu"r"a do obliczania punkt"ow i~pochodnych cz"astkowych
+p"lat"ow B\'{e}ziera po"lo"ronych w~przestrzeni o~wymiarze $1$, $2$, $3$
+lub~$4$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCHornerDerP3Rf ( int degreeu, int degreev, \\
+\ind{26}const point4f *ctlpoints, \\
+\ind{26}float u, float v, \\
+\ind{26}point3f *p, vector3f *du, vector3f *dv );}
+Procedura \texttt{mbs\_BCHornerDerP3Rf} oblicza punkt $\bm{p}(u,v)$
+i~wektory pochodnych cz"astkowych wymiernego p"lata B\'{e}ziera po"lo"ronego
+w~przestrzeni tr"ojwymiarowej.
+
+Parametry: \texttt{degreeu}, \texttt{degreev} --- stopie"n p"lata ze
+wzgl"edu na parametry $u$~i~$v$, \texttt{ctlpoints} --- tablica punkt"ow
+kontrolnych p"lata \emph{jednorodnego}, \texttt{u}, \texttt{v} --- liczby
+$u$~i~$v$, \texttt{*p}, \texttt{*du}, \texttt{*dv} ---struktury, do~kt"orych
+procedura wpisuje wyniki.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBCHornerDer2f ( int degree, int ncurves, \\
+\ind{30}int spdimen, int pitch, \\
+\ind{30}const float *ctlpoints, float t, \\
+\ind{30}float *p, float *d1, float *d2 );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_multiBCHornerDer2f} oblicza za pomoc"a schematu
+Hornera punk\-ty $\bm{c}_i(t)$ i~wektory pochodnych $\bm{c}_i'(t)$
+i~$\bm{c}_i''(t)$ krzywych
+B\'{e}ziera $\bm{c}_i$ po"lo"ronych w~przestrzeni o~wymiarze~$d$.
+\end{sloppypar}
+
+Parametry: \texttt{degree} --- okre"sla stopie"n krzywej, \texttt{ncurves}
+--- liczb"e krzywych, \texttt{spdimen} --- wymiar $d$ przestrzeni,
+\texttt{pitch} --- podzia"lk"e tablicy \texttt{ctlpoints} zawieraj"acej
+punkty kontrolne. Parametr \texttt{t} ma warto"s"c~$t$.
+
+Obliczone wsp"o"lrz"edne punkt"ow $\bm{c}_i(t)$ i~wektor"ow $\bm{c}_i'(t)$
+i~$\bm{c}_i''(t)$ procedura
+wpisuje odpowiednio do tablic \texttt{p}, \texttt{d1} i~\texttt{d2},
+kt"ore musz"a mie"c d"lugo"s"c co najmniej \texttt{ncurves*spdimen}.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BCHornerDer2C1f(degree,coeff,t,p,d1,d2) \bsl \\
+\ind{2}mbs\_multiBCHornerDer2f ( degree, 1, 1, 0, coeff, t, p, d1, d2 ) \\
+\#define mbs\_BCHornerDer2C2f(degree,ctlpoints,t,p,d1,d2) \bsl \\
+\ind{2}mbs\_multiBCHornerDer2f ( degree, 1, 2, 0, (float*)ctlpoints, \bsl \\
+\ind{4}t, (float*)p, (float*)d1, (float*)d2 ) \\
+\#define mbs\_BCHornerDer2C3f(degree,ctlpoints,t,p,d1,d2) \ldots \\
+\#define mbs\_BCHornerDer2C4f(degree,ctlpoints,t,p,d1,d2) \ldots}
+Powy"rsze makra s"lu"r"a do obliczania punkt"ow i~wektor"ow pochodnych
+pierwszego i~drugiego rz"edu jednej krzywej B\'{e}ziera po"lo"ronych
+w~przestrzeni o~wymiarze $1$, $2$, $3$ lub $4$, za pomoc"a procedury
+\texttt{mbs\_multiBCHornerDer2f}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCHornerDer2C2Rf ( int degree, const point3f *ctlpoints, \\
+\ind{17}float t, point2f *p, vector2f *d1, vector2f *d2 ); \\
+void mbs\_BCHornerDer2C3Rf ( int degree, const point4f *ctlpoints, \\
+\ind{17}float t, point3f *p, vector3f *d1, vector3f *d2 );}
+Procedury \texttt{mbs\_BCHornerDer2C2Rf} i~\texttt{mbs\_BCHornerDer2C3Rf}
+obliczaj"a punkt $\bm{p}(t)$ wymiernej krzywej B\'{e}ziera odpowiednio
+w~przestrzeni dwu- i~tr"ojwymiarowej i~jej pochodne pierwszego i~drugiego
+rz"edu w~punkcie~$t$.
+
+Parametry: \texttt{degree} --- stopie"n krzywej, \texttt{ctlpoints} ---
+tablica punkt"ow kontrolnych wielomianowej krzywej jednorodnej, \texttt{t}
+--- liczba~$t$, \texttt{*p}, \texttt{*d1} i~\texttt{*d2} --- struktury,
+do~kt"orych procedura przypisze odpowiednio punkt~$\bm{p}(t)$
+i~wektory~$\bm{p}'(t)$ i~$\bm{p}''(t)$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCHornerDer2Pf ( int degreeu, int degreev, int spdimen, \\
+\ind{26}const float *ctlpoints, \\
+\ind{26}float u, float v, \\
+\ind{26}float *p, float *du, float *dv, \\
+\ind{26}float *duu, float *duv, float *dvv );}
+Procedura \texttt{mbs\_BCHornerDer2Pf} s"lu"ry do obliczania punktu
+$\bm{p}(u,v)$ i~wektor"ow pochodnych cz"astkowych rz"edu $1$ i~$2$ p"lata
+B\'{e}ziera $\bm{p}$ po"lo"ronego w~przestrzeni o~wymiarze~$d$.
+
+Parametry: \texttt{degreeu}, \texttt{degreev} --- okre"slaj"a stopie"n
+p"lata (liczby $n$~i~$m$). Parametr \texttt{spdimen} okre"sla wymiar~$d$
+przestrzeni, tablica \texttt{ctlpoints} zawiera wsp"o"lrz"edne punkt"ow
+kontrolnych.
+
+Wyniki (punkt p"lata i~wektory pochodnych) procedura wpisuje do tablic
+\texttt{p}, \texttt{du}, \texttt{dv}, \texttt{duu}, \texttt{duv}
+i~\texttt{dvv}, kt"ore musz"a mie"c d"lugo"s"c co najmniej \texttt{spdimen}.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BCHornerDer2P1f(degreeu,degreev,coeff,u,v, \bsl \\
+\ind{4}p,du,dv,duu,duv,dvv) \bsl \\
+\ind{2}mbs\_BCHornerDer2Pf ( degreeu, degreev, 1, coeff, u, v, \bsl \\
+\ind{4}p, du, dv, duu, duv, dvv ) \\
+\#define mbs\_BCHornerDer2P2f(degreeu,degreev,ctlpoints, \bsl \\
+\ind{4}u,v,p,du,dv,duu,duv,dvv) \bsl \\
+\ind{2}mbs\_BCHornerDer2Pf ( degreeu, degreev, 2, (float*)ctlpoints, \bsl \\
+\ind{4}u, v, (float*)p, (float*)du, (float*)dv, \bsl \\
+\ind{4}(float*)duu, (float*)duv, (float*)dvv ) \\
+\#define mbs\_BCHornerDer2P3f(degreeu,degreev,ctlpoints,u,v, \bsl \\
+\ind{4}p,du,dv,duu,duv,dvv) \ldots \\
+\#define mbs\_BCHornerDer2P4f(degreeu,degreev,ctlpoints,u,v, \bsl \\
+\ind{4}p,du,dv,duu,duv,dvv) \ldots}
+Powy"rsze makra s"lu"r"a do obliczania punkt"ow i~wektor"ow pochodnych
+rz"edu $1$~i~$2$ p"lat"ow B\'{e}ziera po"lo"ronych w~przestrzeniach
+o~wymiarach $1$, $2$, $3$ i~$4$, za pomoc"a procedury
+\texttt{mbs\_BCHornerDer2Pf}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCHornerDer2P3Rf ( int degreeu, int degreev, \\
+\ind{28}const point4f *ctlpoints, \\
+\ind{28}float u, float v, \\
+\ind{28}point3f *p, vector3f *du, vector3f *dv, \\
+\ind{28}vector3f *duu, vector3f *duv, \\
+\ind{28}vector3f *dvv );}
+Procedura \texttt{mbs\_BCHornerDer2P3Rf} oblicza punkt wymiernego p"lata
+B\'{e}ziera $\bm{p}$, po"lo"ronego w~przestrzeni tr"ojwymiarowej,
+oraz wektory pochodnych rz"edu $1$~i~$2$.
+
+Parametry: \texttt{degreeu}, \texttt{degreev} --- stopie"n p"lata ze
+wzgl"edu na parametry $u$~i~$v$, \texttt{ctlpoints} --- tablica punkt"ow
+kontrolnych p"lata \emph{jednorodnego}, \texttt{u}, \texttt{v} --- liczby
+$u$~i~$v$, \texttt{*p}, \texttt{*du}, \texttt{*dv}, \texttt{*duu}, \texttt{*duv},
+\texttt{*dvv} --- struktury, do kt"orych procedura ma wpisa"c wyniki,
+odpowiednio punkt $\bm{p}(u,v)$, $\frac{\partial}{\partial u}\bm{p}(u,v)$,
+$\frac{\partial}{\partial v}\bm{p}(u,v)$,
+$\frac{\partial^2}{\partial u^2}\bm{p}(u,v)$,
+$\frac{\partial^2}{\partial u\partial v}\bm{p}(u,v)$
+i~$\frac{\partial^2}{\partial v^2}\bm{p}(u,v)$.%
+\begin{figure}[ht]
+  \centerline{\epsfig{file=patchder.ps}}
+  \caption{P"lat B\'{e}ziera i jego wektory pochodnych cz"astkowych}
+  \centerline{pierwszego i~drugiego rz"edu.}
+\end{figure}
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBCHornerDer3f ( int degree, int ncurves, \\
+\ind{23}int spdimen, int pitch, \\
+\ind{23}const float *ctlpoints, float t, \\
+\ind{23}float *p, float *d1, float *d2, float *d3 );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_multiBCHornerDer3f} oblicza za pomoc"a schematu
+Hornera punk\-ty $\bm{c}_i(t)$ i~wektory pochodnych $\bm{c}_i'(t)$,
+$\bm{c}_i''(t)$ i~$\bm{c}_i'''(t)$ krzywych
+B\'{e}ziera $\bm{c}_i$ po"lo"ronych w~przestrzeni o~wymiarze~$d$.
+\end{sloppypar}
+
+Parametry: \texttt{degree} --- okre"sla stopie"n krzywej, \texttt{ncurves}
+--- liczb"e krzywych, \texttt{spdimen} --- wymiar $d$ przestrzeni,
+\texttt{pitch} --- podzia"lk"e tablicy \texttt{ctlpoints} zawieraj"acej
+punkty kontrolne. Parametr \texttt{t} ma warto"s"c~$t$.
+
+Obliczone wsp"o"lrz"edne punkt"ow $\bm{c}_i(t)$ i~wektor"ow $\bm{c}_i'(t)$,
+$\bm{c}_i''(t)$ i~$\bm{c}_i'''(t)$ procedura
+wpisuje odpowiednio do tablic \texttt{p}, \texttt{d1}, \texttt{d2}
+i~\texttt{d3}, kt"ore musz"a mie"c d"lugo"s"c co najmniej
+\texttt{ncurves*spdimen}.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BCHornerDer3C1f(degree,coeff,t,p,d1,d2,d3) \bsl \\
+\ind{2}mbs\_multiBCHornerDer3f ( degree, 1, 1, 0, coeff, t, \bsl \\
+\ind{4}p, d1, d2, d3 ) \\
+\#define mbs\_BCHornerDer3C2f(degree,ctlpoints,t,p,d1,d2,d3) \bsl \\
+\ind{2}mbs\_multiBCHornerDer3f ( degree, 1, 2, 0, (float*)ctlpoints, \bsl \\
+\ind{4}t, (float*)p, (float*)d1, (float*)d2, (float*)d3 ) \\
+\#define mbs\_BCHornerDer3C3f(degree,ctlpoints,t,p,d1,d2,d3) \ldots \\
+\#define mbs\_BCHornerDer3C4f(degree,ctlpoints,t,p,d1,d2,d3) \ldots}
+Powy"rsze makra s"lu"r"a do obliczania punkt"ow i~wektor"ow pochodnych
+pierwszego, drugiego i~trzeciego rz"edu jednej krzywej B\'{e}ziera
+po"lo"ronych w~przestrzeni o~wymiarze $1$, $2$, $3$ lub $4$, za pomoc"a
+procedury \texttt{mbs\_multiBCHornerDer3f}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCHornerDer3Pf ( int degreeu, int degreev, int spdimen, \\
+\ind{26}const float *ctlpoints, \\
+\ind{26}float u, float v, \\
+\ind{26}float *p, float *pu, float *pv, \\
+\ind{26}float *puu, float *puv, float *pvv, \\
+\ind{26}float *puuu, float *puuv, float *puvv, \\
+\ind{26}float *pvvv );}
+Procedura \texttt{mbs\_BCHornerDer3Pf} oblicza punkt $\bm{p}(u,v)$
+p"lata B\'{e}ziera $\bm{p}$ po"lo"ronego w~przestrzeni o~wymiarze
+\texttt{spdimen} i~jego pochodne rz"edu $1,\ldots,3$ w~tym punkcie. Obecna
+wersja procedury dzia"la przy za"lo"reniu, "re stopie"n p"lata ze wzgl"edu na
+oba parametry jest nie mniejszy ni"r~$3$ --- zaimplementowanie obs"lugi
+pozosta"lych przypadk"ow pozostaje do zrobienia.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BCHornerDer3P1f(degreeu,degreev,coeff,u,v, \bsl \\
+\ind{4}p,pu,pv,puu,puv,pvv,puuu,puuv,puvv,pvvv) \bsl \\
+\ind{2}mbs\_BCHornerDer3Pf ( degreeu, degreev, 1, coeff, u, v, \bsl \\
+\ind{4}p, pu, pv, puu, puv, pvv, puuu, puuv, puvv, pvvv ) \\
+\#define mbs\_BCHornerDer3P2f(degreeu,degreev,ctlpoints,u,v, \bsl \\
+\ind{4}p,pu,pv,puu,puv,pvv,puuu,puuv,puvv,pvvv) \bsl \\
+\ind{2}mbs\_BCHornerDer3Pf ( degreeu, degreev, 2, (float*)ctlpoints, \bsl \\
+\ind{4}u, v, (float*)p, (float*)pu, (float*)pv, (float*)puu, \bsl \\
+\ind{4}(float*)puv, (float*)pvv, (float*)puuu, (float*)puuv, \bsl \\
+\ind{4}(float*)puvv, (float*)pvvv ) \\
+\#define mbs\_BCHornerDer3P3f(degreeu,degreev,ctlpoints,u,v, \bsl \\
+\ind{4}p,pu,pv,puu,puv,pvv,puuu,puuv,puvv,pvvv) \ldots \\
+\#define mbs\_BCHornerDer3P4f(degreeu,degreev,ctlpoints,u,v, \bsl \\
+\ind{4}p,pu,pv,puu,puv,pvv,puuu,puuv,puvv,pvvv) \ldots}
+Podane wy"rej makra s"lu"r"a do wywo"lywania procedury
+\texttt{mbs\_BCHormerDer3Pf} w~celu obliczenia punktu i~pochodnych p"lat"ow
+po"lo"ronych w~przestrzeniach o~wymiarach odpowiednio $1,\ldots,4$.
+
+
+\newpage
+\subsection{Obliczanie krzywizn i uk"ladu Freneta krzywej}
+
+Obliczanie krzywizn i wektor"ow uk"ladu Freneta jest oprogramowane tylko dla
+krzywych B\'{e}ziera. Chc"ac obliczy"c krzywizn"e krzywej B-sklejanej trzeba
+dokona"c maksymalnego wstawienia w"ez"l"ow (np.\ za pomoc"a procedury
+\texttt{mbs\_multiMaxKnotInsf}) w~celu otrzymania reprezentacji B\'{e}ziera
+poszczeg"olnych "luk"ow. Zwykle krzy\-wiz\-na b"edzie tablicowana, a~zatem
+wykonamy jedn"a tak"a konwersj"e, a~potem wiele oblicze"n krzywizny
+w~r"o"rnych punktach. Dlatego nie ma procedur obliczaj"acych bezpo"srednio
+krzywizny krzywych B-sklejanych. Procedury opisane poni"rej wykonuj"a
+obliczenia za pomoc"a procedury \texttt{mbs\_multiBCHornerf}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCFrenetC2f ( int degree, const point2f *ctlpoints, \\
+\ind{23}float t, point2f *cpoint, \\
+\ind{23}vector2f *fframe, float *curvature );}
+Procedura \texttt{mbs\_BCFrenetC2f} oblicza krzywizn"e i~wektory
+styczny~$\bm{t}$ i~normalny~$\bm{n}$ uk"ladu Freneta p"laskiej krzywej
+B\'{e}ziera stopnia \texttt{degree}, kt"orej punkty kontrolne s"a podane
+w~tablicy \texttt{ctlpoints}. Parametr krzywej jest r"owny \texttt{t}.
+Tablica \texttt{fframe} musi pomie"sci"c dwa wektory. Ponadto procedura
+oblicza punkt krzywej i~przypisuje go do parametru \texttt{*cpoint}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCFrenetC2Rf ( int degree, const point3f *ctlpoints, \\
+\ind{24}float t, point2f *cpoint, \\
+\ind{24}vector2f *fframe, float *curvature );}
+Procedura \texttt{mbs\_BCFrenetC2f} oblicza krzywizn"e i~wektory
+styczny~$\bm{t}$ i~normalny~$\bm{n}$ uk"ladu Freneta p"laskiej wymiernej
+krzywej B\'{e}ziera stopnia \texttt{degree}, kt"orej punkty kontrolne
+(w~reprezentacji jednorodnej) s"a podane w~tablicy \texttt{ctlpoints}.
+Parametr krzywej jest r"owny \texttt{t}.
+Tablica \texttt{fframe} musi pomie"sci"c dwa wektory. Ponadto procedura
+oblicza punkt krzywej i~przypisuje go do parametru \texttt{*cpoint}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCFrenetC3f ( int degree, const point3f *ctlpoints, \\
+\ind{23}float t, point3f *cpoint, \\
+\ind{23}vector3f *fframe, float *curvatures );}
+Procedura \texttt{mbs\_BCFrenetC3f} oblicza krzywizn"e i skr"ecenie
+wielomianowej krzywej B\'{e}ziera stopnia \texttt{degree} oraz wektory
+uk"ladu Freneta: styczny $\bm{t}$, normalny $\bm{n}$ i binormalny $\bm{b}$
+w~punkcie odpowiadaj"acym danemu parametrowi \texttt{t}. Tablica
+\texttt{ctlpoints} zawiera punkty kontrolne krzywej. Krzywizna i
+skr"ecenie s"a wpisywane do tablicy \texttt{curvatures}, a wektory do
+tablicy \texttt{fframe}. Ponadto procedura oblicza punkt krzywej
+i~przypisuje do parametru \texttt{*cpoint}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCFrenetC3Rf ( int degree, const point4f *ctlpoints, \\
+\ind{24}float t, point3f *cpoint, \\
+\ind{24}vector3f *fframe, float *curvatures );}
+Procedura \texttt{mbs\_BCFrenetC3f} oblicza krzywizn"e i skr"ecenie
+wymiernej krzywej B\'{e}ziera stopnia \texttt{degree} oraz wektory
+uk"ladu Freneta: styczny $\bm{t}$, normalny $\bm{n}$ i binormalny $\bm{b}$
+w~punkcie odpowiadaj"acym danemu parametrowi \texttt{t}. Tablica
+\texttt{ctlpoints} zawiera punkty kontrolne krzywej w reprezentacji
+jednorodnej. Krzywizna i~skr"ecenie s"a wpisywane do tablicy
+\texttt{curvatures}, a wektory do
+tablicy \texttt{fframe}. Ponadto procedura
+oblicza punkt krzywej i przypisuje go do parametru \texttt{*cpoint}.
+
+
+\subsection{Obliczanie wektora normalnego p"lata}
+
+\cprog{%
+void mbs\_BCHornerNvP3f ( int degreeu, int degreev, \\
+\ind{25}const point3f *ctlpoints, \\
+\ind{25}float u, float v, \\
+\ind{25}point3f *p, vector3f *nv );}
+
+\hspace*{\parindent}
+Procedura \texttt{mbs\_BCHornerNvP3f} s"lu"ry do obliczenia punktu
+p"lata B\'{e}ziera po"lo"ronego w~przestrzeni tr"ojwymiarowej i~jego wektora
+normalnego w~tym
+punkcie. Obliczony wektor jest iloczynem pochodnych cz"astkowych i~mo"re
+by"c wektorem zerowym je"sli w~danym punkcie jest osobliwo"s"c, nawet je"sli
+w~tym punkcie i~jego otoczeniu p"laszczyzna styczna do p"lata jest
+jednoznacznie okre"slona.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCHornerNvP3Rf ( int degreeu, int degreev, \\
+\ind{26}const point4f *ctlpoints, \\
+\ind{26}float u, float v, \\
+\ind{26}point3f *p, vector3f *nv );}
+Procedura \texttt{mbs\_BCHornerNvP3Rf} s"lu"ry do obliczania punktu
+wymiernego p"lata B\'{e}ziera po"lo"ronego w~przestrzeni tr"ojwymiarowej
+i~jego wektora normalnego w tym punkcie. Wsp"o"lrz"edne obliczonego wektora
+normalnego to pierwsze trzy wsp"o"lrz"edne iloczynu wektorowego
+$\bm{P}\wedge\bm{P}_u\wedge\bm{P}_v$ (iloczynu punktu p"lata jednorodnego
+i~jego pochodnych cz"astkowych). Wektor ten mo"re by"c wektorem zerowym,
+je"sli p"lat ma osobliwo"s"c, nawet je"sli p"laszczyzna styczna w~danym
+punkcie jest okre"slona jednoznacznie.
+
+
+\subsection{Obliczanie form podstawowych i krzywizn p"lat"ow}
+
+Obliczanie form podstawowych i~krzywizn jest oprogramowane tylko dla
+p"lat"ow B\'{e}ziera; powody, dla kt"orych nie ma procedur bezpo"srednio
+obliczaj"acych te obiekty dla p"lat"ow B-sklejanych s"a takie same jak
+powody, dla kt"orych w~bibliotece s"a tylko procedury obliczania krzywizn
+i~uk"ladu Freneta krzywych B\'{e}ziera.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_FundFormsBP3f ( int degreeu, int degreev, \\
+\ind{25}const point3f *ctlpoints, \\
+\ind{25}float u, float v, \\
+\ind{25}float *firstform, float *secondform );}
+Procedura \texttt{mbs\_FundFormsBP3f} oblicza wsp"o"lczynniki macierzy
+pierwszej i~drugiej formy podstawowej wielomianowego p"lata B\'{e}ziera
+w~przestrzeni tr"ojwymiarowej.
+
+Parametry: \texttt{degreeu}, \texttt{degreev} --- stopie"n p"lata ze
+wzgl"edu na parametry $u$ i~$v$, \texttt{ctlpoints} --- tablica punkt"ow
+kontrolnych (spakowana, tj.\ bez obszar"ow nieu"rywanych mi"edzy danymi
+opisuj"acymi kolejne kolumny siatki kontrolnej). Parametry \texttt{u}
+i~\texttt{v} okre"slaj"a punkt, w~kt"orym procedura ma obliczy"c formy.
+
+Parametry \texttt{firstform} i~\texttt{secondform} s"a wska"znikami tablic
+o~d"lugo"sci co najmniej~$3$. Procedura wpisuje do tych tablic
+wsp"o"lczynniki macierzy form, odpowiednio
+$g_{11}=\scp{\bm{p}_u}{\bm{p}_u}$, $g_{12}=g_{21}=\scp{\bm{p}_u}{\bm{p}_v}$
+i~$g_{22}=\scp{\bm{p}_v}{\bm{p}_v}$, oraz
+$b_{11}=\scp{\bm{n}}{\bm{p}_{uu}}$, $b_{12}=b_{21}=\scp{\bm{n}}{\bm{p}_{uv}}$
+i~$b_{22}=\scp{\bm{n}}{\bm{p}_{vv}}$ (gdzie $\bm{n}$ oznacza jednostkowy
+wektor normalny p"lata w~punkcie $(u,v)$).
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_GMCurvaturesBP3f ( int degreeu, int degreev, \\
+\ind{28}const point3f *ctlpoints, \\
+\ind{28}float u, float v, \\
+\ind{28}float *gaussian, float *mean );}
+Procedura \texttt{mbs\_GMCurvaturesBP3f} oblicza krzywizn"e gaussowsk"a
+i~"sredni"a wielomianowego p"lata B\'{e}ziera w~$\R^3$. Parametry
+\texttt{degreeu}, \texttt{degreev}, \texttt{ctlpoints}, \texttt{u}
+i~\texttt{v} s"a identyczne jak odpowiednie parametry poprzedniej procedury.
+
+Parametry \texttt{*gaussian} i~\texttt{*mean} s"lu"r"a do wyprowadzenia
+wynik"ow; procedura przypisuje im odpowiednio obliczon"a warto"s"c krzywizny
+gaussowskiej i~"sredniej.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_PrincipalDirectionsBP3f ( int degreeu, int degreev, \\
+\ind{35}const point3f *ctlpoints, \\
+\ind{35}float u, float v, \\
+\ind{35}float *k1, vector2f *v1, \\
+\ind{35}float *k2, vector2f *v2 );}
+Procedura \texttt{mbs\_PrincipalDirectionsBP3f} oblicza krzywizny i~kierunki
+g"l"owne wielomianowego p"lata B\'{e}ziera w~przestrzeni tr"ojwymiarowej. 
+Parametry \texttt{degreeu}, \texttt{degreev}, \texttt{ctlpoints}, \texttt{u}
+i~\texttt{v} s"a identyczne jak odpowiednie parametry poprzednich dw"och
+procedur.
+
+Parametrom \texttt{*k1} i~\texttt{*k2} procedura przypisuje warto"sci
+krzywizn g"l"ownych p"lata, a~odpowiednie kierunki g"l"owne (w~przestrzeni
+stycznej do dziedziny p"lata) s"a przypisywane parametrom \texttt{*v1}
+i~\texttt{*v2}.
+
+
+\begin{figure}[ht]
+  \centerline{\epsfig{file=patchpdir.ps}}
+  \caption{Wektory odpowiadaj"ace kierunkom g"l"ownym w pewnym punkcie
+    p"lata B\'{e}ziera}
+\end{figure}
+\vspace{\bigskipamount}
+\ucprog{%
+void mbs\_FundFormsBP3Rf ( int degreeu, int degreev, \\
+\ind{26}const point4f *ctlpoints, \\
+\ind{26}float u, float v, \\
+\ind{26}float *firstform, float *secondform );}
+
+\dcprog{%
+void mbs\_GMCurvaturesBP3Rf ( int degreeu, int degreev, \\
+\ind{29}const point4f *ctlpoints, \\
+\ind{29}float u, float v, \\
+\ind{29}float *gaussian, float *mean ); \\
+void mbs\_PrincipalDirectionsBP3Rf ( int degreeu, int degreev, \\
+\ind{36}const point4f *ctlpoints, \\
+\ind{36}float u, float v, \\
+\ind{36}float *k1, vector2f *v1, \\
+\ind{36}float *k2, vector2f *v2 );}
+\begin{sloppypar}
+Powy"rsze procedury obliczaj"a odpowiednio wsp"o"lczynniki
+macierzy pierwszej i~drugiej formy podstawowej, krzywizny gaussowsk"a
+i~"sredni"a oraz krzywizny i~kierunki g"l"owne wymiernego p"lata B\'{e}ziera
+$\bm{p}$. Procedury te s"a dok"ladnymi odpowiednikami procedur
+\texttt{mbs\_FundFormsBP3f}, \texttt{mbs\_GMCurvaturesBP3f}
+i~\texttt{mbs\_GMCurvaturesBP3f} i~maj"a takie same parametry, z~wyj"atkiem
+\texttt{ctlpoints}, kt"ory jest tablic"a punkt"ow kontrolnych p"lata
+\emph{jednorodnego} w~przestrzeni~$\R^4$.
+\end{sloppypar}
+
+\newpage
+\section{Tablicowanie krzywych}
+
+Opisane ni"rej procedury obliczaj"a ci"ag punkt"ow krzywej B\'{e}ziera
+lub B-sklejanej oraz pochodne rz"edu $1$ i~$2$ albo~$1$, $2$ i~$3$
+dla ci"agu warto"sci parametru $t_0,\ldots,t_{k-1}$, wywo"luj"ac
+w~p"etli odpowiednie procedury opisane wcze"sniej. G"l"ownym ich
+zastosowaniem jest wykorzystanie do tablicowania p"lat"ow Coonsa
+(przez procedury opisane w~p.~\ref{sect:Coons:patch:procedures}).
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_TabBezCurveDer2f ( int spdimen, int degree, \\
+\ind{28}const float *cp, \\
+\ind{28}int nkn, const float *kn, \\
+\ind{28}int ppitch, \\
+\ind{28}float *p, float *dp, float *ddp );}
+Procedura \texttt{mbs\_TabBezCurveDer2f} tablicuje krzyw"a B\'{e}ziera
+i~jej pochodne rz"e\-du $1$ i~$2$ przy u"ryciu procedury
+\texttt{mbs\_multiBCHornerDer2f}.
+
+Parametry: \texttt{spdimen} --- wymiar
+przestrzeni, \texttt{degree} --- stopie"n krzywej, \texttt{cp} --- tablica
+punkt"ow kontrolnych, \texttt{nkn} --- liczba~$k$, \texttt{kn} --- tablica
+zawieraj"aca $k$~liczb (warto"sci parametru), \texttt{ppitch} --- podzia"lka
+tablic~\texttt{p}, \texttt{dp} i~\texttt{ddp}, do kt"orych maj"a by"c wpisane
+wsp"o"lrz"edne punkt"ow krzywej, wektor"ow pochodnej i~wektor"ow pochodnej
+drugiego rz"edu. Pierwsze wsp"o"lrz"edne kolejnych punkt"ow i~wektor"ow
+s"a wpisywane do tablic na miejsca odleg"le od siebie o~warto"s"c parametru
+\texttt{ppitch}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_TabBezCurveDer3f ( int spdimen, int degree, \\
+\ind{20}const float *cp, \\
+\ind{20}int nkn, const float *kn, \\
+\ind{20}int ppitch, \\
+\ind{20}float *p, float *dp, float *ddp, float *dddp );}
+Procedura \texttt{mbs\_TabBezCurveDer3f} tablicuje krzyw"a B\'{e}ziera
+i~jej pochodne rz"e\-du $1$, $2$ i~$3$ przy u"ryciu procedury
+\texttt{mbs\_multiBCHornerDer3f}.
+
+Parametry: \texttt{spdimen} --- wymiar
+przestrzeni, \texttt{degree} --- stopie"n krzywej, \texttt{cp} --- tablica
+punkt"ow kontrolnych, \texttt{nkn} --- liczba~$k$, \texttt{kn} --- tablica
+zawieraj"aca $k$~liczb (warto"sci parametru), \texttt{ppitch} --- podzia"lka
+tablic~\texttt{p}, \texttt{dp}, ]texttt{ddp} i~\texttt{dddp}, do kt"orych
+maj"a by"c wpisane odpowiednio wsp"o"lrz"edne punkt"ow krzywej, i~wektor"ow
+pochodnej rz"edu~$1$, $2$ i~$3$. Pierwsze wsp"o"lrz"edne kolejnych punkt"ow
+i~wektor"ow s"a wpisywane do tablic na miejsca odleg"le od siebie
+o~warto"s"c parametru
+\texttt{ppitch}.
+
+%\newpage
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_TabBSCurveDer2f ( int spdimen, int degree, int lastknot, \\
+\ind{27}const float *knots, const float *cp, \\
+\ind{27}int nkn, const float *kn, int ppitch, \\
+\ind{27}float *p, float *dp, float *ddp );}
+Procedura \texttt{mbs\_TabBSCurveDer2f} tablicuje krzyw"a B-sklejan"a
+i~jej pochodne rz"e\-du $1$, i~$2$ przy u"ryciu procedury
+\texttt{mbs\_multideBoorDer2f}.
+
+\begin{sloppypar}
+Parametry: \texttt{spdimen} --- wymiar
+przestrzeni, \texttt{degree} --- stopie"n krzywej,
+\texttt{lastknot} --- numer ostatniego w"ez"la,
+\texttt{knots} --- tablica w"ez"l"ow, \texttt{cp} --- tablica
+punkt"ow kontrolnych, \texttt{nkn} --- liczba~$k$, \texttt{kn} --- tablica
+zawieraj"aca $k$~liczb (warto"sci parametru), \texttt{ppitch} --- podzia"lka
+tablic~\texttt{p}, \texttt{dp} i~\texttt{ddp}, do kt"orych maj"a by"c wpisane
+odpowiednio wsp"o"lrz"edne punkt"ow krzywej, i~wektor"ow pochodnej
+rz"edu~$1$, i~$2$. Pierwsze wsp"o"lrz"edne kolejnych punkt"ow i~wektor"ow
+s"a wpisywane do tablic na miejsca odleg"le od siebie o~warto"s"c parametru
+\texttt{ppitch}.%
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_TabBSCurveDer3f ( int spdimen, int degree, int lastknot, \\
+\ind{20}const float *knots, const float *cp, \\
+\ind{20}int nkn, const float *kn, int ppitch, \\
+\ind{20}float *p, float *dp, float *ddp, float *dddp );}
+Procedura \texttt{mbs\_TabBSCurveDer3f} tablicuje krzyw"a B-sklejan"a
+i~jej pochodne rz"e\-du $1$, $2$ i~$3$ przy u"ryciu procedury
+\texttt{mbs\_multideBoorDer3f}.
+
+\begin{sloppypar}
+Parametry: \texttt{spdimen} --- wymiar
+przestrzeni, \texttt{degree} --- stopie"n krzywej,
+\texttt{lastknot} --- numer ostatniego w"ez"la,
+\texttt{knots} --- tablica w"ez"l"ow, \texttt{cp} --- tablica
+punkt"ow kontrolnych, \texttt{nkn} --- liczba~$k$, \texttt{kn} --- tablica
+zawieraj"aca $k$~liczb (warto"sci parametru), \texttt{ppitch} --- podzia"lka
+tablic~\texttt{p}, \texttt{dp}, \texttt{ddp} i~\texttt{dddp}, do kt"orych
+maj"a by"c wpisane odpowiednio wsp"o"lrz"edne punkt"ow krzywej, i~wektor"ow
+pochodnej rz"edu~$1$, $2$ i~$3$. Pierwsze wsp"o"lrz"edne kolejnych punkt"ow
+i~wektor"ow s"a wpisywane do tablic na miejsca odleg"le od siebie o~warto"s"c
+parametru \texttt{ppitch}.%
+\end{sloppypar}
+
+
+\newpage
+\section{Znajdowanie reprezentacji pochodnych}
+
+Czym innym jest obliczanie wektora pochodnej krzywej w~ustalonym punkcie,
+a~czym innym znalezienie krzywej reprezentuj"acej pochodn"a krzywej danej.
+Opisane ni"rej procedury obliczaj"a takie reprezentacje na podstawie
+wzor"ow
+\begin{align}
+  \frac{\mathrm{d}}{\mathrm{d}t}\sum_{i=0}^n\bm{p}_iB^n_i(t) =
+  \sum_{i=0}^{n-1}n(\bm{p}_{i+1}-\bm{p}_i)B^{n-1}_{i+1}(t),
+\end{align}
+dla krzywych B\'{e}ziera, oraz
+\begin{align}
+  \frac{\mathrm{d}}{\mathrm{d}t}\sum_{i=0}^{N-n-1}\bm{d}_iN^n_i(t) =
+  \sum_{i=0}^{N-n-2}\frac{n}{u_{i+n+1}-u_{i+1}}(\bm{d}_{i+1}-\bm{d}_i)
+  N^{n-1}_{i+1}(t),
+\end{align}
+dla krzywych B-sklejanych. Funkcje B-sklejane $N^n_i$ oraz $N^{n-1}_i$ s"a
+okre"slone dla tego samego ci"agu w"ez"l"ow.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiFindBezDerivativef ( int degree, \\
+\ind{33}int ncurves, int spdimen, \\
+\ind{33}int pitch, const float *ctlpoints, \\
+\ind{33}int dpitch, float *dctlpoints );}
+Procedura \texttt{mbs\_multiFindBezDerivativef} oblicza punkty kontrolne
+krzywych B\'{e}ziera stopnia $n-1$ opisuj"acych pochodne danych krzywych
+B\'{e}ziera stopnia~$n$.
+
+\begin{sloppypar}\hyphenpenalty=200
+Parametry wej"sciowe: \texttt{degree} --- stopie"n $n$ krzywych danych (musi
+by"c dodatni),
+\texttt{ncurves} --- liczba krzywych danych, \texttt{spdimen} --- wymiar
+przestrzeni, w~kt"orej le"r"a krzywe, \texttt{pitch} --- podzia"lka
+tablicy \texttt{ctlpoints} okre"slaj"aca odleg"lo"s"c pocz"atk"ow
+reprezentacji krzywych, \texttt{ctlpoints} --- tablica zawieraj"aca
+wsp"o"lrz"edne punkt"ow kontrolnych krzywych danych.
+\end{sloppypar}
+
+Parametr \texttt{dpitch} opisuje podzia"lk"e tablicy \texttt{dctlpoints}, do
+kt"orej procedura wpisuje obliczone punkty kontrolne krzywych opisj"acych
+pochodne.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_FindBezDerivativeC1f(degree,coeff,dcoeff) \bsl \\
+\ind{2}mbs\_multiFindBezDerivativef ( degree, 1, 1, 0, coeff, 0, dcoeff ) \\
+\#define mbs\_FindBezDerivativeC2f(degree,ctlpoints,dctlpoints) \bsl \\
+\ind{2}mbs\_multiFindBezDerivativef ( degree, 1, 2, 0, \bsl \\
+\ind{4}(float*)ctlpoints, 0, (float*)dctlpoints ) \\
+\#define mbs\_FindBezDerivativeC3f(degree,ctlpoints,dctlpoints) \bsl \\
+\ind{2}mbs\_multiFindBezDerivativef ( degree, 1, 3, 0, \bsl \\
+\ind{4}(float*)ctlpoints, 0, (float*)dctlpoints ) \\
+\#define mbs\_FindBezDerivativeC4f(degree,ctlpoints,dctlpoints) \bsl \\
+\ind{2}mbs\_multiFindBezDerivativef ( degree, 1, 4, 0, \bsl \\
+\ind{4}(float*)ctlpoints, 0, (float*)dctlpoints )}
+Powy"rsze makra wywo"luj"a procedur"e \texttt{mbs\_multiFindBezDerivativef}
+w~celu obliczenia punkt"ow kontrolnych jednej krzywej B\'{e}ziera stopnia~$n$
+po"lo"ronej w~przestrzeni o~wymiarze $1$, $2$, $3$, $4$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiFindBSDerivativef ( int degree, int lastknot, \\
+\ind{33}const float *knots, \\
+\ind{33}int ncurves, int spdimen, \\
+\ind{33}int pitch, const float *ctlpoints, \\
+\ind{33}int *lastdknot, float *dknots, \\
+\ind{33}int dpitch, float *dctlpoints );}
+Procedura \texttt{mbs\_multiFindBSDerivativef} oblicza punkty kontrolne
+krzywych B-sklejanych stopnia $n-1$ opisuj"acych pochodne danych krzywych
+B-sklejanych stopnia~$n$.
+
+Parametry wej"sciowe: \texttt{degree} --- stopie"n $n$ krzywych danych,
+\texttt{lastknot} --- indeks $N$ ostatniego w"ez"la, \texttt{knots} ---
+tablica w"ez"l"ow $u_0,\ldots,u_N$, \texttt{ncurves} --- liczba krzywych
+danych, \texttt{spdimen} --- wymiar przestrzeni, w~kt"orej le"r"a krzywe,
+\texttt{pitch} --- podzia"lka tablicy \texttt{ctlpoints} okre"slaj"aca
+odleg"lo"s"c pocz"atk"ow reprezentacji krzywych, \texttt{ctlpoints} ---
+tablica zawieraj"aca wsp"o"lrz"edne punkt"ow kontrolnych krzywych danych.
+
+Parametr wyj"sciowy \texttt{*lastdknot} otrzymuje warto"s"c $N-2$, za"s do
+tablicy \texttt{dknots} procedura przepisuje w"ez"ly $u_1,\ldots,u_{N-1}$.
+Parametry \texttt{lastdknot} i~\texttt{dknots} mog"a mie"c warto"s"c
+\texttt{NULL} i~wtedy s"a ignorowane.
+
+Parametr \texttt{dpitch} opisuje podzia"lk"e tablicy \texttt{dctlpoints}, do
+kt"orej procedura wpisuje obliczone punkty kontrolne krzywych opisj"acych
+pochodne.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_FindBSDerivativeC1f(degree,lastknot,knots,coeff, \bsl \\
+\ind{4}lastdknot,dknots,dcoeff) \bsl \\
+\ind{2}mbs\_multiFindBSDerivativef ( degree, lastknot, knots, 1, 1, 0, \bsl \\
+\ind{4}coeff, lastdknot, dknots, 0, dcoeff ) \\
+\#define mbs\_FindBSDerivativeC2f(degree,lastknot,knots,ctlpoints, \bsl \\
+\ind{4}lastdknot,dknots,dctlpoints) \bsl \\
+\ind{2}mbs\_multiFindBSDerivativef ( degree, lastknot, knots, 1, 2, 0, \bsl \\
+\ind{4}(float*)ctlpoints, lastdknot, dknots, 0, (float*)dctlpoints ) \\
+\#define mbs\_FindBSDerivativeC3f(degree,lastknot,knots,ctlpoints, \bsl \\
+\ind{4}lastdknot,dknots,dctlpoints)\ ... \\
+\#define mbs\_FindBSDerivativeC4f(degree,lastknot,knots,ctlpoints, \bsl \\
+\ind{4}lastdknot,dknots,dctlpoints)\ ...}
+\begin{sloppypar}
+Powy"rsze makra wywo"luj"a procedur"e
+\texttt{mbs\_multiFindBSDerivativef} w~celu znalezienia reprezentacji
+pochodnej jednej krzywej B-sklejanej po"lo"ronej w~przes\-trze\-ni o~wymiarze
+$1$, $2$, $3$ lub $4$.
+\end{sloppypar}
+

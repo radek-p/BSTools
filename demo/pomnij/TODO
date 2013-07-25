@@ -1,0 +1,12 @@
+ 1. Jesli jest produkt sferyczny i przelacznik bind jest wlaczony,
+    to zmiany wezlow (w tym ustawianie rownoodleglych) i podwyzszanie/
+    oblizanie stopnia powinno byc wykonywane na tworzacej i rowniku.
+
+    *** W wersji obecnej sa bledy prowadzace czasem do zawieszenia ***
+ 2. Usunac przelacznik nonlinear z pow. przejsciowych. Zamiast niego
+    dac przelacznik closed. No i trzeba zrobic wszystko z konstrukcja
+    zamknietych powierzchni wypelniajacych.
+ 3. Nacisniecie guzika Optimize, jesli jest nie taki stopien itd.
+    powinno powodowac wyswietlenie komunikatu o bledzie.
+ 4. W bibliotece czytania/pisania plikow .bs dac zapisywanie informacji
+    o tym, ze krzywa lub plat sa zamkniete.

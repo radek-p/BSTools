@@ -1,0 +1,326 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{The \texttt{libraybez} library}
+
+The \texttt{libraybez} library consists of procedures, whose main
+(but not only) purpose is supporting ray tracing, and more precisely
+computing intersections of rays with B\'{e}zier patches. To do this,
+the procedures build trees of recursive patch subdivision, to
+accelerate solving the appropriate nonlinear equations, by eliminating
+multiple computations of the same thing.
+
+Possible extensions of this library should include constructing trees
+for B-spline patches (also trimmed) and trees with additional attributes,
+which would help in computing intersections of surfaces.
+
+\section{Common definitions and procedures}
+
+\cprog{%
+typedef struct \{ \\
+\ind{2}float xmin, xmax, ymin, ymax, zmin, zmax; \\
+\} Box3f;}
+\hspace*{\parindent} The structure \texttt{Box3f} represents a~rectangular
+parallelpiped. In the representation of a~piece of a~patch it is used to
+locate this piece in the space (the piece is in the associated
+parallelpiped).
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct \{ \\
+\ind{2}point3f\ind{2}p; \\
+\ind{2}vector3f nv; \\
+\ind{2}float\ind{4}u, v, t; \\
+\} RayObjectIntersf, *RayObjectIntersfp;}
+The structure \texttt{RayObjecIntersf} represents a~point of intersection of
+a~ray with a~patch. It consists of the following fields:
+\texttt{p} --- the point of intersection, \texttt{nv} --- normal vector of the
+patch at this point, \texttt{u}, \texttt{v}, \texttt{t} ---
+parameters pf the patch and the ray corresponding to the intersection point.
+
+
+\section{Binary subdivision trees for polynomial patches}
+
+\cprog{%
+typedef struct \_BezPatchTreeVertexf \{ \\
+\ind{2}struct \_BezPatchTreeVertexf \\
+\ind{12}*left, *right, *up; \\
+\ind{2}point3f\ind{3}*ctlpoints; \\
+\ind{2}float\ind{5}u0, u1, v0, v1; \\
+\ind{2}Box3f\ind{5}bbox; \\
+\ind{2}point3f\ind{3}pcent; \\
+\ind{2}float\ind{5}maxder; \\
+\ind{2}short int level; \\
+\ind{2}char\ind{6}divdir; \\
+\ind{2}char\ind{6}pad; \\
+\} BezPatchTreeVertexf, *BezPatchTreeVertexfp;}
+\hspace*{\parindent}The structure \texttt{\_BezPatchTreeVertexf} represents
+a~vertex of a~binary tree of recursive subdivision of a~polynomial
+B\'{e}zier patch~$\bm{p}$.
+
+The fields of this structure are used to store the following data:
+\texttt{left}, \texttt{right}, \texttt{up} --- pointers to the vertices of
+the left and right subtrees and to the parent vertex (the vertex,
+whose the current vertex is the root of one of the subtrees) respectively,
+\texttt{ctlpoints} --- pointer to the array with the control points
+of the piece represented by this vertex,
+\texttt{u0}, \texttt{u1}, \texttt{v0}, \texttt{v1}
+--- numbers which describe the domain of the piece, $[u_0,u_1]\times[v_0,v_1]$,
+\texttt{bbox} --- bounding box (rectangular parallelpiped) of the piece,
+\texttt{pcent} --- the point
+$\bm{p}((u_0\nolinebreak +\nolinebreak u_1)/2,
+(v_0\nolinebreak +\nolinebreak v_1)/2)$, \texttt{maxder}
+--- upper estimation of the length of the vectors of both partial derivatives
+of this piece with respect to local parameters, \texttt{level} --- level of
+the vertex in the tree, \texttt{divdir} --- indicator of the direction
+of further division of the piece, \texttt{pad} --- unused (it aligns the
+size of the structure to an even number of bytes).
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct \{ \\
+\ind{2}unsigned char\ind{9}n, m; \\
+\ind{2}unsigned int\ind{10}cpsize; \\
+\ind{2}BezPatchTreeVertexfp root; \\
+\} BezPatchTreef, *BezPatchTreefp;}
+The structure \texttt{BezPatchTreef} represents a~tree of recursive binary
+subdivision of a~polynomial B\'{e}zier patch. Its fields are the following:
+\texttt{n}, \texttt{m} --- degree of the patch with respect to the
+variables $u$~and~$v$, \texttt{cpsize} --- amount of memory needed to store
+the control points, \texttt{root} --- pointer to the root of the tree.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+BezPatchTreefp \\
+\ind{2}rbez\_NewBezPatchTreef ( unsigned char n, unsigned char m, \\
+\ind{24}float u0, float u1, float v0, float v1, \\
+\ind{24}point3f *ctlpoints );}
+The procedure \texttt{rbez\_NewBezPatchTreef} creates a~tree of binary subdivision
+of a~polynomial B\'{e}zier patch and it returns the pointer to the structure,
+which represents this tree. Initially the tree consists only of the root,
+which represents the entire patch.
+
+The parameter \texttt{n}~and~\texttt{m} specify the degree of the patch
+with respect to $u$~and~$v$ respectively. The parameters \texttt{u0},
+\texttt{u1}, \texttt{v0} and~\texttt{v1} specify the domain of the patch,
+i.e.\ the rectangle $[u_0,u_1]\times[v_0,v_1]$ (if the patch has been
+obtained by dividing a~B-spline patch, then these numbers should be
+the appropriate knots).
+
+The parameter \texttt{ctlpoints} points to the array of control points
+of the patch.
+
+The value returned by the procedure is the pointer to the structure,
+which describes the tree. The memory blocks for this structure and
+for the structures representing the vertices are allocated with
+\texttt{malloc}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void rbez\_DestroyBezPatchTreef ( BezPatchTreefp tree );}
+The procedure \texttt{rbez\_DestroyBezPatchTreef} deallocates (by calling
+\texttt{free}) the memory blocks used to represent a~tree of binary
+patch division. The parameter \texttt{tree} is a~pointer to the structure
+representing the tree.
+
+\vspace{\bigskipamount}
+\cprog{%
+BezPatchTreeVertexp \\
+\ind{2}rbez\_GetBezLeftVertexf ( BezPatchTreefp tree, \\
+\ind{24}BezPatchTreeVertexfp vertex ); \\
+BezPatchTreeVertexfp \\
+\ind{2}rbez\_GetBezRightVertexf ( BezPatchTreefp tree, \\
+\ind{25}BezPatchTreeVertexfp vertex );}
+The procedures \texttt{rbez\_GetBezLeftVertexf}
+and~\texttt{rbez\_GetBezRightVertexf}
+return pointers to the vertex of the left and right subtree of a~vertex of a~tree
+of patch subdivision respectively.
+
+The parameters: \texttt{tree} --- pointer to the structure representing the
+tree, \texttt{vertex} --- pointer to one of the vertices of this tree.
+
+The procedures return the pointers to the appropriate (left or right) vertices.
+If it does not exist, then the procedures divide the piece of the patch
+represented by the vertex pointed by~\texttt{vertex}, they create
+both root vertices of the subtrees and they return the pointer to one of
+those new vertices. For each vertex, either both subtrees exist
+or both are empty.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+int rbez\_FindRayBezPatchIntersf ( BezPatchTreef *tree, \\
+\ind{26}ray3f *ray, \\
+\ind{26}int maxlevel, int maxinters, \\
+\ind{26}int *ninters, RayObjectIntersf *inters );}
+The procedure \texttt{FindRayBezPatchIntersf} computes the common points
+of a~ray (a~halfline) with a~polynomial B\'{e}zier patch in~$\R^3$.
+
+The parameters: \texttt{tree} --- pointer to the tree of patch subdivision;
+\texttt{ray} --- pointer to the ray (the structure \texttt{ray3f} is defined
+in the header file \texttt{geomf.h}; \texttt{maxlevel} --- limit of the height
+of the tree (the procedure will not require vertices beyond that level,
+therefore they will not be created if the only reason to call the
+procedures returning pointers to the vertices is the ray tracing);
+\texttt{maxinters} --- capacity of the array \texttt{inters}, in which the
+results are to be stored. The array must have at least that length,
+and the procedure will terminate after computing at most that many
+intersections. The number of intersection points found on return
+is assigned to \texttt{*ninters}.
+
+The number of intersection points is also the value of the procedure.
+
+
+\section{Binary subdivision trees for rational B\'{e}zier patches}
+
+Binary trees of recursive subdivision of rational B\'{e}zier patches
+are constructed and processed in an almost identical way as
+the trees for the polynomial patches. All structures and procedures
+described in the previous section have their counterparts here.
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct \_RBezPatchTreeVertexf \{ \\
+\ind{2}struct \_RBezPatchTreeVertexf \\
+\ind{12}*left, *right, *up; \\
+\ind{2}point4f\ind{3}*ctlpoints; \\
+\ind{2}float\ind{5}u0, u1, v0, v1; \\
+\ind{2}Box3f\ind{5}bbox; \\
+\ind{2}point3f\ind{3}pcent; \\
+\ind{2}float\ind{5}maxder; \\
+\ind{2}short int level; \\
+\ind{2}char\ind{6}divdir; \\
+\ind{2}char\ind{6}pad; \\
+\} RBezPatchTreeVertexf, *RBezPatchTreeVertexfp;}
+\hspace*{\parindent}The structure \texttt{\_BezPatchTreeVertexf} represents
+a~vertex of a~binary tree of recursive subdivision of a~rational
+B\'{e}zier patch~$\bm{p}$.
+
+The fields of this structure are used to store the following data:
+\texttt{left}, \texttt{right}, \texttt{up} --- pointers to the vertices of
+the left and right subtrees and to the parent vertex (the vertex,
+whose the current vertex is the root of one of the subtrees) respectively,
+\texttt{ctlpoints} --- pointer to the array with the control points
+of the homogeneous patch representing the piece corresponding to this vertex,
+\texttt{u0}, \texttt{u1}, \texttt{v0}, \texttt{v1}
+--- numbers which describe the domain of the piece, $[u_0,u_1]\times[v_0,v_1]$,
+\texttt{bbox} --- bounding box (rectangular parallelpiped) of the piece,
+\texttt{pcent} --- the point
+$\bm{p}((u_0\nolinebreak +\nolinebreak u_1)/2,
+(v_0\nolinebreak +\nolinebreak v_1)/2)$, \texttt{maxder}
+--- upper estimation of the length of the vectors of both partial derivatives
+of this piece with respect to local parameters, \texttt{level} --- level of
+the vertex in the tree, \texttt{divdir} --- indicator of the direction
+of further division of the piece, \texttt{pad} --- unused (it aligns the
+size of the structure to an even number of bytes).
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct \{ \\
+\ind{2}unsigned char\ind{9}n, m; \\
+\ind{2}unsigned int\ind{10}cpsize; \\
+\ind{2}RBezPatchTreeVertexfp root; \\
+\} RBezPatchTreef, *RBezPatchTreefp;}
+The structure \texttt{RBezPatchTreef} representuje a~binary tree of recursive
+subdivision of a~rational B\'{e}zier patch. Its fields are as follows:
+\texttt{n}, \texttt{m} --- degrees of the patch with respect
+to the cariables $u$~and~$v$,
+\texttt{cpsize} --- amount of memory needed to store the control points,
+\texttt{root} --- pointer to the root of the tree.
+
+\vspace{\bigskipamount}
+\cprog{%
+RBezPatchTreefp \\
+\ind{2}rbez\_NewRBezPatchTreef ( unsigned char n, unsigned char m, \\
+\ind{24}float u0, float u1, float v0, float v1, \\
+\ind{24}point4f *ctlpoints );}
+The procedure \texttt{rbez\_NewRBezPatchTreef} creates a~tree of binary subdivision
+of a~rational B\'{e}zier patch and it returns the pointer to the structure,
+which represents this tree. Initially the tree consists only of the root,
+which represents the entire patch.
+
+The parameter \texttt{n}~and~\texttt{m} specify the degree of the patch
+with respect to $u$~and~$v$ respectively. The parameters \texttt{u0},
+\texttt{u1}, \texttt{v0} and~\texttt{v1} specify the domain of the patch,
+i.e.\ the rectangle $[u_0,u_1]\times[v_0,v_1]$ (if the patch has been
+obtained by dividing a~NURBS patch, then these numbers should be
+the appropriate knots).
+
+The parameter \texttt{ctlpoints} points to the array of control points
+of the homogeneous patch in~$\R^4$.
+
+The value returned by the procedure is the pointer to the structure,
+which describes the tree. The memory blocks for this structure and
+for the structures representing the vertices are allocated with
+\texttt{malloc}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void rbez\_DestroyRBezPatchTreef ( RBezPatchTreefp tree );}
+The procedure \texttt{rbez\_DestroyRBezPatchTreef} deallocates (by calling
+\texttt{free}) the memory blocks used to represent a~tree of binary
+patch division. The parameter \texttt{tree} is a~pointer to the structure
+representing the tree.
+
+\vspace{\bigskipamount}
+\cprog{%
+RBezPatchTreeVertexp \\
+\ind{2}rbez\_GetRBezLeftVertexf ( RBezPatchTreefp tree, \\
+\ind{24}RBezPatchTreeVertexfp vertex ); \\
+RBezPatchTreeVertexfp \\
+\ind{2}rbez\_GetRBezRightVertexf ( RBezPatchTreefp tree, \\
+\ind{25}RBezPatchTreeVertexfp vertex );}
+The procedures \texttt{rbez\_GetRBezLeftVertexf}
+and~\texttt{rbez\_GetRBezRightVertexf}
+return pointers to the vertex of the left and right subtree of a~vertex of a~tree
+of patch subdivision respectively.
+
+The parameters: \texttt{tree} --- pointer to the structure representing the
+tree, \texttt{vertex} --- pointer to one of the vertices of this tree.
+
+The procedures return the pointers to the appropriate (left or right) vertices.
+If it does not exist, then the procedures divide the piece of the patch
+represented by the vertex pointed by~\texttt{vertex}, they create
+both root vertices of the subtrees and they return the pointer to one of
+those new vertices. For each vertex, either both subtrees exist
+or both are empty.
+
+\vspace{\bigskipamount}
+\cprog{%
+int rbez\_FindRayRBezPatchIntersf ( RBezPatchTreef *tree, \\
+\ind{26}ray3f *ray, \\
+\ind{26}int maxlevel, int maxinters, \\
+\ind{26}int *ninters, RayObjectIntersf *inters );}
+The procedure \texttt{FindRayRBezPatchIntersf} computes the common points
+of a~ray (a~halfline) with a~rational B\'{e}zier patch in~$\R^3$.
+
+The parameters: \texttt{tree} --- pointer to the tree of patch subdivision;
+\texttt{ray} --- pointer to the ray (the structure \texttt{ray3f} is defined
+in the header file \texttt{geomf.h}; \texttt{maxlevel} --- limit of the height
+of the tree (the procedure will not require vertices beyond that level,
+therefore they will not be created if the only reason to call the
+procedures returning pointers to the vertices is the ray tracing);
+\texttt{maxinters} --- capacity of the array \texttt{inters}, in which the
+results are to be stored. The array must have at least that length,
+and the procedure will terminate after computing at most that many
+intersections. The number of intersection points found on return
+is assigned to \texttt{*ninters}.
+
+The number of intersection points is also the value of the procedure.
+
+\begin{figure}[ht]
+  \centerline{\epsfig{file=raybezp.ps}}
+  \caption{\label{fig:raybezp}Image of a~rational B\'{e}zier patch rendered by ray tracing}
+  \centerline{with use of the procedure \texttt{rbez\_FindRayRBezPatchIntersf}. On the right}
+  \centerline{side the pieces of the domain divided during the computation are shown}
+\end{figure}
+Figure~\ref{fig:raybezp} shows an image of a~rational B\'{e}zier patch
+of degree~$(5,5)$ obtained with use of this procedure.
+The full source code of the program which rendered this image is
+given in the file \texttt{../cpict/raybez.c}.
+
+

@@ -1,0 +1,1182 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\newpage
+\section[Dzia"lania algebraiczne na funkcjach i krzywych sklejanych]%
+{Dzia"lania algebraiczne na funkcjach i krzywych \\ sklejanych}
+
+\begin{sloppypar}
+Zadaniem opisanych w~tym punkcie procedur jest wyznaczanie
+B-sklejanej reprezentacji sumy (wektorowych) krzywych B-sklejanych oraz
+iloczynu (skalarnych) funkcji i~krzywych (wektorowych). Dzia"lania te mog"a
+by"c potrzebne w~r"o"rnych konstrukcjach, na przyk"lad powierzchni
+wykazuj"acych ci"ag"lo"s"c geometryczn"a.
+\end{sloppypar}
+
+
+\subsection{Dodawanie funkcji i~krzywych sklejanych}
+
+Dodanie, tj.\ wyznaczenie reprezentacji sumy, krzywych B-sklejanych wymaga
+okre"s\-le\-nia stopnia i~ci"agu w"ez"l"ow tej reprezentacji. Stopie"n
+reprezentacji sumy jest najwi"ekszym stopniem sk"ladnik"ow. Ci"ag w"ez"l"ow
+jest okre"slony przez ci"agi w"ez\-"l"ow sk"ladnik"ow, kt"ore musz"a
+wyznacza"c t"e sam"a dziedzin"e.
+Aby doda"c krzywe (kt"ore musz"a le"re"c w~przestrzeni o~tym samym
+wymiarze), trzeba znale"z"c reprezentacje tych krzywych, o~stopniu i~ci"agu
+w"ez"l"ow, kt"ore b"ed"a u"rywane do reprezentowania sumy (i~to zadanie
+pomocnicze jest najbardziej skomplikowanym i~kosztownym elementem algorytmu
+dodawania). Ostatnim i~najprostszym elementem procedury jest sumowanie
+wsp"o"lczynnik"ow (tj.\ punkt"ow kontrolnych) sk"ladnik"ow.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_FindBSCommonKnotSequencef ( int *degree, int *lastknot, \\
+\ind{30}float **knots, int nsequences, ...\ );}
+Procedura \texttt{mbs\_FindBSCommonKnotSequencef} otrzymuje $k$~ci"ag"ow
+w"ez"l"ow, b"ed"acych podstaw"a reprezentacji krzywych B-sklejanych
+podanych stopni. Zadaniem procedury jest znalezienie minimalnego
+stopnia i~ci"agu w"ez"l"ow, wystarczaj"acego do reprezentowania sumy
+tych krzywych. Znaleziony stopie"n~$n$ jest najwi"ekszym spo"sr"od
+podanych stopni krzywych, lub pocz"atkow"a warto"sci"a
+zmiennej~\texttt{*degree}, je"sli jest wi"eksza (mo"rna zatem wymusi"c
+poszukiwanie reprezentacji wy"rszego stopnia). Znaleziony ci"ag w"ez"l"ow
+ma nast"epuj"ace w"lasno"sci:
+\begin{itemize}
+\item W"ez"ly brzegowe maj"a krotno"s"c $n+1$ (zatem w"ez"ly zewn"etrzne,
+  w~tym skrajne, pokrywaj"a si"e z~w"ez"lami brzegowymi).
+\item Wyst"epuj"a w nim wszystkie w"ez"ly wewn"etrzne ci"ag"ow w"ez"l"ow
+  danych.
+\item Krotno"sci w"ez"l"ow wewn"etrznych s"a dobrane tak, aby po
+  podwy"rszeniu stopnia ka"rdej krzywej do~$n$ mo"rna j"a by"lo
+  reprezentowa"c z~tym ci"agiem w"ez"l"ow.
+\end{itemize}
+
+Parametry \texttt{degree}, \texttt{lastknot} i~\texttt{knots} s"lu"r"a do
+wyprowadzenia wynik"ow (z~uwagi na sk"ladni"e~C wyst"epuj"a one na pocz"atku
+listy parametr"ow, co jest odst"epstwem od konwencji przyj"etej w~ca"lym
+pakiecie BSTools). Zmienne wskazywane przez te parametry otrzymuj"a
+warto"sci, kt"orymi s"a odpowiednio stopie"n reprezentacji, numer ostatniego
+w"ez"la w~znalezionym ci"agu i~wska"znik do tablicy z~tymi w"ez"lami.
+
+\vspace{\medskipamount}
+\noindent
+\textbf{Uwaga:} Procedura rezerwuje t"e tablic"e na stosie pami"eci
+pomocniczej, a~zatem wywo"luj"acy j"a podprogram jest odpowiedzialny za
+zwolnienie tej rezerwacji (za pomoc"a procedury \texttt{pkv\_FreeScratchMem}
+albo \texttt{pkv\_SetScratchMemTop}).
+
+\vspace{\medskipamount}
+Parametr \texttt{nsequences} okre"sla liczb"e~$k$ danych ci"ag"ow w"ez"l"ow
+(musi by"c $k\geq 1$). W~wywo"laniu procedury nale"ry po nim poda"c
+$3k$~parametr"ow. Kolejne tr"ojki parametr"ow opisuj"a kolejne ci"agi.
+Pierwszym elementem tr"ojki jest stopie"n $n_i$ krzywej (typu \texttt{int}),
+drugim elementem tr"ojki jest indeks $N_i$ ostatniego w"ez"la (typu
+\texttt{int}), a~trzeci element tr"ojki jest wska"znikiem tablicy
+z~$N_i+1$ liczbami zmiennopozycyjnymi reprezentuj"acymi w"ez"ly (parametr
+ten ma typ \texttt{float*}).
+
+We wszystkich ci"agach danych w"eze"l o~numerze $n_i$ musi by"c identyczny;
+to samo dotyczy w"ez"la o~numerze $N_i-n_i$.
+
+Warto"sci"a procedury jest \texttt{true}, je"sli obliczenie zako"nczy"lo
+si"e sukcesem, albo \texttt{false} w~przeciwnym razie. Przyczyn"a
+niepowodzenia mog"a by"c b"l"edne dane lub brak miejsca na stosie pami"eci
+pomocniczej.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_multiAdjustBSCRepf ( int ncurves, int spdimen, \\
+\ind{12}int indegree, int inlastknot, const float *inknots, \\
+\ind{12}int inpitch, const float *inctlpoints, \\
+\ind{12}int outdegree, int outlastknot, const float *outknots, \\
+\ind{12}int outpitch, float *outctlpoints );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_multiAdjustBSCRepf} ,,uzgadnia'' reprezentacj"e
+krzywych B-sklejanych, tj.\ wyznacza reprezentacj"e potrzebnego stopnia,
+opart"a na wskazanym ci"agu w"ez"l"ow. Polega to na podwy"rszeniu stopnia,
+je"sli stopie"n pocz"atkowy jest za ma"ly, a~nast"epnie wstawieniu
+,,brakuj"acych'' w"ez"l"ow (za pomoc"a algorytmu Oslo). Aby doda"c
+$k$~krzywych B-sklejanych o~r"o"rnych reprezentacjach (ale o~tej samej
+dziedzinie), nale"ry wyznaczy"c stopie"n i~ci"ag w"ez"l"ow ich sumy
+(za pomoc"a \texttt{mbs\_FindBSCommonKnotSequencef}), a~nast"epnie
+wyznaczy"c odpowiedni"a reprezentacj"e ka"rdego sk"ladnika, wywo"luj"ac
+procedur"e \texttt{mbs\_multiAdjustBSCRepf}.%
+\end{sloppypar}
+
+Parametry: \texttt{ncurves} --- liczba krzywych, \texttt{spdimen} --- wymiar
+przestrzeni, w~kt"orej one le"r"a, \texttt{indegree}, \texttt{inlastknot},
+\texttt{inknots} --- stopie"n, indeks ostatniego w"ez"la i~tablica w"ez"l"ow
+reprezentacji danej, \texttt{inpitch} --- podzia"lka tablicy
+\texttt{inctlpoints}, w~kt"orej s"a podane punkty kontrolne reprezentacji
+danej.
+
+Parametry \texttt{outdegree}, \texttt{outlastknot} i~\texttt{outknots}
+opisuj"a stopie"n i~ci"ag w"ez"l"ow reprezentacji, kt"or"a procedura ma
+wyznaczy"c. Punkty kontrolne tej reprezentacji s"a wpisywane do tablicy
+\texttt{outctlpoints} o~podzia"lce \texttt{outpitch}.
+
+Warto"sci"a procedury jest \texttt{true} w~razie sukcesu oraz \texttt{false}
+w~razie pora"zki (spowodowanej b"l"ednymi danymi lub brakiem miejsca na
+stosie pami"eci pomocniczej).
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_AdjustBSCRepC1f(indegree,inlastknot,inknots, \bsl \\
+\ind{4}inctlpoints,outdegree,outlastknot,outknots,outctlpoints) \bsl \\
+\ind{2}mbs\_multiAdjustBSCRepf (1,1,indegree,inlastknot,inknots,0, \bsl \\
+\ind{4}inctlpoints,outdegree,outlastknot,outknots,0,outctlpoints) \\
+\#define mbs\_AdjustBSCRepC2f(indegree,inlastknot,inknots, \bsl \\
+\ind{4}inctlpoints,outdegree,outlastknot,outknots,outctlpoints) \bsl \\
+\ind{2}mbs\_multiAdjustBSCRepf (1,2,indegree,inlastknot,inknots,0, \bsl \\
+\ind{4}(float*)inctlpoints,outdegree,outlastknot,outknots,0, \bsl \\
+\ind{4}(float*)outctlpoints) \\
+\#define mbs\_AdjustBSCRepC3f(indegree,inlastknot,inknots, \bsl \\
+\ind{4}inctlpoints,outdegree,outlastknot,outknots,outctlpoints) ... \\
+\#define mbs\_AdjustBSCRepC4f(indegree,inlastknot,inknots, \bsl \\
+\ind{4}inctlpoints,outdegree,outlastknot,outknots,outctlpoints) ...}
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiAddBSCurvesf ( int ncurves, int spdimen, \\
+\ind{19}int degree1, int lastknot1, const float *knots1, \\
+\ind{19}int pitch1, const float *ctlpoints1, \\
+\ind{19}int degree2, int lastknot2, const float *knots2, \\
+\ind{19}int pitch2, const float *ctlpoints2, \\
+\ind{19}int *sumdeg, int *sumlastknot, float *sumknots, \\
+\ind{19}int sumpitch, float *sumctlpoints );}
+Procedura \texttt{mbs\_multiAddBSCurvesf} oblicza sumy \texttt{ncurves}
+par krzywych B-sklejanych w~przestrzeni o~wymiarze \texttt{spdimen}.
+
+Pierwsza krzywa w~parze jest okre"slona za~pomoc"a parametr"ow
+\texttt{degree1} (stopie"n), \texttt{lastknot1} (indeks ostatniego w"ez"la),
+\texttt{knots1} (tablica w"ez"l"ow) i~\texttt{ctlpoints1} (tablica punkt"ow
+kontrolnych o~podzia"lce \texttt{pitch1}).
+
+Druga krzywa w~parze jest podobnie okre"slona za pomoc"a parametr"ow
+\texttt{degree2}, \texttt{lastknot2}, \texttt{knots2}, \texttt{pitch2}
+i~\texttt{ctlpoints2}.
+
+\begin{sloppypar}\hyphenpenalty=200
+Parametry wyj"sciowe to \texttt{*sumdeg} (otrzymuje warto"s"c stopnia
+reprezentacji sumy), \texttt{*sumlastknot} (indeks ostatniego w"ez"la
+reprezentacji sumy), \texttt{sumknots} (tablica, do kt"orej procedura
+wstawia w"ez"ly reprezentacji sumy), \texttt{sumctlpoints} (tablica
+o~podzia"lce~\texttt{sumpitch}, do~kt"orej procedura wstawia punkty
+kontrolne sum).
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_AddBSCurvesC1f(degree1,lastknot1,knots1,ctlpoints1, \bsl \\
+\ind{4}degree2,lastknot2,knots2,ctlpoints2, \bsl \\
+\ind{4}sumdeg,sumlastknot,sumknots,sumctlpoints) \bsl \\
+\ind{2}mbs\_multiAddBSCurvesf (1,1,degree1,lastknot1,knots1,0, \bsl \\
+\ind{4}ctlpoints1,degree2,lastknot2,knots2,0,ctlpoints2, \bsl \\
+\ind{4}sumdeg,sumlastknot,sumknots,0,sumctlpoints) \\
+\#define mbs\_AddBSCurvesC2f(degree1,lastknot1,knots1,ctlpoints1, \bsl \\
+\ind{4}degree2,lastknot2,knots2,ctlpoints2, \bsl \\
+\ind{4}sumdeg,sumlastknot,sumknots,sumctlpoints) \bsl \\
+\ind{2}mbs\_multiAddBSCurvesf (1,2,degree1,lastknot1,knots1,0, \bsl \\
+\ind{4}(float*)ctlpoints1, \bsl \\
+\ind{4}degree2,lastknot2,knots2,0,(float*)ctlpoints2, \bsl \\
+\ind{4}sumdeg,sumlastknot,sumknots,0,(float*)sumctlpoints) \\
+\#define mbs\_AddBSCurvesC3f(degree1,lastknot1,knots1,ctlpoints1, \bsl \\
+\ind{4}degree2,lastknot2,knots2,ctlpoints2, \bsl \\
+\ind{4}sumdeg,sumlastknot,sumknots,sumctlpoints) ... \\
+\#define mbs\_AddBSCurvesC4f(degree1,lastknot1,knots1,ctlpoints1, \bsl \\
+\ind{4}degree2,lastknot2,knots2,ctlpoints2, \bsl \\
+\ind{4}sumdeg,sumlastknot,sumknots,sumctlpoints) ...}
+
+\begin{figure}[ht]
+\centerline{\epsfig{file=addspl.ps}}
+\caption{Funkcje sklejane stopni $3$ i~$4$ i~ich suma}
+\end{figure}
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiSubtractBSCurvesf ( int ncurves, int spdimen, \\
+\ind{19}int degree1, int lastknot1, const float *knots1, \\
+\ind{19}int pitch1, const float *ctlpoints1, \\
+\ind{19}int degree2, int lastknot2, const float *knots2, \\
+\ind{19}int pitch2, const float *ctlpoints2, \\
+\ind{19}int *sumdeg, int *sumlastknot, float *sumknots, \\
+\ind{19}int sumpitch, float *sumctlpoints );}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_SubtractBSCurvesC1f(degree1,lastknot1,knots1, \bsl \\
+\ind{4}ctlpoints1,degree2,lastknot2,knots2,ctlpoints2, \bsl \\
+\ind{4}sumdeg,sumlastknot,sumknots,sumctlpoints) \bsl \\
+\ind{2}mbs\_multiSubtractBSCurvesf (1,1,degree1,lastknot1,knots1,0, \bsl \\
+\ind{4}ctlpoints1,degree2,lastknot2,knots2,0,ctlpoints2, \bsl \\
+\ind{4}sumdeg,sumlastknot,sumknots,0,sumctlpoints) \\
+\#define mbs\_SubtractBSCurvesC2f(degree1,lastknot1,knots1, \bsl \\
+\ind{4}ctlpoints1,degree2,lastknot2,knots2,ctlpoints2, \bsl \\
+\ind{4}sumdeg,sumlastknot,sumknots,sumctlpoints) \bsl \\
+\ind{2}mbs\_multiSubtractBSCurvesf (1,2,degree1,lastknot1,knots1,0, \bsl \\
+\ind{4}(float*)ctlpoints1,degree2,lastknot2,knots2,0, \bsl \\
+\ind{4}(float*)ctlpoints2,sumdeg,sumlastknot,sumknots,0, \bsl \\
+\ind{4}(float*)sumctlpoints) \\
+\#define mbs\_SubtractBSCurvesC3f(degree1,lastknot1,knots1, \bsl \\
+\ind{4}ctlpoints1,degree2,lastknot2,knots2,ctlpoints2, \bsl \\
+\ind{4}sumdeg,sumlastknot,sumknots,sumctlpoints) ... \\
+\#define mbs\_SubtractBSCurvesC4f(degree1,lastknot1,knots1, \bsl \\
+\ind{4}ctlpoints1,degree2,lastknot2,knots2,ctlpoints2, \bsl \\
+\ind{4}sumdeg,sumlastknot,sumknots,sumctlpoints) ...}
+
+
+\newpage
+\subsection{Przej"scie mi"edzy bazami Bernsteina i skalowanymi}
+
+W~tym punkcie s"a opisane procedury pomocnicze u"rywane do mno"renia funkcji
+i~krzywych sklejanych.
+
+Aby pomno"ry"c wielomiany dane za pomoc"a wsp"o"lczynnik"ow w bazach
+Bernsteina, wygodnie jest przej"s"c do tzw.\ \emph{baz skalowanych}. Baza
+skalowana stopnia $n$ sk"lada si"e z wielomian"ow
+\begin{align}
+  b^n_i(t) \stackrel{\mathrm{def}}{=} \frac{1}{\binom{n}{i}}B^n_i(t) =
+  t^i(1-t)^{n-i}.
+\end{align}
+Zatem wsp"o"lczynniki wielomianu w bazie skalowanej otrzymamy mno"r"ac
+wsp"o"lczynniki tego wielomianu w bazie Bernsteina przez liczby
+$\binom{n}{i}$.
+
+Wynik mno"renia wielomian"ow reprezentowanych w bazach skalowanych stopni
+$n$~i~$m$ otrzymujemy w~postaci uk"ladu wsp"o"lczynnik"ow w bazie skalowanej
+stopnia $n+m$, po czym mo"remy przej"s"c do bazy Bernsteina stopnia $n+m$
+wykonuj"ac odpowiednie dzielenia.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBezScalef ( int degree, int narcs, \\
+\ind{26}int ncurves, int spdimen, \\
+\ind{26}int pitch, float *ctlpoints );}
+Procedura \texttt{mbs\_multiBezScalef} otrzymuje tablic"e krzywych
+B\'{e}ziera stopnia \texttt{degree} w~przestrzeni o~wymiarze \texttt{spdimen}
+i~oblicza wsp"o"lczynniki tych krzywych w~bazie skalowanej. Przyj"ete jest
+za"lo"renie, "re krzywe te to kolejne "luki krzywych B-sklejanych, kt"ore
+zosta"ly otrzymane przez odpowiednie wstawienie w"ez"l"ow (np.\ za pomoc"a
+procedury \texttt{mbs\_multiMaxKnotInsf}).
+
+\begin{sloppypar}
+Parametry: \texttt{degree} --- stopie"n krzywych, \texttt{narcs} --- liczba
+"luk"ow B\'{e}ziera wchodz"acych w~sk"lad ka"rdej krzywej B-sklejanej,
+\texttt{ncurves} --- liczba krzywych B-sklejanych, \texttt{spdimen} ---
+wymiar~$d$ przestrzeni, w~kt"orej le"r"a krzywe.
+\end{sloppypar}
+
+Parametr \texttt{pitch} okre"sla podzia"lk"e tablicy \texttt{ctlpoints},
+w~kt"orej przed wywo"laniem procedury s"a podane punkty kontrolne krzywych
+(tj.\ ich wsp"o"lczynniki w~bazach Bernsteina stopnia $n=$\texttt{degree}),
+a~po jej zako"nczeniu wsp"o"lczynniki w~bazach skalowanych.
+Warto"s"c parametru \texttt{pitch} okre"sla odleg"lo"s"c pocz"atk"ow
+pierwszych punkt"ow kontrolnych kolejnych krzywych \emph{B-sklejanych}.
+Reprezentacje kolejnych krzywych B\'{e}ziera zajmuj"a zawsze $(n+1)d$
+miejsc i~nie ma mi"edzy nimi wolnych miejsc. Podzia"lka tablicy nie mo"re
+by"c mniejsza ni"r $(n+1)d$\texttt{*narcs}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBezUnscalef ( int degree, int narcs, \\
+\ind{28}int ncurves, int spdimen, \\
+\ind{28}int pitch, float *ctlpoints );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_multiBezUnscalef} otrzymuje tablic"e reprezentacji
+krzywych wielomianowych w~bazie skalowanej i~dokonuje przej"scia do bazy
+Bernsteina, tj.\ do reprezentacji B\'{e}ziera. Parametry tej procedury
+(z~wyjatkiem opisu pocz"atkowej i~ko"ncowej zawarto"sci tablicy
+\texttt{ctlpoints}) s"a identyczne jak parametry procedury
+\texttt{mbs\_multiBezScalef}.
+\end{sloppypar}
+
+
+\subsection{Mno"renie funkcji i~krzywych sklejanych}
+
+W tym punkcie s"a opisane procedury mno"renia wielomianowych i~sklejanych
+krzywych (tj.\ funkcji wektorowych) przez skalarne funkcje wielomianowe
+i~sklejane. Dane dla procedur sk"ladaj"a si"e z~reprezentacji jednej lub
+wi"ekszej liczby funkcji skalarnych (wielomian"ow lub funkcji sklejanych
+jednej zmiennej) $s_i$ oraz jednej lub wi"ekszej liczby krzywych
+(wielomianowych lub sklejanych) $\bm{v}_i$. Obie te liczby musz"a by"c
+r"owne, lub jedna z~nich musi by"c r"owna $1$. Procedury obliczaj"a
+reprezentacj"e B\'{e}ziera lub B-sklejan"a funkcji wektorowych
+\begin{align*}
+  \bm{w}_i(t) = s_i(t)\bm{v}_i(t),
+\end{align*}
+przy czym je"sli jest tylko jedna funkcja skalarna $s_0$ i~wi"ecej funkcji
+wektorowych, to przyjmuje si"e, "re ka"rda z tych funkcji wektorowych
+b"edzie pomno"rona przez t"e jedn"a funkcj"e $s_0$ i podobnie, je"sli jest
+wiele funkcji skalarnych $s_i$ i~jedna funkcja wektorowa $\bm{v}_0$, to
+obliczane s"a iloczyny tej jednej funkcji wektorowej i~wszystkich funkcji
+skalarnych.
+
+Opisane tu procedury mog"a znale"z"c zastosowanie w r"o"rnych zaawansowanych
+konstrukcjach. Najprostsza z~nich to podwy"rszenie stopnia krzywej, przez
+pomno"renie jej przez odpowiednio reprezentowan"a funkcj"e sta"l"a
+$s_0(t)=1$ (stopie"n reprezentacji funkcji $s_0$ jest r"o"rnic"a stopni
+reprezentacji wynikowej i~danej przetwarzanej funkcji wektorowej). W~tym
+przypadku lepiej jest jednak u"ry"c procedury podwy"rszania
+stopnia (np.\ \texttt{mbs\_multiBSDegElevf}), kt"ora realizuje zr"eczniejszy
+algorytm.%
+\begin{figure}[ht]
+  \centerline{\epsfig{file=splmult.ps}}
+  \caption{Mno"renie p"laskiej krzywej wektorowej przez funkcj"e sklejan"a}
+\end{figure}
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_BSProdRepSizef ( int degree1, int lastknot1, \\
+\ind{25}const float *knots1, \\
+\ind{25}int degree2, int lastknot2, \\
+\ind{25}const float *knots2 );}
+Procedura \texttt{mbs\_BSProdRepSizef} otrzymuje \emph{dwa} ci"agi w"ez"l"ow,
+\texttt{knots1} o d"lugo"sci \texttt{lastknot1+1} oraz \texttt{knots2}
+o~d"lugo"sci \texttt{lastknot2+1}. Pierwszy z tych ci"ag"ow s"lu"ry do
+okre"slenia funkcji sklejanej stopnia \texttt{degree1}, a drugi --- funkcji
+sklejanej stopnia \texttt{degree2}. Ci"agi te powinny okre"sla"c tak"a sam"a
+dziedzin"e krzywych sklejanych. Warto"sci"a procedury jest indeks ostatniego
+elementu najkr"otszego ci"agu w"ez"l"ow wystarczaj"acego do reprezentowania
+iloczynu dowolnych funkcji sklejanych okre"slonych dla podanych ci"ag"ow
+w"ez"l"ow.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_SetBSProdKnotsf ( int degree1, int lastknot1, \\
+\ind{27}const float *knots1, \\
+\ind{27}int degree2, int lastknot2, \\
+\ind{27}const float *knots2, \\
+\ind{27}int *degree, int *lastknot, \\
+\ind{27}float *knots );}
+Procedura \texttt{mbs\_SetBSProdKnotsf} otrzymuje dwa ci"agi w"ez"l"ow i tworzy
+nowy ci"ag, kt"ory jest minimalnym ci"agiem wystarczaj"acym do
+reprezentowania iloczynu dowolnych funkcji sklejanych okre"slonych dla
+ci"ag"ow danych.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiMultBezCf ( int nscf, int degscf, int scfpitch, \\
+\ind{26}const float *scfcoeff, \\
+\ind{26}int spdimen, \\
+\ind{26}int nvecf, int degvecf, int vecfpitch, \\
+\ind{26}const float *vecfcp, \\
+\ind{26}int *degprod, int prodpitch, \\
+\ind{26}float *prodcp );}
+Procedura \texttt{mbs\_multiMultBezCf} wykonuje mno"renie wielomian"ow
+reprezentowanych w~bazie wielomian"ow Bernsteina stopnia \texttt{degscf}
+i~wielomianowych funkcji wektorowych (krzywych B\'{e}ziera) stopnia
+\texttt{degvecf}. Parametr \texttt{spdimen} okre"sla wymiar przestrzeni,
+w~kt"orej le"r"a te krzywe. Liczba funkcji skalarnych jest okre"slona przez
+parametr \texttt{nscf}, a~liczba krzywych jest warto"sci"a parametru
+\texttt{nvecf}. Liczba obliczonych iloczyn"ow jest r"owna wi"ekszej z tych
+liczb, zobacz uwagi na pocz"atku tego punktu.
+
+Tablica \texttt{scfcoeff} zawiera wsp"o"lczynniki wielomian"ow w~bazie
+Bernsteina, przy czym wsp"o"lczynniki ka"rdego wielomianu zajmuj"a kolejne
+miejsca w~tablicy, a~jej podzia"lka (czyli r"o"rnica indeks"ow pierwszych
+wsp"o"lczynnik"ow kolejnych dw"och wielomian"ow) jest podana jako warto"s"c
+parametru \texttt{scfpitch}. Podobnie, parametr \texttt{vecfpitch} okre"sla
+podzia"lk"e tablicy \texttt{vecfcp}, kt"ora zawiera wektorowe
+wsp"o"lczynniki krzywych (ka"rdy wsp"o"lczynnik sk"lada si"e z~kolejnych
+\texttt{spdimen} liczb).
+
+Iloczyny s"a reprezentowane w~bazie Bernsteina stopnia r"ownego sumie stopni
+reprezentacji argument"ow (tj.\
+$\mathord{\mbox{\texttt{degscf}}}+\mathord{\mbox{\texttt{degvecf}}}$),
+kt"ory to stopie"n jest zwracany poprzez parametr \texttt{degprod}.
+Reprezentacje poszczeg"olnych iloczyn"ow sk"ladaj"a si"e z ci"ag"ow
+$\mathord{\mbox{\texttt{spdimen}}}*(\mathord{\mbox{stopie"n}}+1)$ liczb,
+kt"ore procedura wpisuje do tablicy \texttt{prodcp} z~podzia"lk"a
+\texttt{prodpitch}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiMultBSCf ( int nscf, int degscf, \\
+\ind{25}int scflastknot, const float *scfknots, \\
+\ind{25}int scfpitch, const float *scfcoeff, \\
+\ind{25}int spdimen, \\
+\ind{25}int nvecf, int degvecf, \\
+\ind{25}int vecflastknot, const float *vecfknots, \\
+\ind{25}int vecfpitch, const float *vecfcp, \\
+\ind{25}int *degprod, int *prodlastknot, \\
+\ind{25}float *prodknots, \\
+\ind{25}int prodpitch, float *prodcp );}
+Procedura \texttt{mbs\_multiMultBSCf} oblicza reprezentacje iloczyn"ow
+\texttt{nscf} skalarnych funkcji sklejanych $s_i$ i~\texttt{nvecf}
+wektorowych funkcji sklejanych $\bm{v}_i$, przy czym liczby te mog"a by"c
+r"o"rne i wtedy jedna z nich musi by"c r"owna $1$ (zobacz uwagi na pocz"atku
+tego punktu).
+
+Funkcje skalarne s"a okre"slone za pomoc"a parametr"ow \texttt{degscf}
+(stopie"n reprezentacji), \texttt{scflastknot} i~\texttt{scfknots} (indeks
+ostatniego w"ez"la i~tablica z~tymi w"ez"lami), \texttt{scfcoeff}
+i~\texttt{scfpitch} (tablica wsp"o"lczynnik"ow w~bazie B-sklejanej
+poszczeg"olnych funkcji i~podzia"lka tej tablicy).
+
+Funkcje wektorowe, w~przestrzeni o~wymiarze \texttt{spdimen}, s"a podobnie
+reprezentowane przez parametry \texttt{degvecf}, \texttt{vecflastknot},
+\texttt{vecfknots}, \texttt{vecfpitch} i~\texttt{vecfcp}.
+
+Wynik jest wpisywany do tablic \texttt{prodknots} (w"ez"ly) i \texttt{prodcp}
+(wektorowe wsp"o"lczynniki w~bazie B-sklejanej stopnia r"ownego sumie
+stopni reprezentacji argument"ow, jest on zwracany poprzez parametr
+\texttt{degprod}). Podzia"lka tej ostatniej tablicy jest okre"slona przez
+parametr \texttt{prodpitch}. Pocz"atkowa warto"s"c parametru
+\texttt{*prodlastknot} okre"sla ilo"s"c miejsca w tablicy \texttt{prodknots}
+(ma by"c o $1$ wi"eksza od warto"sci tego parametru). Nale"ry j"a obliczy"c
+i~utworzy"c odpowiedni"a tablic"e \emph{przed} wywo"laniem procedury
+\texttt{mbs\_multiMultBSCf}, najlepiej jest u"ry"c do tego procedury
+\texttt{mbs\_BSProdRepSizef}, kt"ora bada ci"agi w"ez"l"ow argument"ow
+mno"renia, podane jej jako parametry.
+
+
+\subsection{Wyznaczanie p"lata opisuj"acego wektory normalne}
+
+\cprog{%
+void mbs\_BezP3NormalDeg ( int degreeu, int degreev, \\
+\ind{26}int *ndegu, int *ndegv ); \\
+char mbs\_BezP3Normalf ( int degreeu, int degreev, \\
+\ind{24}const point3f *ctlpoints, \\
+\ind{24}int *ndegu, int *ndegv, vector3f *ncp );}
+\hspace*{\parindent}Procedura \texttt{mbs\_BezP3Normalf} oblicza
+punkty kontrolne p"lata $\bm{n}=\bm{p}_u\wedge\bm{p}_v$,
+opisuj"acego wektor normalny danego wielomianowego p"lata
+B\'{e}ziera $\bm{p}$ stopnia $(n,m)$ w~$\R^3$.
+Parametry $\mathord{\mbox{\texttt{degreeu}}}=n$
+i~$\mathord{\mbox{\texttt{degreev}}}=m$ okre"slaj"a stopie"n
+p"lata danego. Jego punkty kontrolne s"a podane w tablicy
+\texttt{ctlpoints}, kt"ora zawiera kolejne kolumny tego p"lata bez przerw.
+
+Obliczony p"lat wyj"sciowy ma stopie"n \texttt{*ndegu}$=2n-1$
+i~\texttt{*ndegv}$=2m-1$, a jego punkty kontrolne s"a wpisywane do tablicy
+\texttt{ncp} (bez przerw mi"edzy kolumnami).
+
+\begin{sloppypar}
+Warto"s"c procedury \texttt{mbs\_BezP3Normalf} jest r"owna~$0$ w~razie
+niepowodzenia (b"l"edne parametry lub brak pami"eci), albo~$1$, je"sli
+obliczenie zako"nczy"lo si"e sukcesem.
+\end{sloppypar}
+
+\vspace{\smallskipamount}
+Procedura \texttt{mbs\_BezP3NormalDeg} oblicza stopie"n p"lata opisuj"acego
+wektor normalny. Mo"re ona by"c u"ryteczna w celu zarezerwowania
+bloku pami"eci o wielko"sci odpowiedniej do przechowania punkt"ow
+kontrolnych p"lata $\bm{n}$.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BezP3RNormalDeg ( int degreeu, int degreev, \\
+\ind{27}int *ndegu, int *ndegv ); \\
+char mbs\_BezP3RNormalf ( int degreeu, int degreev, \\
+\ind{25}const point4f *ctlpoints, \\
+\ind{25}int *ndegu, int *ndegv, vector3f *ncp );}
+Procedura \texttt{mbs\_BezP3RNormalf} oblicza
+punkty kontrolne p"lata $\bm{n}$ opisuj"acego wektor normalny danego
+wymiernego p"lata B\'{e}ziera $\bm{p}$ stopnia $(n,m)$ w~$\R^3$.
+Punkty te powstaj"a przez odrzucenie ostatniej wsp"o"lrz"ednej punkt"ow
+kontrolnych p"lata $\bm{N}=\bm{P}\wedge\bm{P}_u\wedge\bm{P}_v$ w $\R^4$.
+Parametry $\mathord{\mbox{\texttt{degreeu}}}=n$
+i~$\mathord{\mbox{\texttt{degreev}}}=m$ okre"slaj"a stopie"n
+p"lata danego. Punkty kontrolne jego jednorodnej reprezentacji s"a podane
+w~tablicy \texttt{ctlpoints}, kt"ora zawiera kolejne kolumny tego p"lata
+bez przerw.
+
+\begin{figure}[ht]
+  \centerline{\raisebox{90pt}[0pt][0pt]{a)}\epsfig{file=nvtest1.ps}}
+  \centerline{\raisebox{96pt}[0pt][0pt]{b)}\epsfig{file=nvtest2.ps}}
+  \caption{Siatki kontrolne p"lat"ow B\'{e}ziera i ich p"lat"ow}
+  \centerline{opisuj"acych wektory normalne: a) p"lat wielomianowy, b) wymierny}
+\end{figure}
+Obliczony p"lat wyj"sciowy ma stopie"n \texttt{*ndegu}$=3n-2$
+i~\texttt{*ndegv}$=3m-2$, a jego punkty kontrolne s"a wpisywane do tablicy
+\texttt{ncp} (bez przerw mi"edzy kolumnami).
+
+Warto"s"c procedury \texttt{mbs\_BezP3RNormalf} jest r"owna~$0$ w~razie
+niepowodzenia (b"l"edne parametry lub brak pami"eci), albo~$1$, je"sli
+obliczenie zako"nczy"lo si"e sukcesem.
+
+\vspace{\smallskipamount}
+Procedura \texttt{mbs\_BezP3RNormalDeg} oblicza stopie"n p"lata opisuj"acego
+wektor normalny. Mo"re ona by"c u"ryteczna w celu zarezerwowania
+bloku pami"eci o wielko"sci odpowiedniej do przechowania punkt"ow
+kontrolnych p"lata $\bm{n}$.
+
+
+\clearpage
+\section{Zmiana w"ez"l"ow krzywych B-sklejanych na ko"ncach}
+
+\cprog{%
+void mbs\_multiBSChangeLeftKnotsf ( int ncurves, int spdimen, \\
+\ind{35}int degree, float *knots, \\
+\ind{35}int pitch, float *ctlpoints, \\
+\ind{35}float *newknots );}
+\begin{sloppypar}
+\hspace{\parindent}
+Procedura \texttt{mbs\_multiBSChangeLeftKnotsf} dokonuje zmiany
+reprezentacji krzywych B-sklejanych stopnia~$n$, kt"ora polega na
+wymianie pocz"atkowych $n+1$ w"ez"l"ow na w"ez"ly podane w~tablicy
+\texttt{newknots}. Mo"re to by"c zwi"azane z rozszerzeniem lub obci"eciem
+dziedziny i~w~takim przypadku pierwszy "luk wielomianowy jest wyd"lu"rany
+lub skracany.
+\end{sloppypar}
+
+Nowe w"ez"ly musz"a by"c uporz"adkowane niemalej"aco; musi by"c
+$u_n<u_{n+1}$
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBSChangeRightKnotsf ( int ncurves, int spdimen, \\
+\ind{36}int degree, \\
+\ind{36}int lastknot, float *knots, \\
+\ind{36}int pitch, float *ctlpoints, \\
+\ind{36}float *newknots );}
+\begin{sloppypar}
+Procedura \texttt{ mbs\_multiBSChangeRightKnotsf } dokonuje zmiany
+reprezentacji krzy\-wych B-sklejanych stopnia~$n$, kt"ora polega na wymianie
+ko"ncowych $n+1$ w"ez\-"l"ow (tj.\ w"ez"l"ow $u_{N-n},\ldots,u_N$)
+na w"ez"ly podane w~tablicy \texttt{newknots}. Mo"re to by"c zwi"azane
+z~rozszerzeniem lub obci"eciem dziedziny i~w~takim przypadku ostatni
+"luk wielomianowy jest wyd"lu"rany lub skracany.
+\end{sloppypar}
+
+Nowe w"ez"ly musz"a by"c uporz"adkowane niemalej"aco; musi by"c
+$u_{N-n}>u_{N-n-1}$.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BSChangeLeftKnotsC1f(degree,knots,coeff,newknots) \bsl \\
+\ind{2}mbs\_multiBSChangeLeftKnotsf(1,1,degree,knots,0,coeff,newknots) \\
+\#define mbs\_BSChangeLeftKnotsC2f(degree,knots,ctlpoints,newknots) \bsl \\
+\ind{2}mbs\_multiBSChangeLeftKnotsf(1,2,degree,knots,0, \bsl \\
+\ind{30}(float*)ctlpoints,newknots) \\
+\#define mbs\_BSChangeLeftKnotsC3f(degree,knots,ctlpoints,newknots) \bsl \\
+\ind{2}... \\
+\#define mbs\_BSChangeLeftKnotsC4f(degree,knots,ctlpoints,newknots) \bsl \\
+\ind{2}... \\
+\#define mbs\_BSChangeRightKnotsC1f(degree,lastknot,knots,coeff, \bsl \\
+\ind{34}newknots) ... \\
+\#define mbs\_BSChangeRightKnotsC2f(degree,lastknot,knots, \bsl \\
+\ind{34}ctlpoints,newknots) ... \\
+\#define mbs\_BSChangeRightKnotsC3f(degree,lastknot,knots, \bsl \\
+\ind{34}ctlpoints,newknots) ... \\
+\#define mbs\_BSChangeRightKnotsC4f(degree,lastknot,knots, \bsl \\
+\ind{34}ctlpoints,newknots)}
+\begin{sloppypar}
+Makra s"lu"r"a do wywo"lywania procedury
+\texttt{mbs\_multiBSChangeLeftKnotsf}
+albo \texttt{mbs\_multiBSChangeRightKnotsf} w~razie potrzeby zastosowania
+jej do jednej krzywej B-sklejanej w~przestrzeni o~wymiarze $1,\ldots,4$.
+\end{sloppypar}
+
+\begin{figure}[ht]
+  \centerline{\epsfig{file=chknots.ps}}
+  \caption{Krzywa B-sklejana przed i po zmianie reprezentacji na ko"ncach}
+\end{figure}
+
+
+\clearpage
+\section{Konstrukcje krzywych interpolacyjnych}
+
+Konstrukcja krzywych interpolacyjnych jest czasem g"l"ownym zadaniem, ale
+te"r przydaje si"e do rozwi"azania zada"n takich jak wyznaczanie
+powierzchni rozpinanych i wype"lniaj"acych.
+
+
+\subsection{Konstrukcja krzywych interpolacyjnych trzeciego stopnia}
+
+W tym punkcie jest opisana procedura wyznaczania B-sklejanej reprezentacji
+krzywych interpolacyjnych \emph{trzeciego stopnia}. W"ez"ly interpolacyjne
+(podane jako parametr wej"sciowy) b"ed"a w"ez"lami krzywych, przy czym
+skrajne w"ez"ly interpolacyjne w~wyznaczonej reprezentacji B-sklejanej
+b"ed"a mia"ly krotno"s"c $3$, a~do tego dojd"a jeszcze jednokrotne w"ez"ly
+dodatkowe, kt"ore s"a potrzebne w~definicji reprezentacji B-sklejanej.
+
+Opr"ocz w"ez"l"ow i~warunk"ow interpolacyjnych nale"ry poda"c \emph{warunki
+brzegowe}. Rodzaje warunk"ow brzegowych obs"lugiwanych przez procedur"e
+w~obecnej wersji s"a opisane dalej.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBSCubicInterpf ( int lastinterpknot, \\
+\ind{31}float *interpknots, \\
+\ind{31}int ncurves, int spdimen, \\
+\ind{31}int xpitch, const float *x, \\
+\ind{31}int ypitch, \\
+\ind{31}char bcl, const float *ybcl, \\
+\ind{31}char bcr, const float *ybcr, \\
+\ind{31}int *lastbsknot, \\
+\ind{31}float *bsknots, \\
+\ind{31}int bspitch, \\
+\ind{31}float *ctlpoints );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_multiBSCubicInterpf} s"lu"ry do konstruowania
+B-sklejanych krzywych interpolacyjnych trzeciego stopnia, klasy $C^2$.
+\end{sloppypar}
+\begin{sloppypar}
+Parametry: \texttt{lastinterpknot} okre"sla indeks ostatniego w"ez"la
+interpolacyjnego, oznacz\-my go liter"a~$N$. W"ez"ly interpolacyjne
+$u_0,\ldots,u_N$, kt"ore tworz"a ci"ag "sci"sle rosn"acy, podaje si"e
+w~tablicy \texttt{interpknots}.
+\end{sloppypar}
+
+\begin{figure}[ht]
+  \centerline{\begin{picture}(2050,2883)
+    \put(0,0){\epsfig{file=intbsc.ps}}
+    \put(0,2770){a)}
+    \put(1100,2770){b)}
+    \put(0,1770){c)}
+    \put(1100,1770){d)}
+    \put(0,770){e)}
+    \put(1100,770){f)}
+  \end{picture}}
+  \caption{B-sklejane krzywe interpolacyjne trzeciego stopnia.}
+  \centerline{W"ez"lami s"a liczby $0,1,\ldots,10$. Warunki brzegowe krzywej na rysunku a)}
+  \centerline{by"ly okre"slone przez podanie wektor"ow
+    pochodnych na ko"ncach,}
+  \centerline{na rysunku b) krzywa jest okre"slona za pomoc"a warunk"ow Bessela}
+  \centerline{c) dane wektory pochodnych drugiego rz"edu, d) naturalna krzywa sklejana,}
+  \centerline{e) warunek nie-w"eze"l, f) pochodna trzeciego rz"edu na
+    ko"ncach r"owna $\bm{0}$}
+\end{figure}%
+Parametry \texttt{ncurves} i~\texttt{spdimen} okre"slaj"a liczb"e krzywych
+i~wymiar przestrzeni, w~kt"orej le"r"a te krzywe. Tablica \texttt{x} zawiera
+wsp"o"lrz"edne punkt"ow przez kt"ore maj"a przechodzi"c skonstruowane
+krzywe; dla ka"rdej krzywej trzeba poda"c w~niej
+$\mathord{\mbox{\texttt{spdimen}}}(\mathord{\mbox{\texttt{lastinterpknot}}}+1)$
+liczb rzeczywistych. Podzia"lka tej tablicy (tj.\ r"o"rnica indeks"ow
+pierwszej liczby w~danych dla kolejnych krzywych) jest r"owna
+\texttt{xpitch}.
+
+Parametr \texttt{ypitch} okre"sla podzia"lk"e tablic \texttt{ybcl}
+i~\texttt{ybcr}, w~kt"orych nale"ry poda"c dane liczbowe okre"slaj"ace
+warunki brzegowe.
+
+Parametry \texttt{bcl} i~\texttt{bcr} s"lu"r"a do wybrania warunk"ow
+brzegowych odpowiednio na lewym i prawym ko"ncu dziedziny krzywych;
+wszystkie krzywe maj"a warunki tego samego rodzaju, ale na ka"rdym ko"ncu
+warunek mo"re by"c inny. Dopuszczalne warto"sci tych parametr"ow s"a
+zdefiniowane w~pliku \texttt{multibs.h} jako makra i~obecnie s"a
+nast"epuj"ace:
+\begin{mydescription}
+  \item[]\texttt{BS3\_BC\_FIRST\_DER} --- warunek brzegowy jest okre"slony
+    przez podanie wektora pochodnej ka"rdej krzywej w~pierwszym albo
+    ostatnim w"e"zle interpolacyjnym (tj.\ $u_0$ albo $u_N$).
+    Wsp"o"lrz"edne tych wektor"ow dla wszystkich krzywych nale"ry poda"c
+    w~tablicy \texttt{ybcl} (je"sli w~pierwszym) albo \texttt{ybcr}
+    (je"sli w~ostatnim w"e"zle). Zatem, tablice \texttt{ybcl}
+    i~\texttt{ybcr} zawieraj"a dla ka"rdej krzywej \texttt{spdimen}
+    liczb rzeczywistych, kt"ore s"a wsp"o"lrz"ednymi tych wektor"ow.
+  \item[]\texttt{BS3\_BC\_FIRST\_DER0} --- warunek brzegowy
+    okre"slony jak wy"rej, z~wektorem zerowym pochodnej w~odpowiednim
+    w"e"zle interpolacyjnym. Parametr \texttt{ybcl} lub \texttt{ybcr} jest
+    ignorowany, mo"re wi"ec mie"c warto"s"c \texttt{NULL}.
+  \item[]\texttt{BS3\_BC\_SECOND\_DER} --- warunek brzegowy jest okre"slony
+    przez podanie wektora pochodnej drugiego krzywej sklejanej rz"edu
+    w~w"e"zle $u_0$ albo $u_N$. Wsp"o"lrz"edne tego wektora (albo wektor"ow,
+    je"sli liczba krzywych jest wi"eksza ni"r $1$) s"a podane w~tablicy
+    odpowiednio \texttt{ybcl} lub \texttt{ybcr}.
+  \item[]\texttt{BS3\_BC\_SECOND\_DER0} --- warunek brzegowy jest okre"slony
+    jak wy"rej, z~wektorem zerowym pochodnej drugiego rz"edu w~odpowiednim
+    w"e"zle. Parametr \texttt{ybcl} lub \texttt{ybcr} jest  
+    ignorowany, mo"re wi"ec mie"c warto"s"c \texttt{NULL}.
+
+    Krzywa okre"slona z~tym warunkiem na obu ko"ncach to tzw.\
+    \textbf{naturalna krzywa sklejana}.
+  \item[]\texttt{BS3\_BC\_THIRD\_DER} --- warunek brzegowy jest okre"slony
+    przez podanie wektor"ow pochodnej trzeciego rz"edu krzywych.
+    Wsp"o"lrz"edne tych wektor"ow s"a podane w~tablicy \texttt{ybcl} albo
+    \texttt{ybcr}.
+  \item[]\texttt{BS3\_BC\_THIRD\_DER0} --- warunek brzegowy jest okre"slony
+    przez "r"adanie, aby pochodna trzeciego rz"edu krzywych na jednym lub
+    drugim ko"ncu by"la wektorem zerowym. Poniewa"r pochodna trzeciego
+    rz"edu krzywej wielomianowej trzeciego stopnia jest sta"la, wi"ec
+    oznacza to, "re pierwszy lub ostatni "luk wielomianowy krzywej jest
+    "lukiem paraboli. Parametr \texttt{ybcl} lub \texttt{ybcr} w~przypadku
+    zadania tego warunku jest ignorowany, mo"re mie"c zatem warto"s"c
+    \texttt{NULL}.
+  \item[]\texttt{BS3\_BC\_BESSEL} --- warunek brzegowy jest tzw.\ warunkiem
+    Bessela. Wektor pochodnej krzywej w pierwszym lub ostatnim w"e"zle jest
+    wektorem pochodnej wielomianowej krzywej interpolacyjnej drugiego
+    stopnia, opartej na pierwszych trzech albo ostatnich trzech w"ez"lach
+    interpolacyjnych konstruowanej krzywej.
+
+    Parametr \texttt{ybcl} albo \texttt{ybcr} w przypadku okre"slenia
+    warunku Bessela jest ignorowany, a~zatem mo"re mie"c warto"s"c
+    \texttt{NULL}.
+  \item[]\texttt{BS3\_BC\_NOT\_A\_KNOT} --- warunek nie-w"eze"l; w"eze"l
+    interpolacyjny $u_1$ albo $u_{N-1}$ nie jest w"ez"lem krzywej sklejanej,
+    tj.\ "luki wielomianowe krzywej "l"acz"a si"e w~tym w"e"zle
+    z~ci"ag"lo"sci"a $C^\infty$. Parametr \texttt{ybcl} albo \texttt{ybcr}
+    jest ignorowany, mo"re mie"c wi"ec warto"s"c \texttt{NULL}.
+\end{mydescription}
+
+Reprezentacja krzywej interpolacyjnej skonstruowanej przez procedur"e
+jest opisana za pomoc"a nast"epuj"acych parametr"ow: \texttt{*lastbsknot}
+--- indeks ostatniego w"ez"la krzywej sklejanej, \texttt{bsknots} ---
+tablica w"ez"l"ow (to s"a w"ez"ly interpolacyjne, ale w"ez"ly $u_0$ i~$u_N$
+maj"a w~tej tablicy krotno"s"c~$3$ i~s"a do"l"aczone dwa dodatkowe w"ez"ly
+wymagane w definicji krzywych B-sklejanych). Parametr wej"sciowy
+\texttt{bspitch}
+oznacza podzia"lk"e tablicy \texttt{ctlpoints}, w~kt"orej procedura
+umieszcza puknty kontrolne kolejnych krzywych interpolacyjnych.
+
+
+\subsection{Konstrukcja krzywych interpolacyjnych Hermite'a}
+
+W~tym punkcie s"a opisane procedury dokonuj"aca bardzo szczeg"olnej
+konstrukcji: znajduj"a krzywe B\'{e}ziera i~B-sklejane stopnia~$n$,
+spe"lniaj"ace warunki interpolacyjne Hermite'a zadane w~dw"och w"ez"lach,
+$0$ i~$1$ albo $u_n$ i~$u_{N-n}$. Istnieje zastosowanie, w~kt"orym takie
+w"la"snie procedury by"ly mi potrzebne (algorytm konstrukcji w~tym
+przypadku jest sprawniejszy ni"r og"olny algorytm rozwi"azania zadania
+interpolacyjnego Hermite'a z~krzyw"a B-sklejan"a).
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiInterp2knHermiteBezf ( int ncurves, int spdimen, \\
+\ind{26}int degree, \\
+\ind{26}int nlbc, int lbcpitch, const float *lbc, \\
+\ind{26}int nrbc, int rbcpitch, const float *rbc, \\
+\ind{26}int pitch, float *ctlpoints );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_multiInterp2knHermiteBezf} konstruuje \texttt{ncurves}
+krzywych B\'{e}ziera stopnia~$n$ (stopie"n jest warto"sci"a parametru
+\texttt{degree}) w~przestrzeni o~wymiarze~$d$ (jest on warto"sci"a parametru
+\texttt{spdimen}).
+\end{sloppypar}
+
+Liczba warunk"ow interpolacyjnych dla ka"rdej krzywej
+w~w"e"zle~$0$ jest r"owna \texttt{nlbc}, a~w~w"e"zle~$1$
+\texttt{nrbc}, przy oba te parametry musz"a by"c nieujemne i~ich suma musi
+by"c r"owna $n+1$ (to zapewnia, "re warunki interpolacyjne okre"slaj"a
+krzywe jednoznacznie).
+
+Warunki interpolacyjne podaje si"e w~tablicach \texttt{lbc} (dla w"ez"la~$0$)
+i~\texttt{rbc} (dla w"ez"la~$1$). Pocz"atkowe $d$~liczb w~ka"rdej z~tych
+tablic to odpowiedni punkt pierwszej krzywej, nast"epne $d$~liczb opisuje
+wektor pochodnej, potem pochodnej drugiego rz"edu itd.
+Dane opisuj"ace warunki interpolacyjne nast"epnej krzywej zaczynaj"a si"e
+w~pozycji odpowiednio \texttt{lbcpitch} i~\texttt{rbcpitch}.
+
+Punkty kontrolne skonstruowanych krzywych (czyli wynik dzia"lania procedury)
+s"a wstawiane do tablicy \texttt{ctlpoints}, kt"orej podzia"lka
+(odleg"lo"s"c pocz"atk"ow danych opisuj"acych kolejne krzywe) jest
+warto"sci"a parametru \texttt{pitch}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiInterp2knHermiteBSf ( int ncurves, int spdimen, \\
+\ind{26}int degree, \\
+\ind{26}int lastknot, const float *knots, \\
+\ind{26}int nlbc, int lbcpitch, const float *lbc, \\
+\ind{26}int nrbc, int rbcpitch, const float *rbc, \\
+\ind{26}int pitch, float *ctlpoints );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_multiInterp2knHermiteBSf} konstruuje \texttt{ncurves}
+\mbox{B-sklejanych} krzywych stopnia~$n$ (stopie"n jest warto"sci"a parametru
+\texttt{degree}) w~przestrzeni o~wymiarze~$d$ (jest on warto"sci"a parametru
+\texttt{spdimen}). Krzywa jest
+oparta o~ci"ag w"ez\-"l"ow o~d"lugo"sci $N+1$ podany w~tablicy \texttt{knots}
+(liczba $N$ jest warto"sci"a parametru \texttt{lastknot}).
+\end{sloppypar}
+
+Liczba warunk"ow interpolacyjnych dla ka"rdej krzywej
+w~w"e"zle $u_n$ jest r"owna \texttt{nlbc}, a~w~w"e"zle $u_{N-n}$
+\texttt{nrbc}, przy czym "raden z~tych parametr"ow nie
+mo"re by"c wi"ekszy ni"r~$n$, za"s suma ich warto"sci musi by"c r"owna
+$N-n$ (to zapewnia, "re warunki interpolacyjne okre"slaj"a krzywe
+jednoznacznie).
+
+Ci"ag w"ez"l"ow w~tablicy \texttt{knots} musi spe"lnia"c warunki
+$u_1=\cdots=u_n<u_{n+1}$ oraz $u_{N-n-1}<u_{N-n}=\cdots=u_{N-1}$,
+kt"orych procedura nie sprawdza. Warunki interpolacyjne podaje si"e
+w~tablicach \texttt{lbc} (dla w"ez"la $u_n$) i~\texttt{rbc}
+(dla w"ez"la $u_{N-n}$). Pocz"atkowe $d$~liczb w~ka"rdej z~tych tablic
+to odpowiedni punkt pierwszej krzywej, nast"epne $d$~liczb opisuje
+wektor pochodnej, potem pochodnej drugiego rz"edu itd.
+Dane opisuj"ace warunki interpolacyjne nast"epnej krzywej zaczynaj"a si"e
+w~pozycji odpowiednio \texttt{lbcpitch} i~\texttt{rbcpitch}.
+
+Punkty kontrolne skonstruowanych krzywych (czyli wynik dzia"lania procedury)
+s"a wstawiane do tablicy \texttt{ctlpoints}, kt"orej podzia"lka
+(odleg"lo"s"c pocz"atk"ow danych opisuj"acych kolejne krzywe) jest
+warto"sci"a parametru \texttt{pitch}.
+
+
+\newpage
+\section{Konstrukcja krzywych aproksymacyjnych}
+
+\begin{sloppypar}
+Mo"rna na"lo"ry"c liczb"e warunk"ow interpolacyjnych na funkcj"e lub krzyw"a
+sklejan"a wi"eksz"a ni"r wymiar odpowiedniej przestrzeni. Wtedy powstaje
+uk"lad r"owna"n w~og"olno"sci sprzeczny. Uk"lad ten mo"rna rozwi"aza"c jako
+liniowe zadanie najmniejszych kwadrat"ow i w ten spos"ob otrzyma"c funkcj"e
+lub krzyw"a sklejan"a spe"lniaj"ac"a na"lo"rone warunki interpolacyjne
+z~pewnm b"l"edem. W~tym punkcie s"a opisane procedury wykonuj"ace t"e
+konstrukcj"e.
+\end{sloppypar}
+
+\begin{figure}[ht]
+  \centerline{\epsfig{file=bsapprox.ps}}
+  \caption{Przyk"lad p"laskiej aproksymacyjnej krzywej B-sklejanej}
+\end{figure}
+Konstrukcj"e krzywej aproksymacyjnej mo"rna przeprowadzi"c wywo"luj"ac
+opisan"a dalej procedur"e \texttt{mbs\_multiConstructApproxBSCf}. Wcze"sniej
+opisane procedury s"a pomocnicze i~w~typowych aplikacjach nie b"ed"a
+bezpo"srednio wywo"lywane.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_ApproxBSKnotsValidf ( int degree, int lastknot, \\
+\ind{28}const float *knots, \\
+\ind{28}int lastiknot, const float *iknots );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_ApproxBSKnotsValidf} dokonuje sprawdzenia, czy ci"agi
+w"ez\-"l"ow interpolacyjnych i~w"ez"l"ow krzywej sklejanej spe"lniaj"a
+za"lo"renia twierdzenia Schoenberga-Whitney. Je"sli tak, to konstrukcja
+krzywej aproksymacyjnej jest wykonalna.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_ApproxBSBandmSizef ( int degree, const float *knots, \\
+\ind{29}int lastiknot, const float *iknots );}
+Procedura \texttt{mbs\_ApproxBSBandmSizef} oblicza d"lugo"s"c tablicy
+potrzebnej do reprezentowania macierzy wst"egowej uk"ladu r"owna"n
+rozwi"azywanego (jako liniowe zadanie najmniejszych kwadrat"ow)
+w~konstrukcji B-sklejanej krzywej aproksymacyjnej.
+
+Parametry \texttt{degree}, i~\texttt{knots} opisuj"a
+przestrze"n funkcji sklejanych, kt"orej elementy opisuj"a krzyw"a
+(odpowiednio stopie"n i~ci"ag w"ez"l"ow; d"lugo"s"c tego ci"agu jest
+okre"slana na podstawie ci"agu w"ez"l"ow interpolacyjnych).
+Parametry \texttt{lastiknot} oraz \texttt{iknots} opisuj"a ci"ag w"ez"l"ow
+\emph{interpolacyjnych} krzywej --- warunki interpolacyjne okre"slone w~tych
+w"ez"lach b"ed"a przez krzyw"a spe"lnione w~przybli"reniu.
+
+Warto"sci"a procedury jest d"lugo"s"c tablicy, w~kt"orej maj"a by"c
+przechowywane niezerowe wsp"o"lczynniki macierzy uk"ladu.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_ConstructApproxBSProfilef ( int degree, int lastknot, \\
+\ind{28}const float *knots, \\
+\ind{28}int lastiknot, const float *iknots, \\
+\ind{28}bandm\_profile *prof );}
+Procedura \texttt{mbs\_ConstructApproxBSProfilef} konstruuje profil macierzy
+wst"egowej (zobacz p.~\ref{sect:band:matrix}) uk"ladu r"owna"n
+wyst"epuj"acego w~konstrukcji aproksymacyjnej krzywej sklejanej. Parametry
+\texttt{degree}, \texttt{lastknot}, \texttt{knots}, \texttt{lastiknot},
+\texttt{iknots} opisuj"a w"ez"ly krzywej sklejanej i~w"ez"ly interpolacyjne
+(zobacz opis parametr"ow procedury \texttt{mbs\_ApproxBSBandmSizef}).
+
+Parametr \texttt{prof} wskazuje tablic"e o~d"lugo"sci
+\texttt{lastknot}$-$\texttt{degree}$+1$. Procedura umieszcza w~niej profil
+macierzy.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_ConstructApproxBSMatrixf ( int degree, int lastknot, \\
+\ind{30}const float *knots, \\
+\ind{30}int lastiknot, const float *iknots, \\
+\ind{30}int *nrows, int *ncols, \\
+\ind{30}bandm\_profile *prof, \\
+\ind{30}float *a );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_ConstructApproxBSMatrixf} oblicza wsp"o"lczynniki
+macierzy uk"ladu, kt"orego rozwi"azanie "sredniokwadratowe okre"sla
+sklejan"a funkcj"e lub krzyw"a aproksymacyjn"a.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_multiConstructApproxBSCf ( int degree, int lastknot, \\
+\ind{30}const float *knots, \\
+\ind{30}int lastpknot, const float *pknots, \\
+\ind{30}int ncurves, int spdimen, \\
+\ind{30}int ppitch, const float *ppoints, \\
+\ind{30}int bcpitch, float *ctlpoints );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_multiConstructApproxBSCf} konstruuje sklejane
+funkcje lub krzy\-we aproksymacyjne przez utworzenie odpowiedniego uk"ladu
+r"owna"n liniowych i~rozwi"azanie go jako liniowego zadania najmniejszych
+kwadrat"ow.
+\end{sloppypar}
+
+Parametry: \texttt{degree} --- stopie"n krzywej, \texttt{lastknot} ---
+indeks ostatniego w"ez"la, \texttt{knots} --- tablica w"ez"l"ow,
+\texttt{lastpknot} --- indeks ostatniego w"ez"la interpolacyjnego,
+\texttt{pknots} --- tablica w"ez"l"ow interpolacyjnych, \texttt{ncurves} ---
+liczba konstruowanych krzywych, \texttt{spdimen} --- wymiar przestrzeni,
+w~kt"orej le"r"a krzywe.
+
+\begin{sloppypar}
+Parametry \texttt{ppitch} i~\texttt{ppoints} opisuj"a warunki
+interpolacyjne; \texttt{ppitch} jest podzia"lk"a tablicy \texttt{ppoints},
+kt"ora zawiera punkty, przez kt"ore maj"a przechodzi"c (w~przybli"reniu)
+krzywe.
+\end{sloppypar}
+
+Parametr \texttt{bcpitch} jest podzia"lk"a tablicy \texttt{ctlpoints},
+w~kt"orej procedura umieszcza punkty kontrolne skonstruowanych krzywych
+aproksymacyjnych.
+
+Warto"sci"a procedury jest \texttt{true} je"sli obliczenie zako"nczy"lo si"e
+sukcesem, albo \texttt{false} w~przeciwnym razie. Przyczyn"a niepowodzenia
+mo"re by"c niespe"lnienie warunku regularno"sci zadania, wynikaj"acego
+z~twierdzenia Schoenberga-Whitney, albo brak pami"eci.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_ConstructApproxBSC1f(degree,lastknot,knots,\bsl \\
+\ind{4}lastpknot,pknots,ppoints,ctlpoints) \bsl \\
+\ind{2}mbs\_multiConstructApproxBSCf (degree,lastknot,knots,lastpknot,\bsl \\
+\ind{4}pknots,1,1,0,(float*)ppoints,0,(float*)ctlpoints) \\
+\#define mbs\_ConstructApproxBSC2f(degree,lastknot,knots,\bsl \\
+\ind{4}lastpknot,pknots,ppoints,ctlpoints) \bsl \\
+\ind{2}mbs\_multiConstructApproxBSCf (degree,lastknot,knots,lastpknot,\bsl \\
+\ind{4}pknots,1,2,0,(float*)ppoints,0,(float*)ctlpoints) \\
+\#define mbs\_ConstructApproxBSC3f(degree,lastknot,knots,\bsl \\
+\ind{4}lastpknot,pknots,ppoints,ctlpoints) ... \\
+\#define mbs\_ConstructApproxBSC4f(degree,lastknot,knots,\bsl \\
+\ind{4}lastpknot,pknots,ppoints,ctlpoints) ...}
+Powy"rsze makra wywo"luj"a procedur"e
+\texttt{mbs\_multiConstructApproxBSCf} w~celu otrzymania krzywej
+aproksymacyjnej w przestrzeni jedno-, dwu-, tr"oj- lub czterowymiarowej.
+
+
+\newpage
+\section{Obcinanie krzywych B\'{e}ziera}
+
+\cprog{%
+boolean mbs\_FindPolynomialZerosf ( int degree, const float *coeff, \\
+\ind{28}int *nzeros, float *zeros, float eps );}
+\hspace*{\parindent}Procedura \texttt{mbs\_FindPolynomialZerosf} oblicza
+rzeczywiste miejsca zerowe wielomianu stopnia~$n$ w~przedziale~$[0,1]$.
+
+Parametry wej"sciowe: \texttt{degree} --- stopie"n $n$ wielomianu,
+\texttt{coeff} --- wsp"o"lczynniki wielomianu w~bazie Bernsteina stopnia~$n$,
+\texttt{eps} --- "r"adana dok"ladno"s"c rozwi"aza"n (musi to by"c liczba
+dodatnia).
+
+Parametry wyj"sciowe: \texttt{*nzeros} --- zmienna, kt"orej procedura
+przypisze liczb"e znalezionych zer, \texttt{*zeros} --- tablica, do kt"orej
+miejsca te maj"a by"c wpisane. Tablica ta ma mie"c d"lugo"s"c co najmniej~$n$.
+
+Warto"sci"a procedury jest \texttt{true}, je"sli obliczenie zako"nczy"lo si"e
+sukcesem, \texttt{false} w~przeciwnym razie, np.\ gdy zabrak"lo pami"eci
+pomocniczej.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_ClipBC2f ( int ncplanes, const vector3f *cplanes, \\
+\ind{12}int degree, const point2f *cpoints, \\
+\ind{12}void (*output) (int degree, const point2f *cpoints) );}
+Procedura \texttt{mbs\_ClipBC2f} obcina p"lask"a wielomianow"a krzyw"a
+B\'{e}ziera do wielok"ata wypuk"lego, tj.\ oblicza i~wyprowadza "luki
+krzywej po"lo"rone wewn"atrz tego wielok"ata.
+
+Parametry: \texttt{ncplanes} --- liczba p"o"lp"laszczyzn, kt"orych
+wielok"at jest przeci"eciem, \texttt{cplanes} --- tablica reprezentacji
+tych p"o"lp"laszczyzn. Dla p"o"lp"laszczyzny $ax+by+c>0$ liczby
+$a$, $b$, $c$ s"a wsp"o"lrz"ednymi odpowiedniego wektora
+w~tab\-li\-cy~\texttt{cplanes}.
+
+Parametry \texttt{degree} i~\texttt{cpoints} opisuj"a reprezentacj"e p"laskiej
+krzywej B\'{e}ziera, tj.\ odpowiednio stopie"n i~punkty kontrolne.
+Parametr \texttt{output} jest wska"znikiem procedury, kt"ora b"edzie wywo"lana
+w~celu wyprowadzenia (np.\ narysowania) poszczeg"olnych "luk"ow krzywej
+po"lo"ronych wewn"atrz wielok"ata.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_ClipBC2Rf ( int ncplanes, const vector3f *cplanes, \\
+\ind{12}int degree, const point3f *cpoints, \\
+\ind{12}void (*output) (int degree, const point3f *cpoints) );}
+Procedura \texttt{mbs\_ClipBC2Rf} obcina p"lask"a wymiern"a krzyw"a
+B\'{e}ziera do wielok"ata wypuk"lego, tj.\ oblicza i~wyprowadza "luki
+krzywej po"lo"rone wewn"atrz tego wielok"ata.
+
+Parametry: \texttt{ncplanes} --- liczba p"o"lp"laszczyzn, kt"orych
+wielok"at jest przeci"eciem, \texttt{cplanes} --- tablica reprezentacji
+tych p"o"lp"laszczyzn. Dla p"o"lp"laszczyzny $ax+by+c>0$ liczby
+$a$, $b$, $c$ s"a wsp"o"lrz"ednymi odpowiedniego wektora
+w~tab\-li\-cy~\texttt{cplanes}.
+
+Parametry \texttt{degree} i~\texttt{cpoints} opisuj"a reprezentacj"e p"laskiej
+wymiernej krzywej B\'{e}ziera, tj.\ odpowiednio stopie"n i~punkty kontrolne
+krzywej jednorodnej.
+Parametr \texttt{output} jest wska"znikiem procedury, kt"ora b"edzie wywo"lana
+w~celu wyprowadzenia (np.\ narysowania) poszczeg"olnych "luk"ow krzywej
+po"lo"ronych wewn"atrz wielok"ata.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_ClipBC3f ( int ncplanes, const vector4f *cplanes, \\
+\ind{12}int degree, const point3f *cpoints, \\
+\ind{12}void (*output) (int degree, const point3f *cpoints) );}
+Procedura \texttt{mbs\_ClipBC3f} obcina wielomianow"a krzyw"a B\'{e}ziera
+w~przestrzeni tr"ojwymiarowej do wielo"scianu wypuk"lego, tj.\ oblicza
+i~wyprowadza "luki krzywej po"lo"rone wewn"atrz tego wielo"scianu.
+
+Parametry: \texttt{ncplanes} --- liczba p"o"lprzestrzeni, kt"orych
+wielo"scian jest przeci"eciem, \texttt{cplanes} --- tablica reprezentacji
+tych p"o"lprzestrzeni. Dla p"o"lprzestrzeni $ax+by+cz+d>0$ liczby
+$a$, $b$, $c$, $d$ s"a wsp"o"lrz"ednymi odpowiedniego wektora
+w~tab\-li\-cy~\texttt{cplanes}.
+
+Parametry \texttt{degree} i~\texttt{cpoints} opisuj"a reprezentacj"e
+krzywej B\'{e}ziera, tj.\ odpowiednio stopie"n i~punkty kontrolne.
+Parametr \texttt{output} jest wska"znikiem procedury, kt"ora b"edzie wywo"lana
+w~celu wyprowadzenia (np.\ narysowania) poszczeg"olnych "luk"ow krzywej
+po"lo"ronych wewn"atrz wielok"ata.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_ClipBC3Rf ( int ncplanes, const vector4f *cplanes, \\
+\ind{12}int degree, const point4f *cpoints, \\
+\ind{12}void (*output) (int degree, const point4f *cpoints) );}
+Procedura \texttt{mbs\_ClipBC3Rf} obcina wymiern"a krzyw"a B\'{e}ziera
+w~przestrzeni tr"ojwymiarowej do wielo"scianu wypuk"lego, tj.\ oblicza
+i~wyprowadza "luki krzywej po"lo"rone wewn"atrz tego wielo"scianu.
+
+Parametry: \texttt{ncplanes} --- liczba p"o"lprzestrzeni, kt"orych
+wielo"scian jest przeci"eciem, \texttt{cplanes} --- tablica reprezentacji
+tych p"o"lprzestrzeni. Dla p"o"lprzestrzeni $ax+by+cz+d>0$ liczby
+$a$, $b$, $c$, $d$ s"a wsp"o"lrz"ednymi odpowiedniego wektora
+w~tab\-li\-cy~\texttt{cplanes}.
+
+Parametry \texttt{degree} i~\texttt{cpoints} opisuj"a reprezentacj"e
+wymiernej krzywej B\'{e}ziera, tj.\ odpowiednio stopie"n i~punkty kontrolne
+krzywej jednorodnej.
+Parametr \texttt{output} jest wska"znikiem procedury, kt"ora b"edzie wywo"lana
+w~celu wyprowadzenia (np.\ narysowania) poszczeg"olnych "luk"ow krzywej
+po"lo"ronych wewn"atrz wielok"ata.
+
+
+\newpage
+\section{Badanie kszta"ltu "lamanych}
+
+\cprog{%
+boolean mbs\_MonotonicPolylinef ( int spdimen, int npoints, \\
+\ind{33}int pitch, const float *points, \\
+\ind{33}const float *v ); \\
+boolean mbs\_MonotonicPolylineRf ( int spdimen, int npoints, \\
+\ind{34}int pitch, const float *points, \\
+\ind{34}const float *v );}
+\begin{sloppypar}
+\hspace*{\parindent}Procedury \texttt{mbs\_MonotonicPolylinef}
+i~\texttt{mbs\_MonotonicPolylineRf} dokonuj"a sprawdzenia
+monotoniczno"sci "lamanych ze wzgl"edu na wektor $\bm{v}$.
+\end{sloppypar}
+
+"Lamane le"r"a w~przestrzeni $\R^d$, o~wymiarze okre"slonym przez
+parametr \texttt{spdimen}. Dla procedury \texttt{mbs\_MonotonicPolylinef}
+musi on mie"c warto"s"c~$d$, a~dla procedury
+\texttt{mbs\_MonotonicPolylineRf} $d+1$.
+
+Parametr \texttt{npoints} okre"sla liczb"e punkt"ow. Wsp"o"lrz"edne
+kartezja"nskie (dla \texttt{mbs\_MonotonicPolylinef}) albo jednorodne (dla
+\texttt{mbs\_MonotonicPolylineRf}) tych punkt"ow s"a podane w~tablicy
+\texttt{points}. Parametr \texttt{pitch} okre"sla odleg"lo"sci w~tablicy
+pocz"atk"ow reprezentacji kolejnych punkt"ow (kt"ora mo"re by"c inna ni"r
+\texttt{spdimen}).
+
+Parametr \texttt{v} jest wska"znikiem tablicy zawieraj"acej
+$d$~liczb b"ed"acych wsp"o"lrz"ednymi wektora $\bm{v}$.
+
+Warto"sci"a ka"rdej z~tych procedur jest \texttt{true}, je"sli rzuty
+kolejnych punkt"ow na prost"a o~kierunku wektora $\bm{v}$ s"a uporz"adkowane
+wzd"lu"r prostej (i~wsp"o"lrz"edne wagowe wszystkich punkt"ow w~przypadku
+procedury \texttt{mbs\_MonotonicPolylineRf} maj"a ten sam znak)
+oraz \texttt{false} w~przeciwnym razie.
+
+\vspace{\medskipamount}
+Procedury mog"a by"c u"ryte do sprawdzania, czy "lamane kontrolne krzywych
+s"a monotoniczne ze wzgl"edu na wektor $\bm{v}$, co jest warunkiem
+dostatecznym monotoniczno"sci krzywych B\'{e}ziera i~B-sklejanych (przy
+za"lo"reniu, dla krzywych wymiernych, "re wszystkie wagi maj"a ten sam
+znak).
+
+
+\newpage
+\section{Rasteryzacja krzywych}
+
+Procedury rasteryzacji krzywych korzystaj"a z~reprezentacji pikseli
+w~postaci struktur \texttt{xpoint} oraz z~bufora i~makr jego obs"lugi
+zdefiniowanych w~pliku \texttt{pkvaria.h}. W~szczeg"olno"sci krzywe
+stopnia~$1$ s"a rasteryzowane jako odcinki, za pomoc"a procedury
+\texttt{\_pkv\_DrawLine} z~biblioteki \texttt{libpkvaria}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_RasterizeBC2f ( int degree, const point2f *cpoints, \\
+\ind{25}void (*output)(const xpoint *buf, int n), \\
+\ind{25}boolean outlast ); \\
+void mbs\_RasterizeBC2Rf ( int degree, const point3f *cpoints, \\
+\ind{26}void (*output)(const xpoint *buf, int n), \\
+\ind{26}boolean outlast );}
+Procedury \texttt{mbs\_RasterizeBC2f} i~\texttt{mbs\_RasterizeBD2Rf}
+dokonuj"a rasteryzacji krzywych B\'{e}ziera, tj.\ wyznaczaj"a piksele
+tworz"ace o"smiosp"ojne obrazy krzywych.
+
+Parametry procedur: \texttt{degree} --- stopie"n krzywej, \texttt{cpoints}
+--- punkty kontrolne (dla krzywej wymiernej s"a to punkty kontrolne krzywej
+jednorodnej), \texttt{output} --- procedura wyj"sciowa (wyprowadzaj"aca
+piksele, tj.\ na przyk"lad rysuj"aca je). Parametr \texttt{outlast}
+okre"sla, czy ma by"c wyprowadzony ostatni piksel obrazu krzywej.
+Rysuj"ac krzyw"a sklejan"a (z~wielu "luk"ow) albo zamkni"et"a nie nale"ry
+wyprowadza"c ostatniego piksela ka"rdego "luku.
+
+Liczba wywo"la"n procedury \texttt{output} w~trakcie dzia"lania procedur
+rasteryzacji krzywej zale"ry od liczby pikseli do narysowania i~od
+pojemno"sci wewn"etrznego buforu na piksele. Parametr \texttt{n} procedury
+okre"sla liczb"e pikseli do wy"swietlenia.
+
+\begin{figure}[ht]
+  \centerline{\epsfig{file=rasterbc.ps}}
+  \caption{Obrazy rastrowe krzywych B\'{e}ziera}
+  \centerline{(wielomianowej i~wymiernej) stopnia $3$}
+\end{figure}
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_RasterizeBS2f ( int degree, int lastknot, \\
+\ind{25}const float *knots, \\
+\ind{25}const point2f *cpoints, \\
+\ind{25}void (*output)(const xpoint *buf, int n), \\
+\ind{25}boolean outlast ); \\
+void mbs\_RasterizeBS2Rf ( int degree, int lastknot, \\
+\ind{26}const float *knots, \\
+\ind{26}const point3f *cpoints, \\
+\ind{26}void (*output)(const xpoint *buf, int n), \\
+\ind{26}boolean outlast );}
+Procedury \texttt{mbs\_RasterizeBS2f} i~\texttt{mbs\_RasterizeBS2Rf}
+dokonuj"a rasteryzacji p"laskich krzywych B-sklejanych. Parametry
+\texttt{degree} (stopie"n), \texttt{lastknot} (numer ostatniego w"ez"la),
+\texttt{knots} (tablica w"ez"l"ow) i~\texttt{cpoints} (tablica punkt"ow
+kontrolnych) opisuj"a krzyw"a. Parametr \texttt{output} jest wska"znikiem
+procedury, kt"ora b"edzie wywo"lywana w~celu wyprowadzenia (np.\
+wy"swietlenia) pikseli. Parametr \texttt{outlast} okre"sla, czy ostatni
+piksel ma by"c wyprowadzany, czy nie.
+
+\vspace{\medskipamount}
+\noindent
+\textbf{Do zrobienia:} Obcinanie krzywych przed wy"swietlaniem. Sprawdzanie,
+czy krzy\-wa nie jest tak kr"otka, "re jej obraz jest jednym pikselem.
+,,Wyg"ladzanie'' obliczonego ci"agu pikseli.
+
+
+\begin{figure}[ht]
+  \centerline{\epsfig{file=rasterbs.ps}}
+  \caption{Obrazy rastrowe krzywych B-sklejanych}
+  \centerline{(wielomianowej i~wymiernej) stopnia $3$}
+\end{figure}
+
+\clearpage
+

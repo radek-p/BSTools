@@ -1,0 +1,9 @@
+
+1. Diagnostyka bledow. W kazdym miejscu, w ktorym zostaje wykryty
+   blad (np. brak pamieci, albo co innego) ma byc przypisana
+   wartosc polu domain->error_code. Na razie jest maly poczatek.
+
+2. Wiezy.
+
+3. Dokumentacja procedur - przynajmniej od strony interfejsu aplikacji.
+

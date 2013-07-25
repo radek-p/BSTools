@@ -1,0 +1,14 @@
+XDvi*mfMode: cgnszz
+XDvi*pixelsPerInch: 1200
+XDvi*shrinkFactor: 13
+XDvi*paper: b5
+XDvi*wwwBrowser: netscape
+XDvi*thorough: true
+xdvi*background: White
+xdvi.background: White
+xdvi*foreground: Black
+xdvi.foreground: Black
+xdvi.borderColor: Blue
+xdvi.borderWidth: 4
+xdvi.highlight: Blue
+xdvi*beNiceToColormap: False

@@ -1,0 +1,309 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{Demonstration programs}
+
+The demonstration programs accompanying the libraries (in the
+\texttt{demo} directory subtree) are meant to reach three goals.
+Firstly, they display movable pictures, which may help to learn about
+the curves and surfaces. They are also tests of the library procedures
+(plenty of errors were extincted after detecting them in these programs).
+Finally, the demonstration programs may serve as sources of information
+on the way of using the library procedures in new applications.
+
+The programs were developed in a~not very systematic way, with new
+possibilities added when I~fancied them. Therefore \textbf{they are not}
+examples of a~particularly good programming style. The basic assumption
+was that apart from a~working XWindow environment, no special
+libraries or packages (e.g.\ Gnome, KDE, Athena, Motif, OpenGL)
+are present. The programs use only the \texttt{Xlib} interface,
+and therefore it should be possible to compile and execute them on
+any computer equipped with XWindow. The people unsatisfied with
+the possibilities or with the user interface are welcome to write
+their own programs; no doubt that they will be much better.
+
+
+\section{The \texttt{pokrzyw} program}
+
+The program \texttt{pokrzyw}%
+\footnote{The program name in Polish means ``bend it'' and also ``nettle''.}
+(directory \texttt{demo/pokrzyw}) displays and makes it possible to bend
+a~planar (polynomial or rational) B-spline curve of degree from~$1$ to~$8$.
+Two windows on the right side of the screen (of the program window opened
+by XWindow) show the image of the curve (with the control polygon and
+other objects) and the knot sequence.
+
+Most of commands are given using the left button of the mouse.
+It serves for ``picking'' and ``holding'' the control points and knots,
+as well as for clicking the widgets (buttons etc.)\ in the menu on the
+left side.
+
+The right button is used only for inserting new knots. To move a~knot
+or a~control point, point it with the cursor, then press the \emph{left}
+mouse button, then move the mouse. To remove a~knot, point it with the cursor,
+press the \emph{left} button, and type the key \ovalbox{\texttt{R}}.
+
+On the left side of the screen there is a~menu, i.e.\ a~collection of
+widgets, to issue other commands. To halt the program, click
+(with the left mouse button) the button labelled \framebox{\texttt{Quit}},
+or type the key \ovalbox{\texttt{Q}}.
+
+Typing \ovalbox{\texttt{M}} causes the window to take the maximal size,
+and typing \ovalbox{\texttt{m}} minimizes it. Other commands are easy
+to guess after reading the labels of the widgets.
+
+
+\section{The \texttt{pognij} program}
+
+The program \texttt{pognij}%
+\footnote{The name of this program in Polish means ``bend it'' or
+``get rotten a~little''.}
+(the directory \texttt{demo/pognij}) displays and makes it possible to
+model a~three-dimensional B-spline curve. The main difference between
+this program and the previous one is the presence of four windows
+showing the curve, instead of one.
+
+Three of those windows show the images of the curve in orthographic
+projections onto the planes $xy$, $yz$, $zx$ of the coordinate system.
+It is possible to change the control points via these three windows
+(using the left mouse button).
+The fourth window shows the curve in a~perspective projection.
+The left mouse button pressed in this window makes it possible to
+rotate the viewer position around the curve, and the right button
+may be used for zooming (one should press it and then move
+the mouse, forward or back).
+
+Typing \ovalbox{\texttt{R}} while the cursor is in the perspective
+view window resets the initial viewer position.
+
+The four windows may be resized. To do it, place the cursor in the narrow
+area between the windows (this causes changing the cursor shape), press
+the left button and move the mouse. Typing \ovalbox{\texttt{R}} while the
+cursor is altered resets the default equal dimensions of the four windows.
+
+Other details of using this program are the same as for the
+\texttt{pokrzyw} program.
+
+
+\section{The \texttt{pomnij} program}
+
+.....................
+
+\section{The \texttt{polep} program}
+
+The program \texttt{polep} demonstrates the effects of using a~simple
+procedure of filling a~polygonal hole in a~spline surface made of bicubic
+patches. This procedure is described in Section~\ref{sect:obsolete:G1}.
+A~detailed description (in Polish) of the algorithm is in my book
+\textsl{Podstawy modelowania krzywych i~powierzchni}. Four windows
+in which three orthographic projections and one perspective projection
+of the surface are displayed, are used in exactly the same way as the
+similar four windows of the programs \texttt{pognij} and \texttt{pozwalaj}.
+
+The control points of the surface may be modified with the mouse
+(via the orthographic projection windows). The program has a~built-in
+data generator of ``ready'' data, controlled by three slidebars in the
+upper part of the menu.
+
+\section{The \texttt{policz} program}
+
+.....................
+
+\newpage
+\section{\label{sect:demo:pozwalaj}The \texttt{pozwalaj} program}
+
+.....................
+
+
+The executable file, \texttt{pozwalaj}, by default is located in the
+directory \texttt{demo/bin/} where there is also the file
+\texttt{pozwalaj\_proc}, containing the shape optimization procedures; as the
+computations may take a~long time, they are performed independently of the
+interaction provided by the main executable file. The program
+\texttt{pozwalaj\_proc} is supposed to be executed only when invoked by the
+program \texttt{pozwalaj} (and run from the command line it will
+immediately terminate).
+
+
+\subsection{A~session log}
+
+This section contains screen dumps and comments written during a~session with
+the program \texttt{pozwalaj}. During this session a~blending surface has
+been designed, using the interactive tools of the program and one of the
+built in shape optimization procedures for such surfaces.
+
+After invoking, the program displays two windows (some XWindow managers may
+place them initially in such a~way that one window obscures the other one). The first
+window displays the geometric data (curves, surfaces and their control
+polygons and meshes). If 3D objects are displayed, the geometry
+window is divided into four areas. Three of them show orthogonal projections
+of the geometric objects onto the $xz$, $yz$ and $xy$ planes, and one (lower
+right) shows a~perspective projection. A~user may change the projection
+centre by moving the cursor into this area, pressing the left button and
+moving the cursor.
+
+\ppict{1771}{1411}{1.8}{p01.ps}
+
+\newpage
+One of the geometric objects (curves or surfaces, none are present at the
+beginning of program execution) is distinguished as current. 
+The second window allows the user to make actions specific for the current
+object, via menus specific for that object. After clicking the
+button labelled \button{Objects} and then \button{New} in the popup menu,
+the window looks like this:
+
+\ppict{1771}{1411}{1.8}{p02.ps}
+
+Then, after clicking the button \button{B-spline mesh} and then \button{Add}
+in yet another popup, the program creates a~new object, which is a~spline surface
+represented by a mesh. Initially this mesh has one facet with four vertices
+and edges.
+
+After clicking the buttons \button{Data} and \button{cube}, we choose
+a~mesh, whose facets form the boundary of a~cube; the length of its edges
+is~$2$. Then clicking the \button{Edit} button returns to the menu making it
+possible to edit the mesh topology. Resizing the window (making it slightly
+higher) causes all widgets of this menu to fit in.
+
+\newpage
+With the cursor back in the first window, on the object images,
+typing \button{F} makes the program find a~bounding cube of the object and fit
+it in the visible area.
+
+Now we edit the mesh. In the second window, click twice (using the left
+mouse button) the green widget labelled \button{facet} (to decrease the
+number, use the right button, also the mouse wheel works here).
+This will distinguish the facet number~$1$, which will be displayed as
+follows:
+
+\ppict{2918}{2252}{1.8}{p03.ps}
+
+In the second window, click the \button{double edges} button. This executes
+the Eulerian operation, which produces four new facets surrounding the
+distinguished facet. The new facets are quadrangular, but they are
+degenerated to line segments.
+
+\newpage
+In the first window, click the \button{Transform} button. Then, using the
+text editing widgets (the blue ones, they are activated by clicking on them,
+and deactivated by clicking aside), type in the coordinates of the reference
+vector $[0,-1,0]$, and then click the \button{translate} button.
+Then, in the second window,
+click \button{double edges} and in the first window click \button{translate}
+again. Then click the \button{remove} button below the \button{facet} number
+widget. The window now looks as follows:
+
+\ppict{2918}{2252}{1.8}{p04.ps}
+
+\newpage
+After removing the facet, another facet became number~$1$.
+We click the button \button{double edges},
+then in the first window we enter the reference vector $[1,0,0]$
+and click \button{translate}, we double edges and translate once more and
+again we remove the facet. After removing it, we double the edges of the new
+facet number one, translate its vertices by the vector $[0,1,0]$, again we
+double and translate and remove the facet. For the fourth facet, which
+became number~$1$, twice we double the edges and translate the vertices by
+the vector $[-1,0,0]$, then we remove the facet. The result is shown on the
+next picture:
+
+\ppict{2918}{2252}{1.8}{p05.ps}
+
+\newpage
+The mesh has now four closed boundaries, each formed by four edges adjacent
+to the removed facets. Now, in the second window, we click the \button{refine}
+button. It invokes the procedure implementing the mesh refinement operator,
+the composition of mesh doubling followed by three averaging operations
+(actually, the number of averagings is the surface degree, $3$~by default).
+Here is what we obtain:
+
+\ppict{2918}{2252}{1.8}{p06.ps}
+
+The light grey lines are constant parameter curves of the bicubic patches,
+corresponding to the regular elements of the surface domain. The binonic
+patches, represented by special elements of the mesh, are drawn in light
+blue. For convenience, we may click the \button{View} button in the second
+window and turn off (by clicking) the switches which control displaying the
+surface (i.e.\ the bicubic patches) and the hole filling (binonic patches),
+thus leaving only the mesh vertices and edges on the picture.
+
+We are going to obtain a~blending surface, which is a~junction of two
+crossing cylindric tubes. Of course, bicubic splines cannot represent
+cylinders of revolution exactly, but if the mesh is dense enough and the
+vertices are located on a~cylinder of revolution, the spline surface may
+approximate a~cylinder with an arbitrarily small error. Therefore in the
+next step the mesh vertices will be projected onto cylinders. Here is the
+method: click the \button{Edit} button in the top menu of the first window.
+Then click the \button{mark/unmark} switch to turn it on. Now move the
+cursor to one of the object image windows. Vertices may be marked
+individually by clicking with the left mouse button and unmarked by clicking
+with the right button. Also it is possible to press the button, move the
+cursor and release the button in order to mark or unmark all vertices in the
+rectangular area indicated by this mouse movement.
+
+The marking of each vertex consists of five bits. They may be selected for
+manipulating by five switches just below the \button{mark/unmark} switch.
+We process two groups of vertices, so we need two bits. At first we mark the
+vertices shown below (the marked vertices are red):
+
+\ppict{2918}{2252}{1.8}{p07.ps}
+
+\newpage
+Then we click the \button{Transform} button. There we have the coordinates
+of the reference point $[0,0,0]$ and reference vector $[-1,0,0]$, which
+determine the axis of the cylinder, and radius~$1$. Clicking the project
+\button{on cylinder} button makes the program project all the marked
+vertices on this cylinder. Then we click \button{Edit} again, and choose the
+second bit to mark/unmark (and we turn off switching the first bit). We mark
+the second set of vertices, then we click \button{Transform}, we enter
+the reference vector (direction of the cylinder axis) $[0,1,0]$ and again we
+project the vertices on the second cylinder. The result is as on the picture:
+
+\ppict{2918}{2252}{1.8}{p08.ps}
+
+\newpage
+Now we click the \button{Edit} button in the second window and then
+\button{refine}. The refinement clears any vertex marking, therefore we
+go to the first window and in the similar way we mark the vertices and then
+we project them onto two cylinders, but this time we choose the cylinder
+radius $0.9267795297$. After projecting the vertices we may inspect the
+surface. To do this, we click the \button{View} button in the second window,
+where we turn on displaying the surface and patches filling the holes in it.
+Then in the first window we click the button labelled \button{Picture}, then
+\button{shape f.}, and we may choose the shape function to visualise.
+Clicking \button{render} starts the rendering process (which is ray
+tracing). An image of mean curvature obtained in this way is as follows:
+
+\ppict{2918}{2252}{1.8}{p09.ps}
+
+Time to optimise the surface shape. To do this, we need both marked bits to
+be selected in the editing menu, as the constraints, which we want, are
+imposed by fixing all vertices having one of the currently selected bits
+set. The boundary vertices (which we also marked in order to project them on
+the cylinders) are always fixed for the optimization procedure.
+
+\newpage
+In the second window we click \button{Options} and then we turn on the
+\button{blending} switch. Then we turn on the switch labelled
+\button{constraints}. Here is, how the second window should look:
+
+\ppict{1771}{1411}{1.8}{p10.ps}
+
+\newpage
+Now we click the \button{optimize} button. Some data are written out in the
+terminal, from which the program has been invoked. Intermediate results
+(after subsequent iterations of the optimization procedure) are displayed
+in the first window, and the user may still interact, e.g.\ in order to
+look at these results from different sides (this is useful during the
+optimization of surfaces represented by meshes with large numbers of
+vertices). The computations on a~PC with
+3.0GHz~Intel Core~2 processor took less than 20~seconds, after which we may
+render the surface again. To obtain a~bigger picture, before doing that we may
+move the cursor to the perspective image area and type \button{S}. The result
+is the following:
+
+\ppict{2918}{2252}{1.8}{p11.ps}
+

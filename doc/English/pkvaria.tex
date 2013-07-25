@@ -1,0 +1,858 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{The \texttt{libpkvaria} library}
+
+The header file with the prototypes of procedures from the \texttt{libpkvaria}
+library is \texttt{pkvaria.h}.
+
+\section{Various small gadgets}
+
+\cprog{%
+\#define false\ind{2}0 \\
+\#define true\ind{3}1 \\
+\#define EXP1\ind{3}2.7182818284590452353 \\
+\#define PI\ind{5}3.1415926535897932384 \\  
+\#define SQRT2\ind{2}1.4142135623730950488 \\
+\#define SQRT3\ind{2}1.7320508075688772935 \\  
+\mbox{} \\
+typedef unsigned char boolean; \\
+typedef unsigned char byte;}
+\hspace*{\parindent}
+For boolean data it is better to use the name \texttt{boolean} than
+e.g.\ \texttt{unsigned char} for its type, and to write
+\texttt{true} and \texttt{false} instead of \texttt{0} and \texttt{1}.
+Preserving this rule in the library procedures is however not quite perfect.
+
+It is good to establish some conventions used in programs. It is known, that
+if one thing may be done in a~number of ways, each person will do it
+in a~different way. A~team may thus commit a~program with procedures,
+whose parameters are specified in inches and meters.
+For humans, degrees are more convenient as the angle measure unit.
+In the program code --- radians. I am using the convention, that all
+angles are processed by the program in radians, and they are input and output
+in degrees, though e.g.\ PostScript and OpenGL use a~different convention.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define min(a,b) ((a)<(b) ?\ (a) :\ (b)) \\
+\#define max(a,b) ((a)>(b) ?\ (a) :\ (b))}
+Two extremely useful macros.
+
+\vspace{\bigskipamount}
+\cprog{%
+double pkv\_rpower ( double x, int e );}
+The procedure \texttt{pkv\_rpower} computes $x^e$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_HexByte ( byte b, char *s );}
+The procedure \texttt{pkv\_HexByte} finds the hexadecimal representation of
+the value of the parameter~\texttt{b}. The hexadecimal digits are
+stored in the array~\texttt{s}, whose length must be at least~$3$.
+
+
+\section{Boxes}
+
+\cprog{%
+typedef struct Box2i \{ \\
+\mbox{} \ \ \ int  x0, x1, y0, y1; \\
+\mbox{} \ \} Box2i; \\
+\mbox{} \\
+typedef struct Box2s \{ \\
+\mbox{} \ \ \ short x0, x1, y0, y1; \\
+\mbox{} \ \} Box2s;}
+
+\mbox{} 
+
+
+\section{\label{sect:scratch:mem}Scratch memory management}
+
+Many procedures of this package use the scratch memory for storing
+intermediate results of computations, and the memory blocks are deallocated
+in the order reverse to that of allocating. The memory management is
+implemented with use of a~stack, which is a~very fast and flexible
+method.
+
+The scratch memory pool serviced by the procedures described below
+may also be used by other procedures --- the only condition is
+creating a~pool large enough at the beginning of the program execution
+and using this memory in a~strictly ``stack'' manner.
+
+\vspace{\bigskipamount}
+\cprog{%
+char pkv\_InitScratchMem ( int size );}
+The procedure \texttt{pkv\_InitScratchMem} allocates (with
+\texttt{malloc}) a~memory block of size \texttt{size}
+bytes and initializes the scratch memory management in this block.
+The procedure returns~\texttt{0} if \texttt{malloc} failed and
+\texttt{1} if the memory pool has been successfully initialized.
+
+This procedure must be called before calling any procedures using
+the scratch memory, i.e.\ which call
+\texttt{pkv\_GetScratchMem}, \texttt{pkv\_GetScratchMemTop}, \\
+\texttt{pkv\_FreeScratchMem} or \texttt{pkv\_SetScratchMemTop}).
+
+Currently there is no extending of the scratch memory pool if it
+turns out to be too small during the program execution.
+The programmer therefore has to calculate the size of this pool
+large enough for doing the computations.
+Some help in doing this is experimenting and calling the procedure
+\texttt{pkv\_MaxScratchTaken}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_DestroyScratchMem ( void );}
+The procedure \texttt{pkv\_DestroyScratchMem} deallocates (with
+\texttt{free}) the scratch memory pool created by a~call to
+\texttt{pkv\_InitScratchMem}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void *pkv\_GetScratchMem ( int size );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_GetScratchMem} allocates a~memory block of size
+\texttt{size} bytes in the scratch memory pool and it returns the
+pointer to this block. If the allocation is impossible (because the scratch
+memory pool is too small), the procedure returns the empty pointer
+(\texttt{NULL}).
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_FreeScratchMem ( int size );}
+The procedure \texttt{pkv\_FreeScratchMem} deallocates the last \texttt{size}
+bytes allocated earlier by calls to \texttt{pkv\_GetScratchMem}.
+
+The memory blocks deallocation is always done in the order reverse to
+that of their allocation. It is possible to deallocate a~number of
+memory blocks with a~single call to this procedure, by specifying the parameter,
+whose value is the sum of sizes of the blocks to be deallocated.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define pkv\_GetScratchMemi(size) \bsl \\
+\ind{2}(int*)pkv\_GetScratchMem ( (size)*sizeof(int) ) \\
+\#define pkv\_FreeScratchMemi(size) \bsl \\
+\ind{2}pkv\_FreeScratchMem ( (size)*sizeof(int) ) \\
+\#define pkv\_ScratchMemAvaili() \bsl \\
+\ind{2}(pkv\_ScratchMemAvail()/sizeof(int)) \\
+\mbox{} \\
+\#define pkv\_GetScratchMemf(size) \bsl \\
+\ind{2}(float*)pkv\_GetScratchMem ( (size)*sizeof(float) ) \\
+\#define pkv\_FreeScratchMemf(size) \bsl \\
+\ind{2}pkv\_FreeScratchMem ( (size)*sizeof(float) ) \\
+\#define pkv\_ScratchMemAvailf() \bsl \\
+\ind{2}(pkv\_ScratchMemAvail()/sizeof(float)) \\
+\mbox{} \\
+\#define pkv\_GetScratchMemd(size) \bsl \\
+\ind{2}(double*)pkv\_GetScratchMem ( (size)*sizeof(double) ) \\
+\#define pkv\_FreeScratchMemd(size) \bsl \\
+\ind{2}pkv\_FreeScratchMem ( (size)*sizeof(double) ) \\
+\#define pkv\_ScratchMemAvaild() \bsl \\
+\ind{2}(pkv\_ScratchMemAvail()/sizeof(double))}
+The macros above may be used to allocate memory blocks for arrays of
+floating point numbers. Using them makes the source code shorter and
+better readable.
+
+\vspace{\bigskipamount}
+\cprog{%
+void *pkv\_GetScratchMemTop ( void ); \\
+void pkv\_SetScratchMemTop ( void *p );}
+An alternative for remembering the number of allocated bytes
+(to be deallocated with \texttt{pkv\_FreeScratchMem}) is to remember
+the pointer to the end of the allocated area in the pool.
+To do this, one may call \texttt{pkv\_GetScratchMemTop} and store
+the value returned in a~local variable. Then one or more memory blocks may be
+allocated with \texttt{pkv\_GetScratchMem}). Their deallocation is done
+by calling \texttt{pkv\_SetScratchMemTop} with the pointer given by
+\texttt{pkv\_GetScratchMemTop}.
+
+\vspace{\bigskipamount}
+\cprog{%
+int pkv\_ScratchMemAvail ( void );}
+The value of \texttt{pkv\_ScratchMemAvail} is the current number of available
+bytes in the scratch memory pool. An attempt of allocating a~greater block
+will fail --- the procedure \texttt{pkv\_GetScratchMem} will return
+\texttt{NULL}.
+
+\vspace{\bigskipamount}
+\cprog{%
+int pkv\_MaxScratchTaken ( void );}
+The value of the procedure \texttt{pkv\_MaxScratchTaken} is the greatest number
+of bytes allocated at a~certain moment in the scratch memory pool,
+since the pool was created (with \texttt{pkv\_InitScratchMem}),
+beforre calling this procedure.
+
+
+\section{Square angle measure}
+
+\cprog{%
+double pkv\_SqAngle ( double x, double y );}\mbox{}
+\indent
+The procedure \texttt{pkv\_SqAngle} computes a~measure of the angle between
+the vector $[x,y]$ and the $Ox$ axis. This measure is computed with a couple
+of arithmetic operations, which is faster than using the cyclometric
+functions. The function values are in the interval $[0,4)$.
+
+The properties of this measure: if two vectors make the right angle,
+then the differences of the values of this measure is~$1$. Similarly,
+for the straight angle the difference is~$2$. The measure of the full angle is~$4$.
+
+
+\section{Data exchanging}
+
+\cprog{%
+void pkv\_Exchange ( void *x, void *y, int size );}
+\hspace*{\parindent}
+The procedure \texttt{pkv\_Exchange} swaps the contents of two memory
+blocks of size \texttt{size} pointed by the parameters \texttt{x}
+and \texttt{y}. The blocks must be disjoint.
+
+\begin{sloppypar}
+The procedure uses a~buffer, whose length is not greater than~$1$KB, allocated
+with the \texttt{pkv\_GetScratchMem} procedure, therefore to use this
+procedure it is necessary to create the large enough scratch memory pool
+(by calling \texttt{pkv\_InitScratchMem} at the beginning of the program
+execution).
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_Sort2f ( float *a, float *b ); \\
+void pkv\_Sort2d ( double *a, double *b );}
+The procedures \texttt{pkv\_Sort2f} and \texttt{pkv\_Sort2d} swap the
+values of the variables \texttt{*a} and \texttt{*b}, if the first of them is
+greater than the second.
+
+
+\newpage
+\section{Sorting}
+
+\subsection{CountSort}
+
+The procedures described below sort arrays of structures with numerical
+data (keys), integer or floating point. The sorting method depends on the
+length of the array. For a~small number, InsertionSort is used.
+For longer arrays the CountSort algorithm is used.
+
+The sorting method is stable, i.e. it does not swap the array elements
+whose keys have equal values, except that it puts the floating point
+$+0.0$s after the $-0.0$s.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define ID\_SHORT\ind{2}0 \\
+\#define ID\_USHORT 1 \\
+\#define ID\_INT\ind{4}2 \\
+\#define ID\_UINT\ind{3}3 \\
+\#define ID\_FLOAT\ind{2}4 \\
+\#define ID\_DOUBLE 5}
+The identifiers above denote the possible types of the keys.
+The types \texttt{short} and \texttt{unsigned short} are $16$-bit integers.
+The types \texttt{int} and \texttt{unsigned int} are $32$-bit integers.
+The types \texttt{float} and \texttt{double} are $32$-bit and $64$-bit IEEE-754
+floating point numbers. The sorting procedures assume that the byte
+ordering is \emph{little-endian} (Intel processors use this byte ordering).
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define SORT\_OK\ind{8}1 \\
+\#define SORT\_NO\_MEMORY 0 \\
+\#define SORT\_BAD\_DATA\ind{2}2}
+The identifiers above denote possible values of the sorting procedures
+described below. If there is no error, the value returned is
+\texttt{SORT\_OK}. The other possibilities indicate not enough
+scratch memory or invalid data.
+
+\vspace{\bigskipamount}
+\cprog{%
+char pkv\_SortKernel ( void *ndata, int item\_length, int num\_offset, \\
+\ind{22}int num\_type, int num\_data, int *permut );}
+The procedure \texttt{pkv\_SortKernel} finds the proper sequence of the
+elements in the \texttt{ndata} array, i.e.\ the permutation, which
+puts the elements in the sorted (nondecreasing) order.
+The \texttt{ndata} array consists of structures of size \texttt{item\_length}
+bytes. The key, i.e.\ the integer or floating point number with respect to
+which the data are to be sorted, is located in each structure
+\texttt{num\_offset} bytes from the structure beginning. The number $n$
+of the structures (i.e.\ the length of the \texttt{ndata} array)
+is the value of the parametr \texttt{num\_data}.
+
+The array \texttt{permut} contains numbers from $0$ to $n-1$. At the return
+(when there is no error), the array \texttt{permut} contains the same numbers,
+in the order corresponding to the proper permutation.
+The initial ordering of the numbers in this array is important if the data have
+to be sorted with respect to a~number of keys. For example, if the structures
+consist of two numbers, $x$ and $y$, and the array has to be sorted so that
+the $x$-s form a~nondecreasing sequence, and for $x$-s equal the
+$y$-s have to form a~nondecreasing sequence, one should initialize the
+permut array by filling it with the numbers $0,\ldots,n-1$ (in an arbitrary
+order), then call \texttt{pkv\_SortKernel} twice: first to sort the array
+with respect to $y$ and then with respect to $x$. Then one can call
+\texttt{pkv\_SortPermute} to set the data in the array in the right order.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_SortPermute ( void *ndata, int item\_length, int num\_data, \\
+\ind{23}int *permut );}
+The procedure \texttt{pkv\_SortPermute} permutes the structures in the array
+\texttt{ndata} according to the contents of the \texttt{permut} array,
+which has to contain the integer numbers from $0$ to $n-1$. The number of
+structures $n$ is the value of the parameter \texttt{num\_data}, the length
+of the array element (in bytes) is specified by the parameter
+\texttt{item\_length}.
+
+\vspace{\bigskipamount}
+\cprog{%
+char pkv\_SortFast ( void *ndata, int item\_length, int num\_offset, \\
+\ind{20}int num\_type, int num\_data );}
+The procedure \texttt{pkv\_SortFast} sorts the array \texttt{ndata}, which contains
+\texttt{num\_data} structures of size \texttt{item\_length} bytes,
+which contain numeric keys of type specified with the parameter
+\texttt{num\_type}, located \texttt{num\_offset} bytes from the structure beginning.
+
+
+\subsection{QuickSort}
+
+The procedure described below sorts elements of a given sequence by
+comparisons. It is an implementation of the QuickSort algorithm,
+and two basic operations on the sequence---comparing and swapping two
+elements---are done by application-supplied procedures given
+by parameters. The QuickSort algorithm is not stable, ie.\ the order of
+two equal elements after sorting may be changed.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_QuickSort ( int n, boolean (*less)(int,int), \\
+\ind{21}void (*swap)(int,int) );}
+Thew parameter \texttt{n} specifies the length of the sequence to be sorted;
+the elements are numbered from~$0$ to $n-1$.
+The parameter \texttt{less} points to a procedure, whose value
+\texttt{true} indicates that the $i$-th element of the sequence is less that
+the $j$-th element (where the numbers $i$ and~$j$ are the values of parameters
+of the procedure). The parameter \texttt{swap} points to a procedure swapping the
+elements of the sequence indicated by its parameters.
+
+
+\newpage
+\subsection{Heap priority queue}
+
+The priority queue implemented with the procedures described in this section
+is an array of pointers to arbitrary objects; both inserting and removing an
+object is addind or deleting a~pointer in the array.The priorities are defined
+by the application, which ought to supply a~procedure, \texttt{cmp}, with
+two pointer parameters; the procedure must return true if the priority
+of the object pointed by the first parameter is higher.
+
+\vspace{\bigskipamount}
+\cprog{%
+int pkv\_UpHeap ( void *a[], int l, boolean (*cmp)(void*,void*) ); \\
+int pkv\_DownHeap ( void *a[], int l, int f, \\
+\ind{19}boolean (*cmp)(void*,void*) ); \\
+int pkv\_HeapInsert ( void *a[], int *l, void *newelem, \\
+\ind{21}boolean (*cmp)(void*,void*) ); \\
+void pkv\_HeapRemove ( void *a[], int *l, int el, \\
+\ind{22}boolean (*cmp)(void*,void*) ); \\
+void pkv\_HeapOrder ( void *a[], int n, \\
+\ind{21}boolean (*cmp)(void*,void*) ); \\ 
+void pkv\_HeapSort ( void *a[], int n, \\ 
+\ind{20}boolean (*cmp)(void*,void*) );}   
+
+
+\newpage
+\section{Multidimensional array management}
+
+The procedures for processing curves and surfaces in the \texttt{libmultibs}
+library process the control points stored in one-dimensional arrays of
+floating point numbers. Such an array may be declared for example as $n$
+points in the three-dimensional space, but the memory area occupied by these
+data contains $3n$ numbers stored one-by-one.
+
+Two-dimensional arrays of points have a~similar contents and usually
+they are used for storing rectangular nets of control points. Such an array
+contains the coordinates of the points of the first column of the control net,
+then the second etc. The basic parameter, which makes it possible to access
+the right places in such an array is the \emph{pitch}, which is the
+distance between the beginnings of two consecutive columns. Obviously,
+the pitch is irrelevant for one-dimensional arrays (or arrays with only
+one column).
+
+From the point of view of the data processing arrays it is better to
+interpret them as two-dimensional arrays, without taking care of
+the actual number of points and the dimension of the space, whose elements
+are these points. The array cosists of \emph{rows} of some fixed length
+(usually not greater than the pitch).
+After each row there may be an unused area, whose length is the difference
+of the pitch and the row length. The procedures and macros described below
+may be used to change the pitch, by moving closer or farther the rows,
+which changes the length of the unused areas, to copy the data between two
+arrays of various pitches, or to move the rows in an array without changing
+its pitch.
+
+For special purposes it may be necessary to process arrays of bytes in this
+way (i.e.\ the smallest directly addressable memory cells). Therefore the
+C procedures are implemented for the arrays of \texttt{char}. The arrays
+of \texttt{float} or \texttt{double} are processed with macros, which
+multiply the row lengths and pitches by the size of \texttt{float} or
+\texttt{double}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_Rearrangec ( int nrows, int rowlen, \\
+\ind{22}int inpitch, int outpitch, \\
+\ind{22}char *data );}
+The procedure \texttt{pkv\_Rearrangec} moves the data in the array in order to
+change the pitch. The array consists of \texttt{nrows} rows. Each of them
+consists of \texttt{rowlen} bytes. The parameter \texttt{inpitch}
+specifies the initial pitch (the distance between the beginnings of consecutive
+rows).
+The parameter \texttt{outpitch} is the target pitch. Both pitches cannot be
+shorter than the row length.
+\begin{figure}[ht]
+  \centerline{\epsfig{file=memory.ps}}
+  \caption{\label{fig:memory:1}The effect of the procedures \texttt{pkv\_Rearrangec}
+    and \texttt{pkv\_Selectc}}
+\end{figure}
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_Selectc ( int nrows, int rowlen, \\
+\ind{19}int inpitch, int outpitch, \\
+\ind{19}const char *indata, char *outdata );}
+The procedure \texttt{pkv\_Selectc} copies the data from the array \texttt{indata}
+to the array \texttt{outdata}. The data are stored in \texttt{nrows} rows
+of length \texttt{rowlen}. The pitch of the \texttt{indata} array is
+specified by the parameter \texttt{inpitch}, and the pitch of the
+\texttt{outdata} by \texttt{outpitch}. The arrays must occupy disjoint
+memory areas.
+
+The effect of the procedure \texttt{pkv\_Selectc} may be illustrated with the same
+picture (fig.~\ref{fig:memory:1}) as the \texttt{pkv\_Rearrangec} procedure,
+keeping in mind that the data are copied to a~\emph{different} array.
+
+\begin{figure}[ht]
+  \centerline{\epsfig{file=memshift.ps}}
+  \caption{\label{fig:memory:2}Moving data by the procedure \texttt{pkv\_Movec}}
+\end{figure}
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_Movec ( int nrows, int rowlen, \\
+\ind{17}int pitch, int shift, char *data );}
+The procedure \texttt{pkv\_Movec} ``moves'' data in the array
+by~\texttt{shift} bytes. The parameter \texttt{nrows} specifies the number of
+rows, \texttt{rowlen} is the row length, \texttt{pitch} is the array
+pitch (which remains unchanged). The parameter
+\texttt{data} is a~pointer to the beginning of the firsy row before
+moving it. The value of the \texttt{shift} parameter may be positive or
+negative.
+
+The contents of the array between the rows, if it is not overwritten by
+the row contents moved by \texttt{pkv\_Movec} onto that place, are left
+unchanged. This makes it possible to ``extend'' all rows (with shortening
+the unused area), in order to make space in the rows for additional elements,
+or to remove some elements from all rows (which extends the unused areas).
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+void pkv\_ZeroMatc ( int nrows, int rowlen, int pitch, char *data );}
+The procedure \texttt{pkv\_ZeroMatc} initializes an array of bytes, by
+assigning the value~$0$ to all its elements. The contents of the unused areas
+is left unchanged.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_ReverseMatc ( int nrows, int rowlen, \\
+\ind{23}int pitch, char *data );}
+The procedure \texttt{pkv\_ReverseMatc} puts the rows of an array of bytes
+in the reverse order. The parameters \texttt{nrows} and \texttt{rowlen}
+specify the dimensions of this array. The parameter \texttt{pitch} is the pitch
+of the array \texttt{data}.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define pkv\_Rearrangef(nrows,rowlen,inpitch,outpitch,data) \bsl \\
+\ind{2}pkv\_Rearrangec(nrows,(rowlen)*sizeof(float), \bsl \\
+\ind{4}(inpitch)*sizeof(float),(outpitch)*sizeof(float),(char*)data) \\
+\#define pkv\_Selectf(nrows,rowlen,inpitch,outpitch,indata,outdata) \bsl \\
+\ind{2}pkv\_Selectc(nrows,(rowlen)*sizeof(float), \bsl \\
+\ind{4}(inpitch)*sizeof(float),(outpitch)*sizeof(float), \bsl \\
+\ind{4}(char*)indata,(char*)outdata) \\
+\#define pkv\_Movef(nrows,rowlen,pitch,shift,data) \bsl \\
+\ind{2}pkv\_Movec(nrows,(rowlen)*sizeof(float),(pitch)*sizeof(float), \bsl \\
+\ind{4}(shift)*sizeof(float),(char*)data) \\
+\#define pkv\_ZeroMatf(nrows,rowlen,pitch,data) \bsl \\
+\ind{2}pkv\_ZeroMatc(nrows,(rowlen)*sizeof(float), \bsl \\
+\ind{4}(pitch)*sizeof(float),(char*)data) \\
+\#define pkv\_ReverseMatf(nrows,rowlen,pitch,data) \bsl \\
+\ind{2}pkv\_ReverseMatc ( nrows, (rowlen)*sizeof(float), \\
+\ind{4}(pitch)*sizeof(float), (char*)data ) \\
+\mbox{} \\
+\#define pkv\_Rearranged(nrows,rowlen,inpitch,outpitch,data) \bsl \\
+\ind{2}pkv\_Rearrangec(nrows,(rowlen)*sizeof(double), \bsl \\
+\ind{4}(inpitch)*sizeof(double),(outpitch)*sizeof(double),(char*)data) \\
+\#define pkv\_Selectd(nrows,rowlen,inpitch,outpitch,indata,outdata) \bsl \\
+\ind{2}pkv\_Selectc(nrows,(rowlen)*sizeof(double), \bsl \\
+\ind{4}(inpitch)*sizeof(double),(outpitch)*sizeof(double), \bsl \\
+\ind{4}(char*)indata,(char*)outdata) \\
+\#define pkv\_ZeroMatd(nrows,rowlen,pitch,data) \bsl \\
+\ind{2}pkv\_ZeroMatc(nrows,(rowlen)*sizeof(double), \bsl \\
+\ind{4}(pitch)*sizeof(double),(char*)data) \\
+\#define pkv\_Moved(nrows,rowlen,pitch,shift,data) \bsl \\
+\ind{2}pkv\_Movec(nrows,(rowlen)*sizeof(double),(pitch)*sizeof(double), \bsl \\
+\ind{4}(shift)*sizeof(double),(char*)data) \\
+\#define pkv\_ReverseMatd(nrows,rowlen,pitch,data) \bsl \\
+\ind{2}pkv\_ReverseMatc ( nrows, (rowlen)*sizeof(double), \\
+\ind{4}(pitch)*sizeof(double), (char*)data )}
+The macros above may be used for processing arrays of \texttt{float}
+or \texttt{double} in the way described earlier.
+
+The macros \texttt{pkv\_Rearrangef} and \texttt{pkv\_Rearranged} change
+the array pitch.
+
+The macros \texttt{pkv\_Selectf} and \texttt{pkv\_Selectd} copy data
+between arrays of different pitches.
+
+The macros \texttt{pkv\_Movef} and \texttt{pkv\_Moved} move the rows
+in the array.
+
+The macros \texttt{pkv\_ZeroMatf} and \texttt{pkv\_ZeroMatd} initiaalize
+the contents of arrays by setting to~$0.0$ all the elements
+(floating point numbers --- this is a~trick based on the fact that
+all bits of a~floating point $0$ are $0$).
+
+The macros \texttt{pkv\_ReverseMatf} and \texttt{pkv\_ReverseMatd} reverse
+the order of rows of floating point arrays.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_Selectfd ( int nrows, int rowlen, \\
+\ind{20}int inpitch, int outpitch, \\
+\ind{20}const float *indata, double *outdata ); \\
+void pkv\_Selectdf ( int nrows, int rowlen, \\
+\ind{20}int inpitch, int outpitch, \\
+\ind{20}const double *indata, float *outdata );}
+The above procedures copy data (floating point numbers) between arrays
+of elements of different precisions. This is similar to the effect
+of using \texttt{pkv\_Selectf}, except that a~conversion between \texttt{float}
+and \texttt{double} is done.
+
+The array pitches (i.e.\ distances between the beginnings of consecutive rows)
+are expressed in the units being the lengths of \texttt{float} and \texttt{double}
+as appropriate.
+
+The procedure \texttt{pkv\_Selectfd} should work correctly for all possible
+data (representing numbers). The other procedure may cause the floating
+point overflow or underflow. Moreover, there may be rounding errors, which
+result from the fact that the set of floats is a~subset of the set of doubles.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_TransposeMatrixc ( int nrows, int ncols, int elemsize, \\
+\ind{28}int inpitch, const char *indata, \\
+\ind{28}int outpitch, char *outdata );}
+The procedure \texttt{pkv\_TransposeMatrixc} makes the transposition of
+a~matrix $m\times n$. The parameters \texttt{nrows} and \texttt{ncols}
+specify the numbers $m$ and $n$ respectively. The size (in bytes)
+of the matrix element is the value of the \texttt{elemsize} parameter.
+The consecutive rows of the input matrix (whose elements are packed one-by-one)
+are given in the \texttt{indata} array, whose pitch (in bytes) is
+\texttt{inpitch}. The procedure writes the consecutive rows of the matrix
+transposition to the array \texttt{outdata}, whose pitch is \texttt{outpitch}.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define pkv\_TransposeMatrixf(nrows,ncols,inpitch,indata, \bsl \\
+\ind{4}outpitch,outdata) \bsl \\
+\ind{2}pkv\_TransposeMatrixc ( nrows, ncols, sizeof(float), \bsl \\
+\ind{4}(inpitch)*sizeof(float), (char*)indata, \bsl \\
+\ind{4}(outpitch)*sizeof(float), (char*)outdata ) \\
+\#define pkv\_TransposeMatrixd(nrows,ncols,inpitch,indata, \bsl \\
+\ind{4}outpitch,outdata) \ldots}
+The two macros above may be used to transpose conveniently numeric matrices,
+consisting of \texttt{float} or \texttt{double} floating point numbers.
+The parameters of those macros correspond to the parameters of the procedure
+\texttt{pkv\_TransposeMatrixc} (except of \texttt{elemsize}).
+The pitch unit is the size of \texttt{float} or \texttt{double}. 
+
+
+\newpage
+\section{Line segment rasterization}
+
+The procedure of line rasterization is placed in this library, because
+so far there is no better place. In future it is desirable to write
+a~procedure of polygon rasterization, and if this is further developed,
+then making a~separate library with raster graphics routines will be
+worth doing.
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct \{ \\
+\ind{2}short x, y; \\
+\} xpoint;}
+The structure \texttt{xpoint} is intended to represent
+pixels; it is identical to the \texttt{Xpoint} structure defined in the file
+\texttt{Xlib.h}. Due to this, the pixels computed by the line rasterization
+procedures (and by the curve rasterization procedures of the \texttt{libmultibs}
+library) may be displayed by an XWindow application without further
+conversion. On the other hand, due to presence of this definition in the
+\texttt{pkvaria.h} file it is not necessary to include \texttt{Xlib.h}
+and it is possible to use this procedure in non-XWindow applications.
+
+\vspace{\bigskipamount}
+\cprog{%
+extern void \ \ (*\_pkv\_OutputPixels)(const xpoint *buf, int n); \\
+extern xpoint *\_pkv\_pixbuf; \\
+extern int \ \ \ \_pkv\_npix;}
+The variables above are used during the rasterization; these are:
+pointer to the pixel outputting procedure (which must be supplied by the
+application), pixel buffer pointer and pixel buffer counter. The application
+should not refer to these variables directly.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define PKV\_BUFSIZE 256 \\
+\#define PKV\_FLUSH ... \\
+\#define PKV\_PIXEL(p,px) ... \\
+\#define PKV\_SETPIXEL(xx,yy) ...}
+The macros above define the pixel buffer capacity ($256$ causes reserving
+$1$KB for that buffer) and implement the buffer servicing. They are made
+available in the header file for the needs of the curve rasterization
+procedures from the \texttt{libmultibs} library.
+
+\vspace{\bigskipamount}                              
+\cprog{%
+void \_pkv\_InitPixelBuffer ( void ); \\
+void \_pkv\_DestroyPixelBuffer ( void );}
+Auxiliary procedures, of which the first allocates the pixel buffer, and
+the second deallocates it. The buffer is allocated in the scratch memory pool
+(by a~call to \texttt{pkv\_GetScratchMem}), therefore all the scratch memory
+allocated after its allocation must be deallocated up to the last byte
+before the pixel buffer deallocation.
+
+\vspace{\bigskipamount}                              
+\cprog{%
+void \_pkv\_DrawLine ( int x1, int y1, int x2, int y2 ); \\
+void pkv\_DrawLine ( int x1, int y1, int x2, int y2, \\
+\ind{20}void (*output)(const xpoint *buf, int n) );}
+The procedure \texttt{\_pkv\_DrawLine} implements the Bresenham algorithm of
+line segment rasterization. The procedure assumes that the pixel buffer
+has been allocated prior to the call to it
+(by \texttt{\_pkv\_InitPixelBuffer}),
+and the variable \texttt{\_pkv\_OutputPixels} points to the proper pixel
+output procedure (e.g.\ drawing the pixels on the screen).
+
+The procedure intendeded to be called by applications is
+\texttt{pkv\_DrawLine}, whose parameters: \texttt{x1}, \texttt{y1},
+\texttt{x2}, \texttt{y2} specify the line segment end points,
+and the parameter \texttt{output} points to the proper pixel output
+routine. The procedure \texttt{pkv\_DrawLine} allocates and initializes the
+pixel buffer and assigns the value of the parameter \texttt{output}
+to the variable \texttt{\_pkv\_OutputPixels},
+then it calls \texttt{\_pkv\_DrawLine}, flushes the buffer and deallocates it.
+
+The procedure pointed by \texttt{output} must have two parameters;
+the first is the pointer to the first pixel of the sequence to output,
+and the second indicates the number of those pixels. The \texttt{output}
+procedure may allocate scratch memory, but it must deallocate it before
+the return.
+
+
+\newpage
+\section{Exception handling}
+
+During the program execution there may appear exceptional situations,
+and the program must be able to deal with them. A~typical problem
+is the memory shortage; if no large enough memory block is available,
+the program has to do at least one of the following actions:
+\begin{itemize}
+\item Halt (by a~call to \texttt{exit}); not doing that would cause
+  the program abortion by the operating system because of its improper behaviour,
+  i.e.\ an attempt to access memory at a~random address.
+\item Inform the user (before halting) about the appearance,
+  place and nature of the exceptional situation. Without that the user
+  will have no idea of the reason of getting a~(guten) abend.
+\item Terminate the computation impossible of the error appearance
+  without halting the program. In that case the user should also be
+  informed, why the program refused to do something, but it is still at the
+  user command with some other services.
+\end{itemize}
+
+In case of exceptional situations the procedures of the bstools package
+call the \texttt{pkv\_SignalError} procedure. Its default action is
+writing (on \texttt{stderr}) a~message and halting the program.
+Applications may (by calling the \texttt{pkv\_SetErrorHandler} procedure)
+install their own exception handling procedures, which may display
+messages in a~dialog box, and which may (with use of the procedures
+\texttt{setjmp} and \texttt{longjmp}, see their description in man pages)
+abort the unsuccessful computation by terminating a~number of unfinished
+procedures and reset the program to some default state.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define LIB\_PKVARIA 0 \\
+\#define LIB\_PKNUM \ \ 1 \\
+\#define LIB\_GEOM \ \ \ 2 \\
+\#define LIB\_CAMERA \ 3 \\
+\#define LIB\_PSOUT \ \ 4 \\
+\#define LIB\_MULTIBS 5 \\
+\#define LIB\_RAYBEZ \ 6}
+The above symbolic names denote the library with the procedure signalling
+the exception. Applications may define its own identifiers, which should
+better be different from the above.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_SignalError ( \\
+\ind{8}int module, int errno, const char *errstr );}
+The procedure \texttt{pkv\_SignalError} by default prints a~message
+to \texttt{stderr} and halts the program (with a~call to
+\texttt{exit~(~1~);}). The message consists of the error number
+(internal for the module, i.e.\ the library), being the value of
+the \texttt{errno} parameter, the module number (the parameter
+\texttt{module}) and the message text (pointed by the parameter
+\texttt{errstr}).
+
+If an exception handling procedure is installed (with
+\texttt{pkv\_SetErrorHandler}), then the procedure
+\texttt{pkv\_SignalError} will call it, passing it its parameters.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_SetErrorHandler ( \\
+\ind{3}void (*ehandler)( int module, int errno, const char *errstr ) );}
+\begin{sloppypar}
+The procedure \texttt{pkv\_SetErrorHandler} installs an exception handling
+procedure, which henceforth will be called by \texttt{pkv\_SignalError}.
+Setting the parameter \texttt{ehandler} the \texttt{NULL} value
+causes ``uninstalling'' any previously installed exception handler,
+i.e.\ restoring the default action of the \texttt{pkv\_SignalError}
+procedure.%
+\end{sloppypar}
+
+
+%\newpage
+\section{\label{sect:MALLOC:FREE}Wrappings of \texttt{malloc} and~\texttt{free}}
+
+Some demonstration programs (\texttt{pomnij} and \texttt{pozwalaj})
+launch a~child process (using \texttt{fork} and~\texttt{exec}), whose
+purpose is to perform the time-consuming numerical computations without
+locking the user interaction. In particular it is possible to terminate the
+computations before they are complete. If the child process gets the signal
+\texttt{SIGUSR1}, it must break the computations
+(this is done with \texttt{setjmp} and~\texttt{longjmp}) and free all memory
+allocated dynamically in order to prepare for the next job.
+
+The dynamic allocation/deallocation is a~critical phase of the computation;
+\texttt{longjmp} is prohibited when \texttt{malloc} or \texttt{free} is
+working, and in particular after memory block allocation, but before
+assignment of its address to a~variable. Also an application must
+register somehow all blocks currently allocated in order to clean up.
+
+To make it possible, \texttt{malloc} and \texttt{free} may be called via the
+macros described below. They provide hooks for the application, i.e.\
+pointers to procedures to be called when necessary.
+
+\textbf{Remark:} so far not all procedures in the libraries use these
+macros.
+
+\vspace{\bigskipamount}
+\cprog{%
+extern boolean pkv\_critical, pkv\_signal; \\
+extern void (*pkv\_signal\_handler)( void ); \\
+extern void (*pkv\_register\_memblock)( void *ptr, boolean alloc );}
+The variable \texttt{pkv\_signal\_handler} is \texttt{NULL} by default;
+an application may assign it the address of a~signal handler, which will
+be called at once, except the signall arrived in the critical phase;
+then this procedure will be called after return from \texttt{malloc} or
+\texttt{free}.
+
+A~signal handler (registered with the \texttt{signal} procedure)
+should test the value of the variable \texttt{pkv\_critical}.
+If it is \texttt{true}, then only the assignment
+\texttt{pkv\_signal = true;} must be done. If the value of \texttt{pkv\_critical}
+is \texttt{false}, then the procedure pointed by
+\texttt{pkv\_signal\_handler} may be called, and this procedure is allowed
+to call \texttt{longjmp}.
+If after leaving the critical phase \texttt{pkv\_signal}
+is \texttt{true}, the macro calls this procedure (so the signal is processed
+later, but it is done).
+
+The variable \texttt{pkv\_register\_memblock}, if not \texttt{NULL},
+must point to a~procedure, which is called with the address of each block
+allocated or deallocated via the macro \texttt{PKV\_MALLOC}
+or~\texttt{PKV\_FREE} (only if \texttt{pkv\_signal\_handler} is not
+\texttt{NULL}).
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define PKV\_MALLOC(ptr,size) \bsl \\
+\ind{2}\{ \bsl \\
+\ind{4}if ( pkv\_signal\_handler ) \{ \bsl \\
+\ind{6}pkv\_signal = false; \bsl \\
+\ind{6}pkv\_critical = true; \bsl \\
+\ind{6}(ptr) = malloc ( size ); \bsl \\
+\ind{6}if ( pkv\_register\_memblock ) \bsl \\
+\ind{8}pkv\_register\_memblock ( (void*)(ptr), true ); \bsl \\
+\ind{6}pkv\_critical = false; \bsl \\
+\ind{6}if ( pkv\_signal ) \bsl \\
+\ind{8}pkv\_signal\_handler (); \bsl \\
+\ind{4}\} \bsl \\
+\ind{4}else \bsl \\
+\ind{6}(ptr) = malloc ( size ); \bsl \\
+\ind{2}\} \\
+\mbox{} \\
+\#define PKV\_FREE(ptr) \bsl \\
+\ind{2}\{ \bsl \\
+\ind{4}if ( pkv\_signal\_handler ) \{ \bsl \\
+\ind{6}pkv\_signal = false; \bsl \\
+\ind{6}pkv\_critical = true; \bsl \\
+\ind{6}free ( (void*)(ptr) ); \bsl \\
+\ind{6}if ( pkv\_register\_memblock ) \bsl \\
+\ind{8}pkv\_register\_memblock ( (void*)(ptr), false ); \bsl \\
+\ind{6}(ptr) = NULL; \bsl \\
+\ind{6}pkv\_critical = false; \bsl \\
+\ind{6}if ( pkv\_signal ) \bsl \\
+\ind{8}pkv\_signal\_handler (); \bsl \\
+\ind{4}\} \bsl \\
+\ind{4}else \{ \bsl \\
+\ind{6}free ( (void*)(ptr) ); \bsl \\
+\ind{6}(ptr) = NULL; \bsl \\
+\ind{4}\} \bsl \\
+\ind{2}\}}
+The macro \texttt{PKV\_FREE}, apart from deallocation of a~memory block
+pointed by the macro parameter (using \texttt{free}), assings \texttt{NULL}
+to this parameter.
+
+
+\section{Debugging}
+
+\cprog{%
+void WriteArrayf ( const char *name, int lgt, const float *tab ); \\
+void WriteArrayd ( const char *name, int lgt, const double *tab );}
+\hspace*{\parindent}
+The two above procedures may be used to produce control printouts
+during the program debugging. They print out (to \texttt{stdout})
+a~text \texttt{name} and \texttt{lgt} floating point numbers from
+the array \texttt{tab}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void *DMalloc ( size\_t size ); \\
+void DFree ( void *ptr );}
+These procedures may be called instead of \texttt{malloc} and \texttt{free},
+if there is a~suspicion, that the program writes outside of the allocated
+memory blocks. The procedure \texttt{DMalloc} allocates (with \texttt{malloc})
+a~memory block with additional $16$~bytes, fills it with zeroes,
+stores (in the first four bytes) the size and returns the address of the
+eighth byte of the allocated block.
+
+The procedure \texttt{DFree} verifies, whether the bytes $4,\ldots,7$ and
+the last $8$~bytes of the block to deallocate are~$0$ and it writes out
+a~warning.
+

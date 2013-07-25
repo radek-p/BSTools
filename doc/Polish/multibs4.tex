@@ -1,0 +1,661 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\section{Podzia"l krzywych i p"lat"ow B\'{e}ziera na cz"e"sci}
+
+Podzia"l krzywych i~p"lat"ow B\'{e}ziera na cz"e"sci mo"rna wykona"c za
+pomoc"a algorytmu de~Casteljau, przy czym s"a dwa przypadki zaprogramowane
+osobno. W~pierwszym nast"epuje podzia"l dziedziny na dwie r"owne cz"e"sci
+(np.\ podzia"l odcinka $[0.25,0.5]$ na odcinki $[0.25,0.375]$
+i~$[0.375,0.5]$), dzi"eki czemu ca"ly algorytm polega na obliczaniu
+tylko "srednich arytmetycznych liczb. W drugim przypadku dziedzina mo"re
+by"c podzielona na odcinki lub prostok"aty w~dowolnym miejscu, co umo"rliwia
+r"ownie"r dokonanie ekstrapolacji.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBisectBezCurvesf ( int degree, int ncurves, \\
+\ind{33}int spdimen, int pitch, \\
+\ind{33}float *ctlp, float *ctlq );}
+Procedura \texttt{mbs\_multiBisectBezCurvesf} dokonuje podzia"lu
+\texttt{ncurves} krzywych B\'{e}ziera stopnia \texttt{degree} w~przestrzeni
+o~wymiarze \texttt{spdimen}. Dziedzina (odcinek $[a,b]$) jest dzielona
+w~po"lowie.
+
+\begin{sloppypar}
+Punkty kontrolne podaje si"e w~tablicy \texttt{ctlp} o~podzia"lce
+\texttt{pitch}. Po wykonaniu obliczenia tablica ta zawiera punkty kontrolne
+drugiego "luku (zwi"azanego z~przedzia"lem $[\frac{a+b}{2},b]$).
+W~tablicy $\texttt{ctlq}$ procedura umieszcza punkty kontrolne reprezentacji
+krzywych zwi"azanej z~odcinkiem $[0,0.5]$. Podzia"lka tej tablicy jest taka
+sama jak podzia"lka tablicy \texttt{ctlp} (czyli r"owna warto"sci parametru
+\texttt{pitch}).
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BisectBC1f(degree,ctlp,ctlq) \bsl \\
+\ind{2}mbs\_multiBisectBezCurvesf(degree,1,1,0,ctlp,ctlq) \\
+\#define mbs\_BisectBC2f(degree,ctlp,ctlq) \bsl \\
+\ind{2}mbs\_multiBisectBezCurvesf(degree,1,2,0,(float*)ctlp,(float*)ctlq) \\
+\#define mbs\_BisectBC3f(degree,ctlp,ctlq) ... \\
+\#define mbs\_BisectBC4f(degree,ctlp,ctlq) ...}
+Powy"rsze makra wywo"luj"a procedur"e
+\texttt{mbs\_multiBisectBezCurvesf} w~celu podzielenia dziedziny jednego
+wielomianu lub krzywej B\'{e}ziera (dwu-, tr"oj- lub czterowymiarowej) na
+po"lowy i wyznaczenia lokalnych reprezentacji tego wielomianu lub krzywej.
+
+\vspace{\bigskipamount}
+\ucprog{%
+\#define mbs\_BisectBP1uf(degreeu,degreev,ctlp,ctlq) \bsl \\
+\ind{2}mbs\_multiBisectBezCurvesf(degreeu,1,(degreev+1),0,ctlp,ctlq) \\
+\#define mbs\_BisectBP1vf(degreeu,degreev,ctlp,ctlq) \bsl \\
+\ind{2}mbs\_multiBisectBezCurvesf(degreev,degreeu+1,1,degreev+1, \bsl \\
+\ind{2}ctlp,ctlq) \\
+\#define mbs\_BisectBP2uf(degreeu,degreev,ctlp,ctlq) \bsl \\
+\ind{2}mbs\_multiBisectBezCurvesf(degreeu,1,2*(degreev+1),0, \bsl \\
+\ind{2}(float*)ctlp,(float*)ctlq)}
+
+\dcprog{%
+\#define mbs\_BisectBP2vf(degreeu,degreev,ctlp,ctlq) \bsl \\
+\ind{2}mbs\_multiBisectBezCurvesf(degreev,degreeu+1,2,2*(degreev+1), \bsl \\
+\ind{2}(float*)ctlp,(float*)ctlq) \\
+\#define mbs\_BisectBP3uf(degreeu,degreev,ctlp,ctlq) ... \\
+\#define mbs\_BisectBP3vf(degreeu,degreev,ctlp,ctlq) ... \\
+\#define mbs\_BisectBP4uf(degreeu,degreev,ctlp,ctlq) ... \\
+\#define mbs\_BisectBP4vf(degreeu,degreev,ctlp,ctlq) ...}
+Powy"rsze makra wywo"luj"a procedur"e
+\texttt{mbs\_multiBisectBezCurvesf} w~celu podzielenia prostok"atnej
+dziedziny jednego wielomianu dw"och zmiennych (danego w~bazie tensorowej
+Bernsteina) lub p"lata B\'{e}ziera (dwu-, tr"oj- lub czterowymiarowego) na
+przystaj"ace cz"e"sci i~wyznaczenia lokalnych reprezentacji tego wielomianu
+lub p"lata. Makra z~liter"a \texttt{u} w~nazwie s"lu"r"a do podzia"lu
+przedzia"lu zmienno"sci pierwszego argumentu wielomianu lub p"lata, a~makra
+z~liter"a \texttt{v} do podzia"lu przedzia"lu zmienno"sci drugiego
+argumentu.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiDivideBezCurvesf ( int degree, int ncurves, \\
+\ind{33}int spdimen, int pitch, float t, \\
+\ind{33}float *ctlp, float *ctlq );}
+Procedura \texttt{mbs\_multiDivideBezCurvesf} dokonuje podzia"lu
+\texttt{ncurves} krzywych B\'{e}ziera stopnia \texttt{degree} w~przestrzeni
+o~wymiarze \texttt{spdimen}. Dziedzina (odcinek $[0,1]$) jest dzielona
+w~punkcie $t$, kt"ory jest warto"sci"a parametru \texttt{t}, przy czym
+je"sli $t\notin[0,1]$, to podzia"l jest w~rzeczywisto"sci ekstrapolacj"a.
+
+Punkty kontrolne podaje si"e w~tablicy \texttt{ctlp} o~podzia"lce
+\texttt{pitch}. Po wykonaniu obliczenia tablica ta zawiera punkty kontrolne
+drugiego "luku (zwi"azanego z~przedzia"lem $[t,1]$).
+W~tablicy $\texttt{ctlq}$ procedura umieszcza punkty kontrolne reprezentacji
+krzywych zwi"azanej z~odcinkiem $[0,t]$. Podzia"lka tej tablicy jest taka
+sama jak podzia"lka tablicy \texttt{ctlp} (czyli r"owna warto"sci parametru
+\texttt{pitch}).
+
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_DivideBC1f(degree,t,ctlp,ctlq) \bsl \\
+\ind{2}mbs\_multiDivideBezCurvesf(degree,1,1,0,t,ctlp,ctlq) \\
+\#define mbs\_DivideBC2f(degree,t,ctlp,ctlq) \bsl \\
+\ind{2}mbs\_multiDivideBezCurvesf(degree,1,2,0,t, \bsl \\
+\ind{2}(float*)ctlp,(float*)ctlq) \\
+\#define mbs\_DivideBC3f(degree,t,ctlp,ctlq) ... \\
+\#define mbs\_DivideBC4f(degree,t,ctlp,ctlq) ...}
+\begin{sloppypar}
+Powy"rsze makra wywo"luj"a procedur"e
+\texttt{mbs\_multiDivideBezCurvesf} w~celu podzielenia dziedziny jednego
+wielomianu lub krzywej B\'{e}ziera (dwu-, tr"oj- lub czterowymiarowej)
+w~proporcji $t:1-t$, gdzie $t$ jest warto"sci"a parametru \texttt{t},
+i~wyznaczenia lokalnych reprezentacji tego wielomianu lub krzywej.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_DivideBP1uf(degreeu,degreev,u,ctlp,ctlq) \bsl \\
+\ind{2}mbs\_multiDivideBezCurvesf(degreeu,1,(degreev)+1,0,u,ctlp,ctlq) \\
+\#define mbs\_DivideBP1vf(degreeu,degreev,v,ctlp,ctlq) \bsl \\
+\ind{2}mbs\_multiDivideBezCurvesf(degreev,(degreeu)+1,1,degreev+1,v, \bsl \\
+\ind{4}ctlp,ctlq) \\
+\#define mbs\_DivideBP2uf(degreeu,degreev,u,ctlp,ctlq) \bsl \\
+\ind{2}mbs\_multiDivideBezCurvesf(degreeu,1,2*(degreev)+1,0,u, \bsl \\
+\ind{4}(float*)ctlp,(float*)ctlq) \\
+\#define mbs\_DivideBP2vf(degreeu,degreev,v,ctlp,ctlq) \bsl \\
+\ind{1}mbs\_multiDivideBezCurvesf(degreev,(degreeu)+1,2,2*(degreev)+1,v, \bsl \\
+\ind{4}(float*)ctlp,(float*)ctlq) \\
+\#define mbs\_DivideBP3uf(degreeu,degreev,u,ctlp,ctlq) ... \\
+\#define mbs\_DivideBP3vf(degreeu,degreev,v,ctlp,ctlq) ... \\
+\#define mbs\_DivideBP4uf(degreeu,degreev,u,ctlp,ctlq) ... \\
+\#define mbs\_DivideBP4vf(degreeu,degreev,v,ctlp,ctlq) ...}
+Makra wywo"luj"ace procedur"e \texttt{mbs\_multiDivideBezCurvesf} w~celu
+podzielenia wielomianu dw"och zmiennych lub p"lata B\'{e}ziera w~przestrzeni
+dwu-, tr"oj-
+i~czterowymiarowej na dwa kawa"lki --- w~kierunku ,,$u$'' (tj.\ podzia"lowi
+ulega przedzia"l zmienno"sci pierwszego argumentu) albo ,,$v$'' (zostaje
+podzielony przedzia"l zmienno"sci drugiego argumentu). Liczba $u$ lub $v$,
+kt"ora jest warto"sci"a parametru \texttt{u} albo \texttt{v} okre"sla punkt
+podzia"lu odcinka $[0,1]$ --- w~takich proporcjach jest dzielony przedzia"l
+zmienno"sci odpowiedniego argumentu.
+
+
+\newpage
+\section{Podwy"rszanie stopnia}
+
+Podwy"rszenie stopnia jest obliczeniem nowej reprezentacji krzywej w~bazie
+wielomian"ow Bernsteina lub B-sklejanej stopnia wy"rszego o~wskazany
+przyrost.
+
+\subsection{Podwy"rszanie stopnia krzywych i~p"lat"ow B\'{e}ziera}
+
+%\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBCDegElevf ( int ncurves, int spdimen, \\
+\ind{27}int inpitch, int indegree, \\
+\ind{27}const float *inctlpoints, \\
+\ind{27}int deltadeg, \\
+\ind{27}int outpitch, int *outdegree, \\
+\ind{27}float *outctlpoints );}
+\begin{sloppypar}
+\hspace*{\parindent}Procedura \texttt{mbs\_multiBCDegElevf} dokonuje
+podwy"rszenia stopnia
+\texttt{ncurves} krzywych B\'{e}ziera stopnia \texttt{indegree}
+w~przestrzeni o~wymiarze \texttt{spdimen} do stopnia
+$\mathord{\mbox{\texttt{indegree}}}+\mathord{\mbox{\texttt{deltadeg}}}$
+(ko"ncowy stopie"n jest przypisywany do parametru \texttt{*outdegree}).
+
+"Lamane kontrolne krzywych danych s"a podane w~tablicy \texttt{inctlpoints},
+z~podzia"lk"a \texttt{inpitch}. Obliczone "lamane kontrolne krzywych procedura
+wpisuje do tab\-li\-cy \texttt{outctlpoints} z~podzia"lk"a \texttt{outpitch}.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BCDegElevC1f(indegree,incoeff,deltadeg, \bsl \\
+\ind{4}outdegree,outcoeff) \bsl \\
+\ind{2}mbs\_multiBCDegElevf ( 1, 1, 0, indegree, incoeff, deltadeg, \bsl \\
+\ind{4}0, outdegree, outcoeff ) \\
+\#define mbs\_BCDegElevC2f(indegree,inctlpoints,deltadeg, \bsl \\
+\ind{4}outdegree,outctlpoints) \bsl \\
+\ind{2}mbs\_multiBCDegElevf ( 1, 2, 0, indegree, (float*)inctlpoints, \bsl \\
+\ind{4}deltadeg, 0, outdegree, (float*)outctlpoints ) \\
+\#define mbs\_BCDegElevC3f(indegree,inctlpoints,deltadeg, \bsl \\
+\ind{4}outdegree,outctlpoints) ... \\
+\#define mbs\_BCDegElevC4f(indegree,inctlpoints,deltadeg, \bsl \\
+\ind{4}outdegree,outctlpoints) ...}
+\begin{sloppypar}
+Powy"rsze cztery makra s"lu"r"a do podwy"rszenia stopnia jednego wielomianu
+(okre"slonego za pomoc"a wsp"o"lczynnik"ow w bazie Bernsteina)
+lub krzywej B\'{e}ziera po"lo"ronej w~przestrzeni dwu-, tr"oj- lub
+czterowymiarowej. Parametry tych makr s"a przedstawione w~opisie procedury
+\texttt{mbs\_multiBCDegElevf}.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCDegElevPf ( int spdimen, \\
+\ind{23}int indegreeu, int indegreev, \\
+\ind{23}const float *inctlp, \\
+\ind{23}int deltadegu, int deltadegv, \\
+\ind{23}int *outdegreeu, int *outdegreev, \\
+\ind{23}float *outctlp );}
+Procedura \texttt{mbs\_BCDegElevPf} dokonuje podwy"rszenia stopnia p"lata
+B\'{e}ziera po"lo"ronego w~przestrzeni o~wymiarze \texttt{spdimen}, ze
+wzgl"edu na jeden lub oba parametry.
+
+Parametry \texttt{indegu} i \texttt{indegv} okre"slaj"a pocz"atkowy stopie"n
+p"lata ze wzgl"edu na ka"rdy z~parametr"ow. Tablica \texttt{inctlp} zawiera
+wsp"o"lczynniki wielomianu lub punkty kontrolne p"lata, nale"r"ace do
+kolejnych kolumn. Tablica ta jest spakowana, tj.\ bez obszar"ow nieu"rywanych,
+a~zatem jej podzia"lka, czyli odleg"lo"s"c pocz"atk"ow kolejnych kolumn jest
+r"owna d"lugo"sci kolumny:
+$(\mathord{\mbox{\texttt{indegu}}}+1)*\mathord{\mbox{\texttt{spdimen}}}$.
+W~podobny spos"ob jest pakowana tablica \texttt{outctlp}, zawieraj"aca
+obliczone przez procedur"e punkty kontrolne reprezentacji p"lata o wy"rszym
+stopniu.
+
+Parametry \texttt{deltadegu} i~\texttt{deltadegv} musz"a by"c nieujemne.
+Okre"slaj"a one o ile ma by"c podwy"rszony stopie"n p"lata ze wzgl"edu na
+ka"rdy z~jego parametr"ow. Ko"ncowy stopie"n (suma stopnia pocz"atkowego
+i~przyrostu) jest przypisywany do parametr"ow \texttt{*outdegu}
+i~\texttt{outdegv}.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BCDegElevP1f(indegreeu,indegreev,incoeff, \bsl \\
+\ind{4}deltadegu,deltadegv,outdegreeu,outdegreev,outcoeff) \bsl \\
+\ind{2}mbs\_BCDegElevPf ( 1, indegreeu, indegreev, incoeff, \bsl \\
+\ind{4}deltadegu, deltadegv, outdegreeu, outdegreev, outcoeff ) \\
+\#define mbs\_BCDegElevP2f(indegreeu,indegreev,inctlp, \bsl \\
+\ind{4}deltadegu,deltadegv,outdegreeu,outdegreev,outctlp) \bsl \\
+\ind{2}mbs\_BCDegElevPf ( 2, indegreeu, indegreev, (float*)inctlp, \bsl \\
+\ind{4}deltadegu, deltadegv, outdegreeu, outdegreev, (float*)outctlp ) \\
+\#define mbs\_BCDegElevP3f(indegreeu,indegreev,inctlp, \bsl \\
+\ind{4}deltadegu,deltadegv,outdegreeu,outdegreev,outctlp) \ldots \\
+\#define mbs\_BCDegElevP4f(indegreeu,indegreev,inctlp, \bsl \\
+\ind{4}deltadegu,deltadegv,outdegreeu,outdegreev,outctlp) \ldots}
+
+Powy"rsze makra dokonuj"a podwy"rszenia stopnia wielomianu dw"och
+zmiennych danego w bazie tensorowej Bernsteina lub p"lata B\'{e}ziera
+po"lo"ronego w~przes\-trze\-ni dwu-, tr"oj- lub czterowymiarowej,
+wywo"luj"ac procedur"e \texttt{mbs\_BCDegElevPf}.
+
+
+\subsection{Podwy"rszanie stopnia krzywych i~p"lat"ow B-sklejanych}
+
+%\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBSDegElevf ( int ncurves, int spdimen, \\
+\ind{27}int indegree, int inlastknot, \\
+\ind{27}const float *inknots, \\
+\ind{27}int inpitch, const float *inctlpoints, \\
+\ind{27}int deltadeg, \\
+\ind{27}int *outdegree, int *outlastknot, \\
+\ind{27}float *outknots, \\
+\ind{27}int outpitch, float *outctlpoints, \\
+\ind{27}boolean freeend );}
+\begin{sloppypar}
+\hspace*{\parindent}
+Procedura \texttt{mbs\_multiBSDegElevf} dokonuje podwy"rszenia stopnia
+\texttt{ncurves} krzywych B-sklejanych stopnia \texttt{indegree}
+w~przestrzeni o~wymiarze \texttt{spdimen}, do stopnia
+$\mathord{\mbox{\texttt{indegree}}}+\mathord{\mbox{\texttt{deltadeg}}}$,
+kt"ory jest przypisywany do parametru \texttt{*outdegree}.
+\end{sloppypar}
+
+Procedura dopuszcza krzywe o~ko"ncach zaczepionych lub swobodnych jako dane
+wej"sciowe. Jesli parametr \texttt{freeend} ma wartosc \texttt{false}, to
+wynikiem jest krzywa o~ko"ncach zaczepionych,
+w~kt"orej reprezentacji jedynymi w"ez"lami zewn"etrznymi s"a w"ez"ly
+skrajne (zobacz p.~\ref{ssect:BSC}). Jesli wartoscia parametru
+\texttt{freeend} jest \texttt{true}, to reprezentacja wynikowa jest krzywa
+o~koncach swobodnych. Ci"ag w"ez"l"ow tej reprezentacji powstaje przez
+zwi"ekszenie krotno"sci wszystkich w"ez"l"ow o~wartosc parametru
+\texttt{deltadeg}, a~nastepnie odrzucenie tylu w"ez"l"ow z~pocz"atku i~ko"nca
+otrzymanego ci"agu, aby otrzyma"c $\hat{u}_n<\hat{u}_{n+1}$
+i~$\hat{u}_{N-n}>\hat{u}_{N-n-1}$ ($n$ oznacza tu stopie"n reprezentacji
+wynikowej, a~$N$ oznacza indeks ostatniego w"ez"la tej reprezentacji).
+
+Spos"ob podwy"rszania stopnia nie zale"ry od warto"sci parametru
+\texttt{freeend}. Reprezentacja istniej"aca bezpo"srednio po
+podwy"rszeniu stopnia jest o~ko"ncach zaczepionych. Dla
+\texttt{freeend=true} procedura wywo"luje
+\texttt{mbs\_multiBSChangeLeftKnotsf}
+i~\texttt{mbs\_multiBSChangeRightKnotsf}. Wi"a"re si"e to z~dodatkowymi
+b"l"edami zaokr"agle"n. Procedura \texttt{mbs\_multiBSDegElevf} mo"re by"c
+u"ryta do podwy"rszenia stopnia krzywej zamkni"etej; parametr
+\texttt{freeend} powinien mie"c wtedy warto"s"c \texttt{true}, dzi"eki czemu
+wynikowa reprezentacja krzywej b"edzie zamkni"eta, co~oznacza m.in., "re
+odpowiednia liczba pocz"atkowych punkt"ow kontrolnych pokrywa si"e
+z~punktami ko"ncowymi, \emph{z~dok"ladno"sci"a do b"l"ed"ow zaokr"agle"n}.
+
+Pocz"atkowa reprezentacja znajduje si"e w~tablicach \texttt{inknots}
+(w"ez"ly, jest ich $\mathord{\mbox{\texttt{inlastknot}}}+1$) oraz
+\texttt{inctlpoints} (punkty kontrolne, podzia"lka tej tablicy jest r"owna
+\texttt{inpitch}).
+
+Ko"ncowa reprezentacja jest wpisywana do tablic \texttt{outknots} (w"ez"ly,
+ich liczba jest przypisywana do~\texttt{*outlastknot})
+i~\texttt{outctlpoints} (punkty kontrolne, podzia"lka tej tablicy jest
+r"owna \texttt{outpitch}).
+
+Nale"ry zadba"c o~dostateczn"a pojemno"s"c tablic, w~kt"orych ma by"c
+umieszczony wynik. Regu"la jest taka: je"sli ostatni w"eze"l krzywej stopnia
+$n$ ma indeks $N$, liczba wielomianowych "luk"ow krzywej jest r"owna~$l$
+(mo"rna j"a znale"z"c przez wywo"lanie procedury 
+\texttt{mbs\_NumKnotIntervalsf}), za"s reprezentacja kt"or"a chcemy
+znale"z"c ma stopie"n $n'$, to ostatni w"eze"l tej reprezentacji ma indeks
+\begin{align*}
+  N' = N+(l+1-d_0-d_1)(n'-n),
+\end{align*}
+gdzie $d_0$ i~$d_1$ s"a liczbami, takimi "re
+\begin{align*}
+  u_n=\cdots=u_{n+d_0}<u_{n+d_0+1}\quad\mbox{oraz}\quad
+  u_{N-n-d_1-1}<u_{N-n-d_1}=\cdots=u_{N-n}.
+\end{align*}
+Liczba punkt"ow kontrolnych nowej reprezentacji krzywej jest r"owna $N'-n'$.
+Dla $m$ krzywych
+po"lo"ronych w~przestrzeni o~wymiarze~$d$ nale"ry zarezerwowa"c tablic"e
+o~pojemno"sci $N'+1$ liczb na w"ez"ly i~tablic"e o~pojemno"sci $(N'-n)md$
+liczb (na wsp"o"lrz"edne punkt"ow kontrolnych).
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BSDegElevC1f(indegree,inlastknot,inknots,incoeff, \bsl \\
+\ind{4}deltadeg,outdegree,outlastknot,outknots,outcoeff,freeend) \bsl \\
+\ind{2}mbs\_multiBSDegElevf(1,1,indegree,inlastknot,inknots,0,incoeff, \bsl \\
+\ind{4}deltadeg,outdegree,outlastknot,outknots,0,outcoeff,freeend) \\
+\#define mbs\_BSDegElevC2f(indegree,inlastknot,inknots,inctlpoints, \bsl \\
+\ind{4}deltadeg,outdegree,outlastknot,outknots,outctlpoints,freeend) \bsl \\
+\ind{2}mbs\_multiBSDegElevf(1,2,indegree,inlastknot,inknots, \bsl \\
+\ind{4}0,(float*)inctlpoints,deltadeg, \bsl \\
+\ind{4}outdegree,outlastknot,outknots,0,(float*)outctlpoints,freeend) \\
+\#define mbs\_BSDegElevC3f(indegree,inlastknot,inknots,inctlpoints, \bsl \\
+\ind{2}deltadeg,outdegree,outlastknot,outknots,outctlpoints,freeend) ... \\
+\#define mbs\_BSDegElevC4f(indegree,inlastknot,inknots,inctlpoints, \bsl \\
+\ind{2}deltadeg,outdegree,outlastknot,outknots,outctlpoints,freeend) ...}
+Cztery makra, kt"ore wywo"luj"a procedur"e
+\texttt{mbs\_multiBSDegElevf} w~celu podwy"rszenia stopnia jednej skalarnej
+funkcji sklejanej lub krzywej B-sklejanej w~przes\-trze\-ni dwu-, tr"oj- lub
+czterowymiarowej.%
+\begin{figure}[ht]
+  \centerline{\epsfig{file=degel.ps}}
+  \caption{Podwy"rszenie stopnia p"laskiej krzywej B-sklejanej z $3$ do $4$}
+\end{figure}
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBSDegElevClosedf ( int ncurves, int spdimen, \\
+\ind{14}int indegree, int inlastknot, const float *inknots, \\
+\ind{14}int inpitch, const float *inctlpoints, \\
+\ind{14}int deltadeg, \\
+\ind{14}int *outdegree, int *outlastknot, \\
+\ind{14}float *outknots, int outpitch, float *outctlpoints );}
+Procedura \texttt{mbs\_multiBSDegElevClosedf} dokonuje podwy"rszenia stopnia
+zamkni"etych krzywych B-sklejanych.
+
+Parametr \texttt{ncurves} okre"sla liczb"e krzywych, parametr \texttt{spdimen}
+okre"sla wymiar przestrzeni, w~kt"orej one s"a po"lo"rone.
+
+Parametry \texttt{indegree},
+\texttt{inlastknot}, \texttt{inknots}, \texttt{inpitch}, \texttt{inctlpoints}
+opisuj"a dane wej"sciowe --- odpowiednio stopie"n~$n$, indeks ostatniego
+w"ez"la~$N$, ci"ag w"ez\-"l"ow~$u_0,\ldots,u_N$, podzia"lk"e tablicy
+punkt"ow kontrolnych i~punkty kontrolne.
+
+Parametr \texttt{deltadeg} (musi mie"c nieujemn"a warto"s"c) okre"sla
+r"o"rnic"e stopnia reprezentacji wynikowej i~danej.
+
+Parametry \texttt{*outdegree} i~\texttt{*outlastknot} s"a zmiennymi,
+do kt"orych procedura wpisze stopie"n reprezentacji wynikowej
+i~numer jej ostatniego w"ez"la. W~tablicy \texttt{outknots}
+procedura umie"sci ci"ag w"ez"l"ow tej reprezentacji.
+Parametr~\texttt{outpitch} okre"sla podzia"lk"e tablicy~\texttt{outctlpoints},
+w~kt"orej procedura
+umie"sci punkty kontrolne krzywych w~tej reprezentacji.
+
+Numer ostatniego w"ez"la wynikowej reprezentacji krzywej zamkni"etej jest
+r"owny
+\begin{align*}
+  N' = N+(l+1+r-d_0-d_1)(n'-n),
+\end{align*}
+gdzie liczba~$r$ jest krotno"sci"a w"ez"la~$u_n$ w~danej reprezentacji
+stopnia~$n$ (z~pomini"eciem w"ez"la~$u_0$), a~$d_0$ i~$d_1$ s"a liczbami,
+takimi "re
+\begin{align*}
+  u_n=\cdots=u_{n+d_0}<u_{n+d_0+1}\quad\mbox{oraz}\quad
+  u_{N-n-d_1-1}<u_{N-n-d_1}=\cdots=u_{N-n}.
+\end{align*}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BSDegElevClosedC1f(indegree,inlastknot,inknots, \bsl \\
+\ind{4}incoeff,deltadeg,outdegree,outlastknot,outknots,outcoeff) \bsl \\
+\ind{2}mbs\_multiBSDegElevClosedf(1,1,indegree,inlastknot,inknots,0, \bsl \\
+\ind{4}incoeff,deltadeg,outdegree,outlastknot,outknots,0,outcoeff) \\
+\#define mbs\_BSDegElevClosedC2f(indegree,inlastknot,inknots, \bsl \\
+\ind{4}inctlpoints,deltadeg,outdegree,outlastknot,outknots, \bsl \\
+\ind{4}outctlpoints) \bsl \\
+\ind{2}mbs\_multiBSDegElevClosedf(1,2,indegree,inlastknot,inknots,0, \bsl \\
+\ind{4}(float*)inctlpoints,deltadeg,outdegree,outlastknot,outknots, \bsl \\
+\ind{4}0,(float*)outctlpoints) \\
+\#define mbs\_BSDegElevClosedC3f(indegree,inlastknot,inknots, \bsl \\
+\ind{4}inctlpoints,deltadeg,outdegree,outlastknot,outknots, \bsl \\
+\ind{4}outctlpoints) ... \\
+\#define mbs\_BSDegElevClosedC4f(indegree,inlastknot,inknots, \bsl \\
+\ind{4}inctlpoints,deltadeg,outdegree,outlastknot,outknots, \bsl\\
+\ind{4}outctlpoints) ...}
+Cztery makra, kt"ore wywo"luj"a procedur"e \texttt{mbs\_multiBSDegElevClosedf}
+w~celu podwy"rszenia stopnia jednej zamnki"etej krzywej B-sklejanej po"lo"ronej
+w~przestrzeni o~wymiarze odpowiednio $1,2,3,4$. Parametry makr odpowiadaj"a
+pa\-ra\-met\-rom procedury o~tych samych nazwach, w~zwi"azku z~czym ich opisy
+mo"rna znale"z"c w~opisie procedury.
+
+
+\subsection*{Przyk"lad --- podwy"rszenie stopnia p"lata B-sklejanego}
+
+Stopie"n p"lata mo"rna podwy"rszy"c ze wzgl"edu na pierwszy parametr
+(,,$u$'') lub drugi (,,$v$''). Sposoby wywo"lywania odpowiednich procedur
+w~obu przypadkach, pokazane w przyk"ladzie poni"rej, opieraj"a si"e na
+za"lo"reniu, "re wszystkie siatki kontrolne p"lata (tj.\ pocz"atkowa
+i~docelowe) s"a ,,spakowane'', czyli podzia"lka ka"rdej tablicy,
+w~kt"orej s"a przechowywane punkty kontrolne jest r"owna d"lugo"sci
+reprezentacji (liczbie liczb zmiennopozycyjnych) jednej kolumny.
+
+Mamy zatem liczby $n$ i~$m$ okre"slaj"ace stopie"n pocz"atkowej
+reprezentacji p"lata, liczby $N$ i~$M$ okre"slaj"ace d"lugosci ci"ag"ow
+w"ez"l"ow dla tej reprezentacji, tablice \texttt{uknots} i~\texttt{vknots}
+(o~d"lugo"sciach $N+1$ i~$M+1$) zawieraj"ace w"ez"ly i~tablic"e
+\texttt{ctlp} zawieraj"ac"a $(N-n)(M-m)d$ liczb zmiennopozycyjnych,
+kt"ore s"a wsp"o"lrz"ednymi punkt"ow kontrolnych p"lata. Podzia"lka tablicy,
+czyli d"lugo"s"c ka"rdej kolumny, jest r"owna $(M-m)d$.
+
+Aby podwy"rszy"c stopie"n ze wzgl"edu na parametr ,,$u$'' mo"remy
+potraktowa"c ten p"lat jak krzyw"a B-sklejan"a w~przestrzeni o~wymiarze
+$(M-m)d$. Zatem, obliczamy d"lugo"sci potrzebnych tablic, rezerwujemy
+pami"e"c i~dokonujemy podwy"rszenia stopnia (w tym przyk"ladzie o~$1$):
+
+\vspace{\medskipamount}
+\noindent{\ttfamily
+\ind{2}ku = mbs\_NumKnotIntervalsf ( $n$, $N$, uknots ); \\
+\ind{2}for ( d0 = 0; uknots[$n+\mathord{\texttt{d0}}+1$] == uknots[$n$]; d0++ ) \\
+\ind{4}; \\
+\ind{2}for ( d1 = 0; uknots[$N-n-\mathord{\texttt{d1}}-1$] == unkots[$N-n$]; d1++ ) \\
+\ind{4}; \\
+\ind{2}ua = pkv\_GetScratchMemf ( $N+2+\mathord{\texttt{ku}}-\mathord{\texttt{d0}}-\mathord{\texttt{d1}}$ ); \\
+\ind{2}cpa = pkv\_GetScratchMemf ( $(N-n+\mathord{\texttt{ku}}-\mathord{\texttt{d0}}-\mathord{\texttt{d1}})(M-m)d$ ); \\
+\ind{2}mbs\_multiBSDegElevf ( 1, $(M-m)d$, $n$, $N$, uknots, 0, ctlp, 1, \\
+\ind{24}\&na, \&Na, ua, 0, cpa, false );
+}\vspace{\medskipamount}
+
+\begin{sloppypar}
+Podzia"lki tablic \texttt{cp} i~\texttt{cpa} s"a nieistotne (odpowiednie
+parametry s"a r"owne $0$), bo mamy tu podwy"rszenie stopnia tylko jednej
+krzywej. Do zmiennych \texttt{na} i~\texttt{Na} procedura przypisuje
+stopie"n (r"owny $n+1$) i~indeks ostatniego w"ez"la (r"owny
+\mbox{$N+\mathord{\texttt{ku}}-\mathord{\texttt{d0}}-\mathord{\texttt{d1}}+1$})
+otrzymanej reprezentacji p"lata. Stopie"n ze
+wzgl"edu na parametr~,,$v$'' oraz ci"ag w"ez\-"l"ow zwi"azanych z~tym
+parametrem s"a identyczne jak w~reprezentacji pocz"atkowej p"lata.%
+\end{sloppypar}
+
+Podwy"rszenie stopnia p"lata ze wzgl"edu na parametr ,,$v$'' jest
+r"ownowa"rne podwy"rszeniu stopnia krzywych B-sklejanych reprezentowanych
+przez kolumny siatki kontrolnej. Odpowiedni kod, dokonuj"acy podwy"rszenia
+stopnia o~$1$, wygl"ada tak:
+
+\vspace{\medskipamount}
+\noindent{\ttfamily
+\ind{2}kv = mbs\_NumKnotIntervalsf ( $m$, $M$, vknots ); \\
+\ind{2}for ( d0 = 0; vknots[$m+\mathord{\texttt{d0}}+1$] == vknots[$m$]; d0++ ) \\
+\ind{4}; \\
+\ind{2}for ( d1 = 0; vknots[$M-m-\mathord{\texttt{d1}}-1$] == vnkots[$M-m$]; d1++ ) \\
+\ind{4}; \\
+\ind{2}va = pkv\_GetScratchMemf ( $M+2+\mathord{\texttt{kv}}-\mathord{\texttt{d0}}-\mathord{\texttt{d1}}$ ); \\
+\ind{2}cpa = pkv\_GetScratchMemf ( $(N-n)(M-m+\mathord{\texttt{kv}}-\mathord{\texttt{d0}}-\mathord{\texttt{d1}})d$ ); \\
+\ind{2}pitch1 = $(M-m)d$; \\
+\ind{2}pitch2 = $(M-m+\mathord{\texttt{kv}}-\mathord{\texttt{d0}}-\mathord{\texttt{d1}})d$; \\
+\ind{2}mbs\_multiBSDegElevf ( $N-n$, $d$, $m$, $M$, vknots, pitch1, ctlp, 1, \\
+\ind{24}\&ma, \&Ma, va, pitch2, cpa, false );
+}\vspace{\medskipamount}
+
+W~razie potrzeby podwy"rszenia stopnia o~wi"ecej ni"r~$1$, mo"rna wykona"c
+przedstawione wy"rej procedury kilkakrotnie, ale znacznie szybciej
+i~z~mniejszymi b"l"edami zaokr"agle"n mo"rna otrzyma"c wynik podaj"ac
+odpowiedni parametr \texttt{deltadeg}. Wymaga to w"la"sciwego obliczenia
+d"lugo"sci i~podzia"lek tablic potrzebnych do pomieszczenia poszukiwanych
+reprezentacji p"lata. Odpowiednie wskaz"owki s"a podane w~opisie procedury
+\texttt{mbs\_multiBSDegElevf}%
+\begin{figure}[ht]
+  \centerline{\epsfig{file=bspdegel.ps}}
+  \caption{Przyk"lad podwy"rszania stopnia p"lata B-sklejanego}
+\end{figure}
+
+
+\newpage
+\section{Obni"ranie stopnia}
+
+Obni"ranie stopnia krzywej B-sklejanej jest zadaniem aproksymacyjnym
+(podobnie jak usuwanie w"ez"la). Jego celem jest otrzymanie krzywej
+B-sklejanej~$\tilde{\bm{s}}$ stopnia~$\tilde{n}=n-d$ (dla
+$d\in\{1,\ldots,n\}$), kt"ora przybli"ra dan"a krzyw"a~$\bm{s}$ stopnia~$n$.
+W~tej konstrukcji nale"ry arbitralnie przyj"a"c ci"ag w"ez"l"ow krzywej
+wynikowej, i~mo"re to mie"c to du"ry wp"lyw na kszta"lt tej krzywej.
+Nast"epuj"ace za"lo"renia s"a chyba oczywiste:
+\begin{itemize}
+  \item Krzywa wynikowa musi mie"c t"e sam"a dziedzin"e, co krzywa dana.
+  \item Je"sli krzywa dana~$\bm{s}$ powsta"la przez podwy"rszenie o~$d$
+    stopnia krzywej~$\tilde{\bm{s}}$ stopnia~$n'$, to wynikiem
+    obni"rania stopnia powinna by"c krzywa~$\tilde{\bm{s}}$.
+\end{itemize}
+W~konstrukcjach zaimplementowanych w~procedurach opisanych w~tym punkcie
+zbi"or w"ez"l"ow krzywej wynikowej jest podzbiorem zbioru w"ez"l"ow krzywej
+danej, przy czym regu"la okre"slania krotno"sci tych w"ez"l"ow jest taka:
+niech pewien w"eze"l $u_i$ w~reprezentacji krzywej danej ma krotno"s"c~$r$.
+\pagebreak[2]
+Je"sli $r<=d$, to krotno"s"c $\tilde{r}$ tego w"ez"la w~reprezentacji
+wynikowej jest r"owna~$1$. Je"sli $d<r<=n+1$, to $\tilde{r}=r-d$,
+a~je"sli $r>n+1$, to $\tilde{r}=n-d+1$.
+
+Dla \textbf{krzywej niezamkni"etej} ci"ag w"ez"l"ow otrzymany na
+podstawie opisanej wy"rej regu"ly jest modyfikowany w~taki spos"ob, aby
+otrzyma"c ci"ag $\tilde{u}_0,\ldots,\tilde{u}_{\tilde{N}}$, taki "re
+$\tilde{u}_{n'}<\tilde{u}_{n'+1}$ oraz
+$\tilde{u}_{\tilde{N}-n'-1}<\tilde{u}_{\tilde{N}-n'-1}$. W~tym celu
+na pocz"atku i~na ko"ncu pewne w"ez"ly mog"a zosta"c odrzucone
+lub dopisane (dopisywany jest w"eze"l pocz"atkowy lub ko"ncowy ci"agu).
+
+Nast"epnie wyznaczany jest pomocniczy ci"ag w"ez"l"ow
+$\hat{u}_0,\ldots,\hat{u}_{\hat{N}}$, w~kt"orym wyst"epuj"a wszystkie w"ez"ly
+ci"agu wynikowego, przy czym krotno"sci tych w"ez"l"ow s"a wi"eksze
+o~$d$ od krotno"sci w"ez"l"ow w~ci"agu wynikowym
+$\tilde{u}_0,\ldots,\tilde{u}_{\tilde{N}}$. Przez wstawienie w"ez"l"ow
+(algorytmem Oslo, za pomoc"a procedury \texttt{mbs\_multiOsloInsertKnotsf})
+i~usuni"ecie nadmiarowych w"ez"l"ow (o~krotno"sci wi"ekszej ni"r~$n+1$,
+za pomoc"a procedury \texttt{mbs\_multiRemoveSuperfluousKnotsf}) otrzymywana
+jest reprezentacja danej krzywej~$\bm{s}$ oparta na ci"agu w"ez"l"ow
+pomocniczych:
+\begin{align*}
+  \bm{s}(t) = \sum_{i=0}^{N-n-1}\bm{d}_iN^n_i(t) =
+  \sum_{i=0}^{\hat{N}-n-1}\hat{\bm{d}}_i\hat{N}^n_i(t).
+\end{align*}
+Nast"epnie konstruowana jest macierz~$A$, kt"ora opisuje podwy"rszenie o~$d$
+stopnia krzywej B-sklejanej stopnia~$n'$ opartej na ci"agu w"ez"l"ow
+$\tilde{u}_0,\ldots,\tilde{u}_{\tilde{N}}$. Punkty kontrolne
+$\tilde{\bm{d}}_0,\ldots,\tilde{\bm{d}}_{\tilde{N}-n'-1}$ krzywej
+wynikowej~$\tilde{\bm{s}}$ s"a obliczane przez rozwi"azanie liniowego
+zadania najmniejszych kwadrat"ow dla uk"ladu r"owna"n
+\begin{align*}
+  A\bm{x}=\bm{b},
+\end{align*}
+w~kt"orym $\bm{x}=[\tilde{\bm{d}}_0,\ldots,\tilde{\bm{d}}_{\tilde{N}-n'-1}]^T$
+oraz $\bm{b}=[\hat{\bm{d}}_0,\ldots,\hat{\bm{d}}_{\hat{N}-n-1}]^T$.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_multiBSDegRedf ( int ncurves, int spdimen, \\
+\ind{16}int indegree, int inlastknot, const float *inknots, \\
+\ind{16}int inpitch, const float *inctlpoints, \\
+\ind{16}int deltadeg, \\
+\ind{16}int *outdegree, int *outlastknot, float *outknots, \\
+\ind{16}int outpitch, float *outctlpoints );}
+Procedura \texttt{mbs\_multiBSDegRedf} dokonuje obni"renia stopnia B-sklejanych
+krzywych niezamkni"etych, zgodnie z~opisem podanym wy"rej. Parametry wej"sciowe
+opisuj"a: \texttt{ncurves} --- liczb"e krzywych, \texttt{spdimen} --- wymiar
+przestrzeni, w~kt"orej le"r"a krzywe, \texttt{indegree} --- stopie"n~$n$,
+\texttt{inlastknot} --- indeks~$N$ ostatniego w"ez"la reprezentacji danej,
+\texttt{inknots} --- ci"ag w"ez"l"ow reprezentacji danej (w~tablicy
+o~d"lugo"sci~$N+1$), \texttt{inpitch} --- podzia"lk"e tablicy z~punktami
+kontrolnymi krzywych danych, \texttt{deltadeg} --- liczb"e~$d$, o~kt"or"a
+nale"ry obni"ry"c stopie"n.
+
+Parametry wyj"sciowe: \texttt{*outdegree} --- zmienna, kt"orej zostanie
+przypisany stopie"n~$n'$ krzywych wynikowych, \texttt{*outlastknot} ---
+zmienna, kt"orej zostanie przypisany indeks~$\tilde{N}$ ostatniego w"ez"la
+ci"agu wynikowego, \texttt{outknots} --- tablica, do kt"orej zostan"a
+wpisane w"ez"ly wynikowe $\tilde{u}_0,\ldots,\tilde{u}_{\tilde{N}}$,
+\texttt{outpitch} --- podzia"lka tablicy \texttt{outctlpoints},
+do kt"orej procedura wstawi punkty kontrolne krzywych wynikowych.
+
+\vspace{\medskipamount}
+\textbf{Uwaga:} Nie ma obecnie osobnej procedury, kt"ora oblicza d"lugo"s"c
+wynikowego ci"agu w"ez"l"ow i~kt"orej mo"rna by u"ry"c w~celu zaalokowania
+tablic na te w"ez"ly i~na punkty kontrolne o~odpowiednich d"lugo"sciach.
+Zanim to zostanie zrobione, trzeba poda"c tablice z~miejscem na zapas.
+Tak"re i~podzia"lk"e tablicy \texttt{outctlpoints} na razie wysysa si"e
+z~palca.
+
+Warto"sci"a procedury jest \texttt{true} je"sli obni"ranie stopnia zako"nczy"lo
+si"e sukcesem, a~\texttt{false} w~przeciwnym razie. W~razie b"l"edu
+procedura wywo"luje jednak procedur"e \texttt{pkv\_SignalError}, kt"orej
+domy"slne dzia"lanie powoduje zatrzymanie programu.
+
+
+\begin{figure}[ht]
+  \centerline{\epsfig{file=degred1.ps}}
+  \caption{Obni"ranie stopnia krzywej B-sklejanej z~$5$ do~$4$}
+\end{figure}
+
+\cprog{%
+\#define mbs\_BSDegRedC1f(indegree,inlastknot,inknots,incoeff, \bsl \\
+\ind{4}deltadeg,outdegree,outlastknot,outknots,outcoeff) \bsl \\
+\ind{2}mbs\_multiBSDegRedf(1,1,indegree,inlastknot,inknots,0,incoeff, \bsl \\
+\ind{4}deltadeg,outdegree,outlastknot,outknots,0,outcoeff) \\
+\#define mbs\_BSDegRedC2f(indegree,inlastknot,inknots,incpoints, \bsl \\
+\ind{4}deltadeg,outdegree,outlastknot,outknots,outcpoints) \bsl \\
+\ind{2}mbs\_multiBSDegRedf(1,2,indegree,inlastknot,inknots,0, \bsl \\
+\ind{4}(float*)incpoints, \bsl \\
+\ind{4}deltadeg,outdegree,outlastknot,outknots,0,(float*)outcpoints) \\
+\#define mbs\_BSDegRedC3f(indegree,inlastknot,inknots,incpoints, \bsl \\
+\ind{4}deltadeg,outdegree,outlastknot,outknots,outcpoints) ... \\
+\#define mbs\_BSDegRedC4f(indegree,inlastknot,inknots,incpoints, \bsl \\
+\ind{4}deltadeg,outdegree,outlastknot,outknots,outcpoints) ...}
+Powy"rsze makra s"lu"r"a do wywo"lania procedury
+\texttt{mbs\_multiBSDegRedf} w~celu obni"renia stopnia jednej krzywej
+w~przestrzeni o~wymiarze $1,\ldots,4$.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_multiBSDegRedClosedf ( int ncurves, int spdimen, \\
+\ind{16}int indegree, int inlastknot, const float *inknots, \\
+\ind{16}int inpitch, const float *inctlpoints, \\
+\ind{16}int deltadeg, \\
+\ind{16}int *outdegree, int *outlastknot, float *outknots, \\
+\ind{16}int outpitch, float *outctlpoints );}
+Procedura \texttt{mbs\_multiBSDegRedClosedf} dokonuje obni"renia stopnia
+B-sklejanej krzywej zamkni"etej. Jej parametry maj"a opisy identyczne
+jak parametry procedury \texttt{mbs\_multiBSDegRedf}.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BSDegRedClosedC1f(indegree,inlastknot,inknots, \bsl \\
+\ind{4}incoeff,deltadeg,outdegree,outlastknot,outknots,outcoeff) \bsl \\
+\ind{2}mbs\_multiBSDegRedClosedf(1,1,indegree,inlastknot,inknots,0, \bsl \\
+\ind{4}incoeff,deltadeg,outdegree,outlastknot,outknots,0,outcoeff) \\
+\#define mbs\_BSDegRedClosedC2f(indegree,inlastknot,inknots, \bsl \\
+\ind{4}incpoints,deltadeg,outdegree,outlastknot,outknots,outcpoints) \bsl \\
+\ind{2}mbs\_multiBSDegRedClosedf(1,2,indegree,inlastknot,inknots,0, \bsl \\
+\ind{4}(float*)incpoints, \bsl \\
+\ind{4}deltadeg,outdegree,outlastknot,outknots,0,(float*)outcpoints) \\
+\#define mbs\_BSDegRedClosedC3f(indegree,inlastknot,inknots, \bsl \\
+\ind{2}incpoints,deltadeg,outdegree,outlastknot,outknots,outcpoints) ... \\
+\#define mbs\_BSDegRedClosedC4f(indegree,inlastknot,inknots, \bsl \\
+\ind{2}incpoints,deltadeg,outdegree,outlastknot,outknots,outcpoints) ...}
+\begin{sloppypar}
+Powy"rsze makra s"lu"r"a do wywo"lania procedury
+\texttt{mbs\_multiBSDegRedClosedf} w~celu obni"renia stopnia jednej krzywej
+zamkni"etej po"lo"ronej w~przestrzeni o~wymiarze $1,\ldots,4$.%
+\end{sloppypar}
+
+\begin{figure}[ht]
+  \centerline{\epsfig{file=degred2.ps}}
+  \caption{Obni"ranie stopnia zamkni"etej krzywej B-sklejanej z~$5$ do~$4$}
+\end{figure}
+

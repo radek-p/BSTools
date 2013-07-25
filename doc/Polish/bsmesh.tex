@@ -1,0 +1,377 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{Biblioteka \texttt{libbsmesh}}
+
+\section{Reprezentacja siatki}
+
+Siatka jest obiektem sk"ladaj"acym si"e z~\textbf{wierzcho"lk"ow},
+\textbf{kraw"edzi} i~\textbf{"scian}. Mo"re ona s"lu"ry"c m.in.\ do
+reprezentowania np.\ bry"ly wielo"sciennej lub powierzchni sklejanej.
+Kraw"ed"z jest odcinkiem "l"acz"acym wierzcho"lki.
+"Sciana jest zamkni"et"a "laman"a zbudowan"a z~kraw"edzi. Kraw"ed"z mo"re
+nale"re"c do jednej lub do dw"och "scian; w~pierwszym przypadku jest
+nazywana \textbf{kraw"edzi"a brzegow"a}, a~w~drugim --- \textbf{kraw"edzi"a
+wewn"etrzn"a}.
+
+W~reprezentacji siatki przetwarzanej przez procedury z~biblioteki
+\texttt{libbsmesh} kraw"edzie brzegowe i~wewn"etrzne s"a reprezentowane
+odpowiednio za pomoc"a jednej lub dw"och \textbf{p"o"lkraw"edzi}.
+P"o"lkraw"ed"z ma orientacj"e, tj.\ jeden z~jej wierzcho"lk"ow jest
+pocz"atkiem, a~drugi ko"ncem. Orientacja drugiej p"o"lkraw"edzi w~parze
+reprezentuj"acej kraw"ed"z wewn"etrzn"a jest przeciwna. Ka"rda
+p"o"lkraw"ed"z jest zwi"azana tylko z~jedn"a "scian"a.
+
+Wierzcho"lki, p"o"lkraw"edzie i~"sciany s"a przechowywane w~tablicach
+(indeksowanych od~$0$), przy czym identyfikatorem wierzcho"lka,
+p"o"lkraw"edzi i~"sciany jest jego indeks w~tablicy. Kompletna reprezentacja
+siatki sk"lada si"e z~trzech liczb: liczby wierzcho"lk"ow~$n_v$, liczby
+p"o"lkraw"edzi~$n_h$ i~liczby "scian~$n_f$, oraz sze"sciu tablic:
+tablicy wierzcho"lk"ow~\texttt{v}, tablicy indeks"ow p"o"lkraw"edzi
+wychodz"acych z~wierzcho"lk"ow~\texttt{vhei}, tablicy pozycji
+wierzcho"lk"ow~\texttt{pos}, tablicy p"o"lkraw"edzi~\texttt{he}, tablicy
+"scian~\texttt{fac} i~tablicy indeks"ow p"o"lkraw"edzi "scian~\texttt{fhei}.
+Wierzcho"lki, "sciany i~p"o"lkraw"edzie s"a opisane przez nast"epuj"ace
+struktury:
+
+\vspace{\medskipamount}
+\begin{listingC}
+typedef struct {
+    char degree;
+    int  firsthalfedge;
+  } BSMfacet, BSMvertex;
+
+typedef struct {
+    int v0, v1; 
+    int facetnum;
+    int otherhalf;
+  } BSMhalfedge;  
+\end{listingC}
+
+\begin{figure}[ht]
+  \centerline{\begin{picture}(3000,1700)
+    \put(0,100){\epsfig{file=bsmesh.ps}}
+    \put(1900,1560){\texttt{int nv = 6, nhe = 11, nf = 3;}}
+    \put(1900,1440){\texttt{BSMvertex v[6] = \{\{3,0\},\{2,3\},}}
+    \put(1900,1320){\texttt{ \ \ \ \{2,5\},\{2,7\},\{1,9\},\{1,10\}\};}}
+    \put(1900,1200){\texttt{int vhei[11] = \{7,3,0,4,6,8,}}
+    \put(1900,1080){\texttt{ \ \ \ 10,1,2,5,9\};}}
+    \put(1900,960){\texttt{BSMhalfedge he[11] = \{\{0,3,1,1\},}}
+    \put(1900,840){\texttt{ \ \ \{3,0,0,0\},\{3,4,1,-1\},}}
+    \put(1900,720){\texttt{ \ \ \{0,1,2,4\},\{1,0,1,3\},}}
+    \put(1900,600){\texttt{ \ \ \{4,1,1,-1\},\{1,5,2,-1\},}}
+    \put(1900,480){\texttt{ \ \ \{0,2,0,8\},\{2,0,2,7\}}}
+    \put(1900,360){\texttt{ \ \ \{5,2,2,-1\},\{2,3,0,-1\}\};}}
+    \put(1900,240){\texttt{BSMfacet fac[3] = \{\{3,0\},}}
+    \put(1900,120){\texttt{ \ \ \{4,3\},\{4,7\}\};}}
+    \put(1300,0){\texttt{int fhei[11] = \{1,7,10,5,4,0,2,9,8,3,6\};}}
+  \end{picture}}
+  \caption{\label{fig:bsmesh}Przyk"lad siatki}
+\end{figure}
+Przyk"lad reprezentacji siatki jest pokazany na rysunku~\ref{fig:bsmesh};
+tablica ze wsp"o"lrz"ednymi wierzcho"lk"ow jest pomini"eta.
+
+
+\begin{listingC}
+boolean bsm_CheckMeshIntegrity (
+             int nv, const BSMvertex *mv, const int *mvhei,
+             int nhe, const BSMhalfedge *mhe,
+             int nfac, const BSMfacet *mfac, const int  *mfhei );
+\end{listingC}
+
+\begin{listingC}
+void bsm_TagMesh ( int nv, BSMvertex *mv, int *mvhei,
+                   int nhe, BSMhalfedge *mhe,
+                   int nfac, BSMfacet *mfac, int *mfhei,
+                   char *vtag, char *ftag,
+                   int *vi, int *vb, int *ei, int *eb );
+\end{listingC}
+
+\newpage
+\section{Procedury zag"eszczania siatki}
+
+\begin{listingC}
+boolean bsm_DoublingNum ( int inv, BSMvertex *imv, int *imvhei,
+                          int inhe, BSMhalfedge *imhe,
+                          int infac, BSMfacet *imfac, int *imfhei,
+                          int *onv, int *onhe, int *onfac );
+boolean bsm_Doublingd ( int spdimen,
+                int inv, BSMvertex *imv, int *imvhei, double *iptc,
+                int inhe, BSMhalfedge *imhe,
+                int infac, BSMfacet *imfac, int *imfhei,
+                int *onv, BSMvertex *omv, int *omvhei, double *optc,
+                int *onhe, BSMhalfedge *omhe,
+                int *onfac, BSMfacet *omfac, int *omfhei );
+\end{listingC}
+
+\begin{listingC}
+int bsm_DoublingMatSize ( int inv, BSMvertex *imv, int *imvhei,
+                          int inhe, BSMhalfedge *imhe,
+                          int infac, BSMfacet *imfac, int *imfhei );
+boolean bsm_DoublingMatd ( int inv, BSMvertex *imv, int *imvhei,
+                           int inhe, BSMhalfedge *imhe,
+                           int infac, BSMfacet *imfac, int *imfhei,
+                           int *onv, BSMvertex *omv, int *omvhei,  
+                           int *onhe, BSMhalfedge *omhe,
+                           int *onfac, BSMfacet *omfac, int *omfhei,
+                           int *ndmat, index2 *dmi, double *dmc );  
+\end{listingC}
+
+\begin{listingC}
+boolean bsm_AveragingNum ( int inv, BSMvertex *imv, int *imvhei,
+                           int inhe, BSMhalfedge *imhe,
+                           int infac, BSMfacet *imfac, int *imfhei,
+                           int *onv, int *onhe, int *onfac );
+boolean bsm_Averagingd ( int spdimen,
+                 int inv, BSMvertex *imv, int *imvhei, double *iptc,
+                 int inhe, BSMhalfedge *imhe,
+                 int infac, BSMfacet *imfac, int *imfhei,
+                 int *onv, BSMvertex *omv, int *omvhei, double
+                 *optc,
+                 int *onhe, BSMhalfedge *omhe,
+                 int *onfac, BSMfacet *omfac, int *omfhei );
+\end{listingC}
+
+\begin{listingC}
+int bsm_AveragingMatSize ( int inv, BSMvertex *imv, int *imvhei,
+                           int inhe, BSMhalfedge *imhe,
+                           int infac, BSMfacet *imfac, int *imfhei );
+boolean bsm_AveragingMatd ( int inv, BSMvertex *imv, int *imvhei,
+                            int inhe, BSMhalfedge *imhe,
+                            int infac, BSMfacet *imfac, int *imfhei,
+                            int *onv, BSMvertex *omv, int *omvhei,  
+                            int *onhe, BSMhalfedge *omhe,
+                            int *onfac, BSMfacet *omfac, int *omfhei,
+                            int *namat, index2 *ami, double *amc );  
+\end{listingC}
+
+\begin{listingC}
+boolean bsm_RefineBSMeshd ( int spdimen, int degree,
+            int inv, BSMvertex *imv, int *imvhei, double *iptc,
+            int inhe, BSMhalfedge *imhe,
+            int infac, BSMfacet *imfac, int *imfhei,
+            int *onv, BSMvertex **omv, int **omvhei, double **optc,
+            int *onhe, BSMhalfedge **omhe,
+            int *onfac, BSMfacet **omfac, int **omfhei );
+
+\end{listingC}
+
+\begin{listingC}
+boolean bsm_RefinementMatd ( int degree,
+                             int inv, BSMvertex *imv, int *imvhei,
+                             int inhe, BSMhalfedge *imhe,
+                             int infac, BSMfacet *imfac, int *imfhei,
+                             int *onv, BSMvertex **omv, int **omvhei,
+                             int *onhe, BSMhalfedge **omhe,
+                             int *onfac, BSMfacet **omfac, int **omfhei,
+                             int *nrmat, index2 **rmi, double **rmc );  
+\end{listingC}
+
+
+\newpage
+\section{Operacje Eulerowskie i~nie-Eulerowskie}
+
+\begin{listingC}
+void bsm_MergeMeshesd ( int spdimen,
+                  int nv1, BSMvertex *mv1, int *mvhei1, double *vpc1,
+                  int nhe1, BSMhalfedge *mhe1,
+                  int nfac1, BSMfacet *mfac1, int *mfhei1,
+                  int nv2, BSMvertex *mv2, int *mvhei2, double *vpc2,
+                  int nhe2, BSMhalfedge *mhe2,
+                  int nfac2, BSMfacet *mfac2, int *mfhei2,
+                  int *onv, BSMvertex *omv, int *omvhei, double *ovpc,
+                  int *onhe, BSMhalfedge *omhe,
+                  int *onfac, BSMfacet *omfac, int *omfhei );
+\end{listingC}
+
+\begin{listingC}
+boolean bsm_RemoveFacetNum ( int inv, BSMvertex *imv, int *imvhei,
+                             int inhe, BSMhalfedge *imhe,
+                             int infac, BSMfacet *imfac, int *imfhei,
+                             int nfr,
+                             int *onv, int *onhe, int *onfac );
+boolean bsm_RemoveFacetd ( int spdimen,
+                   int inv, BSMvertex *imv, int *imvhei, double *iptc,
+                   int inhe, BSMhalfedge *imhe,
+                   int infac, BSMfacet *imfac, int *imfhei,
+                   int nfr,
+                   int *onv, BSMvertex *omv, int *omvhei, double *optc,
+                   int *onhe, BSMhalfedge *omhe,
+                   int *onfac, BSMfacet *omfac, int *omfhei );
+\end{listingC}
+
+\begin{listingC}
+void bsm_FacetEdgeDoublingNum ( int inv, BSMvertex *imv, int *imvhei,
+                                int inhe, BSMhalfedge *imhe,
+                                int infac, BSMfacet *imfac, int *imfhei,
+                                int fn,
+                                int *onv, int *onhe, int *onfac );
+boolean bsm_FacetEdgeDoublingd ( int spdimen,
+                 int inv, BSMvertex *imv, int *imvhei, double *iptc,
+                 int inhe, BSMhalfedge *imhe,
+                 int infac, BSMfacet *imfac, int *imfhei,
+                 int fn,
+                 int *onv, BSMvertex *omv, int *omvhei,
+                 double *optc,
+                 int *onhe, BSMhalfedge *omhe,
+                 int *onfac, BSMfacet *omfac, int *omfhei );
+\end{listingC}
+
+\begin{listingC}
+void bsm_RemoveVertexNum ( int inv, BSMvertex *imv, int *imvhei,
+                           int inhe, BSMhalfedge *imhe,
+                           int infac, BSMfacet *imfac, int *imfhei,
+                           int nvr,
+                           int *onv, int *onhe, int *onfac );
+boolean bsm_RemoveVertexd ( int spdimen,
+                int inv, BSMvertex *imv, int *imvhei, double *iptc,
+                int inhe, BSMhalfedge *imhe,
+                int infac, BSMfacet *imfac, int *imfhei,
+                int nvr,
+                int *onv, BSMvertex *omv, int *omvhei, double *optc,
+                int *onhe, BSMhalfedge *omhe,
+                int *onfac, BSMfacet *omfac, int *omfhei );
+\end{listingC}
+
+\begin{listingC}
+void bsm_ContractEdgeNum ( int inv, BSMvertex *imv, int *imvhei,
+                           int inhe, BSMhalfedge *imhe,
+                           int infac, BSMfacet *imfac, int *imfhei,
+                           int nche,
+                           int *onv, int *onhe, int *onfac );
+int bsm_ContractEdged ( int spdimen,
+                int inv, BSMvertex *imv, int *imvhei, double *iptc,
+                int inhe, BSMhalfedge *imhe,
+                int infac, BSMfacet *imfac, int *imfhei,
+                int nche,
+                int *onv, BSMvertex *omv, int *omvhei, double *optc,
+                int *onhe, BSMhalfedge *omhe,
+                int *onfac, BSMfacet *omfac, int *omfhei );
+\end{listingC}
+
+\begin{listingC}
+int bsm_HalfedgeLoopLength ( int nv, BSMvertex *mv, int *mvhei,
+                             int nhe, BSMhalfedge *mhe,
+                             int he );
+\end{listingC}
+
+\begin{listingC}
+boolean bsm_GlueHalfedgeLoopsd ( int spdimen,
+                     int inv, BSMvertex *imv, int *imvhei, double *ivc,
+                     int inhe, BSMhalfedge *imhe,
+                     int infac, BSMfacet *imfac, int *imfhei,
+                     int he1, int he2,
+                     int *onv, BSMvertex *omv, int *omvhei,
+                     double *ovc,
+                     int *onhe, BSMhalfedge *omhe,
+                     int *onfac, BSMfacet *omfac, int *omfhei );
+\end{listingC}
+
+
+\newpage
+\section{Wyszukiwanie podsiatek regularnych i~specjalnych}
+
+\begin{listingC}
+typedef struct {
+    byte  el_type;
+    byte  degree;
+    byte  snet_rad;
+    short snet_nvert;
+    int   first_snet_vertex;
+  } bsm_special_el;
+
+typedef struct {
+    int            nspecials;
+    int            nspvert;
+    int            nextravert;
+    bsm_special_el *spel;
+    int            *spvert;
+  } bsm_special_elem_list;
+\end{listingC}
+
+
+\begin{listingC}
+boolean bsm_FindRegularSubnets ( int nv, BSMvertex *mv, int *mvhei,
+                         int nhe, BSMhalfedge *mhe,
+                         int nfac, BSMfacet *mfac, int *mfhei,
+                         int d, void *usrptr,
+                         void (*output)( int d, int *vertnum, int *mtab,
+                                         void *usrptr ) );
+\end{listingC}
+
+\begin{listingC}
+boolean bsm_FindSpecialVSubnets ( int nv, BSMvertex *mv, int *mvhei,
+                          int nhe, BSMhalfedge *mhe,
+                          int nfac, BSMfacet *mfac, int *mfhei,
+                          int d, void *usrptr,
+                          void (*output)( int d, int k, int *vertnum,
+                                          int *mtab, void *usrptr ) );
+\end{listingC}
+
+\begin{listingC}
+boolean bsm_FindSpecialFSubnets ( int nv, BSMvertex *mv, int *mvhei,
+                          int nhe, BSMhalfedge *mhe,
+                          int nfac, BSMfacet *mfac, int *mfhei,
+                          int d, void *usrptr,
+                          void (*output)( int d, int k, int *vertnum,
+                                          int *mtab, void *usrptr ) );
+\end{listingC}
+
+\begin{listingC}
+boolean bsm_CountSpecialVSubnets ( int nv, BSMvertex *mv, int *mvhei,
+                                   int nhe, BSMhalfedge *mhe,
+                                   int nfac, BSMfacet *mfac, int *mfhei,
+                                   byte snet_rad,
+                                   int *nspecials, int *nspvert );
+boolean bsm_FindSpecialVSubnetList (
+                               int nv, BSMvertex *mv, int *mvhei,
+                               int nhe, BSMhalfedge *mhe,
+                               int nfac, BSMfacet *mfac, int *mfhei,
+                               byte snet_rad,
+                               boolean append,
+                               bsm_special_elem_list *list );
+\end{listingC}
+
+\begin{listingC}
+boolean bsm_CountSpecialFSubnets ( int nv, BSMvertex *mv, int *mvhei,
+                                   int nhe, BSMhalfedge *mhe,
+                                   int nfac, BSMfacet *mfac, int *mfhei,
+                                   byte snet_rad,
+                                   int *nspecials, int *nspvert );
+boolean bsm_FindSpecialFSubnetLists (
+                                int nv, BSMvertex *mv, int *mvhei,
+                                int nhe, BSMhalfedge *mhe,
+                                int nfac, BSMfacet *mfac, int *mfhei,
+                                boolean append,
+                                byte snet_rad, 
+                                bsm_special_elem_list *list );
+\end{listingC}
+
+
+\section{Inne procedury}
+
+\begin{listingC}
+void bsm_TagBoundaryZoneVertices ( int nv, BSMvertex *mv, int *mvhei,
+                                   int nhe, BSMhalfedge *mhe,
+                                   char d, char *vtag );
+\end{listingC}
+
+\begin{listingC}
+boolean bsm_FindVertexDistances1 ( int nv, BSMvertex *mv, int *mvhei,
+                                   int nhe, BSMhalfedge *mhe,
+                                   int nfac, BSMfacet *mfac, int *mfhei,
+                                   int v, int *dist );
+\end{listingC}
+
+\begin{listingC}
+boolean bsm_FindVertexDistances2 ( int nv, BSMvertex *mv, int *mvhei,
+                                   int nhe, BSMhalfedge *mhe,
+                                   int nfac, BSMfacet *mfac, int *mfhei,
+                                   int v, int *dist );
+\end{listingC}
+
+
+

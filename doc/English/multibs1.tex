@@ -1,0 +1,598 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{The \texttt{libmultibs} library}
+
+\section[Basic definitions and representations of curves and patches]%
+{Basic definitions and representations \\ of curves and patches}
+
+\subsection{B\'{e}zier curves}
+
+A~\unl{B\'{e}zier curve} is defined by the formula
+\begin{align}\label{eq:Bezc:def}
+  \bm{p}(t) = \sum_{i=0}^n \bm{p}_iB^n_i(t),
+\end{align}
+with \unl{control points} $\bm{p}_0,\ldots,\bm{p}_n$
+and \unl{Bernstein polynomials}
+\begin{align}
+  B^n_i(t) \stackrel{\mathrm{def}}{=} \binom{n}{i}t^i(1-t)^{n-i},\quad
+  i=0,\ldots,n.
+\end{align}
+
+The polyline, whose consecutive vertices are the points
+$\bm{p}_0,\ldots,\bm{p}_n$, is called the \unl{control polygon} of the curve.
+Each control point has $d$ coordinates and then the curve is located in the
+$d$-dimensional space. In particular, for $d=1$ the formula~(\ref{eq:Bezc:def})
+describes a~polynomial of the variable~$t$ of degree at most~$n$.
+
+The representation of a~B\'{e}zier curve consists of the number~$n$
+and of the sequence of $n+1$ control points, whose coordinates
+($(n+1)d$ floating-point numbers) are packed in an array
+(i.e.\ first come $d$~coordinates of $\bm{p}_0$, then $\bm{p}_1$ etc.).
+
+\vspace{\medskipamount}
+\unl{A~rational B\'{e}zier curve} is given by
+\begin{align}
+  \bm{p}(t) =
+  \frac{\sum_{i=0}^n w_i\bm{p}_i B^n_i(t)}{\sum_{i=0}^n w_iB^n_i(t)},
+\end{align}
+with the Bernstein polynomials, control points
+$\bm{p}_0,\ldots,\bm{p}_n$ and \unl{weights} $w_0,\ldots,w_n$. Such a~curve is
+located in the same space as the control points.
+
+If $w_i=0$ for some~$i$, then the expression $w_i\bm{p}_i$ may be replaced
+by an arbitrary vector $\bm{v}_i$, thus extending the definition of the curve,
+but at least one weight must be nonzero.
+
+The control points $\bm{p}_i$ of the rational curve are convenient for the
+program user, which may interactively modify them, but the procedures
+of this library process the \unl{homogeneous representation}.
+For a~curve in a~$d$-dimensional space it is a~polynomial curve in
+the space of dimension $d+1$:
+\begin{align}
+  \bm{P}(t) = \sum_{i=0}^n\bm{P}_iB^n_i(t),
+\end{align}
+whose control points $\bm{P}_i$ are given by
+\begin{align}
+  \bm{P}_i = \left[\begin{array}{c}w_i\bm{p}_i \\ w_i \end{array}\right].
+\end{align}
+The last (i.e.\ $d+{}$first) homogeneous coordinate is thus the weight.
+If $w_i=0$ then
+\begin{align}
+  \bm{P}_i = \left[\begin{array}{c}\bm{v}_i \\ 0 \end{array}\right].
+\end{align}
+
+The cartesian coordinates of the point $\bm{p}(t)$ of a~rational curve
+are obtained by dividing the first $d$ coordinates of the point $\bm{P}(t)$
+by its last coordinate.
+
+The representation of a~rational curve e.g.\ in a~three-dimensional space
+consists of the number~$n$ (which determines the degree of the representation)
+and of an array of $4(n+1)$ floating point numbers, being the
+coordinates of the consecutive points~$\bm{P}_i$.
+As the homogeneous curves are ordinary polynomial curves, in most cases
+they may be processed with the procedures appropriate for the polynomial
+B\'{e}zier curves.
+
+
+\subsection{Tensor product B\'{e}zier patches}
+
+\begin{sloppypar}
+A~\unl{tensor product (rectangular) B\'{e}zier patch} is defined by
+the formula
+\begin{align}
+  \bm{p}(u,v) = \sum_{i=0}^n\sum_{j=0}^m \bm{p}_{ij}B^n_i(u)B^m_j(v),
+\end{align}
+with the Bernstein polynomials $B^n_i$ and $B^m_j$ of degrees
+$n$ and $m$ respectively and with the control points $\bm{p}_{ij}$.
+By convention, the \unl{row of the control net} is the polyline
+with the vertices
+$\bm{p}_{0j},\ldots,\bm{p}_{nj}$ (for $j\in\{0,\ldots,m\}$),
+and the \unl{column} is the polyline with the vertices
+$\bm{p}_{i0},\ldots,\bm{p}_{im}$ (for all $i\in\{0,\ldots,n\}$).
+\end{sloppypar}
+
+The representation of a~B\'{e}zier patch consists of
+two positive numbers $n$ and $m$ and of $(n+1)(m+1)$ control points,
+i.e.\ $(n+1)(m+1)d$ floating point numbers,
+stored in the array in the following sequence: first
+$d$~coordinates of $\bm{p}_{00}$, then $d$ coordinates of
+$\bm{p}_{01}$ etc. After the coordinates of the point $\bm{p}_{0m}$
+there ought to be the coordinates of $\bm{p}_{10}$ etc., up to the point
+$\bm{p}_{nm}$. In other words, the control net is stored in the array
+columnwise.
+
+The array described above may be seen in many different ways.
+For instance, to apply an affine transformation to the patch, it is necessary
+to transform its control points. In that case the array may be seen as
+a~one-dimensional array of points.
+
+We can also divide this patch using the de~Casteljau algorithm,
+by halving the interval of the parameter $u$ or $v$. In the latter case
+we apply the algorithm to all columns, as if they were control polygons of
+B\'{e}zier curves. The array contains thus $n+1$ curves and its pitch
+is equal to $(m+1)d$ (where $d$ is the space dimension), i.e.\ the
+second curve representation begins $(m+1)d$ places after the first, etc.
+
+To divide the interval of $u$, it is necessary to
+apply the de~Casteljau algorithm to all rows of the control net.
+It turns out that the patch representation may be interpreted as
+a~representation of a~B\'{e}zier curve in the space of dimension
+$(m+1)d$ (each column of the control net is a~point of this space).
+In this case we process only one B\'{e}zier curve of degree~$n$
+in the $(m+1)d$-dimensional space, and the pitch is irrelevant, as there
+is only one curve.
+
+\vspace{\medskipamount}
+A~\unl{rational B\'{e}zier patch} is given by the formula
+\begin{align*}
+  \bm{p}(u,v) =
+    \frac{\sum_{i=0}^n\sum_{j=0}^m w_{ij}\bm{p}_{ij}B^n_i(u)B^m_j(v)}%
+         {\sum_{i=0}^n\sum_{j=0}^m w_{ij}B^n_i(u)B^m_j(v)},
+\end{align*}
+where apart from the Bernstein polynomials and the control points there are
+weights $w_{ij}$. The procedures processing rational B\'{e}zier patches
+in the \texttt{libmultibs} library, process their homogeneous representations
+i.e.\ the arrays of control points $\bm{P}_{ij}$
+of polynomial B\'{e}zier patches
+\begin{align}
+  \bm{P}(u,v) = \sum_{i=0}^n\sum_{j=0}^m\bm{P}_{ij}B^n_i(u)B^m_j(v),
+\end{align}
+in the space of dimension $d+1$. The relation between the control points
+$\bm{p}_{ij}$ and weights $w_{ij}$ of the rational patch with the
+points $\bm{P}_{ij}$ here is the same as in the case of the rational
+B\'{e}zier curves. The method of storing the control points $\bm{P}_{ij}$
+of the homogeneous patch is the same as in the case of the nonrational patch
+(except that the space dimension, where the homogeneous patch is located is
+greater by~$1$).
+
+
+\subsection{\label{ssect:BSC}B-spline curves}
+
+Let $n\geq 0$ and let the nondecreasing sequence of \unl{knots} (real numbers)
+$u_0,\ldots,u_N$, such that $N>2n$ and $u_n<u_{N-n}$ be fixed.
+A~\unl{B-spline curve} of degree~$n$ based on this knot sequence is defined
+by the formula
+\begin{align}\label{eq:BScurve:def}
+  \bm{s}(t) = \sum_{i=0}^{N-n-1} \bm{d}_iN^n_i(t),
+\end{align}
+with the control points $\bm{d}_0,\ldots,\bm{d}_{N-n-1}$ and
+\unl{B-spline functions} $N^n_0,\ldots,N^n_{N-n-1}$. These functions have
+a~number of equivalent definitions, e.g.\ they may be defined by the
+recursive Mansfield-de~Boor-Cox formula:
+\begin{align}\label{eq:BS:basis0}
+  N^0_i(t) &{}= \left\{\begin{array}{ll}1 & \mbox{dla $u_i\leq t<u_{i+1}$,} \\
+    0 & \mbox{w przeciwnym razie,} \end{array}\right. \\
+  \label{eq:BS:basisn}
+  N^j_i(t) &{}= \frac{t-u_i}{u_{i+j}-u_i} N^{j-1}_i(t) +
+    \frac{u_{i+j+1}-t}{u_{i+j+1}-u_{i+1}} N^{j-1}_{i+1}(t)\quad
+    \mbox{dla $j=1,\ldots,n$}.
+\end{align}
+
+The domain of the curve is the interval $[u_n,u_{N-n-1})$. In each interval
+$[u_k,u_{k+1})$ (for $n\leq k<N-n$) the B-spline curve is a~polynomial arc
+of degree at most~$n$.
+
+The representation of a~B-spline curve consists of the integer numbers
+$n$ and $N$, which determine respectively the degree and the
+number of the last knot, the sequence of knots (array of floating point numbers)
+$u_0,\ldots,u_N$ and the control points $\bm{d}_0,\ldots,\bm{d}_{N-n-1}$,
+located in the same space that the curve --- if the dimension of this space is~$d$,
+then the array of control points must contain $(N-n)d$ floating point numbers.
+
+\vspace{\medskipamount}
+\begin{sloppypar}\hyphenpenalty=200
+To describe the details of procedures the following naming
+convention is used: \unl{boundary knots} are the knots, which bound
+the curve domain, i.e.\ $u_n$, $u_{N-n}$ and all knots equal to one of the two.
+The boundary knots are \unl{left} and \unl{right}. The \unl{internal knots}
+are all knots in the open interval $(u_n,u_{N-n})$; these knots have
+the corresponding junction points of polynomial arcs. Apart from the above
+there are also the \unl{external knots}, which are not elements of
+the closed interval $[u_n,u_{N-n}]$.
+Apart from the above, the knots $u_0$ and $u_N$ are called the \unl{extremal knots}.
+For example, if $n=3$, $N=15$ and
+\begin{align*}
+  u_0<u_1=u_2<u_3=u_4=u_5<u_6\leq\cdots\leq u_{11}<u_{12}=u_{13}=u_{14}=u_{15},
+\end{align*}
+then the knots $u_0$, $u_1$ i~$u_2$ are external, the knots $u_3$, $u_4$
+and $u_{12},\ldots,u_{15}$ are boundary, and the other knots
+are internal. the extremal knots are $u_0$ and $u_{15}$.
+\end{sloppypar}
+
+The extremal knots are necessary to define the functions
+$N^n_0$ and $N^n_{N-n-1}$, but they do not have any influence on the
+values of those functions in $[u_n,u_{N-n})$, and thus they do not affect
+the shape of the curve. Various software packages either require supplying these
+knots or not. The \texttt{libmultibs} library requires specifying them
+(it suffices that the conditions $u_0\leq u_1$ and $u_{N-1}\leq u_N$ are
+satisfied).
+
+\vspace{\medskipamount}
+A~given spline curve may have various representations, which may differ
+with the degree and with the knot sequence. The construction of a~representation
+with additional knots is called \unl{knot insertion}. In particular,
+the representation, whose all knots have the multiplicity (the number of
+appearances) $n+1$ (i.e.\ there is $u_0=\cdots=u_n$, $u_{n+1}=\cdots=u_{2n+1}$,
+ $u_{2n+2}=\cdots=u_{3n+2}$ etc.), is a~piecewise B\'{e}zier representation.
+
+If the last (with the greatest index) left knot has the index
+$k>n$, then the initial $k-n$ knots (starting from the left extremal)
+and the initial $k-n$ control points are unnecessary in the curve
+representation and they may (must in certain situations) be rejected.
+Similarly, if the first (with the smallest index) right boundary knot
+has the index $k<N-n$, then the last $N-n-k$ knots and control points
+are unnecessary. The representations with unnecessary knots and control points
+may be the effect of knot insertion (i.e.\ during the conversion to the piecewise
+B\'{e}zier representation) or of constructing the B-spline representation
+of the derivatives of a~B-spline curve.
+
+A B-spline curve of degree~$n$, whose boundary knots have the multiplicity
+$n$ or greater is called the \unl{curve with clamped ends}.
+If the last (with the greatest index) left boundary knot has the index~$k$
+(the knots are numbered from~$0$, therefore obviously $k\geq n$), then the
+control point $\bm{d}_{k-n}$ is the curve point corresponding to
+the parameter $u_k$, i.e.\ the left end of the domain. If $k=n$, then it is
+the point $\bm{d}_0$; otherwise the points $\bm{d}_0,\ldots,\bm{d}_{k-n-1}$
+have no influence on the shape of the curve (and they may be rejected
+together with the knots $u_0,\ldots,u_{k-n-1}$).
+A~similar rule concerns the right knot with the smallest index --- if it is
+the knot $u_{N-n}$ of multiplicity~$n$ or $n+1$, then the control point
+$\bm{d}_{N-n-1}$ is the end point of the curve (it corresponds to $t=u_{N-n}$).
+
+A~curve, whose boundary knots have the multiplicity less than~$n$
+is called a~\unl{free end curve}. Each end of the curve may be clamped
+or free, independently on the other end.
+
+\vspace{\medskipamount}
+\unl{Closed B-spline curves} are represented in the same way as the other
+B-spline curves. To be closed, a~B-spline curve of degree~$n$ must satisfy
+the following conditions: the knot sequence $u_1,\ldots,u_{N-1}$ has to
+consist of subsequent elements of an infinite sequence of numbers,
+such that the sequence of differences is nonnegative and periodic, with the period
+\begin{align*}
+  K=N-2n,
+\end{align*}
+where $N>3n$. The knot sequence must be nondecreasing and there must be
+a~positive number~$T$, such that
+\begin{align*}
+  u_{k+K}-u_k=T\qquad\mbox{for $k=1,\ldots,2n-1$.}
+\end{align*}
+The knots $u_0$ and $u_N$ have no influence on the shape of the curve,
+but they must satisfy the conditions $u_0\leq u_1$ and $u_{N-1}\leq u_N$.
+
+The sequence $\bm{d}_0,\ldots,\bm{d}_{N-n-1}$ has to consist of
+consecutive elements of an infinite periodic sequence with the period
+$N-2n$, i.e.\ there must be
+\begin{align*}
+  \bm{d}_{k+K} = \bm{d}_k\qquad\mbox{for $k=0,\ldots,n-1$.}
+\end{align*}
+
+\begin{sloppypar}
+An application may use space saving representations
+of closed B-spline curves, where the knots $u_{K+1},\ldots,u_{N-1}$ and
+the control points $\bm{d}_{K},\ldots,\allowbreak\bm{d}_{N-n-1}$, possible to
+reproduce based on the above conditions are absent.
+To use the \texttt{libmultibs} procedures it is necessary to create
+a~``working'' representation, with arrays containing all the knots and
+control points.
+\end{sloppypar}
+
+Finding a~point and many other computations for closed B-spline curves
+may be done with the procedures intended to use with ``ordinary'' B-spline
+curves with free ends. The representation changes like knot insertion
+or removal and degree elevation must be done with the procedures which
+ensure that the new representation satisfies the conditions described above.
+Such procedures have names with the word ``\texttt{Closed}'', and in most cases
+they still have to be written.
+
+
+\subsection{Tensor product B-spline patches}
+
+A~\unl{B-spline patch} is defined with the formula
+\begin{align}\label{eq:BSpatch:def}
+  \bm{s}(u,v) =
+  \sum_{i=0}^{N-n-1}\sum_{j=0}^{M-m-1}\bm{d}_{ij}N^n_i(u) N^m_j(v),
+\end{align}
+with two sets of B-spline functions of degrees $n$ and $m$ (different in
+general), based on the knot sequences $u_0,\ldots,u_N$ and $v_0,\ldots,v_M$
+respectively (also different in general, even if $n=m$). Both sequences must
+be nondecreasing and long enough (there must be $N>2n$, $M>2m$, $u_n<u_{N-n}$
+and $v_m<v_{M-m}$). The terminology and remarks from the previous section
+apply to both these sequences.
+
+\begin{sloppypar}
+The array of control points $\bm{d}_{ij}$, which together with the knots
+represent the patch, contains the coordinates of the points
+$\bm{d}_{00},\bm{d}_{01},\ldots,\bm{d}_{0,N-n-1}$, then
+$\bm{d}_{10},\bm{d}_{11},\ldots,\bm{d}_{1,N-n-1}$ etc., i.e.\
+the consecutive columns of the control net of the patch.
+\end{sloppypar}
+
+Between the consecutive columns there may be unused spaces, which make it
+possible to insert knots to the sequence ``$v$'' of the initial representation.
+This is done as if the new knot was inserted to the representations of many
+B-spline curves, whose control polygons are the columns of the patch control
+net. After the knot insertion the length of the unused spaces is decreased by
+the length of $d$ floating point numbers (where $d$ is the dimension of
+the space, in which the patch is located). The pitch of the array in this case
+is the distance of the beginnings of consecutive columns (measured in floating
+point numbers).
+
+The curves with clamped end and free end curves correspond to
+the \unl{patches with} \unl{clamped boundary} and \unl{with free boundary}.
+For example, if the ``$u$'' knot sequence satisfies the condition
+$u_1=\cdots=u_n<u_{n+1}$, then the constant parameter curve for $u=u_n$ (one
+of the four boundary curves of the patch) is a~B-spline curve of degree~$m$,
+based on the knot sequence ``$v$'', whose control polygon is the first
+column of the patch control net. Obviously, each of the four patch
+boundary curves may be clamped or free, independently of the others.
+
+The closed curves correspond to the closed patches, which may be tubes or tori.
+One or both knot sequences, and the sequence of rows or columns of the control net
+(interpreted as points) have to satisfy the conditions formulated for 
+closed B-spline curves.
+
+
+\subsection{NURBS curves and patches}
+
+\unl{NURBS} (non-uniform rational B-spline) \unl{curves and patches}
+are the curves and patches piecewise rational, whose relation with the
+B-spline curves and patches is the same as the relation of the rational
+B\'{e}zier curves and patches with the polynomial B\'{e}zier curves and
+patches. One can choose one or two knot sequences and the control points
+$\bm{d}_i$ or $\bm{d}_{ij}$ in the $d$-dimensional space and associate the
+weight $w_i$ or $w_{ij}$ with each control point. Then the vectors in
+the $d+1$-dimensional space
+\begin{align}
+  \bm{D}_i =
+  \left[\begin{array}{c} w_i\bm{d}_i \\ w_i \end{array}\right]
+  \qquad\mbox{or}\qquad
+  \bm{D}_{ij} =
+  \left[\begin{array}{c} w_{ij}\bm{d}_{ij} \\ w_{ij} \end{array}\right]
+\end{align}
+define a~curve or a~patch in this space; after dividing the first $d$
+coordinates of a~point of the homogeneous curve or patch by the
+$d+\mathord{\mbox{first}}$ (weight) coordinate one obtains the cartesian
+coordinates of the point of the rational curve or patch.
+
+The \texttt{libmultibs} procedures process such homogeneous representations
+of the rational curves and surfaces.
+
+
+\subsection{\label{ssect:Coons:patch:def}Coons patches}
+
+Coons patches of class~$C^k$ are tensor product patches defined by
+sufficiently smooth curves, which describe the boundary of the patch and
+so called cross derivatives of order $1,\ldots,k$. For any~$k\in\N$ a~Coons
+patch is defined by the formula
+\begin{align}\label{eq:Coons:patch:def}
+  \bm{p}(u,v) = \bm{p}_1(u,v)+\bm{p}_2(u,v)-\bm{p}_3(u,v),
+\end{align}
+where
+\begin{align*}
+  \bm{p}_1(u,v) &{}= \bm{C}(u)\hat{H}(v)^T, \quad
+  \bm{p}_2(u,v) = \tilde{H}(u)\bm{D}(v)^T, \quad
+  \bm{p}_3(u,v) = \tilde{H}(u)\bm{P}\hat{H}(v)^T,
+\end{align*}
+and
+\begin{align*}
+  \bm{C}(u) &{}= [\bm{c}_{00}(u),\bm{c}_{10}(u),\bm{c}_{01}(u),\bm{c}_{11}(u),
+               \ldots,\bm{c}_{0k}(u),\bm{c}_{1k}(u)], \\
+  \bm{D}(v) &{}= [\bm{d}_{00}(v),\bm{d}_{10}(v),\bm{d}_{01}(v),\bm{d}_{11}(v),
+               \ldots,\bm{d}_{0k}(v),\bm{d}_{1k}(v)], \\
+  \tilde{H}(u) &{}= [\tilde{H}_{00}(u),\tilde{H}_{10}(u),
+                     \tilde{H}_{01}(u),\tilde{H}_{11}(u),\ldots,
+                     \tilde{H}_{0k}(u),\tilde{H}_{1k}(u)], \\
+  \hat{H}(v) &{}= [\hat{H}_{00}(v),\hat{H}_{10}(v),
+                     \hat{H}_{01}(v),\hat{H}_{11}(v),\ldots,
+                     \hat{H}_{0k}(v),\hat{H}_{1k}(v)].
+\end{align*}
+The curves $\bm{c}_{00},\ldots,\bm{c}_{1k}$ describe two opposite boundaries
+of the patch and the cross derivatives at these boundaries. These curves
+must have the same domain, denoted here by~$[a,b]$. Similarly, the curves
+$\bm{d}_{00},\ldots,\bm{d}_{1k}$ describe the other pair of opposite
+boundaries and cross derivatives and they also must have the same domain, say
+$[c,d]$. The domain of the Coons patch is the rectangle $[a,b]\times[c,d]$.
+
+The matrix~$\bm{P}$ of dimensions $(2k+2)\times(2k+2)$ consists of the points
+of the given curves and the vectors of their derivatives of order~$1,\ldots,k$:
+\begin{align}\label{eq:Coons:compat:cond}
+  \bm{P} ={}& \left[\begin{array}{ccccc}
+    \bm{c}_{00}(a) & \bm{c}_{10}(a) & \ldots & \bm{c}_{0k}(a) & \bm{c}_{1k}(a) \\
+    \bm{c}_{00}(b) & \bm{c}_{10}(b) & \ldots & \bm{c}_{0k}(b) & \bm{c}_{1k}(b) \\
+    \vdots & \vdots & & \vdots & \vdots \\
+    \bm{c}^{(k)}_{00}(a) & \bm{c}^{(k)}_{10}(a) & \ldots &
+    \bm{c}^{(k)}_{0k}(a) & \bm{c}^{(k)}_{1k}(a) \\
+    \bm{c}^{(k)}_{00}(b) & \bm{c}^{(k)}_{10}(b) & \ldots &
+    \bm{c}^{(k)}_{0k}(b) & \bm{c}^{(k)}_{1k}(b)
+  \end{array}\right] = \nonumber \\
+ &\left[\begin{array}{ccccc}
+    \bm{d}_{00}(c) & \bm{d}_{00}(d) & \ldots & \bm{d}_{0k}(c) & \bm{d}_{0k}(d) \\
+    \bm{d}_{10}(c) & \bm{d}_{10}(d) & \ldots & \bm{d}_{1k}(c) & \bm{d}_{1k}(d) \\
+    \vdots & \vdots & & \vdots & \vdots \\
+    \bm{d}^{(k)}_{00}(c) & \bm{d}^{(k)}_{00}(d) & \ldots &
+    \bm{d}^{(k)}_{0k}(c) & \bm{d}^{(k)}_{0k}(d) \\
+    \bm{d}^{(k)}_{10}(c) & \bm{d}^{(k)}_{10}(d) & \ldots &
+    \bm{d}^{(k)}_{1k}(c) & \bm{d}^{(k)}_{1k}(d)
+  \end{array}\right].
+\end{align}
+The curves, which define a~Coons patch, must satisfy the compatibility
+conditions, expressed by the equality of the matrices above.
+
+The functions $\tilde{H}_{mj}(u)$ and~$\hat{H}_{mj}(v)$ are elements of
+so called local Hermite bases.
+It is assumed that these functions are polynomials of degree $2k+1$, where
+$k\in\{1,2\}$, though one might use other functions of class~$C^k$ instead,
+e.g.\ spline functions of degree~$k+1$. These functions are given
+by the formula
+\begin{align*}
+  \tilde{H}_{mj}(u) = (b-a)^jH_{mj}\Bigl(\frac{u-a}{b-a}\Bigr),\qquad
+  \hat{H}_{mj}(v) = (d-c)^jH_{mj}\Bigl(\frac{v-c}{d-c}\Bigr).
+\end{align*}
+
+For $k=1$ there is
+\begin{alignat*}{2}
+  H_{00}(t) &{}= B^3_0(t)+B^3_1(t),\qquad &
+  H_{10}(t) &{}= B^3_2(t)+B^3_3(t),\\
+  H_{01}(t) &{}= \frac{1}{3}B^3_1(t),\qquad &
+  H_{11}(t) &{}= -\frac{1}{3}B^3_2(t).
+\end{alignat*}
+As the polynomials used to define a~patch, i.e.\ in the interpolation
+of the given curves for $k=1$ in both directions are cubic, the Coons
+patches of class~$C^1$ are called \textbf{bicubic Coons patches},
+though such a~patch may be defined with curves of any degree.
+
+For $k=2$ the patch is defined with the polynomials of degree~$5$,
+\begin{alignat*}{2}
+  H_{00}(t) &{}= B^5_0(t)+B^5_1(t)+B^5_2(t),\qquad &
+  H_{10}(t) &{}= B^5_3(t)+B^5_4(t)+B^5_5(t), \\
+  H_{01}(t) &{}= \frac{1}{5}B^5_1(t)+\frac{2}{5}B^5_2(t), \qquad &
+  H_{11}(t) &{}= -\frac{2}{5}B^5_3(t)-\frac{1}{5}B^5_4(t), \\
+  H_{02}(t) &{}= \frac{1}{20}B^5_2(t), \qquad &
+  H_{12}(t) &{}= \frac{1}{20}B^5_3(t),
+\end{alignat*}
+and therefore the Coons patches of class~$C^2$ are called \textbf{biquintic
+Coons patches}.
+
+Coons patches (bicubic and biquintic) may be defined with polynomial or
+spline curves. In the former case the curves are B\'{e}zier curves and the
+domain of the patch is the unit square $[0,1]^2$. The individual curves
+defining a~patch do not have to have the same degree.
+
+The domain of a~patch defined with spline curves (represented as B-spline
+curves) may be dan arbitrary rectangle $[a,b]\times[c,d]$. The individual
+curves do not need to have the same degree and they may be represented
+with various knot sequences (but they must have the same domain,
+determined by the boundary knots).
+
+The library \texttt{libmultibs} contains procedures, which convert the
+Coons representation of a~patch to the B\'{e}zier or B-spline form,
+and fast procedures computing points and derivatives of Coons patches
+at the points of a~regular net in the patch domain; these procedures
+found their application in the constructions implemented in
+the libraries \texttt{libg1hole} and \texttt{libg2hole}.
+
+
+
+\subsection{Naming conventions}
+
+The naming conventions are intended to simplify the package user (the
+programmer) guessing the action done by a~procedure and guessing the use
+of parameters (if two procedures have a~parameter with the same name,
+its r\^{o}le is the same in both these procedures).
+
+\begin{sloppypar}
+Each procedure and a~macro intended to be called as a~procedure in the
+\texttt{libmultibs} library has the name beginning with the prefix
+\texttt{mbs\_}.
+\end{sloppypar}
+
+If after the prefix there is the word \texttt{multi}, the procedure
+is intended to process a~number of curves simultaneously.
+The number of curves is specified by the parameter named \texttt{ncurves}.
+
+The suffix consists of two parts. The first part may be empty (if there is the
+``\texttt{multi}'' after the prefix), or it indicates the kind of the
+curve or patch processed by the procedure. The letter \texttt{C} denotes
+a~curve, and \texttt{P} denotes a~patch. The digit denotes the dimension
+of the space, in which the curve or the patch resides (e.g.\ \texttt{2}
+denotes a~plane). The letter \texttt{R} after the digit denotes a~curve
+or a~patch in the homogeneous representation. \textbf{Caution:}
+the control points in this case have one coordinate more.
+The second part of the suffix is the letter \texttt{f}, which denotes the single
+precision (\texttt{float}) or \texttt{d}, which denotes the double precision%
+\footnote{In the professional applications only double precision should be used,
+unless even such a~precision is insufficient.}
+of the floating point arithmetic used by the procedure to represent the data
+and results and in the computations.
+
+The main part of the name denotes the algorithm implemented by the
+procedure. The macros and procedures with the same name differ with the
+destination --- they are universal (if there is the \texttt{multi} part)
+or specific for curves or patches in the space with the fixed dimension.
+The most important main parts of the names are
+\begin{mydescription}
+  \item\texttt{deBoor} --- computing points of B-spline curves and patches
+    with the de~Boor algorithm.
+  \item\texttt{deBoorDer} --- computing points of B-spline curves and patches
+    together with the first order derivatives, using the be~Boor algorithm.
+  \item\texttt{BCHorner} --- computing points of B\'{e}zier curves and patches
+    using the Horner scheme.
+  \item\texttt{BCHornerDer} --- computing points of B\'{e}zier curves and patches
+    together with the first order derivatives, using the Horner scheme.
+  \item\texttt{BCFrenet} --- computing curvatures and Frenet frame vectors
+    of B\'{e}zier curves.
+  \item\texttt{BCHornerNv} --- computing the normal vector of a~B\'{e}zier patch.
+  \item\texttt{KnotIns} --- insertion of a~single knot to B-spline
+    curves using the Boehm algorithm.
+  \item\texttt{KnotRemove} --- removing a~single knot.
+  \item\texttt{*Oslo*} --- procedures related with inserting and removing
+    a~number of knots simultaneously, using the Oslo algorithm.
+  \item\texttt{MaxKnotIns} --- inserting knots so as to obtain a B-spline
+    representation with all internal knots of multiplicity $n+1$ and
+    the boundary knots of multiplicity $n$ or $n+1$, which is a~piecewise
+    B\'{e}zier representation.
+  \item\texttt{BisectB} --- division of B\'{e}zier curves into arcs, related with
+    the division of the domain into two line segments of the same length,
+    with the de~Casteljau algorithm.
+  \item\texttt{DivideB} --- division of B\'{e}zier curves into arcs, related with
+    the division of the domain into two line segments of arbitrary lengths,
+    with the de~Casteljau algorithm.
+  \item\texttt{BCDegElev} --- degree elevation of B\'{e}zier curves and patches.
+  \item\texttt{BSDegElev} --- degree elevation of B-spline curves and patches.
+  \item\texttt{MultBez} --- multiplication of polynomials and B\'{e}zier curves.
+  \item\texttt{MultBS} --- multiplication of splines and B-spline curves.
+  \item\texttt{BezNormal} --- computing normal vector B\'{e}zier patches.
+  \item\texttt{BSCubicInterp} --- construction of cubic B-spline curves of
+    interpolation.
+  \item\texttt{ConstructApproxBS} --- construction of B-spline curves of
+    approximation.
+  \item\texttt{Closed} --- procedures, whose name contains this word, are
+    intended to process closed B-spline curves.
+\end{mydescription}
+
+The \underline{formal parameters} of the procedures and macros may have
+the following names:
+\begin{mydescription}
+  \item\texttt{spdimen} --- specifies the dimension $d$ of the space in which
+    the curves reside, i.e.\ the number of coordinates of each point of this
+    space.
+    If the suffix of the name of a~procedure or a~macro contains the
+    letter~\texttt{R}, which indicates a~rational object, then the control points
+    have \texttt{spdimen}${}=d+1$ coordinates.
+  \item\begin{sloppypar}\texttt{degree} --- specifies the degree of the curve representation.
+    The degrees of a~patch with respect to its two parameters are specified by
+    the parameters named \texttt{degreeu} and \texttt{degreev}.%
+    \end{sloppypar}
+  \item\texttt{lastknot} --- specifies the number~$N$, which is the index
+    of the last knot in the knot sequence. The knot sequence consists of
+    $N+1$ knots. For patches there are two parameters, \texttt{lastknotu} and
+    \texttt{lastknotv}.
+  \item\texttt{knots} --- array of floating point numbers, with the knots.
+    Two arrays with two knot sequences being parts of a~B-spline patch
+    representation are passed to the procedure as the parameters named
+    \texttt{knotsu} and \texttt{knotsv}.
+  \item\texttt{ctlpoints} --- array of control points. If the space
+    dimension $d$ is $1$ (the procedure or macro processes scalar functions),
+    the parameter pointing the appropriate array is called \texttt{coeff}.
+  \item\texttt{pitch} --- pitch of the control point array, i.e.\ the
+    difference between the indexes of the first coordinates of the first
+    control points of two consecutive curves or columns of the control net
+    in the \texttt{ctlpoints} array. Such arrays are always treated as
+    arrays of \emph{floating point numbers}, therefore the pitch unit
+    is always the length of one floating point number (even if the formal
+    parameter type is e.g.\ \texttt{point3f*}).
+\end{mydescription}
+If the formal parameters are used to pass two representations,
+e.g.\ the procedure constructs a~result representation based on the given one,
+the parameter names are extended by \texttt{in} and \texttt{out}.
+The given representations are described by the parameters, which appear
+in the formal parameter list \emph{before} the parameters used to
+describe the result.
+
+
+

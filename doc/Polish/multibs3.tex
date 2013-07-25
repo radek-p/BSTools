@@ -1,0 +1,774 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\newpage
+\section{Wstawianie i usuwanie w"ez"l"ow}
+
+\subsection{\label{ssect:knot:ins}Algorytm Boehma}
+
+Poni"rej jest opisana procedura i makra, kt"ore s"lu"r"a do wstawiania
+pojedy"nczego w"ez"la do reprezentacji B-sklejanej krzywych, za pomoc"a
+algorytmu Boehma. Reprezentacja krzywych jest \emph{zmieniana}, tj.\ obszar
+pami"eci zajmowany pocz"atkowo przez dan"a reprezentacj"e krzywych (ci"ag
+w"ez"l"ow i tablica punkt"ow kontrolnych), po wykonaniu procedury zawiera
+now"a reprezentacj"e, z~dodatkowym w"ez"lem. Je"sli potrzebne s"a obie
+reprezentacje, to reprezentacj"e dan"a trzeba skopiowa"c i~wykona"c
+wstawianie w"ez"la do kopii.
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_multiKnotInsf ( int degree, int *lastknot, \\
+\ind{24}float *knots, \\
+\ind{24}int ncurves, int spdimen, \\
+\ind{24}int inpitch, int outpitch, \\
+\ind{24}float *ctlpoints, float t );}
+Procedura \texttt{mbs\_multiKnotInsf} wstawia w"eze"l \texttt{t} do
+reprezentacji krzywych B-skle\-ja\-nych stopnia $n$=\texttt{degree}.
+W ten spos"ob powstaje nowa
+reprezentacja tych krzywych, przechowywana w miejscu reprezentacji
+pocz"atkowej. Warto"s"c parametru \texttt{t} musi by"c liczb"a z~przedzia"lu
+$[\mbox{\texttt{knots[degree]}},\mbox{\texttt{knots[lastknot-degree]}}]$.
+
+Na wej"sciu parametr \texttt{*lastknot} okre"sla indeks $N$ ostatniego w"ez"la
+w~ci"agu w"ez"l"ow reprezentacji pocz"atkowej; na wyj"sciu parametr ten jest
+zwi"ekszany o \texttt{1}, co wi"a"re si"e z~wyd"lu"reniem ci"agu w"ez"l"ow o
+jedn"a liczb"e --- warto"s"c parametru \texttt{t}, wstawian"a do tablicy
+\texttt{knots}. Tablica ta musi mie"c zatem d"lugo"s"c co najmniej
+\texttt{*lastknot+2}, aby pomie"sci"c wyd"lu"rony ci"ag w"ez"l"ow.
+
+\begin{sloppypar}
+Parametr \texttt{ncurves} okre"sla liczb"e krzywych, za"s warto"s"c~$d$
+parametru \texttt{spdimen} jest wymiarem przestrzeni, w kt"orej te krzywe
+s"a po"lo"rone. Ka"rda krzywa jest pocz"atkowo reprezentowana przez
+$N-n$ punkt"ow w przestrzeni $d$-wymiarowej.
+Wsp"o"lrz"edne tych punkt"ow ($(N-n)d$ liczb)
+s"a przechowywane w tablicy \texttt{ctlpoints}. Pierwsza wsp"o"lrz"edna
+pierwszego punktu kontrolnego pierwszej krzywej jest na pocz"atku tablicy.
+Poniewa"r na wyj"sciu reprezentacja ka"rdej krzywej ma o jeden punkt
+wi"ecej, wi"ec s"a dwa parametry opisuj"ace podzia"lk"e, czyli
+odleg"lo"s"c w~tablicy mi"edzy pocz"atkami reprezentacji kolejnych krzywych:
+\texttt{inpitch}
+okre"sla podzia"lk"e pocz"atkow"a, co najmniej $(N-n)d$,
+parametr \texttt{outpitch} okre"sla podzia"lk"e ko"ncow"a, kt"ora nie mo"re
+by"c mniejsza ni"r~$(N-n+1)d$.
+\end{sloppypar}
+
+Warto"sci"a procedury jest numer $k$ przedzia"lu $[u_k,u_{k+1})$
+pocz"atkowego ci"agu w"ez"l"ow, w~kt"orym le"ry nowy w"eze"l~$t$.
+
+\vspace{\medskipamount}
+\noindent
+\textbf{Uwaga:} Aby wstawi"c w"eze"l do krzywej zamkni"etej, zamiast
+\texttt{mbs\_multiKnotInsf} nale"ry u"ry"c
+procedury~\texttt{mbs\_multiKnotInsClosedf}.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_KnotInsC1f(degree,lastknot,knots,coeff,t) \bsl \\
+\ind{2}mbs\_multiKnotInsf(degree,lastknot,knots,1,1,0,0,coeff,t) \\
+\#define mbs\_KnotInsC2f(degree,lastknot,knots,coeff,t) \bsl \\
+\ind{2}mbs\_multiKnotInsf(degree,lastknot,knots,1,2,0,0,coeff,t) \\
+\#define mbs\_KnotInsC3f(degree,lastknot,knots,coeff,t) ... \\
+\#define mbs\_KnotInsC4f(degree,lastknot,knots,coeff,t) ...}
+Cztery makra wywo"luj"ace procedur"e \texttt{mbs\_multiKnotInsf} w celu
+wstawienia w"ez"la do reprezentacji \emph{jednej} funkcji skalarnej lub
+krzywej B-sklejanej w przestrzeni dwu-, tr"oj- i czterowymiarowej.
+Parametry musz"a spe"lnia"c warunki podane w opisie procedury
+\texttt{mbs\_multiKnotInsf}.
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_multiKnotInsClosedf ( int degree, int *lastknot, \\
+\ind{30}float *knots, \\
+\ind{30}int ncurves, int spdimen, \\
+\ind{30}int inpitch, int outpitch, \\
+\ind{30}float *ctlpoints, float t );}
+Procedura \texttt{mbs\_multiKnotInsClosedf} wstawia w"eze"l \texttt{t} do
+reprezentacji \emph{zamkni"etych} krzywych B-skle\-ja\-nych stopnia
+\texttt{degree}. Mo"re to by"c wykorzystane r"ownie"r do wstawiania
+w"ez"la do zamkni"etego p"lata B-sklejanego (b"ed"acego rurk"a lub torusem).
+Zasadnicze obliczenie wykonuje procedura
+\texttt{mbs\_multiKnotInsf}, po wykonaniu kt"orej wynik jest
+,,porz"adkowany'' w~celu przywr"ocenia okresowo"sci reprezentacji krzywej.
+
+Parametry: \texttt{degree} --- stopie"n~$n$ krzywej, \texttt{*lastknot} --- przed
+wywo"laniem procedury ma warto"s"c indeksu~$N$ ostatniego w"ez"la
+w~pocz"atkowym ci"agu, a~po wywo"laniu indeksu ostatniego w"ez"la w~ci"agu
+wynikowym. Tablica \texttt{knots} zawiera ci"ag w"ez"l"ow, odpowiednio
+pocz"atkowy i~ko"ncowy, przed i~po wykonaniu procedury. Parametr
+\texttt{ncurves} okre"sla liczb"e krzywych. Parametr \texttt{spdimen}
+okre"sla wymiar~$d$ przestrzeni. Parametry \texttt{inpitch} i~\texttt{outpitch}
+opisuj"a podzia"lki tablicy \texttt{ctlpoints}, w~kt"orej znajduj"a si"e
+punkty kontrolne, przed i~po wstawieniu w"ez"la (zobacz opis procedury
+\texttt{mbs\_multiKnotInsf}). Parametr \texttt{t} okre"sla nowy w"eze"l,
+kt"ory procedura ma wstawi"c.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_KnotInsClosedC1f(degree,lastknot,knots,coeff,t) \bsl \\
+\ind{2}mbs\_multiKnotInsClosedf(degree,lastknot,knots,1,1,0,0,coeff,t) \\
+\#define mbs\_KnotInsClosedC2f(degree,lastknot,knots,coeff,t) \bsl \\
+\ind{2}mbs\_multiKnotInsClosedf(degree,lastknot,knots,1,2,0,0,coeff,t) \\
+\#define mbs\_KnotInsClosedC3f(degree,lastknot,knots,coeff,t) ... \\
+\#define mbs\_KnotInsClosedC4f(degree,lastknot,knots,coeff,t) ...}
+Cztery makra wywo"luj"ace procedur"e \texttt{mbs\_multiKnotInsClosedf} w~celu
+wstawienia w"ez"la do reprezentacji \emph{jednej} okresowej funkcji
+skalarnej lub zamkni"etej krzywej B-sklejanej w przestrzeni dwu-,
+tr"oj- i~czterowymiarowej.
+Parametry musz"a spe"lnia"c warunki podane w opisie procedury
+\texttt{mbs\_multiKnotInsClosedf}.
+
+
+
+\subsection{Usuwanie w"ez"l"ow}
+
+W tym punkcie jest opisana procedura usuwania pojedynczego w"ez"la
+z~reprezentacji krzywych B-sklejanych i~makra, kt"ore s"lu"r"a wygodnemu
+wywo"lywaniu tej procedury w przypadku jednej krzywej w przestrzeniach
+o~wymiarach $1$--$4$. Procedura tworzy uk"lad r"owna"n wi"a"r"acy dwie
+reprezentacje krzywej, z~macierz"a r"ownowa"rn"a zmianie reprezentacji przy
+u"ryciu algorytmu Boehma wstawiania w"ez"la, a nast"epnie rozwi"azuje ten
+uk"lad metod"a najmniejszych kwadrat"ow. Krzywe mog"a w~wyniku usuwania
+w"ez"la ulec zmianie.
+
+Usuwanie w"ez"la odbywa si"e ,,w~miejscu'', tj.\ obszar pami"eci zajmowany
+pocz"atkowo przez dan"a reprezentacj"e, po wykonaniu procedury zawiera nowy,
+kr"otszy ci"ag w"ez"l"ow i punkt"ow kontrolnych. Je"sli potrzebne s"a obie
+reprezentacje, tj.\ reprezentacja pocz"atkowa i~reprezentacja z~usuni"etym
+w"ez"lem, to reprezentacj"e pocz"atkow"a trzeba skopiowa"c, a~nast"epnie
+wykona"c usuwanie w"ez"la na kopii.
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_multiKnotRemovef ( int degree, int *lastknot, \\
+\ind{27}float *knots, \\
+\ind{27}int ncurves, int spdimen, \\
+\ind{27}int inpitch, int outpitch, \\
+\ind{27}float *ctlpoints, \\
+\ind{27}int knotnum );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_multiKnotRemovef} s"lu"ry do
+usuwania w"ez"la z reprezentacji krzywych B-sklejanych stopnia
+\texttt{degree}, po"lo"ronych w przestrzeni o wymiarze \texttt{spdimen}.
+Reprezentacja krzywych jest okre"slona dla ci"agu w"ez"l"ow o d"lugo"sci
+\texttt{*lastknot+1}, podanego w tablicy \texttt{knots}.
+Punkty kontrolne krzywych s"a podane w tablicy \texttt{ctlpoints}.
+Parametr \texttt{inpitch} okre"sla podzia"lk"e, czyli odleg"lo"s"c mi"edzy
+pocz"atkami obszar"ow w tablicy \texttt{ctlpoints} zawieraj"acych
+wsp"o"lrz"edne danych punkt"ow kontrolnych kolejnych krzywych. Parametr
+\texttt{outpitch} okre"sla podzia"lk"e tej tablicy ustalon"a po
+usuni"eciu w"ez"la.
+\end{sloppypar}
+
+W"eze"l do usuni"ecia jest okre"slony przez parametr \texttt{knotnum},
+kt"ory musi mie"c warto"s"c od \texttt{degree+1} do
+\texttt{lastknot-degree-1}.
+
+Nowe reprezentacje krzywych s"a umieszczane w tablicach \texttt{knots} i
+\texttt{ctlpoints}. Parametr \texttt{*lastknot} jest zmniejszany o
+\texttt{1}.
+
+\begin{figure}[b]
+  \centerline{\epsfig{file=knotrem.ps}}
+  \caption{\label{fig:knotrem}Przyk"lad usuwania w"ez"l"ow}
+\end{figure}
+Je"sli krotno"s"c usuwanego w"ez"la jest r"owna $r$ i pochodna krzywej
+rz"edu $\mbox{\texttt{degree}}-r+1$ nie jest w tym w"e"zle ci"ag"la, to
+krzywa po usuni"eciu w"ez"la zmieni si"e. Nowe punkty kontrolne s"a
+obliczane przez rozwi"azanie liniowego zadania najmniejszych kwadrat"ow dla
+uk"ladu r"owna"n liniowych opisuj"acego zmian"e bazy, co jest pewnym
+sposobem rozwi"azania aproksymacyjnego (zobacz przyk"lad podany dalej).
+
+Warto"sci"a procedury jest liczba $k$, taka "re usuni"ety w"eze"l nale"ry do
+przedzia"lu $[u_k,u_{k+1})$ \emph{wynikowego} ci"agu w"ez"l"ow. Je"sli
+w"eze"l o numerze \texttt{knotnum} jest mniejszy ni"r w"eze"l nast"epny, to
+$k=\texttt{knotnum}-1$, ale w~og"olno"sci nie musi tak by"c.
+
+\vspace{\medskipamount}
+\noindent
+\textbf{Uwaga:} Aby usun"a"c w"eze"l z~reprezentacji krzywej zamkni"etej
+nale"ry u"ry"c procedury \texttt{mbs\_multiKnotRemoveClosedf}.
+U"rycie procedury \texttt{mbs\_multiKnotRemovef} mo"re spowodowa"c powstanie
+krzywej nie-zamkni"etej.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_KnotRemoveC1f(degree,lastknot,knots,coeff,knotnum) \bsl \\
+\ind{2}mbs\_multiKnotRemovef(degree,lastknot,knots,1,1,0,0,coeff,knotnum) \\
+\#define mbs\_KnotRemoveC2f(degree,lastknot,knots,ctlpoints, \bsl \\
+\ind{4}knotnum) \bsl \\
+\ind{2}mbs\_multiKnotRemovef(degree,lastknot,knots,1,2,0,0, \bsl \\
+\ind{4}(float*)ctlpoints,knotnum) \\
+\#define mbs\_KnotRemoveC3f(degree,lastknot,knots,ctlpoints, \bsl \\
+\ind{4}knotnum) ... \\
+\#define mbs\_KnotRemoveC4f(degree,lastknot,knots,ctlpoints, \bsl \\
+\ind{4}knotnum) ...}
+Cztery makra wywo"luj"ace procedur"e \texttt{mbs\_multiKnotRemovef} w celu
+usuni"ecia wskazanego w"ez"la z reprezentacji \emph{jednej} funkcji
+sklejanej lub krzywej B-sklejanej w~przestrzeni dwu-, tr"oj- lub
+czterowymiarowej. Parametry musz"a spe"lnia"c warunki podane w opisie
+procedury \texttt{mbs\_multiKnotRemovef}.
+
+Na rysunku~\ref{fig:knotrem} jest przyk"lad usuwania w"ez"l"ow, dla
+p"laskiej krzywej B-sklejanej trzeciego stopnia (zobacz program
+\texttt{test/knotrem.c}). Usuwany w"eze"l ma pocz"atkow"a krotno"s"c
+wi"eksz"a o~$2$ od stopnia, w zwi"azku z czym krzywa sk"lada si"e z osobnych
+"luk"ow i jeden z punkt"ow kontrolnych nie ma wp"lywu na jej kszta"lt.
+Usuni"ecie w"ez"la powoduje odrzucenie tego punktu, bez zmiany kszta"ltu
+krzywej.
+
+Podczas usuwania w"ez"la o krotno"sci o~$1$ wi"ekszej ni"r stopie"n "luki
+musz"a zosta"c po"l"aczone --- dwa punkty kontrolne zostaj"a zast"apione
+przez jeden, le"r"acy w~po"lowie odleg"lo"sci mi"edzy nimi. Dalsze usuwanie
+w"ez"la polega na rozwi"azywaniu odpowiednich liniowych zada"n najmniejszych
+kwadrat"ow.
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_multiKnotRemoveClosedf ( int degree, int *lastknot, \\
+\ind{33}float *knots, \\
+\ind{33}int ncurves, int spdimen, \\
+\ind{33}int inpitch, int outpitch, \\
+\ind{33}float *ctlpoints, \\
+\ind{33}int knotnum );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_multiKnotRemoveClosedf} s"lu"ry do
+usuwania w"ez"la z~reprezentacji zamkni"etych krzywych B-sklejanych.
+\end{sloppypar}
+
+Parametry \texttt{degree}, \texttt{ncurves} i~\texttt{spdimen} opisuj"a
+odpowiednio stopie"n krzywych, ich liczb"e i~wymiar przestrzeni, w~kt"orej
+krzywe le"r"a. Parametry \texttt{*lastknot} i~\texttt{knots} opisuj"a
+pocz"atkowo pocz"atkowy ci"ag w"ez"l"ow. Po wykonaniu procedury parametry te
+opisuj"a ko"ncowy ci"ag w"ez"l"ow.
+Parametr \texttt{knotnum} okre"sla numer w"ez"la, kt"ory nale"ry usun"a"c.
+Parametry \texttt{inpitch} i~\texttt{outpitch} okre"slaj"a pocz"atkow"a
+i~ko"ncow"a podzia"lk"e tablicy punkt"ow kontrolnych
+\texttt{ctlpoints}, tj.\ odleg"lo"sci pocz"atk"ow "lamanych
+kontrolnych poszczeg"olnych krzywych. W~tablicy \texttt{ctlpoints} nale"ry
+poda"c punkty kontrolne pocz"atkowej reprezentacji krzywych; procedura
+umieszcza w~niej obliczon"a reprezentacj"e krzywych z~usuni"etym w"ez"lem.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_KnotRemoveClosedC1f(degree,lastknot,knots,coeff, \bsl \\
+\ind{4}knotnum) \bsl \\
+\ind{2}mbs\_multiKnotRemoveClosedf(degree,lastknot,knots,1,1,0,0,coeff,
+\bsl \\
+\ind{4}knotnum) \\
+\#define mbs\_KnotRemoveClosedC2f(degree,lastknot,knots,ctlpoints, \bsl \\
+\ind{4}knotnum) \bsl \\
+\ind{2}mbs\_multiKnotRemoveClosedf(degree,lastknot,knots,1,2,0,0, \bsl \\
+\ind{4}(float*)ctlpoints,knotnum) \\
+\#define mbs\_KnotRemoveClosedC3f(degree,lastknot,knots,ctlpoints, \bsl \\
+\ind{4}knotnum) ... \\
+\#define mbs\_KnotRemoveClosedC4f(degree,lastknot,knots,ctlpoints, \bsl \\
+\ind{4}knotnum) ...}
+Cztery makra wywo"luj"ace procedur"e \texttt{mbs\_multiKnotRemoveClosedf}
+w~celu usuni"ecia wskazanego w"ez"la z reprezentacji \emph{jednej}
+zamkni"etej funkcji sklejanej lub krzywej B-sklejanej w~przestrzeni
+dwu-, tr"oj- lub czterowymiarowej. Parametry musz"a spe"lnia"c warunki
+podane w~opisie procedury \texttt{mbs\_multiKnotRemoveClosedf}.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiRemoveSuperfluousKnotsf ( int ncurves, \\
+\ind{40}int spdimen, int degree, \\
+\ind{40}int *lastknot, \\
+\ind{40}float *knots, \\
+\ind{40}int inpitch, int outpitch, \\
+\ind{40}float *ctlpoints );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_multiRemoveSuperfluousKnotsf} s"lu"ry do takiego
+usuni"ecia z~reprezentacji krzywych w"ez"l"ow, aby krotno"s"c "radnego
+z~pozosta"lych w"ez"l"ow nie przekracza"la stopnia (parametr \texttt{degree})
+plus~$1$. Nie powoduje to zmiany krzywej, natomiast pozwala unikn"a"c
+k"lopot"ow zwi"azanych z~wyst"epowaniem takich w"ez"l"ow (m.in.\
+funkcja B-sklejana, kt"orej wszystkie w"ez"ly s"a t"a sam"a liczb"a,
+jest to"r\-sa\-mo"s\-cio\-wo r"owna $0$, a~zatem uk"lad funkcji B-sklejanych
+stopnia~$n$ opartych na ci"agu w"ez"l"ow, kt"ory zawiera w"eze"l
+o~krotno"sci wi"ekszej ni"r $n+1$, nie jest baz"a).
+\end{sloppypar}
+
+Obliczenie jest wykonywane ,,w miejscu'', tj.\ obszar zajmowany
+pocz"atkowo przez reprezentacj"e dan"a, po wykonaniu procedury zawiera now"a
+reprezentacj"e krzywych. Usuwanie w"ez"l"ow polega na ,,przemieszczaniu''
+danych (w"ez"l"ow i~punkt"ow kontrolnych) w~tablicach, bez
+"radnych oblicze"n numerycznych.
+
+
+\subsection{Algorytm Oslo}
+
+Algorytm Oslo jest metod"a przej"scia od opartej na
+ci"agu w"ez"l"ow $u_0,\ldots,u_N$ reprezentacji B-sklejanej krzywej
+do reprezentacji z~dodatkowymi w"ez\-"lami (kt"ore razem z~poprzednimi
+tworz"a ci"ag $\hat{u}_0,\ldots,\hat{u}_{\hat{N}}$).
+Inaczej ni"r w~algorytmie Boehma (zobacz
+p.~\ref{ssect:knot:ins}), kt"ory s"lu"ry do wstawiania jednego w"ez"la
+(i~w~razie potrzeby nale"ry go stosowa"c wielokrotnie), tu wszystkie w"ez"ly
+s"a wstawiane jednocze"snie.
+
+Je"sli punkty kontrolne $\bm{d}_i$ krzywej B-sklejanej
+stopnia~$n$ odpowiadaj"a ci"agowi w"ez"l"ow $u_0,\ldots,\allowbreak u_N$,
+za"s punkty kontrolne $\hat{\bm{d}}_l$ odpowiadaj"a ci"agowi
+$\hat{u}_0,\ldots,\hat{u}_{\hat{N}}$, to
+\begin{align}
+  \hat{\bm{d}}_l = \sum_{i=0}^{N-n-1}a_{il}^n\bm{d}_i,
+\end{align}
+gdzie wsp"o"lczynniki $a^{n}_{kl}$ s"a okre"slone za pomoc"a rekurencyjnych
+wzor"ow
+\begin{align}\label{eq:Oslo:0}
+  a^0_{kl} &{}= \left\{\begin{array}{ll}1 & \mbox{dla $u_k\leq \hat{u}_l<u_{k+1}$,} \\
+    0 & \mbox{w przeciwnym razie,} \end{array}\right. \\
+  \label{eq:Oslo:j}
+  a^n_{il} &{}= \frac{\hat{u}_{l+n}-u_i}{u_{i+n}-u_i} a^{n-1}_{il} +
+    \frac{u_{i+n+1}-\hat{u}_{l+n}}{u_{i+n+1}-u_{i+1}} a^{n-1}_{i+1,l}.
+\end{align}
+Implementacja algorytmu Oslo w~bibliotece \texttt{libmultibs} polega na tym,
+"re najpierw jest obliczana macierz~$A$ wsp"o"lczynnik"ow
+$a^n_{il}$, a~nast"epnie jest ona mno"rona przez macierz punkt"ow
+kontrolnych $\bm{d}_0,\ldots,\bm{d}_{N-n-1}$.
+\begin{figure}[htb]
+  \centerline{\epsfig{file=oslo.ps}}
+  \caption{Wstawianie wielu w"ez"l"ow za pomoc"a algorytmu Oslo}
+\end{figure}
+
+Macierz~$A$ umo"rliwia r"ownie"r usuni"ecie
+w~jednym kroku wielu w"ez"l"ow, przez rozwi"azanie nadokre"slonego uk"ladu
+r"owna"n liniowych (w kt"orym jest wi"ecej r"owna"n ni"r niewiadomych).
+Taki uk"lad r"owna"n, nawet je"sli jest niesprzeczny, najlepiej jest
+rozwi"azywa"c jako liniowe zadanie najmniejszych kwadrat"ow.
+
+Macierz zmiany reprezentacji jest reprezentowana jako macierz wst"egowa, za
+pomoc"a tablicy opisuj"acej profil (tj.\ po"lo"renia niezerowych
+wsp"o"lczynnik"ow w~kolejnych kolumnach) i~tablicy z niezerowymi
+wsp"o"lczynnikami. Szczeg"o"lowy opis tej reprezentacji i~procedur jej
+przetwarzania jest tre"sci"a p.~\ref{sect:band:matrix}.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_OsloKnotsCorrectf ( int lastuknot, const float *uknots, \\
+\ind{30}int lastvknot, const float *vknots );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_OsloKnotsCorrectf} sprawdza, czy dane dwa ci"agi
+w"ez"l"ow umo"rliwiaj"a skonstruowanie macierzy przej"scia. Sprawdzane
+warunki s"a takie: oba ci"agi s"a niemalej"ace, a ponadto pierwszy ci"ag
+($\mathord{\mbox{\texttt{lastuknot}}}+1$ liczb podanych w~tablicy
+\texttt{uknots}) jest podci"agiem drugiego ci"agu
+($\mathord{\mbox{\texttt{lastvknot}}}+1$ liczb w~tablicy
+\texttt{vknots}). Je"sli warunki te s"a spe"lnione, to warto"sci"a procedury
+jest \texttt{true} (czyli \texttt{1}), a~w~przeciwnym razie \texttt{false}
+(czyli \texttt{0}).
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_BuildOsloMatrixProfilef ( int degree, \\
+\ind{32}int lastuknot, const float *uknots, \\
+\ind{32}int lastvknot, const float *vknots, \\
+\ind{32}bandm\_profile *prof );}
+Procedura \texttt{mbs\_BuildOsloMatrixProfilef} konstruuje na podstawie
+parametr"ow (okre"slaj"acych stopie"n reprezentacji, \texttt{degree}) i~dwa
+ci"agi w"ez"l"ow (zobacz wy"rej opis procedury
+\texttt{mbs\_OsloKnotsCorrectf}) profil (tj.\ opis rozmieszczenia
+niezerowych wsp"o"lczynnik"ow) macierzy zmiany reprezentacji. Profil ten
+jest umieszczany w tablicy \texttt{prof}, kt"ora musi mie"c d"lugo"s"c co
+najmniej
+$\mathord{\mbox{\texttt{lastuknot}}}-\mathord{\mbox{\texttt{degree}}}+1$
+(o~$1$ wi"eksz"a ni"r liczba kolumn macierzy).
+
+Warto"sci"a procedury jest liczba niezerowych wsp"o"lczynnik"ow macierzy,
+tj.\ d"lugo"s"c tablicy potrzebnej do ich przechowywania.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BuildOsloMatrixf ( int degree, int lastuknot, \\
+\ind{28}const float *uknots, \\
+\ind{28}const float *vknots, \\
+\ind{28}const bandm\_profile *prof, float *a );}
+Procedura \texttt{mbs\_BuildOsloMatrixf} oblicza wsp"o"lczynniki macierzy
+zmiany reprezentacji, za pomoc"a algorytmu Oslo. Parametry procedury to:
+\texttt{degree} --- stopie"n reprezentacji, \texttt{uknots} --- tablica
+w"ez"l"ow reprezentacji pocz"atkowej, o~d"lugo"sci
+$\mathord{\mbox{\texttt{lastuknot}}}+1$, \texttt{vknots} --- tablica
+w"ez"l"ow reprezentacji z dodatkowymi w"ez"lami. Liczba tych w"ez"l"ow
+jest wyznaczana na podstawie zawarto"sci tablic, dlatego nie ma
+okre"slaj"acego j"a parametru. Ci"agi w"ez"l"ow w~tych tablicach
+musz"a spe"lnia"c warunki sprawdzane przez procedur"e
+\texttt{mbs\_OsloKnotsCorrectf}.
+
+Tablica \texttt{prof} zawiera opis struktury macierzy, kt"ory musi by"c
+skonstruowany wcze"sniej, za pomoc"a procedury
+\texttt{mbs\_BuildOsloMatrixProfilef}. Do tablicy \texttt{a} o~d"lugo"sci
+obliczonej przez procedur"e
+\texttt{mbs\_BuildOsloMatrixProfilef} procedura
+\texttt{mbs\_BuildOsloMatrixf} wpisuje wsp"o"lczynniki macierzy przej"scia.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiOsloInsertKnotsf ( int ncurves, int spdimen, \\
+\ind{28}int degree, \\
+\ind{28}int inlastknot, const float *inknots, \\
+\ind{28}int inpitch, float *inctlpoints, \\
+\ind{28}int outlastknot, const float *outknots, \\
+\ind{28}int outpitch, float *outctlpoints );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_multiOsloInsertKnotsf} s"lu"ry do jednoczesnego
+wstawienia \emph{wielu} w"ez"l"ow do reprezentacji \texttt{ncurves} krzywych
+B-sklejanych po"lo"ronych w przestrzeni o wymiarze \texttt{spdimen}.
+Stopie"n krzywych jest okre"slony przez warto"s"c parametru \texttt{degree}.
+Reprezentacja pocz"atkowa sk"lada si"e z~w"ez"l"ow umieszczonych w~tablicy
+\texttt{inknots} (jest ich $\mathord{\mbox{\texttt{inlastknot}}}+1$)
+oraz "lamanych kontrolnych umieszczonych w~tablicy \texttt{inctlpoints}
+o~podzia"lce \texttt{inpitch}.
+
+Ko"ncowa reprezentacja krzywych ma by"c oparta na ci"agu w"ez"l"ow
+o~d"lugo"sci $\mathord{\mbox{\texttt{outlastknot}}}+1$ podanym w~tablicy
+\texttt{outknots}, przy czym ci"ag w"ez"l"ow pocz"atkowej reprezentacji musi
+by"c podci"agiem tego ci"agu.
+\end{sloppypar}
+
+Dzia"lanie procedury polega na wyznaczeniu za pomoc"a algorytmu Oslo
+odpowiedniej macierzy, a~nast"epnie pomno"reniu jej przez macierz utworzon"a
+z~punkt"ow kontrolnych danych krzywych.
+
+Je"sli warto"sci parametr"ow \texttt{inlastknot} i~\texttt{outlastknot}
+s"a r"owne, to procedura, przy za"lo"reniu, "re oba ci"agi w"ez"l"ow s"a
+identyczne (co \emph{nie jest} sprawdzane), kopiuje dane z~tablicy
+\texttt{inctlpoints} do \texttt{outctlpoints} (z~uwzgl"ednieniem podzia"lek
+tych tablic, okre"slonych przez parametry \texttt{inpitch}
+i~\texttt{outpitch}).
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiOsloRemoveKnotsLSQf ( int ncurves, int spdimen, \\
+\ind{28}int degree, \\
+\ind{28}int inlastknot, const float *inknots, \\ 
+\ind{28}int inpitch, float *inctlpoints, \\ 
+\ind{28}int outlastknot, const float *outknots, \\ 
+\ind{28}int outpitch, float *outctlpoints );}
+Procedura \texttt{mbs\_multiOsloRemoveKnotsLSQf} s"lu"ry do jednoczesnego
+usuni"ecia \emph{wielu} w"ez"l"ow z~reprezentacji \texttt{ncurves} krzywych
+B-sklejanych po"lo"ronych w przestrzeni o wymiarze \texttt{spdimen}.
+Stopie"n krzywych jest okre"slony przez warto"s"c parametru \texttt{degree}.
+Reprezentacja pocz"atkowa sk"lada si"e z~w"ez"l"ow umieszczonych w~tablicy
+\texttt{inknots} (jest ich $\mathord{\mbox{\texttt{inlastknot}}}+1$)
+oraz "lamanych kontrolnych umieszczonych w~tablicy \texttt{inctlpoints}
+o~podzia"lce \texttt{inpitch}.
+
+Ko"ncowa reprezentacja krzywych ma by"c oparta na ci"agu w"ez"l"ow
+o~d"lugo"sci $\mathord{\mbox{\texttt{outlastknot}}}+1$ podanym w~tablicy
+\texttt{outknots}, przy czym musi to by"c podci"ag ci"agu pocz"atkowego.
+Ponadto krotno"s"c "radnego w"ez"la w ci"agu ko"ncowym nie mo"re by"c
+wi"eksza ni"r $\mathord{\mbox{\texttt{degree}}}+1$ (poniewa"r w przeciwnym
+razie macierz opisana wy"rej mia"laby kolumny liniowo zale"rne).
+
+Dzia"lanie procedury polega na wyznaczeniu za pomoc"a algorytmu Oslo
+odpowiedniej macierzy, a~nast"epnie rozwi"azaniu liniowego zadania
+najmniejszych kwad\-ra\-t"ow z~t"a macierz"a.
+
+Je"sli warto"sci parametr"ow \texttt{inlastknot} i~\texttt{outlastknot}
+s"a r"owne, to procedura, przy za"lo"reniu, "re oba ci"agi w'ez"l"ow s"a
+identyczne (co \emph{nie jest} sprawdzane), kopiuje dane z~tablicy
+\texttt{inctlpoints} do \texttt{outctlpoints} (z~uwzgl"ednieniem podzia"lek
+tych tablic, okre"slonych przez parametry \texttt{inpitch}
+i~\texttt{outpitch}).
+
+
+\subsection{\label{ssect:max:knot:ins}Maksymalne wstawianie w"ez"l"ow}
+
+Procedury opisane w tym punkcie s"lu"r"a do wstawienia w"ez"l"ow do
+reprezentacji krzywych i~p"lat"ow B-sklejanych w~taki spos"ob, aby
+krotno"s"c ka"rdego w"ez"la wewn"etrznego by"la o~$1$ wi"eksza od stopnia.
+W~ten spos"ob powstaje szczeg"olna reprezentacja B-sklejana, kt"ora sk"lada
+si"e z~reprezentacji ka"rdego "luku wielomianowego w bazie Bernsteina lokalnej
+zmiennej, tj.\ reprezentacja kawa"lkami B\'{e}ziera. Reprezentacja taka
+umo"rliwia m.in.\ szybkie obliczanie punkt"ow krzywych (za pomoc"a schematu
+Hornera) i~dzia"lania algebraiczne (mno"renie) funkcji sklejanych
+i~krzywych. Procedury te nie usuwaj"a
+zb"ednych w"ez"l"ow i~punkt"ow kontrolnych, kt"ore mog"a pozosta"c po
+wstawieniu w"ez"l"ow. Procedury, kt"ore to robi"a (czyli daj"a wynik
+,,czysty'') s"a opisane w nast"epnym punkcie.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiMaxKnotInsf ( int ncurves, int spdimen, int degree, \\
+\ind{28}int inlastknot, const float *inknots, \\
+\ind{28}int inpitch, const float *inctlpoints, \\
+\ind{28}int *outlastknot, float *outknots, \\
+\ind{28}int outpitch, float *outctlpoints, \\
+\ind{28}int *skipl, int *skipr );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_multiMaxKnotInsf} wstawia w"ez"ly do reprezentacji
+\texttt{ncurves} krzywych B-sklejanych stopnia \texttt{degree}
+w~przestrzeni o~wymiarze \texttt{spdimen}.
+
+Pocz"atkowa reprezentacja
+krzywych jest opisana przez parametry \texttt{inlastknot} (indeks ostatniego
+w"ez"la), \texttt{inctlpoints} (tablica zawieraj"aca w"ez"l"ow),
+\texttt{inpitch} (podzia"lka, tj.\ odleg"lo"s"c pocz"atk"ow danych "lamanych
+kontrolnych) i~\texttt{inctlpoints} (tab\-li\-ca zawieraj"aca wsp"o"lrz"edne
+punkt"ow kontrolnych kolejnych krzywych).
+
+Procedura wyznacza reprezentacje krzywych odpowiadaj"ace ci"agowi w"ez"l"ow,
+w~kt"orym ka"rdy w"eze"l wewn"etrzny (zobacz p.~\ref{ssect:BSC}) ma krotno"s"c
+$\mathord{\makebox{\texttt{degree}}}+1$, a~w"ez"ly brzegowe maj"a krotno"sci
+\texttt{degree} lub $\mathord{\makebox{\texttt{degree}}}+1$.
+
+Krotno"sci w"ez"l"ow zewn"etrznych nie ulegaj"a zmianie, w~zwi"azku z~czym
+mo"re powsta"c reprezentacja, kt"ora zawiera zb"edne w"ez"ly i~punkty
+kontrolne. Parametry \texttt{*skipl} i~\texttt{*skipr} na wyj"sciu
+z~procedury okre"slaj"a liczb"e zb"ednych w"ez"l"ow i punkt"ow
+kontrolnych odpowiednio z~lewej i~prawej strony.
+
+Nowa reprezentacja krzywej jest umieszczana w~tablicach
+\texttt{outknots} (ci"ag w"ez\-"l"ow, indeks ostatniego w"ez"la jest zwracany
+poprzez parametr \texttt{outlastknot}) i~\texttt{outctlpoints} ("lamane
+kontrolne, pocz"atki "lamanych kolejnych krzywych s"a od siebie odleg"le
+liczb"e, kt"ora jest warto"sci"a parametru \emph{wej"sciowego}
+\texttt{outpitch}).
+
+Je"sli w~pocz"atkowej reprezentacji krzywych wyst"epuj"a w"ez"ly
+o~krotno"sci wi"ekszej ni"r docelowa, to w~pierwszym kroku s"a one
+usuwane (z~roboczej kopii reprezentacji krzywych), za pomoc"a procedury
+\texttt{mbs\_multiRemoveSuperfluousKnots}).
+Nast"epnie jest wywo"lywana procedura \texttt{mbs\_multiOsloInsertKnotsf}),
+kt"ora dokonuje wstawienia w"ez"l"ow za pomoc"a algorytmu Oslo.
+
+D"lugo"sci tablic potrzebnych do pomieszczenia nowej reprezentacji krzywej
+mo"rna obliczy"c za pomoc"a procedury \texttt{mbs\_LastknotMaxInsf}, kt"ora
+oblicza indeks ostatniego w"ez"la nowej reprezentacji.
+\end{sloppypar}
+
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_MaxKnotInsC1f(degree,inlastknot,inknots,incoeff, \bsl \\
+\ind{4}outlastknot,outknots,outcoeff,skipl,skipr) \bsl \\
+\ind{2}mbs\_multiMaxKnotInsf(1,1,degree,inlastknot,inknots,0,incoeff, \bsl \\
+\ind{4}outlastknot,outknots,0,outcoeff,skipl,skipr) \\
+\#define mbs\_MaxKnotInsC2f(degree,inlastknot,inknots,inctlpoints, \bsl \\
+\ind{4}outlastknot,outknots,outctlpoints,skipl,skipr) \bsl \\
+\ind{2}mbs\_multiMaxKnotInsf(1,2,degree,inlastknot,inknots,0, \bsl \\
+\ind{4}(float*)inctlpoints,outlastknot,outknots,0, \bsl \\
+\ind{4}(float*)outctlpoints,skipl,skipr) \\
+\#define mbs\_MaxKnotInsC3f(degree,inlastknot,inknots,inctlpoints, \bsl \\
+\ind{4}outlastknot,outknots,outctlpoints,skipl,skipr) ... \\
+\#define mbs\_MaxKnotInsC4f(degree,inlastknot,inknots,inctlpoints, \bsl \\
+\ind{4}outlastknot,outknots,outctlpoints,skipl,skipr) ...}
+Cztery makra wywo"luj"ace procedur"e \texttt{mbs\_multiMaxKnotInsf} w~celu
+wyznaczenia reprezentacji B-sklejanej funkcji lub krzywej sklejanej
+w~przestrzeni dwu-, tr"oj- i czterowymiarowej, w kt"orej wszystkie w"ez"ly
+wewn"etrzne maj"a krotno"s"c o $1$ wi"eksz"a ni"r stopie"n, czyli
+reprezentacji kawa"lkami B\'{e}ziera. Parametry musz"a
+spe"lnia"c warunki podane w opisie procedury \texttt{mbs\_multiMaxKnotInsf}.
+
+
+\subsection{Konwersja krzywych i p"lat"ow do postaci kawa"lkami B\'{e}ziera}
+
+Opisane tu procedury dokonuj"a konwersji krzywych i~p"lat"ow B-sklejanych do
+postaci kawa"lkami B\'{e}ziera, za pomoc"a procedury
+\texttt{mbs\_multiMaxKnotInsf}. Mo"rna ich u"rywa"c do wygodnego
+rysowania krzywych lub p"lat"ow.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBSCurvesToBezf ( int spdimen, int ncurves, \\
+\ind{31}int degree, int lastinknot, \\
+\ind{31}const float *inknots, \\
+\ind{31}int inpitch, const float *inctlp, \\
+\ind{31}int *kpcs, int *lastoutknot, \\
+\ind{31}float *outknots, \\
+\ind{31}int outpitch, float *outctlp );}
+Procedura \texttt{mbs\_multiBSCurvesToBezf} dokonuje konwersji
+\texttt{ncurves} krzywych B-sklejanych stopnia \texttt{degree}, po"lo"ronych
+w~przestrzeni o~wymiarze \texttt{spdimen} do postaci kawa"lkami B\'{e}ziera.
+
+Parametry opisuj"ace dan"a reprezentacj"e krzywych to \texttt{lastinknot}
+(indeks ostatniego w"ez"la), \texttt{inknots} (tablica z~ci"agiem w"ez"l"ow),
+\texttt{inpitch} i~\texttt{inctlp} (podzia"lka i~tablica z~punktami
+kontrolnymi krzywych).
+
+Warto"s"c parametru \texttt{*kpcs} po wyj"sciu z~procedury jest r"owna
+liczbie wielomianowych "luk"ow, z~kt"orych sk"lada si"e ka"rda krzywa.
+Parametr \texttt{*lastoutknot} jest indeksem ostatniego w"ez"la w~ci"agu
+nale"r"acym do wynikowej reprezentacji krzywych, tablica \texttt{outknots}
+zawiera ten ci"ag w"ez"l"ow, parametr \emph{wej"sciowy} \texttt{outpitch}
+okre"sla podzia"lk"e tablicy \texttt{outctlp}, w~kt"orej procedura umieszcza
+punkty kontrolne B\'{e}ziera poszczeg"olnych "luk"ow wielomianowych.
+Dok"ladniej, w~tablicy tej ka"rdej z~krzywych B-sklejanych odpowiada
+\texttt{*kpcs*(degree+1)*spdimen} liczb zmiennopozycyjnych; ka"rdy "luk
+wielomianowy jest reprezentowany przez kolejne \texttt{(degree+1)*spdimen}
+liczb (opisuj"acych \texttt{degree+1} punkt"ow); warto"s"c parametru
+\texttt{outpitch} okre"sla odleg"lo"s"c w~tablicy pocz"atk"ow reprezentacji
+pierwszego "luku ka"rdej z~krzywych B-sklejanych.
+
+Je"sli parametr \texttt{kpcs}, \texttt{lastoutknot} lub \texttt{outknots}
+jest wska"znikiem pustym, to procedura pomija przykazywanie odpowiedniej
+informacji.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BSToBezC1f(degree,lastinknot,inknots,incoeff,kpcs, \bsl \\
+\ind{4}lastoutknot,outknots,outcoeff) \bsl \\
+\ind{2}mbs\_multiBSCurvesToBezf(1,1,degree,lastinknot,inknots,0,incoeff,\bsl \\
+\ind{4}kpcs,lastoutknot,outknots,0,outcoeff) \\
+\#define mbs\_BSToBezC2f(degree,lastinknot,inknots,inctlp,kpcs, \bsl \\
+\ind{4}lastoutknot,outknots,outctlp) \bsl \\
+\ind{2}mbs\_multiBSCurvesToBezf(2,1,degree,lastinknot,inknots,0, \bsl \\
+\ind{4}(float*)inctlp,kpcs,lastoutknot,outknots,0,(float*)outctlp) \\
+\#define mbs\_BSToBezC3f(degree,lastinknot,inknots,inctlp,kpcs, \bsl \\
+\ind{4}lastoutknot,outknots,outctlp) ... \\
+\#define mbs\_BSToBezC4f(degree,lastinknot,inknots,inctlp,kpcs, \bsl \\
+\ind{4}lastoutknot,outknots,outctlp) ...}
+\begin{sloppypar}
+Podane wy"rej makra wywo"luj"a procedur"e \texttt{mbs\_multiBSCurvesToBezf}
+w~celu otrzymania reprezentacji kawa"lkami B\'{e}ziera \emph{jednej} funkcji
+sklejanej lub krzywej \mbox{B-sklejanej} w~przestrzeni dwu-, tr"oj- lub
+czterowymiarowej. Parametr"ow tych makr maj"a takie samo znaczenie jak
+parametry procedury \texttt{mbs\_multiBSCurvesToBezf} o~tych samych nazwach. 
+\end{sloppypar}
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BSPatchToBezf ( int spdimen, \\
+\ind{25}int degreeu, int lastuknot, \\
+\ind{25}const float *uknots, \\
+\ind{25}int degreev, int lastvknot, \\
+\ind{25}const float *vknots, \\
+\ind{25}int inpitch, const float *inctlp, \\
+\ind{25}int *kupcs, int *lastoutuknot, \\
+\ind{25}float *outuknots, \\
+\ind{25}int *kvpcs, int *lastoutvknot, \\
+\ind{25}float *outvknots, \\
+\ind{25}int outpitch, float *outctlp );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_BSPatchToBezf} znajduje reprezentacj"e
+p"lata B-sklejanego z~w"ez\-"la\-mi o~krotno"sciach o~$1$ wi"ekszych od stopni
+p"lata ze wzgl"edu na oba parametry, czyli reprezentacje B\'{e}ziera
+wielomianowych kawa"lk"ow p"lata. Reprezentacja taka nadaje si"e m.in.\ do
+wygodnego wy"swietlania p"lata. Procedura dopuszcza p"laty o~brzegach
+swobodnych.
+\end{sloppypar}
+
+Parametr \texttt{spdimen} okre"sla wymiar przestrzeni, w kt"orej jest
+po"lo"rony p"lat. Stopie"n p"lata jest okre"slony przez parametry
+\texttt{degreeu} i~\texttt{degreev}, ci"agi w"ez"l"ow reprezentacji danej
+s"a reprezentowane przez parametry \texttt{lastuknot}, \texttt{uknots},
+\texttt{lastvknot} i~\texttt{vknots}, a~punkty kontrolne s"a podane
+w~tablicy \texttt{inctlp} o~podzia"lce (odleg"lo"sci pocz"atk"ow kolejnych
+kolumn siatki kontrolnej) b"ed"acej warto"sci"a parametru \texttt{inpitch}.
+
+Parametry \texttt{*kupcs} i~\texttt{*kvpcs} s"lu"r"a do przekazania
+informacji o~liczbie wielomianowych kawa"lk"ow p"lata; p"lat sk"lada si"e
+z~\texttt{*kupcs} ,,pas"ow'', z~kt"orych ka"rdy sk"lada si"e
+z~\texttt{*kvpcs} p"lat"ow wielomianowych. Parametry \texttt{lastoutuknot},
+\texttt{outuknots}, \texttt{lastvknot} i~\texttt{outvknots} s"lu"r"a do
+przekazania przez procedur"e ci"ag"ow w"ez"l"ow ko"ncowej reprezentacji
+p"lata. Je"sli dowolny z~tych parametr"ow jest wska"znikiem pustym
+(\texttt{NULL}), to odpowiednia informacja nie jest wyprowadzana przez
+procedur"e (dla potrzeb rysowania p"lat"ow idane te s"a zb"edne).
+
+\begin{sloppypar}
+Punkty kontrolne wynikowej reprezentacji p"lata s"a umieszczane w~tablicy
+\texttt{outctlp} o~podzia"lce \texttt{outpitch} (\textbf{Uwaga:} to jest
+parametr wej"sciowy). Podzia"lka ta powinna by"c wi"eksza lub r"owna
+$d(m+1)k_v$, gdzie liczba~$d$ jest wymiarem przestrzeni (warto"s"c parametru
+\texttt{spdimen}), $m$~(warto"s"c parametru \texttt{degreev}) jest stopniem
+p"lata ze wzgl"edu na parametr~$v$, za"s $k_v$ jest liczb"a odcink"ow, na
+kt"ore w"ez"ly w ci"agu ,,$v$'' dziel"a przedzia"l $[v_m,v_{M-m}]$
+(liczba $M$ jest warto"sci"a parametru \texttt{lastvknot}). Liczba $k_v$
+jest przypisywana przez procedur"e parametrowi $\texttt{kvpcs}$, ale mo"rna
+j"a otrzyma"c wcze"sniej, za pomoc"a procedury
+\texttt{mbs\_NumKnotIntervalsf}.
+
+Liczba kolumn ko"ncowej reprezentacji p"lata jest r"owna $(n+1)k_u$, gdzie
+$n$~jest stopniem p"lata ze wzgl"edu na parametr~$u$, za"s $k_u$ jest
+liczb"a ,,pas"ow'', z~kt"orych sk"lada si"e p"lat. Te"r mo"rna j"a obliczy"c
+zawczasu, wywo"luj"ac procedur"e \texttt{mbs\_NumKnotIntervalsf}.
+\end{sloppypar}
+
+W"la"sciwe obliczenia (przede wszystkim wstawianie w"ez"l"ow) wykonuje
+procedura \texttt{mbs\_multiMaxKnotInsf}.
+
+
+\vspace{\medskipamount}\noindent
+\textbf{Przyk"lad.} 
+Za"lo"rymy, "re p"lat jest okre"slony wzorem~(\ref{eq:BSpatch:def}) za
+pomoc"a dw"och niemalej"acych ci"ag"ow w"ez"l"ow, $u_0,\ldots,u_N$
+i~$v_0,\ldots,v_M$, umieszczonych odpowiednio w~tablicach \texttt{u}
+i~\texttt{v}. Stopie"n p"lata jest r"owny $n$ ze
+wzgl"edu na parametr $u$ i $m$ ze wzgl"edu na parametr $v$.
+Punkty kontrolne p"lata le"r"a w przestrzeni $d$-wymiarowej (tej samej co
+p"lat) i~s"a ustawione w~kolumnach, w~tablicy~\texttt{cp}. Kolumna $i$-ta dla
+$i\in\{0,\ldots,N-n-1\}$ sk"lada si"e z~$M-m$ punkt"ow, a~zatem jest ona
+reprezentowana przez $(M-m)d$ liczb zmiennopozycyjnych.
+
+\vspace{\medskipamount}
+\noindent{\ttfamily
+\ind{2}ku = mbs\_NumKnotIntervalsf ( $n$, $N$, u ); \\
+\ind{2}kv = mbs\_NumKnotIntervalsf ( $m$, $M$, v ); \\
+\ind{2}pitch = $(m+1)d$*kv; \\
+\ind{2}b = pkv\_GetScratchMemf ( pitch*ku*(n+1) ); \\
+\ind{2}mbs\_BSPatchToBezf ( $d$, $n$, $N$, u, $m$, $M$, v, $d$*($M-m$), cp, \\
+\ind{22}\&ku, NULL, NULL, \&kv, NULL, NULL, pitch, b );}
+\vspace{\medskipamount}
+
+Po wykonaniu przedstawionego wy"rej fragmentu programu
+w~tablicy \texttt{b} ma\-my punkty kontrolne B\'{e}ziera
+p"lat"ow wielomianowych, z kt"orych sk"lada si"e dany p"lat B-sklejany.
+Aby do tablicy \texttt{c} (o~d"lugo"sci co najmniej
+$(n+1)(m+1)d$ liczb zmiennopozycyjnych) przenie"s"c ,,spakowan"a'' siatk"e
+kontroln"a (tj.\ punkty kontrolne w~kolejnych kolumnach bez przerw)
+$j$-tego p"lata z~$i$-tego pasa (licz"ac od zera), mo"rna wykona"c
+instrukcje
+
+\vspace{\medskipamount}
+\noindent{\ttfamily
+\ind{2}md = $(m+1)d$;\ind{16}\,/* d"lugo"s"c kolumny p"lata B\'{e}ziera */ \\
+\ind{2}start = $(n+1)i$*pitch + md*$j$;\ind{4}/* po"lo"renie pierwszego punktu */\\
+\ind{2}pkv\_Selectf ( $n+1$, md, pitch, md, \&b[start], c );
+}\vspace{\medskipamount}
+
+\begin{figure}[ht]
+  \centerline{\epsfig{file=bspbez.ps}}
+  \caption{P"lat B-sklejany i jego reprezentacja kawa"lkami B\'{e}ziera}
+\end{figure}
+
+
+\section{Algorytm Lane'a-Riesenfelda}
+
+\cprog{%
+boolean mbs\_multiLaneRiesenfeldf ( int spdimen, int ncurves, \\
+\ind{20}int degree, \\
+\ind{20}int inlastknot, int inpitch, const float *incp, \\
+\ind{20}int *outlastknot, int outpitch, float *outcp );}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_LaneRiesenfeldC1f(degree,inlastknot,incp,outlastknot, \bsl \\
+\ind{4}outcp) \bsl \\
+\ind{2}mbs\_multiLaneRiesenfeldf ( 1, 1, degree, inlastknot, 0, incp, \bsl \\
+\ind{4}outlastknot, 0, outcp ) \\
+\#define mbs\_LaneRiesenfeldC2f(degree,inlastknot,incp,outlastknot, \bsl \\
+\ind{4}outcp) \bsl \\
+\ind{2}mbs\_multiLaneRiesenfeldf ( 2, 1, degree, inlastknot, 0, \bsl \\
+\ind{4}(float*)incp, outlastknot, 0, (float*)outcp ) \\
+\#define mbs\_LaneRiesenfeldC3f(degree,inlastknot,incp,outlastknot, \bsl \\
+\ind{4}outcp) ... \\
+\#define mbs\_LaneRiesenfeldC4f(degree,inlastknot,incp,outlastknot, \bsl \\
+\ind{4}outcp) ...}
+
+\begin{figure}[ht]
+  \centerline{\epsfig{file=bsplane.ps}}
+  \caption{Zastosowanie algorytmu Lane'a-Riesenfelda do p"lata B-sklejanego}
+\end{figure}
+
+\clearpage

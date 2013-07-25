@@ -1,0 +1,374 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{Biblioteka \texttt{libg2blending}}
+
+\section{Tensorowe B-sklejane p"laty tr"ojharmoniczne}
+
+\begin{listingC}
+boolean g2bl_SetupTriharmAMatrixd ( int lastknotu, int lastknotv,
+                           int *n, int **prof, double **Amat, double ***arow );
+boolean g2bl_SetupTriharmRHSd ( int lastknotu, int lastknotv,
+                           int spdimen, int pitch, const double *cpoints,
+                           double *rhs );
+
+boolean g2bl_SetupClosedTriharmAMatrixd ( int lastknotu, int lastknotv,
+                           int *n, int **prof, double **Amat, double ***arow );
+boolean g2bl_SetupClosedTriharmRHSd ( int lastknotu, int lastknotv,
+                           int spdimen, int pitch, const double *cpoints,
+                           double *rhs );
+\end{listingC}
+
+
+\section{Optymalizacja p"lat"ow tensorowych z~kryterium jako"sci kszta"ltu}
+
+\begin{listingC}
+int g2bl_NiSize ( int nkn );
+int g2bl_NijSize ( int nkn );
+int g2bl_MijSize ( int nkn );
+\end{listingC}
+
+\begin{listingC}
+int _g2bl_SetupHessian1Profile ( int lastknotu, int lastknotv, int *prof );
+\end{listingC}
+
+\begin{listingC}
+double g2bl_UFuncd ( int nkn, const double *qcoeff, double *Nitab,
+                     int lastknotu, int lastknotv, int pitch, point3d *cp,
+                     char *dirty,
+                     double tC, double *ftab );
+void g2bl_UFuncGradd ( int nkn, const double *qcoeff, double *Nitab,
+                       int lastknotu, int lastknotv,
+                       int pitch, point3d *cp, char *dirty,
+                       double tC, double *ftab, double *gtab,
+                       double *func, double *grad );
+void g2bl_UFuncGradHessiand ( int nkn, const double *qcoeff, double *Nitab,
+                              double *Nijtab, double *Mijtab,
+                              int lastknotu, int lastknotv,  
+                              int pitch, point3d *cp, char *dirty,
+                              double tC, double *ftab, double *gtab, double
+                              *htab,
+                              double *func, double *grad,
+                              int hsize, const int *prof, double **hrows );
+void g2bl_ClosedUFuncGradd ( int nkn, const double *qcoeff, double *Nitab, 
+                       int lastknotu, int lastknotv,
+                       int pitch, point3d *cp, char *dirty,
+                       double tC, double *ftab, double *gtab,
+                       double *func, double *grad );
+void g2bl_ClosedUFuncGradHessiand ( int nkn, const double *qcoeff, double *Nitab,
+                              double *Nijtab, double *Mijtab,
+                              int lastknotu, int lastknotv,  
+                              int pitch, point3d *cp, char *dirty,
+                              double tC, double *ftab, double *gtab, double
+                              *htab,
+                              double *func, double *grad,
+                              int hsize, const int *prof, double **hrows );
+\end{listingC}
+
+\begin{listingC}
+double g2bl_SurfNetDiameterSqd ( int lastknotu, int lastknotv,
+                                 int pitch, const point3d *cp );
+double g2bl_ClosedSurfNetDiameterSqd ( int lastknotu, int lastknotv,
+                                       int pitch, const point3d *cp );
+\end{listingC}
+
+\begin{listingC}
+boolean g2bl_InitBlSurfaceOptLMTd ( int lastknotu, int lastknotv, int pitch,
+                                    point3d *cp,
+                                    double C, double dO, double dM,
+                                    int nkn1, int nkn2,
+                                    void **data );
+boolean g2bl_IterBlSurfaceOptLMTd ( void *data, boolean *finished );
+void g2bl_OptLMTDeallocated ( void **data );
+boolean g2bl_FindBlSurfaceLMTd ( int lastknotu, int lastknotv, int pitch,
+                                 point3d *cp,
+                                 double C, double dO, double dM,
+                                 int maxit, int nkn1, int nkn2 );
+\end{listingC}
+
+\begin{listingC}
+boolean g2bl_InitBlSurfaceConstrOptLMTd ( int lastknotu, int lastknotv, int
+pitch,
+                                          point3d *cp,
+                                          int nconstr, double *constrmat,
+                                          double *constrrhs,
+                                          double C, double dO, double dM,
+                                          int nkn1, int nkn2,
+                                          void **data );
+boolean g2bl_IterBlSurfaceConstrOptLMTd ( void *data, boolean *finished );
+void g2bl_ConstrOptLMTDeallocated ( void **data );
+boolean g2bl_FindBlSurfaceConstrLMTd ( int lastknotu, int lastknotv, int
+pitch,
+                                       point3d *cp,
+                                       int nconstr, double *constrmat,
+                                       double *constrrhs,
+                                       double C, double dO, double dM,
+                                       int maxit, int nkn1, int nkn2 );
+\end{listingC}
+
+\begin{listingC}
+boolean g2bl_ClosedInitBlSurfaceOptLMTd ( int lastknotu, int lastknotv, int
+pitch,
+                                          point3d *cp,
+                                          double C, double dO, double dM,
+                                          int nkn1, int nkn2,
+                                          void **data );
+boolean g2bl_ClosedIterBlSurfaceOptLMTd ( void *data, boolean *finished );
+void g2bl_ClosedOptLMTDeallocated ( void **data );
+boolean g2bl_ClosedFindBlSurfaceLMTd ( int lastknotu, int lastknotv, int
+pitch,
+                                       point3d *cp,
+                                       double C, double dO, double dM,
+                                       int maxit, int nkn1, int nkn2 );
+\end{listingC}
+
+\begin{listingC}
+boolean g2bl_ClosedInitBlSurfaceConstrOptLMTd (
+                   int lastknotu, int lastknotv, int pitch, point3d *cp,
+                   int nconstr, double *constrmat, double *constrrhs,   
+                   double C, double dO, double dM, int nkn1, int nkn2,  
+                   void **data );
+boolean g2bl_ClosedIterBlSurfaceConstrOptLMTd ( void *data, boolean
+*finished );
+void g2bl_ClosedConstrOptLMTDeallocated ( void **data );
+boolean g2bl_ClosedFindBlSurfaceConstrLMTd (
+                   int lastknotu, int lastknotv, int pitch, point3d *cp,
+                   int nconstr, double *constrmat, double *constrrhs,   
+                   double C, double dO, double dM,
+                   int maxit, int nkn1, int nkn2 );
+
+\end{listingC}
+
+\begin{listingC}
+boolean g2bl_SetupULConstraintsd ( int lastknotu, int lastknotv, int
+spdimen,
+                                   int ppitch, double *cp,
+                                   int nucurv, double *ucknots,
+                                   int cpitch, double *uccp,   
+                                   int *nconstr, double *cmat, double *crhs
+                                   );
+
+boolean g2bl_SetupUNLConstraintsd ( int lastknotu, int lastknotv,
+                                    int ppitch, point3d *cp,
+                                    int nucurv, double *ucknots,
+                                    int cpitch, point3d *uccp,  
+                                    int *nconstr, double *cmat, double *crhs
+                                    );
+
+
+boolean g2bl_SetupClosedULConstraintsd ( int lastknotu, int lastknotv, int
+spdimen,
+                                         int ppitch, double *cp,
+                                         int nucurv, double *ucknots,
+                                         int cpitch, double *uccp,   
+                                         int *nconstr, double *cmat, double
+                                         *crhs );
+
+boolean g2bl_SetupClosedUNLConstraintsd ( int lastknotu, int lastknotv,
+                                          int ppitch, point3d *cp,
+                                          int nucurv, double *ucknots,
+                                          int cpitch, point3d *uccp,  
+                                          int *nconstr, double *cmat, double
+                                          *crhs );
+\end{listingC}
+
+\begin{listingC}
+boolean g2bl_FuncTSQFd ( int nkn,
+                         int lastknotu, int lastknotv, int pitch, point3d
+*cp,
+                         double tC,
+                         double *fT, double *fS, double *fQ, double *fF );
+\end{listingC}
+
+
+
+\section{Optimalizacja powierzchni reprezentowanych przez siatki nieregularne}
+
+\begin{listingC}
+extern GHoleDomaind *g2mbl_domaind[GH_MAX_K-3];
+extern double *g2mbl_patchmatrixd[GH_MAX_K-3]; 
+extern void (*g2mbl_outputnzdistr)( int nbl, int blnum, boolean final,
+                                    int nvcp, int n, byte *nzdistr ); 
+\end{listingC}
+
+\begin{listingC}
+void g2mbl_CleanupHoleDomainsd ( void );
+boolean g2mbl_SetupHolePatchMatrixd ( int k );
+\end{listingC}
+
+\begin{listingC}
+void g2mbl_OptLMTDeallocated ( void **data );
+\end{listingC}
+
+\begin{listingC}
+int g2mbl_GetNvcp ( int nv, BSMvertex *mv, int *mvhei,
+                    int nhe, BSMhalfedge *mhe,
+                    int nfac, BSMfacet *mfac, int *mfhei,
+                    byte *mkcp );
+\end{listingC}
+
+\begin{listingC}
+boolean g2mbl_InitBlSurfaceOptLMTd ( int nv, BSMvertex *mv, int *mvhei,
+                                     point3d *mvcp, int nhe, BSMhalfedge
+*mhe,
+                                     int nfac, BSMfacet *mfac, int *mfhei,
+                                     byte *mkcp,
+                                     double C, double dO, double dM,
+                                     int nkn1, int nkn2, void **data );
+boolean g2mbl_IterBlSurfaceOptLMTd ( void *data, boolean *finished );  
+boolean g2mbl_FindBlSurfaceLMTd ( int nv, BSMvertex *mv, int *mvhei,   
+                                  point3d *mvcp, int nhe, BSMhalfedge *mhe,
+                                  int nfac, BSMfacet *mfac, int *mfhei,
+                                  byte *mkcp,
+                                  double C, double dO, double dM,
+                                  int maxit, int nkn1, int nkn2 );
+\end{listingC}
+
+\begin{listingC}
+boolean g2mbl_InitBlSurfaceOptAltBLMTd ( int nv, BSMvertex *mv, int *mvhei,
+                                         point3d *mvcp, int nhe, BSMhalfedge *mhe,
+                                         int nfac, BSMfacet *mfac, int *mfhei,
+                                         byte *mkcp,
+                                         double C, double dO, double dM,
+                                         int nkn1, int nkn2, int nbl,   
+                                         void **data );
+\end{listingC}
+
+\begin{listingC}
+boolean g2mbl_InitBlCMPSurfaceOptd ( /* fine mesh */
+                    int fnv, BSMvertex *fmv, int *fmvhei, point3d *fmvcp,
+                    int fnhe, BSMhalfedge *fmhe,
+                    int fnfac, BSMfacet *fmfac, int *fmfhei,
+                    byte *fmkcp,
+                           /* number of vertices of the coarse mesh */
+                    int cnv,
+                           /* refinement matrix */
+                    int rmnnz, index2 *rmnzi, double *rmnzc,
+                           /* optimization parameters */
+                    double C, double dO, double dM,
+                    int nkn1, int nkn2, int nbl,   
+                           /* created data structure */
+                    void **data );
+\end{listingC}
+
+\begin{listingC}
+boolean g2mbl_IterBlSurfaceOptAltBLMTd ( void *data, boolean *finished );
+\end{listingC}
+
+\begin{listingC}
+boolean g2mbl_FindBlSurfaceAltBLMTd ( int nv, BSMvertex *mv, int *mvhei,
+                                      point3d *mvcp, int nhe, BSMhalfedge *mhe,
+                                      int nfac, BSMfacet *mfac, int *mfhei,
+                                      byte *mkcp,
+                                      double C, double dO, double dM,
+                                      int maxit, int nkn1, int nkn2, int nbl );
+\end{listingC}
+
+\begin{listingC}
+boolean g2mbl_TimeBlSurfaceOptBLMTd ( void *data, int bnum, double *tt,
+                                      int *n0, int *n, int **prof,
+                                      double ***rows, double ***lrows,
+                                      double *_func, double *_grad,   
+                                      int **iHbl, int **tHbl, double **Hbl );
+\end{listingC}
+
+\begin{listingC}
+int g2mbl_GetBLMBlockNumd ( void *data, int *lastblock );
+void g2mbl_GetBLMTBlockInfod ( void *data,
+                               int bln, int *nv, int *nvcp, int **nncpi,
+                               int *c0, int *bnvcp,
+                               int **vncpi, int **bvncpi, int **vpermut );
+\end{listingC}
+
+\begin{listingC}
+boolean g2mbl_MLOptInitd ( int nv, BSMvertex *mv, int *mvhei, point3d *mvcp,
+                           int nhe, BSMhalfedge *mhe,
+                           int nfac, BSMfacet *mfac, int *mfhei,
+                           byte *mkcp,
+                           double C, double dO, double dM,
+                           int nkn1, int nkn2, short nlevels, void **data );
+boolean g2mbl_MLCMPOptInitd ( /* fine mesh */
+                    int fnv, BSMvertex *fmv, int *fmvhei, point3d *fmvcp,
+                    int fnhe, BSMhalfedge *fmhe,
+                    int fnfac, BSMfacet *fmfac, int *fmfhei,
+                    byte *fmkcp,
+                           /* number of vertices of the coarse mesh */
+                    int cnv,
+                           /* refinement matrix */
+                    int rmnnz, index2 *rmnzi, double *rmnzc,
+                           /* optimization parameters */
+                    double C, double dO, double dM,
+                    int nkn1, int nkn2, short nlevels,
+                           /* created data structure */
+                    void **data );
+void g2mbl_MLOptDeallocated ( void **data );
+boolean g2mbl_MLOptIterd ( void *data, boolean *finished );
+\end{listingC}
+
+\begin{listingC}
+void g2mbl_MLSetLogLeveld ( void *data, short level );
+short g2mbl_MLGetInfod ( void *data );
+
+int g2mbl_MLGetLastBlockd ( void *data );
+boolean g2mbl_MLGetBlockVCPNumbersd ( void *data, int bl,
+                                      int *nvcp, int **vncpi, int *seed );
+
+boolean g2mbl_MLSuggestNLevels ( int nv, BSMvertex *mv, int *mvhei,
+                                 int nhe, BSMhalfedge *mhe,
+                                 int nfac, BSMfacet *mfac, int *mfhei,
+                                 byte *mkcp,
+                                 int *minlev, int *maxlev );
+boolean g2mbl_MLCPSuggestNLevels ( int nv, BSMvertex *mv, int *mvhei,
+                                   int nhe, BSMhalfedge *mhe,
+                                   int nfac, BSMfacet *mfac, int *mfhei,
+                                   byte *mkcp,
+                                   int *minlev, int *maxlev );
+
+void g2mbl_MLSetNextBlock ( void *data, int nbl );
+\end{listingC}
+
+\begin{listingC}
+boolean g2mbl_MLSOptInitd ( int nv, BSMvertex *mv, int *mvhei, point3d
+*mvcp,
+                            int nhe, BSMhalfedge *mhe,
+                            int nfac, BSMfacet *mfac, int *mfhei,
+                            byte *mkcp,
+                            int nkn1, int nkn2, short nlevels, void **data
+                            );
+boolean g2mbl_MLSCMPOptInitd ( /* fine mesh */
+                    int fnv, BSMvertex *fmv, int *fmvhei, point3d *fmvcp,
+                    int fnhe, BSMhalfedge *fmhe,
+                    int fnfac, BSMfacet *fmfac, int *fmfhei,
+                    byte *fmkcp,
+                           /* coarse mesh */
+                    int cnv,
+                           /* refinement matrix */
+                    int rmnnz, index2 *rmnzi, double *rmnzc,
+                           /* optimization parameters */
+                    int nkn1, int nkn2, short nlevels,  
+                           /* created data structure */ 
+                    void **data );
+boolean g2mbl_MLSOptIterd ( void *data, boolean *finished );
+\end{listingC}
+
+\begin{listingC}
+boolean g2mbl_MLSSuggestNLevels ( int nv, BSMvertex *mv, int *mvhei,
+                                  int nhe, BSMhalfedge *mhe,
+                                  int nfac, BSMfacet *mfac, int *mfhei,
+                                  byte *mkcp,
+                                  int *minlev, int *maxlev );
+boolean g2mbl_MLCPSSuggestNLevels ( int nv, BSMvertex *mv, int *mvhei,
+                                    int nhe, BSMhalfedge *mhe,
+                                    int nfac, BSMfacet *mfac, int *mfhei,
+                                    byte *mkcp,
+                                    int *minlev, int *maxlev );
+\end{listingC}
+
+\begin{listingC}
+void g2mbl_MLGetTimes ( void *data,
+                        float *time_prep, float *time_h, float *time_cg );
+\end{listingC}
+

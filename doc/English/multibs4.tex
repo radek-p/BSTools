@@ -1,0 +1,653 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\section{B\'{e}zier curves and patches subdivision}
+
+B\'{e}zier curves and patches may be divided into pieces with the de~Casteljau
+algorithm, and there are two cases implemented separately.
+The first case is bisection of the domain (e.g.\ the division of the
+interval $[0.25,0.5]$ into the parts $[0.25,0.375]$
+and~$[0.375,0.5]$, of equal length), and the algorithm computes only
+averages of pairs of numbers. The second case is general; the domain
+may be divided into intervals or rectangles at any place, which includes
+also the possibility of extrapolation.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBisectBezCurvesf ( int degree, int ncurves, \\
+\ind{33}int spdimen, int pitch, \\
+\ind{33}float *ctlp, float *ctlq );}
+The procedure \texttt{mbs\_multiBisectBezCurvesf} divides \texttt{ncurves}
+B\'{e}zier curves of degree \texttt{degree} in the space of dimension
+\texttt{spdimen}. The domain (an interval $[a,b]$) is divided into two
+parts of equal length.
+
+\begin{sloppypar}
+The control points are given in the array \texttt{ctlp}, whose pitch is
+\texttt{pitch}. Upon return this array contains the control points of the second
+arc of each curve (the one corresponding to the interval $[\frac{a+b}{2},b]$).
+In the array $\texttt{ctlq}$ the procedure stores the control points of the
+arcs corresponding to the interval $[a,\frac{a+b}{2}]$. The pitch of
+this array is the same as the pitch of \texttt{ctlp} (i.e.\ equal to
+the value of the parameter \texttt{pitch}).
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BisectBC1f(degree,ctlp,ctlq) \bsl \\
+\ind{2}mbs\_multiBisectBezCurvesf(degree,1,1,0,ctlp,ctlq) \\
+\#define mbs\_BisectBC2f(degree,ctlp,ctlq) \bsl \\
+\ind{2}mbs\_multiBisectBezCurvesf(degree,1,2,0,(float*)ctlp,(float*)ctlq) \\
+\#define mbs\_BisectBC3f(degree,ctlp,ctlq) ... \\
+\#define mbs\_BisectBC4f(degree,ctlp,ctlq) ...}
+The above macros call \texttt{mbs\_multiBisectBezCurvesf} in order to
+bisect one polynomial or B\'{e}zier curve in the space of dimension $2$, $3$
+or $4$, i.e.\ to compute its local representations corresponding to the
+halves of the initial interval.
+
+\vspace{\bigskipamount}
+\ucprog{%
+\#define mbs\_BisectBP1uf(degreeu,degreev,ctlp,ctlq) \bsl \\
+\ind{2}mbs\_multiBisectBezCurvesf(degreeu,1,(degreev+1),0,ctlp,ctlq) \\
+\#define mbs\_BisectBP1vf(degreeu,degreev,ctlp,ctlq) \bsl \\
+\ind{2}mbs\_multiBisectBezCurvesf(degreev,degreeu+1,1,degreev+1, \bsl \\
+\ind{2}ctlp,ctlq) \\
+\#define mbs\_BisectBP2uf(degreeu,degreev,ctlp,ctlq) \bsl \\
+\ind{2}mbs\_multiBisectBezCurvesf(degreeu,1,2*(degreev+1),0, \bsl \\
+\ind{2}(float*)ctlp,(float*)ctlq)}
+
+\dcprog{%
+\#define mbs\_BisectBP2vf(degreeu,degreev,ctlp,ctlq) \bsl \\
+\ind{2}mbs\_multiBisectBezCurvesf(degreev,degreeu+1,2,2*(degreev+1), \bsl \\
+\ind{2}(float*)ctlp,(float*)ctlq) \\
+\#define mbs\_BisectBP3uf(degreeu,degreev,ctlp,ctlq) ... \\
+\#define mbs\_BisectBP3vf(degreeu,degreev,ctlp,ctlq) ... \\
+\#define mbs\_BisectBP4uf(degreeu,degreev,ctlp,ctlq) ... \\
+\#define mbs\_BisectBP4vf(degreeu,degreev,ctlp,ctlq) ...}
+The above macros call \texttt{mbs\_multiBisectBezCurvesf} in order to
+divide the rectangular domain of one bivariate polynomial (given in
+a~tensor product Bernstein basis) or a~B\'{e}zier patch (of dimension
+$2$, $3$ or $4$) into two equal parts and to compute the local representations
+of the polynomial or the patch related with the two parts.
+The macros with the letter \texttt{u} in the identifier bisect the
+interval of the first parameter, and the macros with the letter
+\texttt{v} bisect the interval of the second parameter of the polynomial
+or the patch.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiDivideBezCurvesf ( int degree, int ncurves, \\
+\ind{33}int spdimen, int pitch, float t, \\
+\ind{33}float *ctlp, float *ctlq );}
+The procedure \texttt{mbs\_multiDivideBezCurvesf} divides
+\texttt{ncurves} B\'{e}zier curves of degree \texttt{degree} in the space
+of dimension \texttt{spdimen}. The domain (the interval $[0,1]$) is divided at
+the point $t$, specified by the parameter \texttt{t}, and if
+$t\notin[0,1]$, then the division is in fact an extrapolation.
+
+The control points are given in the array \texttt{ctlp}, whose pitch is
+\texttt{pitch}. Upon return this array contains the control points of the
+second arc of each curve (related with the interval $[t,1]$).
+The array $\texttt{ctlq}$ is filled with the control points of the first
+arcs, related with the interval $[0,t]$. The pitch of this array is the
+same as the pitch of \texttt{ctlp} (it is equal to the value of
+the parameter \texttt{pitch}).
+
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_DivideBC1f(degree,t,ctlp,ctlq) \bsl \\
+\ind{2}mbs\_multiDivideBezCurvesf(degree,1,1,0,t,ctlp,ctlq) \\
+\#define mbs\_DivideBC2f(degree,t,ctlp,ctlq) \bsl \\
+\ind{2}mbs\_multiDivideBezCurvesf(degree,1,2,0,t, \bsl \\
+\ind{2}(float*)ctlp,(float*)ctlq) \\
+\#define mbs\_DivideBC3f(degree,t,ctlp,ctlq) ... \\
+\#define mbs\_DivideBC4f(degree,t,ctlp,ctlq) ...}
+\begin{sloppypar}
+The above macros call \texttt{mbs\_multiDivideBezCurvesf} in order to
+divide the domain of one polynomial or one B\'{e}zier curve
+(two-, three- or four-dimensional) at the proportion $t:1-t$, where $t$~is
+the value of the parameter \texttt{t}, and to find the local representations
+of the polynomial or the curve.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_DivideBP1uf(degreeu,degreev,u,ctlp,ctlq) \bsl \\
+\ind{2}mbs\_multiDivideBezCurvesf(degreeu,1,(degreev)+1,0,u,ctlp,ctlq) \\
+\#define mbs\_DivideBP1vf(degreeu,degreev,v,ctlp,ctlq) \bsl \\
+\ind{2}mbs\_multiDivideBezCurvesf(degreev,(degreeu)+1,1,degreev+1,v, \bsl \\
+\ind{4}ctlp,ctlq) \\
+\#define mbs\_DivideBP2uf(degreeu,degreev,u,ctlp,ctlq) \bsl \\
+\ind{2}mbs\_multiDivideBezCurvesf(degreeu,1,2*(degreev)+1,0,u, \bsl \\
+\ind{4}(float*)ctlp,(float*)ctlq) \\
+\#define mbs\_DivideBP2vf(degreeu,degreev,v,ctlp,ctlq) \bsl \\
+\ind{1}mbs\_multiDivideBezCurvesf(degreev,(degreeu)+1,2,2*(degreev)+1,v, \bsl \\
+\ind{4}(float*)ctlp,(float*)ctlq) \\
+\#define mbs\_DivideBP3uf(degreeu,degreev,u,ctlp,ctlq) ... \\
+\#define mbs\_DivideBP3vf(degreeu,degreev,v,ctlp,ctlq) ... \\
+\#define mbs\_DivideBP4uf(degreeu,degreev,u,ctlp,ctlq) ... \\
+\#define mbs\_DivideBP4vf(degreeu,degreev,v,ctlp,ctlq) ...}
+The macros calling \texttt{mbs\_multiDivideBezCurvesf} in order to divide
+a~bivariate polynomial or a~B\'{e}zier patch in the space of dimension
+$2$, $3$ or $4$ --- in the ``$u$'' direction (i.e.\ the interval
+of the first patch parameter is to be divided) or in the ``$v$''
+direction (the interval of the second parameter is to be divided).
+The number $u$ or $v$, which is the value of the parameter
+\texttt{u} or \texttt{v} is the point of division of the interval
+$[0,1]$ (the interval of the parameter is divided in the proportion
+e.g.\ $u:1-u$).
+
+
+\newpage
+\section{Degree elevation}
+
+Degree elevation is a~computation of a~new representation of
+curves in the Bernstein or B-spline basis of degree greater by
+a~specified amount.
+
+\subsection{Degree elevation of B\'{e}zier curves and patches}
+
+%\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBCDegElevf ( int ncurves, int spdimen, \\
+\ind{27}int inpitch, int indegree, \\
+\ind{27}const float *inctlpoints, \\
+\ind{27}int deltadeg, \\
+\ind{27}int outpitch, int *outdegree, \\
+\ind{27}float *outctlpoints );}
+\begin{sloppypar}
+\hspace*{\parindent}The procedure \texttt{mbs\_multiBCDegElevf} performs
+the degree elevation of \texttt{ncurves} B\'{e}zier curves of degree
+\texttt{indegree} in the space of dimension \texttt{spdimen}, to the degree
+$\mathord{\mbox{\texttt{indegree}}}+\mathord{\mbox{\texttt{deltadeg}}}$
+(the resulting degree is assigned to the parameter \texttt{*outdegree}).
+
+The control polygons of the curves are given in the array \texttt{inctlpoints},
+whose pitch is \texttt{inpitch}. The computed control polygons are stored
+by the procedure in the array \texttt{outctlpoints}, with the pitch
+\texttt{outpitch}.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BCDegElevC1f(indegree,incoeff,deltadeg, \bsl \\
+\ind{4}outdegree,outcoeff) \bsl \\
+\ind{2}mbs\_multiBCDegElevf ( 1, 1, 0, indegree, incoeff, deltadeg, \bsl \\
+\ind{4}0, outdegree, outcoeff ) \\
+\#define mbs\_BCDegElevC2f(indegree,inctlpoints,deltadeg, \bsl \\
+\ind{4}outdegree,outctlpoints) \bsl \\
+\ind{2}mbs\_multiBCDegElevf ( 1, 2, 0, indegree, (float*)inctlpoints, \bsl \\
+\ind{4}deltadeg, 0, outdegree, (float*)outctlpoints ) \\
+\#define mbs\_BCDegElevC3f(indegree,inctlpoints,deltadeg, \bsl \\
+\ind{4}outdegree,outctlpoints) ... \\
+\#define mbs\_BCDegElevC4f(indegree,inctlpoints,deltadeg, \bsl \\
+\ind{4}outdegree,outctlpoints) ...}
+\begin{sloppypar}
+The four macros above may be used for degree elevation of one polynomial
+(given by the coefficients in the Bernstein basis) or a~B\'{e}zier curve
+in the space of dimension $2$, $3$ or~$4$. The parameters of the macros
+are described with the procedure \texttt{mbs\_multiBCDegElevf}.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCDegElevPf ( int spdimen, \\
+\ind{23}int indegreeu, int indegreev, \\
+\ind{23}const float *inctlp, \\
+\ind{23}int deltadegu, int deltadegv, \\
+\ind{23}int *outdegreeu, int *outdegreev, \\
+\ind{23}float *outctlp );}
+The procedure \texttt{mbs\_BCDegElevPf} performs the degree elevation of
+a~B\'{e}zier patch in the space of dimension \texttt{spdimen}, with respect to
+one or both parameters.
+
+The parameters \texttt{indegu} and \texttt{indegv} specify the degree of the
+initial patch representation, with respect to its two parameters.
+The array \texttt{inctlp} contains the control points of
+the patch, organized in subsequent columns. The array is packed, i.e.\ without
+unused areas between consecutive columns, hence the pitch is equal to the
+length of the column representation:
+$(\mathord{\mbox{\texttt{indegu}}}+1)*\mathord{\mbox{\texttt{spdimen}}}$.
+The array \texttt{outctlp}, in which the procedure stores the control points of
+the resulting representation, is packed in a~similar way.
+
+The parameters \texttt{deltadegu} and \texttt{deltadegv} must be nonnegative.
+They specify the numbers, by which the degrees of the patch are to increase.
+The final degrees (sums of the initial degrees and the increments)
+are assigned to the parameters \texttt{*outdegu} and~\texttt{outdegv}.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BCDegElevP1f(indegreeu,indegreev,incoeff, \bsl \\
+\ind{4}deltadegu,deltadegv,outdegreeu,outdegreev,outcoeff) \bsl \\
+\ind{2}mbs\_BCDegElevPf ( 1, indegreeu, indegreev, incoeff, \bsl \\
+\ind{4}deltadegu, deltadegv, outdegreeu, outdegreev, outcoeff ) \\
+\#define mbs\_BCDegElevP2f(indegreeu,indegreev,inctlp, \bsl \\
+\ind{4}deltadegu,deltadegv,outdegreeu,outdegreev,outctlp) \bsl \\
+\ind{2}mbs\_BCDegElevPf ( 2, indegreeu, indegreev, (float*)inctlp, \bsl \\
+\ind{4}deltadegu, deltadegv, outdegreeu, outdegreev, (float*)outctlp ) \\
+\#define mbs\_BCDegElevP3f(indegreeu,indegreev,inctlp, \bsl \\
+\ind{4}deltadegu,deltadegv,outdegreeu,outdegreev,outctlp) \ldots \\
+\#define mbs\_BCDegElevP4f(indegreeu,indegreev,inctlp, \bsl \\
+\ind{4}deltadegu,deltadegv,outdegreeu,outdegreev,outctlp) \ldots}
+The above macros may be used for degree elevation of a~bivariate polynomial
+or a~B\'{e}zier patch in the space of dimension $2$, $3$ or $4$.
+They call the procedure \texttt{mbs\_BCDegElevPf}.
+
+
+\subsection{Degree elevation of B-spline curves and patches}
+
+%\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBSDegElevf ( int ncurves, int spdimen, \\
+\ind{27}int indegree, int inlastknot, \\
+\ind{27}const float *inknots, \\
+\ind{27}int inpitch, const float *inctlpoints, \\
+\ind{27}int deltadeg, \\
+\ind{27}int *outdegree, int *outlastknot, \\
+\ind{27}float *outknots, \\
+\ind{27}int outpitch, float *outctlpoints, \\
+\ind{27}boolean freeend );}
+\begin{sloppypar}
+\hspace*{\parindent}
+The procedure \texttt{mbs\_multiBSDegElevf} performs the degree elevation
+of \texttt{ncurves} B-spline curves of degree \texttt{indegree}
+in the space of dimension \texttt{spdimen}, up to the degree
+$\mathord{\mbox{\texttt{indegree}}}+\mathord{\mbox{\texttt{deltadeg}}}$,
+which is assigned to the parameter \texttt{*outdegree}.
+\end{sloppypar}
+
+The procedure is able to process curves with clamped or free ends.
+If the value of the parameter \texttt{freeend} is \texttt{false}, then
+the resulting representation of the curves has clamped ends,
+with the only external knots being the extremal knots
+(see Section~\ref{ssect:BSC}). If the value of
+\texttt{freeend} is \texttt{true}, then the resulting representation
+has free ends. The knot sequence of this representation is obtained by
+increasing the multiplicities of all knots by the value of the parameter
+\texttt{deltadeg}, and then by rejecting knots from the beginning and end
+of the sequence so as to obtain $\hat{u}_n<\hat{u}_{n+1}$
+and~$\hat{u}_{N-n}>\hat{u}_{N-n-1}$ ($n$ here denotes the degree of
+the result representation, and $N$~is the number of its last knot).
+
+\begin{sloppypar}
+The method of degree elevation does not depend on the value of
+\texttt{freeend}. The representation obtained after the degree elevation
+if one with clamped ends. For \texttt{freeend=true} the procedure calls
+\texttt{mbs\_multiBSChangeLeftKnotsf} and
+\texttt{mbs\_multiBSChangeRightKnotsf}. This involves additional rounding errors.
+The procedure \texttt{mbs\_multiBSDegElevf} may be used for degree elevation of
+a~closed curve; the parameter \texttt{freeend} should then be \texttt{true},
+to obtain a~closed representation of higher degree. In such a~representation
+the appropriate number of initial control points coincide with the final
+control points \emph{up to the rounding errors}.%
+\end{sloppypar}
+
+The initial representation is given in the arrays \texttt{inknots}
+(knots, their number is $\mathord{\mbox{\texttt{inlastknot}}}+1$) and
+\texttt{inctlpoints} (control points the pitch of this array is
+\texttt{inpitch}).
+
+The resulting representation is stored in the arrays \texttt{outknots} (knots,
+their number is assigned to~\texttt{*outlastknot})
+and \texttt{outctlpoints} (control poitns, the pitch of this array is
+specified by \texttt{outpitch}).
+
+It is necessary to provide the arrays long enough to accomodate the result.
+The rule is as follows: if the last knot of the representation of degree~$n$
+has the number~$N$, the number of polynomial arcs of the curve is~$l$
+(it may be found using the procedure \texttt{mbs\_NumKnotIntervalsf}),
+and the resulting representation has the degree~$n'$, then the last knot
+of this representation has the number
+\begin{align*}
+  N' = N+(l+1-d_0-d_1)(n'-n),
+\end{align*}
+where $d_0$ and $d_1$ are numbers such that
+\begin{align*}
+  u_n=\cdots=u_{n+d_0}<u_{n+d_0+1}\quad\mbox{and}\quad
+  u_{N-n-d_1-1}<u_{N-n-d_1}=\cdots=u_{N-n}.
+\end{align*}
+The number of control points of the new curve representation is is $N'-n'$.
+For $m$~curves in the space of dimension~$d$ it is necessary to allocate
+an array of length $N'+1$ floating point numbers for the knots and an array
+of length $(N'-n)md$ floating point numbers for the control points.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BSDegElevC1f(indegree,inlastknot,inknots,incoeff, \bsl \\
+\ind{4}deltadeg,outdegree,outlastknot,outknots,outcoeff,freeend) \bsl \\
+\ind{2}mbs\_multiBSDegElevf(1,1,indegree,inlastknot,inknots,0,incoeff, \bsl \\
+\ind{4}deltadeg,outdegree,outlastknot,outknots,0,outcoeff,freeend) \\
+\#define mbs\_BSDegElevC2f(indegree,inlastknot,inknots,inctlpoints, \bsl \\
+\ind{4}deltadeg,outdegree,outlastknot,outknots,outctlpoints,freeend) \bsl \\
+\ind{2}mbs\_multiBSDegElevf(1,2,indegree,inlastknot,inknots, \bsl \\
+\ind{4}0,(float*)inctlpoints,deltadeg, \bsl \\
+\ind{4}outdegree,outlastknot,outknots,0,(float*)outctlpoints,freeend) \\
+\#define mbs\_BSDegElevC3f(indegree,inlastknot,inknots,inctlpoints, \bsl \\
+\ind{2}deltadeg,outdegree,outlastknot,outknots,outctlpoints,freeend) ... \\
+\#define mbs\_BSDegElevC4f(indegree,inlastknot,inknots,inctlpoints, \bsl \\
+\ind{2}deltadeg,outdegree,outlastknot,outknots,outctlpoints,freeend) ...}
+Four macros, which call \texttt{mbs\_multiBSDegElevf} for degree elevation
+of one scalar spline function of B-spline curve in the space of dimension
+$2$, $3$ or $4$.%
+\begin{figure}[ht]
+  \centerline{\epsfig{file=degel.ps}}
+  \caption{Degree elevation of a~planar B-spline curve from $3$ to $4$.}
+\end{figure}
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBSDegElevClosedf ( int ncurves, int spdimen, \\
+\ind{14}int indegree, int inlastknot, const float *inknots, \\
+\ind{14}int inpitch, const float *inctlpoints, \\
+\ind{14}int deltadeg, \\
+\ind{14}int *outdegree, int *outlastknot, \\
+\ind{14}float *outknots, int outpitch, float *outctlpoints );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_multiBSDegElevClosedf} performs degree elevation
+of closed B-spline curves.%
+\end{sloppypar}
+
+The parameter \texttt{ncurves} specifies the number of curves,
+the value of the parameter \texttt{spdimen} is the dimension of the space
+in which they are located.
+
+\begin{sloppypar}
+The parameters \texttt{indegree},
+\texttt{inlastknot}, \texttt{inknots}, \texttt{inpitch}, \texttt{inctlpoints}
+describe the input data --- degree~$n$, number~$N$ of the last knot,
+the knot sequence~$u_0,\ldots,u_N$ the pitch of the array with the control
+points and that array respectively. The parameter \texttt{deltadeg} (whose value
+must be nonnegative) specifies the degree increment.%
+\end{sloppypar}
+
+The parameters \texttt{*outdegree} and~\texttt{*outlastknot} are variables,
+to which the assigns the final representation degree and the number
+of the last knot of this representation.
+The final knot sequence is stored in the array \texttt{outknots}.
+The parameter~\texttt{outpitch} specifies the pitch of the
+array~\texttt{outctlpoints}, used to store the control points of the
+final representation.
+
+The number of the last knot of the resulting representation of the closed
+curve is
+\begin{align*}
+  N' = N+(l+1+r-d_0-d_1)(n'-n),
+\end{align*}
+where~$r$ is the multiplicity of the knot~$u_n$ in the given representation
+of degree~$n$ (without counting~$u_0$), and~$d_0$ and~$d_1$ are nmbers such that
+\begin{align*}
+  u_n=\cdots=u_{n+d_0}<u_{n+d_0+1}\quad\mbox{and}\quad
+  u_{N-n-d_1-1}<u_{N-n-d_1}=\cdots=u_{N-n}.
+\end{align*}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BSDegElevClosedC1f(indegree,inlastknot,inknots, \bsl \\
+\ind{4}incoeff,deltadeg,outdegree,outlastknot,outknots,outcoeff) \bsl \\
+\ind{2}mbs\_multiBSDegElevClosedf(1,1,indegree,inlastknot,inknots,0, \bsl \\
+\ind{4}incoeff,deltadeg,outdegree,outlastknot,outknots,0,outcoeff) \\
+\#define mbs\_BSDegElevClosedC2f(indegree,inlastknot,inknots, \bsl \\
+\ind{4}inctlpoints,deltadeg,outdegree,outlastknot,outknots, \bsl \\
+\ind{4}outctlpoints) \bsl \\
+\ind{2}mbs\_multiBSDegElevClosedf(1,2,indegree,inlastknot,inknots,0, \bsl \\
+\ind{4}(float*)inctlpoints,deltadeg,outdegree,outlastknot,outknots, \bsl \\
+\ind{4}0,(float*)outctlpoints) \\
+\#define mbs\_BSDegElevClosedC3f(indegree,inlastknot,inknots, \bsl \\
+\ind{4}inctlpoints,deltadeg,outdegree,outlastknot,outknots, \bsl \\
+\ind{4}outctlpoints) ... \\
+\#define mbs\_BSDegElevClosedC4f(indegree,inlastknot,inknots, \bsl \\
+\ind{4}inctlpoints,deltadeg,outdegree,outlastknot,outknots, \bsl\\
+\ind{4}outctlpoints) ...}
+Four macros calling the procedure \texttt{mbs\_multiBSDegElevClosedf}
+in order to perform degree elevation of one closed B-spline curve
+located in the space of dimension $1,2,3,4$ respectively. For the description
+of the parameters see the description of that procedure.
+
+
+\subsection*{Example --- degree elevation of a~B-spline patch}
+
+The degree of a~patch may be elevated with respect to the first (,,$u$'')
+or the second (,,$v$'') parameter. The methods of calling the appropriate
+procedures for both cases, shown in the example below, are based on
+assumption that all control nets of the patch (the initial and the final ones)
+are ``packed'', i.e.\ the pitch of each array with the control points
+is equal to the length of representation of one column.
+
+We have the numbers $n$ and $m$, which specify the degree of the initial
+representation of the patch, the numbers $N$ and $M$, which specify the
+lengths of knot sequences, the arrays \texttt{uknots} and \texttt{vknots}
+(of length $N+1$ and $M+1$ respectively) with the knots, and the array
+\texttt{ctlp} with $(N-n)(M-m)d$ floating point numbers, the coordinates of
+the control points of the patch. The pitch of the last array is
+$(M-m)d$.
+
+To raise the degree with respect to the ``$u$'' parameter, we can see this
+patch as a~B-spline curve in the space of dimension $(M-m)d$. Then we
+compute the lengths of the necessary arrays, we allocate the memory and
+we call the procedure of degree elevation (here the degree increment is~$1$):
+
+\vspace{\medskipamount}
+\noindent{\ttfamily
+\ind{2}ku = mbs\_NumKnotIntervalsf ( $n$, $N$, uknots ); \\
+\ind{2}for ( d0 = 0; uknots[$n+\mathord{\texttt{d0}}+1$] == uknots[$n$]; d0++ ) \\
+\ind{4}; \\
+\ind{2}for ( d1 = 0; uknots[$N-n-\mathord{\texttt{d1}}-1$] == unkots[$N-n$]; d1++ ) \\
+\ind{4}; \\
+\ind{2}ua = pkv\_GetScratchMemf ( $N+2+\mathord{\texttt{ku}}-\mathord{\texttt{d0}}-\mathord{\texttt{d1}}$ ); \\
+\ind{2}cpa = pkv\_GetScratchMemf ( $(N-n+\mathord{\texttt{ku}}-\mathord{\texttt{d0}}-\mathord{\texttt{d1}})(M-m)d$ ); \\
+\ind{2}mbs\_multiBSDegElevf ( 1, $(M-m)d$, $n$, $N$, uknots, 0, ctlp, 1, \\
+\ind{24}\&na, \&Na, ua, 0, cpa, false );
+}\vspace{\medskipamount}
+
+The pitches of the arrays \texttt{cp} and \texttt{cpa} are irrelevant
+(the parameters which specify them are~$0$), because here only one curve
+is subject to the degree elevation. The variables \texttt{na} and \texttt{Na}
+are assigned the degree (equal to $n+1$) and the number of the last
+knot (equal to
+$N+\mathord{\texttt{ku}}-\mathord{\texttt{d0}}-\mathord{\texttt{d1}}+1$)
+of the resulting representation of the patch. The degree with respect to the
+parameter ``$v$'' and the knot sequence related with this parameter are identical
+as in the initial representation of the patch.
+
+Degree elevation with respect to the parameter ``$v$'' is equivalent to
+the degree elevation of B-spline curves represented by the columns of the
+control net. The appropriate code, which raises the degree by~$1$,
+looks like this:
+
+\vspace{\medskipamount}
+\noindent{\ttfamily
+\ind{2}kv = mbs\_NumKnotIntervalsf ( $m$, $M$, vknots ); \\
+\ind{2}for ( d0 = 0; vknots[$m+\mathord{\texttt{d0}}+1$] == vknots[$m$]; d0++ ) \\
+\ind{4}; \\
+\ind{2}for ( d1 = 0; vknots[$M-m-\mathord{\texttt{d1}}-1$] == vnkots[$M-m$]; d1++ ) \\
+\ind{4}; \\
+\ind{2}va = pkv\_GetScratchMemf ( $M+2+\mathord{\texttt{kv}}-\mathord{\texttt{d0}}-\mathord{\texttt{d1}}$ ); \\
+\ind{2}cpa = pkv\_GetScratchMemf ( $(N-n)(M-m+\mathord{\texttt{kv}}-\mathord{\texttt{d0}}-\mathord{\texttt{d1}})d$ ); \\
+\ind{2}pitch1 = $(M-m)d$; \\
+\ind{2}pitch2 = $(M-m+\mathord{\texttt{kv}}-\mathord{\texttt{d0}}-\mathord{\texttt{d1}})d$; \\
+\ind{2}mbs\_multiBSDegElevf ( $N-n$, $d$, $m$, $M$, vknots, pitch1, ctlp, 1, \\
+\ind{24}\&ma, \&Ma, va, pitch2, cpa, false );
+}\vspace{\medskipamount}
+
+If degree elevation by an increment greater than~$1$ is needed, one can
+execute the code above a~number of times, but it is much faster and
+more accurate to specify the appropriate parameter \texttt{deltadeg}.
+It is necessary then to compute correctly the lengths and pitches
+of the arrays to accomodate the resulting representation of the patch.
+The sufficient information may be found in the description of the
+procedure \texttt{mbs\_multiBSDegElevf}%
+\begin{figure}[ht]
+  \centerline{\epsfig{file=bspdegel.ps}}
+  \caption{Degree elevation of a~B-spline patch.}
+\end{figure}
+
+
+\newpage
+\section{Degree reduction}
+
+Degree reduction of a~B-spline curve is a~problem of approximation
+(somewhat like knot removing). The aim is to obtain a~B-spline
+curve~$\tilde{\bm{s}}$ of degree~$\tilde{n}=n-d$ (for
+$d\in\{1,\ldots,n\}$), which is close to a~given curve~$\bm{s}$ of degree~$n$.
+A~delicate point of this construction is the arbitrary choice of
+the knot sequence for the resulting curve, because of its influence on the
+curve shape. The following assumptions seem obvious:
+\begin{itemize}
+  \item The resulting curve must have the same domain.
+  \item If the given curve~$\bm{s}$ was obtained by degree elevation by~$d$
+    of a~curve~$\tilde{\bm{s}}$ of degree~$n'$, then the result
+    of degree reduction must be the curve~$\tilde{\bm{s}}$.
+\end{itemize}
+In the constructions implemented in the procedures described in this section
+the set of knots of the resulting curve is a~subset of the set of knots
+of the given curve. The rule of choosing the multiplicities of the knots
+is as follows: let a~knot $u_i$ of the given curve has multiplicity~$r$.
+\pagebreak[2]
+If $r<=d$, then the multiplicity~$\tilde{r}$ of this knot in the result
+representation is~$1$. If $d<r<=n+1$, then $\tilde{r}=r-d$,
+and if $r>n+1$, then $\tilde{r}=n-d+1$.
+
+For a~\textbf{non-closed curve} the knot sequence obtained based on the rule
+above is modified so as to obtain a~sequence
+$\tilde{u}_0,\ldots,\tilde{u}_{\tilde{N}}$ such that
+$\tilde{u}_{n'}<\tilde{u}_{n'+1}$ and
+$\tilde{u}_{\tilde{N}-n'-1}<\tilde{u}_{\tilde{N}-n'-1}$. To do this,
+at both ends of the sequence some knots may be rejected or appended
+(the first and the last knot may be appended).
+
+\begin{sloppypar}
+The next step is to find an~auxiliary knot sequence
+$\hat{u}_0,\ldots,\hat{u}_{\hat{N}}$, which contains all knots of the resulting
+sequence, with multiplicities greater by~$d$. By knot insertion
+(with the Oslo algorithm, the procedure \texttt{mbs\_multiOsloInsertKnotsf})
+and removing knots of multiplicities exceeding~$n+1$,
+(with the procedure \texttt{mbs\_multiRemoveSuperfluousKnotsf}) the
+auxiliary representation of the given curve~$\bm{s}$, based on the auxiliary
+knot sequence, is obtained:
+\begin{align*}
+  \bm{s}(t) = \sum_{i=0}^{N-n-1}\bm{d}_iN^n_i(t) =
+  \sum_{i=0}^{\hat{N}-n-1}\hat{\bm{d}}_i\hat{N}^n_i(t).
+\end{align*}
+Then the matrix~$A$, which describes degree elevation by~$d$
+of the B-spline curve of degree~$n'$ based on the resulting knot sequence,
+is constructed. The control points
+$\tilde{\bm{d}}_0,\ldots,\tilde{\bm{d}}_{\tilde{N}-n'-1}$ of the
+resulting curve~$\tilde{\bm{s}}$ are computed by solving the linear least
+squares problem for the system of equations
+\begin{align*}
+  A\bm{x}=\bm{b},
+\end{align*}
+where $\bm{x}=[\tilde{\bm{d}}_0,\ldots,\tilde{\bm{d}}_{\tilde{N}-n'-1}]^T$
+and $\bm{b}=[\hat{\bm{d}}_0,\ldots,\hat{\bm{d}}_{\hat{N}-n-1}]^T$.%
+\end{sloppypar}
+
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_multiBSDegRedf ( int ncurves, int spdimen, \\
+\ind{16}int indegree, int inlastknot, const float *inknots, \\
+\ind{16}int inpitch, const float *inctlpoints, \\
+\ind{16}int deltadeg, \\
+\ind{16}int *outdegree, int *outlastknot, float *outknots, \\
+\ind{16}int outpitch, float *outctlpoints );}
+The procedure \texttt{mbs\_multiBSDegRedf} reduces the degree of
+non-closed B-spline curves, as described above. The input parameters
+specify:
+\texttt{ncurves} --- the number of curves, \texttt{spdimen} --- dimension
+of the space with the curves, \texttt{indegree} --- degree~$n$,
+\texttt{inlastknot} --- the index~$N$ of the last knot of the given curves,
+\texttt{inknots} --- the knot sequence of the given curves (in an
+array of length~$N+1$), \texttt{inpitch} --- pitch of the array with
+the given control points, \texttt{deltadeg} --- the number~$d$, by which the
+degree is to be reduced.
+
+Output parameters: \texttt{*outdegree} --- the variable, to which the degree~$n'$
+of the result curves will be assigned, \texttt{*outlastknot} ---
+the variable, to which the index~$\tilde{N}$ of the last knot
+of the result knot sequence will be assigned, \texttt{outknots} --- an array
+for storing these knots $\tilde{u}_0,\ldots,\tilde{u}_{\tilde{N}}$,
+\texttt{outpitch} --- pitch of the array \texttt{outctlpoints},
+in which the control points of the resulting curves will be stored.
+
+\vspace{\medskipamount}
+\textbf{Caution:} Currently there is no procedure to compute the
+length of the resulting knot sequence, which might be called before the
+allocation of the arrays for the result knots and control points.
+Before such a~procedure is implemented, one has to guess the sufficient
+sizes for these arrays and guess the sufficiently large pitch
+for the array \texttt{outctlpoints}.
+
+The return value is \texttt{true} if the construction succeeded
+and~\texttt{false} otherwise. However, in case of error
+the procedure \texttt{pkv\_SignalError} is called, and its default behaviour
+causes the program termination.
+
+
+\begin{figure}[ht]
+  \centerline{\epsfig{file=degred1.ps}}
+  \caption{Degree reduction of a~B-spline curve from $5$ to~$4$}
+\end{figure}
+
+\cprog{%
+\#define mbs\_BSDegRedC1f(indegree,inlastknot,inknots,incoeff, \bsl \\
+\ind{4}deltadeg,outdegree,outlastknot,outknots,outcoeff) \bsl \\
+\ind{2}mbs\_multiBSDegRedf(1,1,indegree,inlastknot,inknots,0,incoeff, \bsl \\
+\ind{4}deltadeg,outdegree,outlastknot,outknots,0,outcoeff) \\
+\#define mbs\_BSDegRedC2f(indegree,inlastknot,inknots,incpoints, \bsl \\
+\ind{4}deltadeg,outdegree,outlastknot,outknots,outcpoints) \bsl \\
+\ind{2}mbs\_multiBSDegRedf(1,2,indegree,inlastknot,inknots,0, \bsl \\
+\ind{4}(float*)incpoints, \bsl \\
+\ind{4}deltadeg,outdegree,outlastknot,outknots,0,(float*)outcpoints) \\
+\#define mbs\_BSDegRedC3f(indegree,inlastknot,inknots,incpoints, \bsl \\
+\ind{4}deltadeg,outdegree,outlastknot,outknots,outcpoints) ... \\
+\#define mbs\_BSDegRedC4f(indegree,inlastknot,inknots,incpoints, \bsl \\
+\ind{4}deltadeg,outdegree,outlastknot,outknots,outcpoints) ...}
+The macros above call the procedure \texttt{mbs\_multiBSDegRedf} in order
+to reduce the degree of one curve in the space of dimension $1,\ldots,4$.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_multiBSDegRedClosedf ( int ncurves, int spdimen, \\
+\ind{16}int indegree, int inlastknot, const float *inknots, \\
+\ind{16}int inpitch, const float *inctlpoints, \\
+\ind{16}int deltadeg, \\
+\ind{16}int *outdegree, int *outlastknot, float *outknots, \\
+\ind{16}int outpitch, float *outctlpoints );}
+The procedure \texttt{mbs\_multiBSDegRedClosedf} reduces degree of
+closed B-spline curves. Its parameters have identical descriptions as the
+parameters of the procedure \texttt{mbs\_multiBSDegRedf}.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BSDegRedClosedC1f(indegree,inlastknot,inknots, \bsl \\
+\ind{4}incoeff,deltadeg,outdegree,outlastknot,outknots,outcoeff) \bsl \\
+\ind{2}mbs\_multiBSDegRedClosedf(1,1,indegree,inlastknot,inknots,0, \bsl \\
+\ind{4}incoeff,deltadeg,outdegree,outlastknot,outknots,0,outcoeff) \\
+\#define mbs\_BSDegRedClosedC2f(indegree,inlastknot,inknots, \bsl \\
+\ind{4}incpoints,deltadeg,outdegree,outlastknot,outknots,outcpoints) \bsl \\
+\ind{2}mbs\_multiBSDegRedClosedf(1,2,indegree,inlastknot,inknots,0, \bsl \\
+\ind{4}(float*)incpoints, \bsl \\
+\ind{4}deltadeg,outdegree,outlastknot,outknots,0,(float*)outcpoints) \\
+\#define mbs\_BSDegRedClosedC3f(indegree,inlastknot,inknots, \bsl \\
+\ind{2}incpoints,deltadeg,outdegree,outlastknot,outknots,outcpoints) ... \\
+\#define mbs\_BSDegRedClosedC4f(indegree,inlastknot,inknots, \bsl \\
+\ind{2}incpoints,deltadeg,outdegree,outlastknot,outknots,outcpoints) ...}
+\begin{sloppypar}
+The macros above call \texttt{mbs\_multiBSDegRedClosedf} in order to reduce
+degree of one closed curve located in the space of dimension $1,\ldots,4$.%
+\end{sloppypar}
+
+\begin{figure}[ht]
+  \centerline{\epsfig{file=degred2.ps}}
+  \caption{Degree reduction of a~closed B-spline curve from $5$ to~$4$}
+\end{figure}
+

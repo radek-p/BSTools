@@ -1,0 +1,3330 @@
+
+Wersja 0.2:
+
+18.04.2003:
+ 1. libmultibs: procedura mbs_multiKnotRemovef - usuniecie bledu
+    w rozwiazywaniu ukladu rownan i dopracowanie przypadkow
+    usuwania wezlow o krotnosciach degree i degree+1.
+ 2. Nowy program test/knotrem.
+ 3. Ilustracja usuwania wezla w dokumentacji.
+
+25.04.2003:
+ 3. Procedury obslugi rzutowania rownoleglego
+    src/camera/parallel.c, include/parallel.h.
+ 4. Poczatek nowego programu demonstracyjnego /demo/ed3d/ed3dspl.
+ 5. Nowa procedura w libpsout: ps_Draw_Arc.
+ 6. Nowa procedura w libgeom: MidPoint4f.
+ 7. Poprawienie bledu w makrach mbs_deBoorC3f i mbs_deBoorC4f
+    (plik include/multibs.h).
+ 8. Poprawienie bledu w makrach min i max (include/pkvaria.h) -
+    dodanie nawiasow.
+
+
+Wersja 0.3:
+
+10.05.2003:
+ 9. Dodana nowa biblioteka libpknum z metodami numerycznymi.
+10. Dodana konstrukcja aproksymacyjnych krzywych B-sklejanych.
+
+16.05.2003:
+11. Procedura znajdowania otoczki wypuklej przeniesiona
+    z biblioteki libpkvaria do libgeom.
+
+25.05.2003:
+12. Zmieniona procedura mbs_FindKnotMultiplicityf - moze teraz zwrocic
+    wartosc -1 lub lastknot.
+
+28.05.2003:
+13. Poprawiony blad w programach demonstracyjnych demo/ed2d/pokrzyw
+    i demo/ed3d/pokrzyw3d (bylo bledne wyswietlanie form diagonalnych).
+14. Zmiana w procedurze mbs_deBoorBasisf (plik mbs13.c).
+    Obecnie argument nie musi nalezec do przedzialu [u[n],u[N-n]].
+15. Zmiana w procedurze mbs_ConstructApproxBSMatrixf, ktora konstruuje
+    macierz ukladu rownan dla liniowego zadania najmniejszych kwadratow,
+    ktorego rozwiazaniem jest krzywa aproksymacyjna.
+
+4.06.2003:
+16. Poprawiony blad w procedurze pkn_multiMultBandmVectorf (w bibliotece
+    libpknum).
+17. Uruchomiony wstepnie algorytm Oslo (plik mbs19.c).
+    Opis dodany do dokumentacji.
+
+8.06.2003:
+18. Poprawione bledy w procedurach pkn_FindQRBandmSizes
+    i pkn_ORDecomposeBandMatrixf, ktore powodowaly zalamanie obliczen, jesli
+    w sasiednich kolumnach nie bylo wspolnego wiersza z niezerowym
+    wspolczynnikiem (biblioteka libpknum).
+19. Nowa procedura podwyszania stopnia krzywych Beziera - mbs_multiBCDegElevf.
+20. Implementacja procedury mbs_multiBSDegElevf (podwyzszanie stopnia
+    krzywych B-sklejanych) z uzyciem algorytmu Oslo.
+21. Zmiana kolejnosci parametrow procedury mbs_multiDegElevf i wszystkich makr,
+    ktore ja wywoluja.
+
+9.06.2003:
+22. Zmieniona procedura mbs_multiMaxKnotInsf i w szczegolnosci jej lista
+    parametrow, a takze wszystkie procedury i makra, ktore zawieraja wywolanie
+    tej procedury. W nowej wersji poczatkowa (wejsciowa) reprezentacja
+    krzywych sklejanych pozostaje niezmieniona, natomiast procedura tworzy
+    nowa reprezentacje tych samych krzywych, z wszystkimi wezlami wewnetrznymi
+    o krotnosci (stopien+1). W praktyce ta procedura jest wykorzystywana
+    do utworzenia tymczasowej (roboczej) reprezentacji krzywych kawalkami
+    Beziera, tak wiec niszczenie reprezentacji poczatkowej nie ma sensu
+    (zawsze trzeba bylo utworzyc kopie do zniszczenia).
+23. Zmieniona nazwa procedury mbs_BCHornerNvRP3f na mbs_BCHornerNvP3Rf,
+    dla utrzymania spojnosci nazewnictwa procedur.
+
+14.06.2003:
+24. Calkowicie zmienione procedury mnozenia krzywych przez funkcje skalarne.
+    Zamiast procedury mbs_multiMultFCf jest nowa procedura mbs_multiMultBSCf,
+    o innej liscie parametrow i zrealizowana przy uzyciu algorytmu Oslo.
+    Ponadto jest nowa procedura mbs_multiMultBezCf, ktora wykonuje podobne
+    zadanie dla krzywych Beziera i wielomianow reprezentowanych w bazie
+    Bernsteina.
+25. Nowa procedura mbs_multiSetKnotPatternf, ktora sluzy do generowania
+    ciagow wezlow o ustalonej krotnosci, pomocnicza dla procedur
+    przetwarzajacych krzywe B-sklejane z wezlami o krotnosci stopien+1
+    (czyli kawalkami Beziera).
+
+
+Wersja 0.4:
+
+20.06.2003:
+26. Dodane makra mbs_BCDegElevC1f, ..., mbs_BCDegElevC4f do wygodnego
+    podwyzszania stopnia krzywych Beziera.
+
+21.06.2003:
+27. Nowe procedury mbs_BCDegElevP1f, ..., mbs_BCDegElevP4f, sluzace do
+    podwyzszania stopnia platow Beziera.
+
+18.07.2003
+28. Dodane makra pkv_GetScratchMemf, pkv_FreeScratchMemf itd, ktore w wygodny
+    sposob wywoluja procedury zajmowania i zwalniania pamieci na potrzeby
+    tablic liczb zmiennopozycyjnych.
+
+25.07.2003
+29. Zmieniona procedura mbs_multiMaxKnotInsf (zmienil sie naglowek)
+    i makra oraz procedury ja wywolujace. Obecna wersja moze obslugiwac
+    krzywe o koncach swobodnych. Rzecz wymaga jeszcze przetestowania
+    i opisania w dokumentacji.
+30. Zmieniona procedura mbs_multiBSDegElevf, ktora obecnie moze przetwarzac
+    krzywe o koncach swobodnych, choc wynikiem jest reprezentacja o koncach
+    ustalonych. Rzecz wymaga jeszcze przetestowania
+    i opisania w dokumentacji.
+
+12.08.2003
+31. Poprawiony blad w procedurze mbs_SetKnotPatternf.
+32. Procedury mbs_Selectf, mbs_Rearrangef i mbs_Movef zostaly przeniesione
+    do biblioteki libpkvaria, a ich nazwy zmienione odpowiednio na
+    pkv_Selecf, pkv_Rearrangef i pkv_Movef.
+33. Dodana procedura mbs_BSPatchToBezf, ktora dokonuje takiego wstawienia
+    wezlow do plata B-sklejanego, ze w wyniku powstaje reprezentacja kawalkami
+    Beziera. Procedura radzi sobie z platami o brzegach swobodnych.
+
+
+Wersja 0.5:
+
+20.08.2003
+34. Poprawiona procedura mbs_multiMaxKnotInsf; byl blad ujawniajacy sie
+    dla krzywych o koncach swobodnych.
+
+35. Zmiany w programach demonstracyjnych pokrzyw i pokrzyw3d, w strone
+    lepszej modularyzacji.
+
+29.08.2003
+36. Zmiany w programach demonstracyjnych pokrzyw i pokrzyw3d - mozliwosc
+    jednoczesnego przesuwania wielu wezlow o tej samej wartosci.
+
+17.09.2003
+37. Dodane procedury mbs_multiChangeLeftKnotsf i mbs_multiChangeRightKnotsf
+    oraz odpowiednie makra do nich.
+
+01.10.2003
+38. Procedury mbs_multiSubtractf i mbs_multiAddf przeniesione do biblioteki
+    libpknum, w ktorej maja nowe nazwy: pkn_SubtractMatrixf i pkn+AddMatrixf.
+
+22.10.2003
+39. Procedura mbs_multiKnotInsf zmieniona - obecnie jest typu int i zwraca
+    numer przedzialu, do ktorego zostal wstawiony nowy wezel.
+
+40. Nowa procedura mbs_multiKnotInsClosedf, dokonujaca wstawiania wezla
+    do reprezentacji krzywych zamknietych. Makra wywolujace te procedure dla
+    jednej krzywej.
+
+26.10.2003
+41. Do procedury mbs_multiDegElevf zostal dodany nowy parametr, freeend,
+    ktory jesli ma wartosc true, to procedura tworzy reprezentacje
+    wyzszego stopnia krzywej o koncach swobodnych. Jesli false, to jak
+    dotychczas wezly brzegowe maja krotnosc rowna stopniowi, czyli
+    reprezentacja wynikowa jest o koncach zaczepionych. Wszystkie makra
+    wywolujace te procedure rowniez maja ten dodatkowy parametr.
+
+28.10.2003
+42. Procedura mbs_multiKnotRemovef zmieniona - obecnie jest typu int i zwraca
+    numer przedzialu, w ktorym lezal usuniety wezel.
+
+43. Nowa procedura mbs_multiKnotRemoveClosedf, dokonujaca usuwania wezla
+    z reprezentacji krzywych zamknietych. Makra wywolujace te procedure dla
+    jednej krzywej.
+
+44. Sporo zmian w programie demonstracyjnym ed2d, zwiazanych z obsluga
+    krzywych zamknietych; rzecz jest do dopracowania, zdarzaja sie
+    pady programu.
+
+
+Wersja 0.6:
+
+06.11.2003:
+45. Nowe procedury pkv_Rearrangec, pkv_Selectc, pkv_Movec, obslugujace tablice
+    wielowymiarowe bajtow.
+
+46. Procedury pkv_Rearrangef, pkv_Selectf i pkv_Movef zastapione przez
+    makra (o tych nazwach) wywolujace pkv_Rearrangec itd. Dorobione analogiczne
+    makra pkv_Rearranged, pkv_Selectd i pkv_Moved, dla tablic liczb typu
+    double.
+
+22.11.2003:
+47. Nowe funkcje pkv_signf i pkv_signd, badajace znaki liczb
+    zmiennopozycyjnych.
+
+48. Nowa procedura pkn_Illinoisf, rozwiazujaca rownania nieliniowe z jedna
+    niewiadoma.
+
+2.12.2003:
+49. Nowe procedury mbs_TrimCVBoundSizef, mbs_CompileTrimPatchBoundf
+    i mbs_FindBoundLineIntersectionsf, do wykorzystania w wyswietlaniu
+    obcietych platow Beziera i B-sklejanych.
+
+5.12.2003:
+50. Nowa procedura, mbs_DrawTrimBSPatchDomf, do wykonywania rysunkow
+    dziedziny obcietego plata B-sklejanego (i samego plata).
+
+13.12.2003:
+51. Zmiana nazwy procedury ps_Clip_Polyline na ps_Set_Clip_Polygon.
+
+52. Usuniete z biblioteki psout procedury, ktore wyprowadzaly wspolrzedne
+    zaokraglone do liczb calkowitych. To chyba bylo calkowite
+    nieporozumienie.
+
+14.12.2003:
+53. Dodana nowa procedura, ps_Set_RGB.
+
+54. Poprawiony blad w procedurze ps_GRestore, ktory prowadzil do
+    niepoprawnego ustawiania szerokosci linii i poziomu szarosci w pewnych
+    sytuacjach.
+
+16.12.2003:
+55. Usunieta procedura psl_DTick, ktora nie wiem, co robila.
+
+22.12.2003:
+56. Nowe procedury mbs_TransformAffKnotsf i mbs_multiReverseBSCurvef,
+    dokonujace reparametryzacji krzywych B-sklejanych.
+
+
+Wersja 0.7:
+
+30.12.2003:
+57. Zmiana makr ProjectPointf i UnProjectPointf (plik parallel.h), w celu
+    usuniecia bledu objawiajacego sie czasem.
+
+21.01.2004:
+58. Nowy program demonstracyjny (demo/g1hole/zalepg1), ktory sluzy do
+    interakcyjnej zabawy z procedura wypelniajaca gladko (G1) wielokatny
+    otwor w powierzchni sklejanej.
+
+4.02.2004:
+59. Pliki xgedit.c i xgedit.h zmienione w celu umozliwienia pisania
+    programow demonstracyjnych z kilkoma oknami.
+
+22.02.2004:
+60. Nowe procedury, pkv_Selectfd i pkv_Selectdf, dokonujace konwersji
+    danych zmiennopozycyjnych w tablicach.
+
+61. Zmiana nazwy procedury FindConvexHullf na FindConvexHull2f.
+
+3.03.2004:
+62. Nowe procedury, pkn_multiMultInvTrUTMVectorf
+    i pkn_multiMultInvTrUTMVectorf, dokonujace mnozenia macierzy wstegowych
+    i "zwyklych", moga byc uzyte (w polaczeniu z procedurami napisanymi
+    wczesniej) do rozwiazywania dualnych zadan najmniejszych kwadratow.
+
+4.03.2004:
+63. Nowe procedury, pkn_multiSolveRLSQf i pkn_multiSolveDLSQf, rozwiazujace
+    odpowiednio regularne i dualne zadania najmniejszych kwadratow
+    z macierzami wstegowymi.
+
+
+Wersja 0.8:
+
+17.03.2004:
+64. Zmiana nazw (na angielskie, zeby bylo jednolicie) w plikach xgedit.h
+    i xgedit.c (oraz odpowiednie zmiany w programach demonstracyjnych).
+
+24.03.2004:
+65. Zmiana list parametrow procedur pkn_AddMatrixf i pkn_SubtractMatrixf,
+    ktora poszerza zakres stosowalnosci tych procedur.
+
+66. Dodane procedury pkn_AddMatrixMf, pkn_MatrixMDifferencef
+    i pkn_MatrixLinCombf.
+
+25.03.2004:
+67. Poprawiony blad w procedurach mbs_deBoorP3f, mbs_deBoorP3Rf
+    i mbs_deBoorP4f.
+
+30.03.2004:
+68. Do procedury mbs_multiBSCubicInterpf dorobiona obsluga warunkow
+    brzegowych Bessela (autor: Pawel Szklarz).
+
+04.04.2004:
+69. Procedury rasteryzacji krzywych Beziera: mbs_RasterizeBC2f i
+    mbs_RasterizeBC2Rf.
+
+07.04.2004:
+70. Do procedury mbs_multiBSCubicInterpf dorobiona obsluga warunkow
+    brzegowych okreslonych przez podanie pochodnej drugiego rzedu
+    w punkcie koncowym (autor: Pawel Szklarz).
+
+09.04.2004:
+71. Nowa procedura pkv_ZeroMatc i makra pkv_ZeroMatf i pkv_ZeroMatd.
+
+72. Do procedury mbs_multiBSCubicInterpf dorobione warunki brzegowe
+    jednorodne (tj. zerowe wektory) dla pochodnych pierwszego i drugiego
+    rzedu.
+
+73. Procedury rasteryzacji krzywych B-sklejanych: mbs_RasterizeBS2f i
+    mbs_RasterizeBS2Rf.
+
+13.04.2004:
+74. Procedura mbs_MultMatrixNumf, dokonujaca mnozenia macierzy przez liczbe.
+
+15.04.2004:
+75. Nowa procedura mbs_BCHornerPf, obliczajaca punkt plata Beziera
+    w przestrzeni o wymiarze podanym jako parametr. Procedury
+    mbs_BCHornerP1f, mbs_BCHornerP2f, mbs_BCHornerP3f, mbs_BCHornerP4f
+    usuniete. Zamiast nich sa makra o tych samych nazwach, ktore
+    wywoluja procedure mbs_BCHornerPf.
+
+76. Nowa procedura mbs_multiBCHornerDerCf, obliczajac punkty i pochodne
+    krzywych Beziera w przestrzeni o wymiarze podanym jako parametr.
+    Procedury mbs_BCHornerDerC1f, mbs_BCHornerDerC2f, mbs_BCHornerDerC3f
+    i mbs_BCHornerDerC4f usuniete. Zamiast nich sa makra o tych samych
+    nazwach, ktore wywoluja procedure mbs_multiBCHornerDerCf.
+
+77. Nowa procedura mbs_BCHornerDerPf, obliczajaca punkt i pochodne czastkowe
+    plata Beziera w przestrzeni o wymiarze podanym jako parametr.
+    Procedury mbs_BCHornerDerP1f, mbs_BCHornerDerP2f, mbs_BCHornerDerP3f
+    i mbs_BCHornerDerP4f usuniete. Zamiast nich sa makra o tych samych
+    nazwach, ktore wywoluja procedure mbs_BCHornerDerPf.
+
+78. Nowa procedura mbs_multiBCHornerDer2Cf, obliczajaca punkty, pochodne
+    i pochodne drugiego rzedu krzywych Beziera w przestrzeni o wymiarze
+    podanym jako parametr. Do tego sa nowe makra, mbs_BCHornerDer2C1f,
+    mbs_BCHornerDer2C2f, mbs_BCHornerDer2C3f, mbs_BCHornerDer2C4f,
+    obliczajace za pomoca tej procedury punkty i pochodne jednej krzywej
+    (w przestrzeni o odpowiednim wymiarze).
+
+79. Nowa procedura mbs_BCHornerDer2Pf, obliczajaca punkt i pochodne czastkowe
+    i mieszane do drugiego rzedu plata Beziera w przestrzeni o wymiarze
+    podanym jako parametr.
+
+
+Wersja 0.9:
+
+23.04.2004:
+80. Nowa procedura pkn_SolveSqEqf.
+
+81. Zmieniona procedura mbs_multiReverseBSCurvef. W nowej wersji jest usuniety
+    blad, a ponadto mozna podac parametr lastknot=NULL w celu "odwrocenia"
+    parametryzacji krzywych Beziera.
+
+82. Nowa procedura pkv_ReverseMatc i makra pkv_ReverseMatf i pkv_ReverseMatd.
+
+26.04.2004:
+83. Zamiast czterech procedur podwyzszania stopnia platow Beziera, jedna
+    procedura mbs_BCDegElevPf i cztery makra, wywolujace ja dla platow
+    w przestrzeniach o wymiarach 1, 2, 3, 4.
+
+27.04.2004:
+84. Nowe procedury, mbs_FundFormsBP3f, mbs_GMCurvaturesBP3f
+    i mbs_PrincipalDirectionsBP3f.
+
+29.04.2004:
+85. Nowe procedury mbs_BCHornerDerC2Rf i mbs_BCHornerDerC3Rf.
+
+02.05.2004:
+86. Nowe procedury mbs_BCHornerDer2C2Rf i mbs_BCHornerDer2C3Rf.
+
+04.05.2004:
+87. Nowe procedury mbs_BCHornerDerP3Rf, mbs_BCHornerDer2P3Rf,
+    mbs_FundFormsBP3Rf, mbs_GMCurvaturesBP3Rf i mbs_PrincipalDirectionsBP3Rf.
+
+06.05.2004:
+88. Warunek brzegowy nie-wezel dorobiony do procedury mbs_multiBSCubicInterpf
+    (autor: Pawel Szklarz).
+
+11.05.2004:
+89. Zmiana nazw w bibliotece libraybez, majaca na celu dostosowanie ich do
+    ogolnego stylu.
+
+12.05.2004:
+90. Nowe procedury pkv_Sort2f, pkv_Sort2d, pkv_rpower.
+
+25.05.2004:
+91. Warunek brzegowy - zadane pochodne 3-go rzedu dorobiony do procedury
+    mbs_multiBSCubicInterpf (autor: Pawel Szklarz).
+
+14.06.2004:
+92. Zmienione nazwy procedur przetwarzajacych macierze wstegowe
+    (rozklad QR, rozwiazywanie LZNK itd).
+
+93. Nowe procedury, pkn_QRDecomposeMatrixf, pkn_multiReflectVectorf,
+    pkn_multiInvReflectVectorf, pkn_multiMultTrVectorf,
+    pkn_multiMultInvTrVectorf, pkn_multiSolveRLSQf, dokonujace rozkladu
+    QR macierzy prostokatnej i rozwiazujace regularne liniowe zadanie
+    najmniejszych kwadratow, z macierza pelna.
+
+30.06.2004:
+94. Poprawiony blad i przeniesienie kodu generujacego rownania opisujace
+    warunki brzegowe do osobnych procedur w procedurze
+    mbs_multiBSCubicInterpf.
+
+11.07.2004:
+95. Nowa procedura, mbs_multiInterp2knHermiteBSf, konstruujaca B-sklejane
+    krzywe dowolnego stopnia na podstawie warunkow interpolacyjnych Hermite'a
+    zadanych w dwoch wezlach (w koncach dziedziny). Do przetestowania.
+
+14.07.2004:
+96. Poprawiony blad w procedurze mbs_multiBCHornerDer2Cf.
+
+15.07.2004:
+97. Nowa procedura pkv_TransposeMatrixc.
+
+
+Wersja 0.10:
+
+18.08.2004:
+98. Nowa procedura mbs_multiFindBSDerivativef i wywolujace ja makra.
+
+99. Wszystkie procedury w bibliotece libpknum, dzialajace w pojedynczej
+    precyzji (float) zostaly napisane w wersji podwojnej precyzji (double).
+    Do przeprowadzenia pozostaly testy!!!
+
+19.08.2004:
+100. Wszystkie procedury w bibliotece libgeom, dzialajace w pojedynczej
+    precyzji (float) zostaly napisane w wersji podwojnej precyzji (double).
+    Do przeprowadzenia pozostaly testy!!!
+
+101. Wszystkie procedury w bibliotece libmultibs, dzialajace w pojedynczej
+    precyzji (float) zostaly napisane w wersji podwojnej precyzji (double).
+    Do przeprowadzenia pozostaly testy!!!
+
+24.08.2004:
+102. Nowe procedury mbs_BSSumRepSizef, mbs_SetBSSumKnotsf,
+    mbs_multiBSAdjustAddRepf, mbs_multiAddBSCurvesf (oraz ich odpowiedniki
+    podwojnej precyzji), realizujace dodawanie funkcji i krzywych sklejanych
+    jednej zmiennej.
+
+103. Nazwa procedury mbs_NumMergedKnotsf zmieniona na mbs_BSProdRepSizef.
+    Nazwa procedury mbs_MergeKnotsf zmieniona na mbs_SetBSProdKnotsf
+    (i podobnie wersje podwojnej precyzji).
+
+27.08.2004:
+104. Poprawiony blad w procedurach mbs_multiOsloInsertKnotsf i
+    mbs_multiOsloRemoveKnotsLSQf (oraz w wersjach podwojnej precyzji),
+    ujawniajacy sie wtedy gdy oba ciagi wezlow sa identyczne.
+    Blad w rzeczywistosci dotyczy procedury pkn_BandmQRDecomposeMatrixf,
+    ktora daje zly wynik jesli rozkladana macierz jest kwadratowa,
+    do poprawienia w przyszlosci.
+
+29.08.2004:
+105. Spore zmiany w dokumentacji (glownie poprawki).
+
+31.08.2004:
+106. Przeniesienie procedury rasteryzacji odcinkow z biblioteki multibs do
+    pkvaria.
+
+107. Nowa procedura, mbs_multiAdjustBSDegKnotsf, ktora podwyzsza stopien
+    i wstawia wezly tak, aby ulatwic rozne dzialania algebraiczne
+
+5.09.2004:
+108. Nowe procedury, ps_BeginDict i ps_EndDict.
+
+8.09.2004:
+109. Procedury ps_Draw_Polyline, ps_Set_Clip_Polygon, ps_Fill_Polygon
+    i ps_Draw_BezierC maja zmienione nazwy (dopisanie litery f na koncu).
+    Nowe procedury, ps_Draw_Polylined, ps_Set_Clip_Polygond,
+    ps_Fill_Polygond i ps_Draw_BezierCd wykonuja to samo zadanie, ale
+    otrzymuja dane w podwojnej precyzji.
+
+10.09.2004:
+110. Procedury obslugi kamery zrealizowane w podwojnej precyzji
+    (plik camerad.c), ze stosownymi zmianami pliku naglowkowego
+    (zamiast camera.h teraz sa trzy pliki, camera.h, cameraf.h, camerad.h).
+
+13.09.2004:
+111. Procedury rzutowania rownoleglego i obslugi pary kamer stereo
+    zaimplementowane w podwojnej precyzji (double).
+
+112. Zmiana nazwy procedury ps_GetPoint na ps_GetPointf i dorobiona
+    analogiczna procedura ps_GetPointd (pozostaje do zrobienia cala reszta
+    w podwojnej precyzji).
+
+14.09.2004:
+113. Procedury budowania drzewa binarnego podzialu plata i sledzenia promieni
+    w bibliotece libraybez zaimplementowane w podwojnej precyzji.
+
+114. Wszystkie programy testowe (w katalogu ./test) przepisane tak, aby
+    sprawdzaly dzialanie procedur w podwojnej precyzji. Jak dotad bledow
+    nie odkrylem, tj. wszystkie procedury przepisane z float na double
+    chyba dzialaja dobrze (tzn. tak samo dobrze jak procedury float).
+
+
+Wersja 0.11:
+
+23.09.2004:
+115. Nowa procedura mbs_multiAdjustAddRepf, nieukonczona i nieudokumentowana
+    nalezycie, poki co.
+
+116. Zmiany dokumentacji i plikow Makefile.
+
+01.10.2004:
+117. Nowe procedury mbs_multiBCHornerDer3Cf i mbs_multiBCHornerDer3Cd oraz
+    makra do ich wywolywania dla jednej krzywej Beziera.
+
+07.10.2004:
+118. Poprawiony blad w procedurach mbs_multideBoorDerf i mbs_deBoorDerP3f,
+    ktory prowadzil do niepoprawnego wyznaczenia przedzialow miedzy wezlami.
+    Na razie zalozenie jest takie, ze u[n+1]>u[n] oraz u[N-n-1]<u[N-n],
+    gdzie u[i] - wezly, N - numer ostatniego, n - stopien.
+
+08.10.2004:
+119. Zmieniona procedura mbs_multideBoorDerf - obecnie wartosc zwracana
+    okresla liczbe ciaglych pochodnych w punkcie t.
+
+120. Nowe procedury mbs_multideBoorDer2f i mbs_multideBoorDer3f obliczajace
+    pochodne krzywych B-sklejanych rzedu 1, 2 i 3.
+
+20.10.2004:
+121. Poprawiony blad w procedurze mbs_deBoorDerP3f (ciag dalszy poprawki 118).
+
+21.10.2004:
+122. Zmieniona procedura mbs_FindKnotIntervalf - dodany nowy (pierwszy)
+    parametr, degree, ktory pozwala na uproszczenie procedur realizujacych
+    algorytm de Boora. Zmiany w tej procedurze pociagnely za soba zmiany
+    we wsystkich procedurach ja wywolujacych.
+
+29.10.2004:
+123. Nowe makra, pkv_TransposeMatrixf i pkv_TransposeMatrixd, ktore sluza
+    do transponowania macierzy liczbowych.
+
+05.11.2004:
+124. Procedura _mbs_multideBoorKernelf, z algorytmem de Boora, wywolywana
+    przez procedury mbs_multideBoorf, mbs_multideBoorDerf,
+    mbs_multideBoorDer2f i mbs_multideBoorDer3f, oraz analogiczna wersja
+    w podwojnej precyzji.
+
+06.11.2004:
+125. Zmiana naglowka procedur mbs_multideBoorf i mbs_multideBoord - obecnie
+    procedury te zwracaja wartosc calkowita.
+
+126. Poprawiony blad w procedurach mbs_multideBoorDerf i mbs_multideBoorDerd,
+    objawiajacy sie dla krzywych stopnia 0.
+
+09.11.2004:
+127. Dodany atrybut const do drugiego parametru procedur PhotoPointf
+    i PhotoPointUDf w bibliotece libcamera.
+
+11.11.2004:
+128. Nowe procedury, pkn_MultMatrixf i pkn_MultMatrixd (jak to sie stalo, ze
+    nie bylo ich wczesniej?).
+
+17.12.2004:
+129. Nowe procedury, pkn_MultArrayf i pkn_MultArrayd.
+
+29.12.2004:
+130. Nowe procedury, mbs_multiInterp2knHermiteBezf
+    i mbs_multiInterp2knHermiteBezd.
+
+131. Nowe procedury, mbs_multiFindBezDerivativef
+    i mbs_multiFindBezDerivatived oraz odpowiednie makra dla jednej krzywej.
+
+
+Wersja 0.12:
+
+07.02.2005:
+132. Poprawiony blad (literowka) w pliku naglowkowym psout.h.
+
+133. Dodany atrybut const parametru fn procedury ps_OpenFile.
+
+134. Nowe procedury pkv_SignalError i pkv_SetErrorHandler, ktore sluza do
+    sygnalizowania i obslugi sytuacji wyjatkowych (tj. bledow).
+
+135. Dopisanie wywolywania procedury pkv_SignalError do procedur
+    w bibliotece libpkvaria (do pozostalych bibliotek trzeba dodac to samo).
+
+136. Dodanie do programow demonstracyjnych wypisywania na koncu informacji
+    o ilosci uzytej pamieci pomocniczej.
+
+12.02.2005:
+137. Dodanie do procedur w bibliotece libmultibs wywolania procedury
+    pkv_SignalError przed kazdym wywolaniem exit - dzieki temu jest
+    wypisywany komunikat o naturze i miejscu wykrycia bledu, a ponadto
+    moze byc zrobiona obsluga sytuacji wyjatkowej.
+
+25.02.2005:
+138. Dopisanie polecenia tworzenia wersji dokumentacji w formacie PDF.
+
+
+Wersja 0.13:
+
+11.03.2005:
+139. Nowe procedury, mbs_FindBezPatchDiagFormf i mbs_BCHornerDer3Pf, jeszcze
+    nie uruchomione i nie opisane w dokumentacji.
+
+13.03.2005:
+140. Poprawione bledy w procedurach mbs_multiBCHornerDer3Cf
+    i mbs_multiBCHornerDer3Cd (procedury blednie obliczaly wartosc pochodnej
+    trzeciego rzedu).
+
+28.03.2005:
+141. Zmieniony w xgedit.c i xgedit.h identyfikator thecursor na thecursor0;
+    dorobiony identyfikator thecursor1, ktory reprezentuje kursor o wygladzie
+    klepsydry.
+
+01.04.2005:
+142. Procedury rasteryzacji krzywych Beziera - zmieniony zostal sposob
+    zaokraglania wspolrzednych pikseli do liczb calkowitych (zamiast makra
+    PKV_PIXEL z pliku pkvaria.h jest uzyta procedura _mbs_RoundPixelf);
+    ma to na celu poprawienie wygladu niektorych krzywych.
+    Sposob dotychczasowy, tj. zaokraglanie do najblizszej liczby calkowitej
+    niezaleznie od pozostalych pikseli powodowal w pewnych przypadkach
+    "poszarpany" wyglad krzywej.
+
+03.04.2005:
+143. Do biblioteki psout dorobiona para procedur ps_Init_BitmapRGBP
+    i ps_Out_LineRGBP, ktore sluza do zapisania w pliku postscriptowym
+    rastrowego obrazu kolorowego w postaci spakowanej. Algorytm kompresji
+    jest dosc prymitywny (run-length encoding).
+
+07.04.2005:
+144. Do xgedit.c dodane ograniczenie wielkosci okna - jesli okno zostanie
+    powiekszone ponad limit wielkosci, to zmienne current_width i current_height
+    moga miec wartosci co najwyzej MAX_WIDTH i MAX_HEIGHT. To jest istotne dla
+    programow obliczajacych wielkosci prostokatow w oknie.
+
+09.04.2005:
+145. Zmienione nazwy procedur w bibliotece libraybez, oraz dorobiona obsluga
+    drzew binarnych podzialu platow wielomianowych. Takze sledzenie promieni.
+
+146. Zmieniona procedura pkn_Illinoisf i pkn_Illinoisd, w celu uodpornienia
+    na pewne pleby zaokraglen.
+
+19.04.2005:
+147. Nowa procedura psl_MapsTo do malowania nowego rodzaju znaczkow.
+
+25.04.2005:
+148. Nowe procedury ProjectPointUDf, UnProjectPointUDf, ProjectPoint2UDf
+    i UnProjectPoint2UDf oraz ich odpowiedniki double w bibliotece
+    libcamera.
+
+26.06.2005:
+149. W procedurach ClipTestf i ClipTestd w bibliotece libraybez wprowadzona
+    tolerancja EPS dla zwalczenia bledow zaokraglen. Wartosc tolerancji dobrana
+    doswiadczalnie, byc moze trzeba bedzie ja jeszcze zmodyfikowac.
+
+27.06.2005:
+150. Dodane procedury pkn_GoldenDivf i pkn_GoldenDivd, ktore znajduja
+    minimum funkcji jednej zmiennej w podanym przedziale, metoda zlotych
+    podzialow.
+
+1.07.2005:
+151. Nowe procedury, pkn_CholeskyDecompf, pkn_SymMatrixMultf,
+    pkn_LowerTrMatrixMultf, pkn_UpperTrMatrixMultf,
+    pkn_LowerTrMatrixSolvef, pkn_UpperTrMatrixSolvef (i ich odpowiedniki
+    double), obslugujace kwadratowe macierze symetryczne
+    dodatnio okresline i trojkatne.
+
+152. Nowe procedury, pkn_SymToFullMatrixf, pkn_FullToSymMatrixf,
+    (makro)pkn_FullToLTrMatrixf, pkn_LTrToFullMatrixf,
+    pkn_UTrToFullMatrixf, pkn_FullToUTrMatrixf, dokonujace konwersji
+    miedzy spakowana i pelna reprezentacja macierzy symetrycznych
+    i trojkatnych.
+
+4.07.2005:
+153. Typ float parametrow (skalarnych) w procedurach pkn_AddMatrixMf,
+    pkn_MatrixMDifferencef, pkn_MatrixLinCombf i pkn_MultMatrixNumf
+    zostal zmieniony na double. Pojedyncza precyzja jest uzywana po to,
+    aby oszczedzic miejsce, a nie po to, zeby wyniki byly mniej dokladne.
+
+154. Poprawione bledy w procedurach wykonujacych dzialania algebraiczne na
+    funkcjach i krzywych skjenanych (mnozenie i dodawanie). Dodatkowe testy
+    sa jeszcze konieczne.
+
+5.07.2005:
+155. Poprawki w programie demonstracyjnym pognij - dorobienie zooma do okien
+    z rzutami rownoleglymi.
+
+
+Wersja 0.14:
+
+16.07.2005:
+156. Poczatek pracy nad przetlumaczeniem dokumentacji na angielski.
+
+5.08.2005:
+157. Nowe procedury pkn_GaussDecomposePLUQf, pkn_multiSolvePLUQf
+    i pkn_multiGaussSolveLinEqf.
+
+158. Nowe procedury w bibliotece libpknum, sluzace do obliczania pochodnych
+    czastkowych funkcji zlozonej dwoch zmiennych. Trzeba je jeszcze
+    przetestowac i udokumentowac.
+
+20.08.2005:
+159. Poprawienie bledu w xgedit, zwiazanego z obsluga komunikatow o bledach.
+    Blad objawil sie w programie z dwoma oknami.
+
+24.08.2005:
+160. Zmiana w xgedit, udostepniajaca KeySym aplikacji, dzieki czemu moze ona
+    obslugiwac klawisze strzalek itd.
+
+21.09.2005:
+161. Nowe procedury, pkn_MultTMatrixf i pkn_MultTMatrixd.
+
+1.10.2005:
+162. Nowa procedura w xgedit, DisplayInfoMessage i procedury z nia zwiazane,
+    do wyswietlania komunikatow informacyjnych (about, help itp.).
+
+163. Zmiana typu funkcji pkn_QRDecomposeMatrixf i pkn_multiSolveRLSQf na
+    boolean, sygnalizacja ze macierz nie jest kolumnowo regularna
+    (wykrywa 0, nie wykrywa poziomu bledow zaokraglen, wiec nie jest
+    calkiem skuteczna).
+
+9.10.2005:
+164. Nowa biblioteka, libg2hole, z procedurami wypelniania wielokatnej dziury.
+
+18.10.2005:
+165. Poprawiony blad w dokumentacji procedury pkn_MultTMatrixf.
+
+19.10.2005:
+166. Procedury rozkladu Choleskiego macierzy blokowej przeniesione do
+    biblioteki libpknum, pod nowymi nazwami: pkn_CholeskyDecompBlockMf,
+    pkn_LowerTrBlockMSolvef, pkn_UpperTrBlockMSolvef i pkn_BSymMatrixMultf
+    (sa tez ich odpowiedniki podwojnej precyzji).
+
+26.10.2005:
+167. Poprawka w xgedit.c - mozna teraz przemieszczac suwak klawiszami
+    strzalek.
+
+168. Zmiany w programach demonstracyjnych pokrzyw, pognij i polep -
+    na poczatku wyswietlana jest wizytowka, a potem mozna poruszac kursorem
+    przy uzyciu klawiszy strzalek.
+
+27.10.2005:
+169. Poprawki w xgedit, dotyczace dzialania okna z komunikatem.
+
+170. Poprawienie bledu w procedurze obliczania wartosci funkcjonalu
+    w bibliotece libg2hole - procedura g2h_ExtFunctionalValuef.
+
+171. Poprawione kilka bledow w dokumentacji biblioteki libraybez.
+
+31.10.2005:
+172. W pliku pksort.c dorobione badanie kolejnosci bajtow;
+    jesli nie litte endian, to jest powodowany blad kompilacji.
+    Do zrobienia pozostaja procedury sortujace dla big endian i pdp endian.
+
+8.11.2005:
+173. Rozbudowa programu demo polepG2.
+
+24.11.2005:
+174. Zakonczenie tlumaczenia dokumentacji na angielski - od tej pory obie
+    dokumentacje maja byc zgodne i kompletne.
+
+26.11.2005:
+175. Nowa procedura GetCameraClippingPlanef, ktora udostepnia plaszczyzne
+    sciany bocznej ostroslupa widzenia - mozna wykorzystac do obcinania
+    krzywych i innych figur.
+
+176. Nowa procedura znajdowania zer wielomianu danego w bazie Bernsteina,
+    mbs_FindPolynomialZerosf.
+
+177. Nowe procedury obcinania krzywych Beziera w R^3 plaszczyznami,
+    mbs_ClipBC3f i mbs_ClipBC3Rf.
+
+178. Nowe procedury obcinania krzywych Beziera w R^2 prostymi,
+    mbs_ClipBC2f i mbs_ClipBC2Rf.
+
+30.11.2005:
+179. Zmiana naglowka procedury init_edwin wywolywanej przez xgedit;
+    teraz sa przekazywane parametry wywolania.
+
+180. Poprawka bledu w xgedit - obsluga zmiany wielkosci okna.
+
+1.12.2005:
+181. Usuniecie procedury GetCameraClippingPlanef. Zamiast niej wprowadzenie
+    odpowiedniego atrybutu kamery - tablicy z plaszczyznami obcinajacymi.
+    Jest ona uaktualniana przez procedure SetCameraf. Do zrobienia
+    pozostaje obcinanie punktow, odcinkow i wielokatow za pomoca tej
+    nowej reprezentacji plaszczyzn obcinajacych, zamiast dotychczasowego
+    sposobu.
+
+10.12.2005:
+182. Zmiany z bibliotece libg2hole - nowe procedury wypelniania otworu
+    z wiezami i zmiany naglowkow paru procedur napisanych wczesniej.
+
+18.12.2005:
+183. Poprawiony blad w plikach pknumd.h, pknumf.h i pknum.h, ktory powodowal
+    niemoznosc skompilowania programu w C++ z tymi naglowkami.
+
+
+Wersja 0.15:
+
+23.12.2005:
+184. Poczatek prac nad dokumentacja biblioteki libg2hole.
+
+31.12.2005:
+185. Do xgedit dodane wywolanie procedury ProcessOtherEvent.
+
+11.01.2006:
+186. Dorobiony modul wizualizacji do programu demonstracyjnego polepG2.
+
+17.04.2006:
+187. Nowe makra, pkv_GetScratchMemi, pkv_FreeScratchMemi i pkv_ScratchMemAvaili.
+
+188. Poprawiony blad w mbs_deBoorBasisf.
+
+18.04.2006:
+189. Poprawiony blad (!) w pkn_multiInvReflectVectorf.
+
+25.04.2006:
+190. Nowe procedury, pkn_GetReflectionf, pkn_ComputeQSQTf i pkn_ComputeQTSQf.
+
+11.06.2006:
+191. Nowa procedura, pkn_MultMatrixAddf.
+
+12.06.2006:
+192. Nowa procedura, pkn_MultMatrixSubf.
+
+6.08.2006:
+193. Zmiana nazw plikow g1holef.h i g1holed.h na bookg1holef.h i bookg1holed.h,
+    spowodowana wprowadzeniem nowej biblioteki z konstrukcjami powierzchni
+    wypelniajacych klasy G1, ktorej pliki naglowkowe maja nazwy
+    g1holef.h i g1holed.h.
+
+194. Dodanie biblioteki libg1hole, z konstrukcjami wypelniannia wielokatnych
+    otworow w powierzchniach kawalkami stopnia (3,3), z ciagloscia G1.
+
+21.08.2006:
+195. Dodanie procedur optymalizacji nieliniowej do biblioteki libg2hole.
+
+22.08.2006:
+196. Modyfikacja procedury pkv_MaxScratchTaken - ponowne jej wywolanie
+    dostarczy informacji o maksymalnej zajetej pamieci od poprzedniego
+    wywolania.
+
+23.08.2006:
+197. Poprawiony blad w bibliotece libg1hole.
+
+198. Nowe procedury, DMalloc i DFree w libpkvaria, uzyteczne w poprawianiu
+    bledow w alokacji pamieci.
+
+28.08.2006:
+199. Poprawione bledy w metodzie Newtona dla rozszerzonej bazy w bibliotekach
+    libg1hole i libg2hole
+
+200. Poprawiony blad w procedurze sledzenia promieni w programach polepG1 i polepG2
+    (w niektorych systemach renderer padal, bo byl pisany piksel poza
+    dopuszczalnym prostokatem).
+
+29.08.2006:
+201. W bibliotece libg1hole dodane procedury g1h_NLFunctionalvaluef
+    i g1h_NLExtFunctionalValuef (oraz wersje double).
+    W bobliotece libg2hole dodane procedury g2h_NLFunctionalValuef
+    i g2h_NLExtFunctionalValuef (oraz wersje double).
+    Procedury te obliczaja wartosci funkcjonalow, ktore sa kryteriami
+    jakosci powierzchni wypelniajacych otwory.
+
+30.08.2006:
+202. W bibliotece libg1hole dodane procedury g1h_NLFillHoleAltConstrf
+    i g1h_NLExtFillHoleAltConstrf (oraz wersje double), ktore konstruuja
+    powierzchnie wypelniajace minimalne funkcjonalu E_b z wiezami w postaci
+    ogolniejszej.
+
+203. Zmiany w programie polepG1, ktore umozliwiaja testowanie i pokaz
+    dzialania tych nowych procedur.
+
+31.08.2006:
+204. W bibliotece libg2hole dodane procedury g2h_NLFillHoleAltConstrf
+    i g2h_NLExtFillHoleAltConstrf (oraz wersje double), ktore konstruuja
+    powierzchnie wypelniajace minimalne funkcjonalu E_d z wiezami
+    w postaci ogolniejszej.
+
+205. Zmiany w programie polepG2, ktore unozliwiaja testowanie i pokaz
+    dzialania tych procedur.
+
+
+Wersja 0.16:
+
+4.09.2006:
+206. Poprawka w procedurze g1h_GetBPDerivativesf i g1h_GetBPDerivativesd.
+
+30.09.2006:
+207. Dodana linijka #include <stdlib.h> do wielu plikow zrodlowych, w celu
+    pozbycia sie wielu komunikatow kompilatora (byly produkowane przez
+    gcc 4.1.0).
+
+208. Poprawiony blad w procedurze _mbs_FindOsloCoefficientsf (mbs19f.c).
+
+4.10.2006:
+209. Zastosowana paskudna sztuczka ze stala symboliczna CONST_ w wielu plikach
+    zrodlowych, w celu usuniecia mnostwa niepotrzebnych ostrzezen kompilatora.
+
+7.10.2006:
+210. Zmiany w plikach Makefile, umozliwiajace uzycie roznych kompilatorow
+    (GNU gcc i Intel icc) i roznych opcji (optymalizacja/debugger).
+
+211. Poprawki bledow i wypaczen wykrytych przez kompilator icc w wielu
+    roznych plikach zrodlowych.
+
+15.10.2006:
+212. Poprawki zmierzajace do usuniecia wszystkich ostrzezen kompilatora
+    gcc z wlaczona opcja -Wall w programach testowych i demonstracyjnych.
+
+21.10.2006:
+213. Dalsze poprawki, zmierzajace do usuniecia wszystkich ostrzezen
+    innej wersji kompilatora gcc.
+
+23.12.2006:
+214. Poprawione procedury mbs_ChangeLeftKnotsf, mbs_ChangeRightKnotsf,
+    w ktorych byl bledny algorytm (dajacy jednak czasem dobre wyniki).
+    Teraz jest zastosowany algorytm Oslo.
+
+24.12.2006:
+215. Poprawione procedury mbs_multiKnotRemovef, mbs_multiKnotRemoved,
+    zwracana wartosc byla o 1 za mala.
+
+216. Zmiana zasad reprezentowania B-sklejanych krzywych zamknietych.
+
+217. Nowa procedura, mbs_multiBSDegElevClosedf, do podwyzszania stopnia
+    B-sklejanych krzywych zamknietych. Do zrobienia dokumentacja.
+
+
+Wersja 0.17:
+
+29.12.2006:
+218. Nowa biblioteka, libxgedit.
+
+219. Nowe wersje programow demonstracyjnych pokrzyw, pognij i polep,
+    korzystajace z biblioteki libxgedit.
+
+3.01.2007:
+220. Nowe procedury, mbs_SetKnotf i mbs_SetKnotClosedf, ulatwiajace
+    zmienianie wezlow krzywych i powierzchni B-sklejanych w programach
+    interakcyjnych.
+
+7.01.2007:
+221. Poprawione bledy w procedurach podwyzszania stopnia krzywych B-sklejanych.
+    (wyszly przy okazji krzywych zamknietych, problem byl jednak zwiazany
+    z wezlami brzegowymi o krotnosci mniejszej niz stopien).
+
+222. Spore zmiany w kodzie programu demonstracyjnego pokrzyw.
+
+16.01.2007:
+223. Nowy algorytm zmieniania wezlow w ciagu okresowym (dla krzywej
+    zamknietej), dziala strasznie, ale daje sie z nim wytrzymac.
+
+24.01.2007:
+224. Spore zmiany w programie demonstracyjnym pokrzyw.
+
+225. Poprawiony blad w procedurze mbs_multBSDegElevClosedf, ktora mogla
+    produkowac nieuporzadkowany ciag wezlow, z powodu bledow zaokraglen.
+
+5.02.2007:
+226. Jeszcze dalej sporo zmian w programie demonstracyjnym pokrzyw.
+
+10.02.2007:
+227. Zmiany w libxgedit - ustalenie kolejnosci wyswietlania wihajstrow
+    wyszukiwania adresata komunikatu (lista dwukierunkowa), oraz dodanie
+    obslugi wihajstrow typu popup.
+
+21.02.2007:
+228. Poprawiony blad w procedurze xge_NewFourWW, ktory prowadzil do braku
+    dzialania programow demonstracyjnych z czterema rzutami.
+
+1.03.2007:
+229. Dodanie do xge_FourWWMsg obslugi klawiszy 'r', 'R', po ktorych
+    cztery okienka maja ustawiana domyslna, jednakowa wielkosc.
+
+13.03.2007:
+230. Nowa wersja programu demonstracyjnego pognij.
+
+22.03.2007:
+231. Poprawiony blad wywolania procedury usuwania wezla w programie pognij.
+
+232. Poprawiona procedura mbs_multiBSDegElevClosedf.
+
+233. Podzial plikow cameraf.c i camerad.c na mniejsze pliki, zawierajace
+    mniejsze liczby procedur.
+
+24.03.2007:
+234. Nowa procedura obcinania odcinkow, CameraClipLine3f.
+
+25.03.2007:
+235. Usuniecie dotychczasowych procedur obcinania linii i punktow z biblioteki
+    libcamera.
+
+236. Nowe procedury obcinania, CameraClipLine3UDf, CameraClipPoint3f
+    i CameraClipPoint3UDf.
+
+237. Podzial plikow stereof.c i stereod.c na mniejsze kawalki.
+
+238. Poprawka drobnego bledu w programie pognij.
+
+28.03.2007:
+239. Procedury obcinania wielokatow w bibliotece libcamera zastapione
+    przez nowa implementacje, pod nazwa CameraClipPolygon3f.
+
+240. Procedury rysowania lamanych i wielokatow zastapione przez nowe wersje,
+    z sensowniejszymi znaczeniami parametrow. Dodane procedury rysowania
+    lamanych i wielokatow, ktorych wierzcholki sa dane za pomoca wspolrzednych
+    jednorodnych.
+    Ta zmiana wymagala przerobienia wielu programow testowych i programow
+    wykonujacych rysunki do dokumentacji.
+
+29.03.2007:
+241. Uzupelnienia w dokumentacji.
+
+30.03.2007:
+242. Zmiany w bibliotece libcamera, unifikacja sposobu rzutowania
+    perspektywicznego i rownoleglego.
+
+1.04.2007:
+243. Zmiany w programach demonstracyjnych, przystosowujace je do dzialania
+    z nowa wersja biblioteki libcamera.
+
+244. Uaktualnienie dokumentacji.
+
+
+Wersja 0.18:
+
+2.04.2007:
+245. Poprawiony blad w programie pokrzyw - uaktualnianie wykresu funkcji bazowych
+    przy zmianach odwzorowania wezlow.
+
+9.05.2007:
+246. Uzupelniona polska dokumentacja procedur z biblioteki libg2hole
+    (warto by ja ulepszyc, ale przynajmniej wszystkie procedury maja
+    jakis opis).
+
+22.05.2007:
+247. Uzupelnienia angielskiej dokumentacji biblioteki libg2hole. Zawiera teraz
+    to samo, co polska dokumentacja (czyli tez za malo).
+
+6.06.2007:
+248. Dodane procedury pkn_FFTf i pkn_InvFFTf - szybkie przeksztalcenia Fouriera.
+
+12.06.2007:
+249. W procedurach mbs_multiKnotInsf, mbs_multiKnotInsClosedf,
+    mbs_multiKnotRemovef, mbs_multiKnotRemoveClosedf
+    i mbs_multiRemoveSuperfluousKnotsf parametr pitch zostal zastapiony przez
+    dwa parametry - inpitch i outpitch. Procedury te obecnie moga zmienic
+    podzialke tablicy punktow kontrolnych, co ulatwia ich wykorzystanie
+    w przetwarzaniu platow B-sklejanych. Odpowiednie zmiany zostaly
+    wprowadzone w makrach i procedurach korzystajacych z powyzszych
+    pieciu procedur (jak zawsze, identyczne zmiany zostaly zrobione takze
+    w procedurach dla podwojnej precyzji).
+
+18.06.2007:
+250. W bibliotece libxgedit dodany nowy rodzaj wihajstra, do wprowadzania
+    liczb calkowitych. Jest on obslugiwany przez procedury xge_NewIntWidget,
+    xge_IntWidgetMsg i xge_DrawIntWidget. Wihajster ten wysyla do aplikacji
+    nowa komende, xge_INT_WIDGET_COMMAND.
+
+22.06.2007:
+251. Poprawiony w dokumentacji wzor opisujacy liczbe wezlow reprezentacji
+    krzywej B-sklejanej ("zwyklej" i zamknietej) po podwyzszeniu stopnia.
+
+25.06.2007:
+252. Pierwsza wersja programu demonstracyjnego pomnij.
+
+253. Do wihajstrow w menu w libxgedit dorobione pozycjonowanie wihajstrow
+    po zmianie wielkosci menu, co upraszcza pisanie aplikacji.
+
+27.06.2007:
+254. Nowa procedura, mbs_multiBSDegRedf, obnizanie stopnia krzywych
+    B-sklejanych (do dokladnego przetestowania).
+
+29.06.2007:
+255. Zmiany w programach demonstracyjnych pokrzyw, pognij i pomnij -
+    umozliwienie obnizania stopnia.
+
+2.07.2007:
+256. Zmiana nazwy procedur pkn_multiMultTrVectorf
+    i pkn_multiMultInvTrVectorf odpowiednio na pkn_multiMultUTVectorf
+    i pkn_multiMultInvUTVectorf. Drobna zmiana w listach parametrow.
+
+257. Nowe procedury - pkn_multiMultTrUTVectorf, pkn_multiMultInvTrUTVectorf
+    i pkn_multiBandmSolveCRLSQf.
+
+258. Rozszerzenie list parametrow procedur pkn_multiBandmSolveRLSQf,
+    pkn_multiBandmSolveDLSQf i pkn_multiBandmSolveCRLSQf - teraz procedury
+    te moga rozwiazac wiele ukladow z ta sama macierza i z roznymi
+    prawymi stronami.
+
+4.07.2007:
+259. Poprawienie procedury mbs_multiBSDegRedf.
+
+260. Nowa procedura, mbs_multiBSDegRedClosedf.
+
+261. Zmiany w programach demonstracyjnych, umozliwiajace zmniejszanie stopnia
+    krzywych zamknietych.
+
+5.07.2007:
+262. Do procedury mbs_multiBSDegElevf dodane wykrywanie bledu danych,
+    opisujacych dziedzine zdegenerowana do jednego punktu.
+
+263. Dodanie do pkvaria.h definicji stalych dla wygody: SQRT2 i EXP1
+
+6.07.2007:
+264. Nowa procedura do debugowania - pkn_PrintBandmRowSumf.
+
+265. Poprawiony blad w mbs_multiBSDegRedClosedf (macierz podwyzszenia
+    stopnia nie byla stochastyczna z powodu zbednych wierszy na koncu).
+
+7.07.2007:
+266. Makra w xgedit.h, ktore wywoluja procedury rysowania XWindow,
+    podstawiajac stale wystepujace parametry.
+
+10.07.2007:
+267. Poprawiony blad w procedurze usuwania wezla (!), objawiajacy sie,
+    jesli w poczatkowym ciagu wezlow wezel u_0 jest rowny wezlowi do
+    usuniecia.
+
+268. Zmieniony algorytm konstruowania macierzy podwyzszenia stopnia
+    uzywany przez procedury mbs_multiBSDegRedf i mbs_multiBSDegRedClosedf.
+
+269. Poprawiony blad w procedurze mbs_multiRemoveSuperfluousKnotsf,
+    objawiajacy sie, gdy u_1=...=u_{n+1}.
+
+11.07.2007:
+270. Nowy algorytm usuwania nadmiarowych wezlow w procedurze
+    mbs_multiRemoveSuperfluousKnotsf, ktory tylko przesuwa dane w tablicach.
+
+271. Uzupelnienia dokumentacji (i tak niepredko bedzie kompletna).
+
+272. Poprawiony blad w procedurze pkn_multiSolveRLSQf.
+
+273. Typ parametrow funkcji SqAngle zmieniony z float na double.
+
+274. Nowy prywatny plik naglowkowy cprivate.h dla biblioteki libcamera.
+
+275. Poprawiony plik naglowkowy psout.h
+
+
+Wersja 0.19:
+
+13.07.2007:
+276. Poprawiony paskudny blad (!) w procedurze pkn_Comp2Derivatives3f.
+
+277. Poprawiony blad w mbs_multiBSCubicInterpf, ktory objawilby sie
+    wczesniej, gdyby to bylo testowane dla wiecej niz jednej krzywej.
+
+278. Czyszczenie kodu na podstawie diagnostyki kompilatora icc:
+    - usuniety parametr nrows procedury pkn_BandmFindQRMSizes,
+    - usuniety parametr nrows procedury pkn_multiBandmMultTrVectorf,
+    - zmiana typu parametrow procedur CameraInitFramef i StereoInitFramef,
+      okreslajacych wymiary i polozenie klatki, z int na short,
+    - usuniety parametr lastvknot z procedury mbs_BuildOsloMatrixf,
+    - usuniety parametr lastknot z procedury mbs_ApproxBSBandmSizef,
+    - usuniety parametr lastknot z procedury mbs_multiBSChangeLeftKnotsf.
+    Wyczyszczone w ten sposob zostaly biblioteki libpkvaria, libpknum,
+    libgeom, libcamera, libmultibs. Pozostale beda kiedy indziej.
+
+16.07.2007:
+279. Przeniesnienie procedury HexByte z libpsout do libpkvaria i zmiana
+    nazwy na pkv_HexByte.
+
+280. Zmiana nazwy procedury SqAngle na pkv_SqAngle.
+
+281. Czyszczenie kodu na podstawie diagnostyki kompilatora icc (cd.):
+    - zmiana typu parametru dpi procedury ps_OpenFile na unsigned int,
+    Wyczyszczone zostaly biblioteki libpsout, libraybez, libxgedit,
+    libg1hole i libg2hole.
+
+17.07.2007:
+282. Czyszczenie programow w podkatalogach test i doc/cpict.
+
+18.07.2007:
+283. Poprawka w doc/Polish/Makefile i doc/English/Makefile.
+
+284. Uaktualnienie dokumentacji.
+
+285. Wyczyszczenie programow demonstracyjnych pokrzyw, pognij i polep.
+
+24.07.2007:
+286. Poprawka w programie pokrzyw, usuniecie bledu objawiajacego sie przy
+    obnizaniu stopnia krzywej zamknietej.
+
+25.07.2007:
+287. Zmiany w programie polep - nowe menu i poprawienie bledu objawiajacego
+    sie po nacisnieciu 'r' w celu przywrocenia domyslnych wymiarow
+    okien z widokami powierzchni.
+
+288. Nowe makra pomocnicze w g1hprivatef.h i g2hprivatef.h, ktore
+    wyeliminowaly pewne martwe przypisania.
+
+289. Zmieniony kolor tla menu w libxgedit.
+
+290. Wyczyszczony (na podstawie diagnostyki icc) kod programu
+    demonstracyjnego pomnij.
+
+26.07.2007:
+291. Poprawiony blad w bibliotece libcamera - obcinanie w rzucie
+    rownoleglym.
+
+292. Kod zrodlowy programu demonstracyjnego pomnij podzielony na
+    krotsze pliki.
+
+293. Nowa procedura xge_NewCursor, ulatwiajaca uzywanie kursorow w
+    aplikacjach libxgedit.
+
+27.07.2007:
+294. Nowy rodzaj menu w xgedit - z ramka dookola (do uzywania jako popup),
+    zastosowany w programie polep (polecenia wydawane przez guziki
+    w tym menu jeszcze nic nie robia).
+
+14.08.2007:
+295. Zmiany w libxgedit, umozliwiajace poprawne dzialanie menu typu popup.
+
+296. Nowy wihajster w libxgedit, lista napisow do wybierania (np. plikow
+    lub katalogow).
+
+15.08.2007:
+297. Zmiany w libxgedit, porzadkujace (?) sprawe wysylania do wihajstrow
+    komunikatow xgemsg_ENTERING i xgemsg_EXITING (nie bardzo to bylo
+    dobrze zrobione jak dotad, jest lepiej).
+
+16.08.2007:
+298. Implementacja algorytmu QuickSort dodana do libpkvaria.
+
+17.08.2007:
+299. Lista plikow lub katalogow w libxgedit moze byc tworzona z uzyciem
+    filtru.
+
+300. Zmiany porzadkujace numeracje komunikatow libxgedit.
+
+19.08.2007:
+301. Uzupelnienia dokumentacji.
+
+20.08.2007:
+302. Nowa procedura w libxgedit, xge_SetMenuWidgets.
+
+21.08.2007:
+303. Poprawka w xge_SetMenuWidgets, dotyczy pozycjonowania wihajstrow
+    na podstawie biezacych wymiarow menu.
+
+22.08.2007:
+304. Procedury w libxgedit usuwajace wihajstry popup wysylaja komunikaty
+    EXITING (do popup), ENTERING i MMOVE (do wihajstra pod kursorem).
+
+305. Dolaczone szczegolowe testy procedur w bibliotekach libg1hole
+    i libg2hole (w podkatalogach test/testg1 i test/testg2).
+
+23.08.2007:
+306. Przeniesienie procedur przetwarzajacych platy bikubiczne i
+    dwupietne Coonsa z bibliotek libg1hole i libg2hole do libmultibs,
+    pod zmienionymi nazwami.
+
+29.08.2007:
+307. Nowe procedury przetwarzania platow Coonsa (bikubicznych i
+    dwupietnych) okreslonych za pomoca krzywych B-sklejanych.
+
+30.08.2007:
+308. Zmiana procedur mbs_TabCubicHFuncDer2f i mbs_TabQuinticHFuncDer3f,
+    majaca na celu umozliwienie ich wykorzystania do tablicowania
+    platow Coonsa okreslonych za pomoca krzywych B-sklejanych.
+
+309. Zmiana nazwy procedur
+    mbs_multiBCHornerDerCf na mbs_multiBCHornerDerf,
+    mbs_multiBCHornerDer2Cf na mbs_multiBCHornerDer2f oraz
+    mbs_multiBCHornerDer3Cf na mbs_multiBCHornerDer3f.
+
+310. Usuniecie procedur mbs_BSSumRepSizef, mbs_SetBSSumKnotsf
+    i mbs_multiBSAdjustAddRepf. Reimplementacja procedury dodawania
+    krzywych B-sklejanych mbs_multiAddBSCurvesf przy uzyciu procedur
+    mbs_FindBSCommonKnotSequencef i mbs_multiAdjustBSCurvesRepf.
+
+311. Poprawki (niepelne) w dokumentacji.
+
+31.08.2007:
+312. Uzupelnienia w dokumentacji (ale jeszcze mnostwo zostalo do zrobienia).
+
+313. Zmiany w bibliotekach libg1hole i libg2hole, umozliwiajace wypelnianie
+    otworow maksymalnie 16-tokatnych (do tej pory byly najwyzej osmiokatne).
+
+2.09.2007:
+314. Dalsze uzupelnienia dokumentacji.
+
+3.09.2007:
+315. Zmiany listy parametrow procedur mbs_TabBSC1CoonsDer2f,
+     mbs_TabBSC1Coons0Der2f,  mbs_TabBSC2CoonsDer3f i
+     mbs_TabBSC2CoonsDer3f (pierwsza wersja byla niepoprawna).
+
+4.09.2007:
+316. Uzupelnienia dokumentacji.
+
+
+Wersja 0.20:
+
+6.09.2007:
+317. Usuniecie procedury mbs_multiAdjustBSDegKnotsf; zamiast niej jest
+    procedura mbs_multiAdjustBSCurvesRepf.
+
+318. Dorobienie makr wywolujacych procedury mbs_multiAdjustBSCurvesRepf
+    i mbs_multiAddBSCurvesf dla jednej krzywej w przestrzeni o wymiarze
+    1, 2, 3, 4.
+
+319. Poprawiony blad w procedurze mbs_FindBSCommonKnotSequencef
+    (obliczajac krotnosci mogla wyjsc poza dany ciag wezlow).
+
+320. Skrocenie nazwy procedury mbs_multiAdjustBSCurvesRepf na
+    mbs_multiAdjustBSCRepf; podobna zmiana wywolujacych ja makr.
+
+10.09.2007:
+321. Poprawiony blad w procedurze mbs_FindBSCommonKnotSequencef,
+    objawiajacy sie jesli pewien ciag wezlow nie zawiera ktoregos wezla
+    z innego ciagu.
+
+322. Poprawienie bledow w procedurach mbs_BSC1CoonsToBSf
+    i mbs_BSC2CoonsToBSf - zla obsluga ciagow wezlow.
+
+11.09.2007:
+323. Poprawienie makr mbs_BCHornerDer3P1f, mbs_BCHornerDer3P3f
+    i mbs_BCHornerDer3P3f, w ktorych brakowalo wlasciwego operatora
+    rzutowania typu.
+
+12.09.2007:
+324. Do pliku pklib.h dodana stala symboliczna SQRT3
+
+14.09.2007:
+325. Do biblioteki libpknum dodana grupa procedur przetwarzajacych
+    macierze symetryczne i trojkatne o strukturze blokowej nazwanej
+    Block2. Na razie pustych.
+
+326. Zmiana nazw procedur pkn_CholeskyDecompBlockMf,
+    pkn_LowerTrBlockMSolvef, pkn_UpperTrBlockMSolvef i pkn_BSymMatrixMultf
+    na pkn_Block1CholeskyDecompMf, pkn_Block1LowerTrMSolvef,
+    pkn_Block1UpperTrMSolvef i pkn_Block1SymMatrixMultf.
+
+27.09.2007:
+327. Nowe procedury, pkn_MatrixLowerTrMultf, pkn_MatrixUpperTrMultf
+    pkn_MatrixLowerTrSolvef, pkn_MatrixUpperTrSolvef,
+    pkn_MatrixLowerTrMultAddf, pkn_MatrixUpperTrMultAddf,
+    pkn_MatrixLowerTrSolveAddf, pkn_MatrixUpperTrSolveAddf,
+    pkn_MatrixLowerTrMultSubf, pkn_MatrixUpperTrMultSubf,
+    pkn_MatrixLowerTrSolveSubf, pkn_MatrixUpperTrSolveSubf,
+    pkn_MultMatrixTf, pkn_MultMatrixTAddf, pkn_MultMatrixTSubf,
+    pkn_SymMatSubAATf.
+
+28.09.2007:
+328. Nowe procedury, pkn_MultTMatrixAddf i pkn_MultTMatrixSubf.
+
+1.10.2007:
+329. Nowe procedury, pkn_Block2CholeskyDecompMf, pkn_Block2LowerTrMSolvef,
+    pkn_Block2UpperTrMSolvef i pkn_Block2SymMatrixMultf.
+
+4.10.2007:
+330. Nowa procedura, mbs_multiSubtractBSCurvesf i wywolujace ja makra dla
+    krzywych w przestrzeniach o wymiarze 1 .. 4.
+
+7.10.2007:
+331. Nowe procedury obliczania indeksow dla macierzy o strukturze Block1;
+    w procedurach tych zamiast trzech tablic jest teraz przekazywana jedna.
+    Wymagalo to takze dokonania zmian w bibliotekach libg1hole i libg2hole
+    oraz w programach demonstracyjnych.
+
+20.10.2007:
+332. Uzupelnienia w dokumentacji (sa zamieszczone naglowki nowych procedur,
+    ale brakuje opisow).
+
+11.11.2007:
+333. Nowa procedura w libgeom, Trans2Point3f.
+
+13.11.2007.
+334. Nowa procedura w libgeom, CompRotV3f.
+
+18.11.2007:
+335. Nowa procedura w libmultibs, mbs_ClosedKnotsCorrectf.
+
+9.12.2007.
+336. Ogromne zmiany w bibliotece libxgedit i odpowiednie do tego zmiany
+    w programach demonstracyjnych. Dokumentacja wymaga uaktualnienia.
+
+
+Wersja 0.21:
+
+11.12.2007.
+337. Wprowadzenie typu xgecolour_int w libxgedit - liczby calkowite
+    32-bitowe (be znaku) do reprezentowania koloru. Dotychczas
+    stosowany typ unsigned long powodowal blad wykonania
+    w srodowisku 64-bitowym (z powodu mazania poza dozwolonym obszarem
+    podczas konwersji palety).
+
+14.12.2007.
+338. Poprawki w libxgedit - panning i zooming okien 3D.
+
+339. Poprawki w programach demonstracyjnych pokrzyw i pognij - zaznaczanie
+   punktow kontrolnych dla krzywych zamknietych.
+
+18.12.2007.
+340. Nowa procedura, pkn_GaussInvertMatrixf.
+
+341. Poprawka w libxgedit - osobny boks dla okna z rzutem perspektywicznym
+    w wihajstrze xge_3Dwinf.
+
+19.12.2007.
+342. Zmiany w libxgedit: modyfikacja struktur xge_2Dwinf i xge_3Dwinf.
+    Zwiazane z tym uproszczenie programow demonstracyjnych.
+
+22.12.2007.
+343. Nowe procedury w libgeom: Interp3Vectors2f, Interp3Vectors3f,
+    Interp3Vectors4f.
+
+344. Nowe procedury w libpkvaria: pkv_UpHeap, pkv_DownHeap, pkv_HeapInsert,
+    pkv_HeapRemove, pkv_HeapOrder, pkv_HeapSort.
+
+26.12.2007.
+345. Nowe procedury, mbs_SphericalProductf i mbs_SphericalProductRf,
+    obliczajace iloczyn sferyczny dwoch krzywych plaskich.
+
+28.12.2007.
+346. Nowe typy w geomf.h: Box2f, Box3f. Nowe typy w pkvaria.h: Box2i, Box2s.
+    Usuniecie definicji typow boksow z plikow raybezf.h i raybezd.h oraz
+    z xgedit.h.
+
+29.12.2007.
+347. Nowa wersja programu demonstracyjnego pomnij, tez niedokonczona.
+
+31.12.2007.
+348. Do libxgedit dodane procedury xge_OutPixels, xge_DrawBC2f i
+    xge_DrawBC2Rf, rysuj"ace krzywe Beziera.
+
+1.01.2008.
+349. Dorobienie w libxgedit generowania komunikatu
+    xgemsg_2DWIN_FIND_REFBBOX.
+
+4.01.2008.
+350. Uaktualnienia dokumentacji (niedokonczone, ale przynajmniej wszystkie
+    procedury maja zamieszczone naglowki w dokumentacji).
+
+351. Poprawiony blad w procedurach przetwarzania komunikatow galki (knob)
+    i suwakow (slidebar, vslidebar) w libxgedit - nie powinny przechwytywac
+    komunikatow o klawizach specjalnych.
+
+5.01.2008.
+352. Nowa procedura w libxgedit - xgeDisplayWarningMessage.
+
+10.01.2008.
+353. Czyszczenie kodu na podstawie diagnostyki kompilatora icc.
+
+354. Poprawiony blad wyswietlania komunikatu ostrzezenia w libxgedit.
+
+28.01.2008.
+355. Poprawiony blad w procedurach obliczania wartosci funkcjonalu,
+    (formy kwadratowej) minimalizowanego przez procedury wypelniania
+    wielokatnego otworu w bibliotekach libeg1hole i libeg2hole
+    (eksperymentalne wersje libg1hole i libg2hole, do wlaczenia kiedys do
+    pakietu).
+
+3.02.2008.
+356. Nowe wihajstry - suwaki i galka, obslugujace dane typu double.
+    Zmiana nazw procedur obslugujacych te wihajstry w wersji float.
+
+357. Nowe wihajstry - okno 2D i 3D w wersji double.
+
+4.02.2008.
+358. Nowe wihajstry - okna edycji wezlow 1D i 2D w wersji double.
+
+5.02.2008.
+359. Drobne poprawki w procedurach obslugi komunikatu RESIZE
+    wihajstrow menu i fourww w libxgedit.
+
+17.02.2008.
+360. Dorobione komunikaty xgemsg_2DWIN_CHANGE_TRANS
+    i xgemsg_3DWIN_CHANGE_TRANS do biblioteki libxgedit.
+
+361. Dodatkowe zmiany w libxgedit (sporo drobnych).
+
+19.02.2008.
+362. Nowy komunikat w libxgedit, xge_STATE_CHANGE.
+
+5.03.2008.
+363. Dorobiony panning okna z rzutem perspektywicznym w libxgedit.
+
+19.03.2008.
+364. Plik zrodlowy ps_out.c z biblioteki libpsout podzielony na 9 krotszych
+    plikow.
+
+20.03.2008.
+365. Nowy komunikat w libxgedit: xgemsg_IDLE_COMMAND, oraz procedura
+    xge_PostIdleCommand do jego wysylania.
+
+26.03.2008.
+366. Nowe procedury, mbs_TabCubicHFuncDer3f, mbs_TabBezCurveDer3f,
+    mbs_TabBezC1CoonsDer3f, mbs_TabBezC1Coons0Der3f.
+
+367. Rozszerzone listy parametrow procedur tablicowania wielomianowych
+    platow Coonsa. Wynikajace stad zmiany procedur w libg1hole i libg2hole.
+
+29.03.2008.
+368. W bibliotece libxgedit zrobiona dla kazdego okna osobna kanwa
+    (pixmap) do rysowania w tle. Znacznie poprawilo to odswiezanie ekranu
+    podczas przesuwania okien.
+
+2.04.2008.
+369. Nowa procedura, xge_RedrawPopups.
+
+6.04.2008.
+370. Nowe procedury w libpknum, do przetwarzania macierzy o strukturze
+    blokowej nazwanej Block3: pkn_Block3ArraySize, pkn_Block3FindBlockPos,
+    pkn_Block3FindElemPo, pkn_Block3CholeskyDecompMf,
+    pkn_Block3LowerTrMSolvef, pkn_Block3UpperTrMSolvef,
+    pkn_Block3SymMatrixMultf.
+
+13.04.2008.
+371. Definicje typow point2f, vector2f itd. przeniesione z pliku geomf.h i
+    geomd.h do pkvaria.h. W typach point4f i point4d zmienione nazwy pol z
+    X,Y,Z,W na x,y,z,w.
+
+372. Nowa procedura, CameraProjectPoint3f2s.
+
+15.04.2008.
+373. Zmiany w procedurach znajdowania przeciec promieni z platami Beziera
+    w bibliotece libraybez; wyprowadzane sa tylko przeciecia z polprosta
+    t > 0 (do tej pory byly wyprowaczane przeciecia z cala prosta).
+
+17.04.2008.
+374. Zmiany w bibliotece libxgedit; wihajstry w menu przed rysowaniem maja
+    ustawiane obcinanie do przeciecia swojego prostokata z prostokatem
+    menu, do ktorego naleza. Nowa procedura, xge_IntersectXRectangles.
+
+24.04.2008.
+375. Do programow demonstracyjnych pokrzyw i pognij dorobiony guzik, ktory
+    generuje wezly rownoodlegle.
+
+8.05.2008.
+376. Poprawiony blad w procedurze przetwarzania komunikatow okna z wezlami
+    - nie odrysowywala okna przy wyjsciu z trybu panning.
+
+15.05.2008.
+377. Nowy wihajster w libxgedit - xge_scroll_widget, przewijane okno z
+    dowolna zawartoscia nie mieszczaca sie w dostepnym miejscu.
+
+378. Zmiany procedur obslugi komunikatow suwakow i menu w libxgedit.
+
+16.05.2008.
+379. Poprawki wihajstra xge_scroll_widget, w celu poprawnego obcinania
+    zawartosci podczas rysowania.
+
+17.05.2008.
+380. Poprawiony blad w procedurze xge_LogSlidebarValuef - zamiast
+    logarytmicznej skali byla inna (zly wzor).
+
+27.05.2008.
+381. Poprawiony sposob generowania parametrow x, y komunikatow
+    xgemsg_MMOVE, xgemsg_MCLICK i xgemsg_KEY w libxgedit.
+
+3.06.2008.
+382. Procedura mbs_deBoorDerP3f zastapiona przez ogolniejsza procedure
+    mbs_deBoorDerPf.
+
+383. Nowe procedury, mbs_deBoorDer2Pf i mbs_deBoorDer3Pf.
+
+29.06.2008.
+384. W procedurze xge_IntWidgetMsg dodana reakcja na krecenie kolkiem myszy.
+
+385. Unifikacja bibliotek libg1hole i libg2hole - zamiast nich jest teraz
+    jedna biblioteka, libeghole. Obiekt reprezentujacy dziedzine powierzchni
+    wypelniajacej otwor umozliwia teraz wywolywanie procedur wypelniajacych
+    otwor z ciagloscia G^1 i G^2 (poprzednio byly osobne typy tego obiektu
+    dla tych dwoch klas). Liczne inne zmiany i rozszerzenia:
+  - Zmiany nazw, konieczne z powodu unifikacji.
+  - Dodanie procedur wypelniania otworow powierzchniami zlozonymi
+    z platow B-sklejanych (poprzednio tylko Beziera)
+  - Dodanie procedur konstruujacych powierzchnie wypelniajace klasy
+    G^1 quasi G^2 (oznaczenie G^1Q^2), na razie jeszcze nie wszystkich.
+  - Poprawienie bledow znalezionych we wczesniej napisanych procedurach.
+
+386. Nowy program demonstracyjny, policz, do eksperymentow z wypelnianiem
+    otworow. Program ten, na razie niedokonczony, ma w przyszlosci zastapic
+    programy polepG1 i polepG2.
+
+29.07.2008.
+387. Poprawiony blad w procedurach mbs_deBoorDerPf, mbs_deBoorDer2Pf
+    mbs_deBoorDer3Pf (zla podzialka w wywolaniu procedury pomocniczej).
+
+31.07.2008.
+388. Poprawiony blad w procedurze mbs_multideBoorDerf
+    (zly wynik obliczen, jesli parametr t pokrywal sie z wezlem o krotnosci
+    degree-1). Podobne poprawki w procedurach mbs_multideBoorDer2f
+    i mbs_multideBoorDer3f, do przetestowania.
+
+9.08.2008.
+389. Nowa procedura wypelniania otworu, g1h_Q2NLSplFillHolef uruchomiona
+    i jej wywolanie dodane do programu demonstracyjnego policz.
+
+11.08.2008.
+390. Do procedury xge_DisplayErrorMsg dodane przywracanie domyslnego
+   kursora.
+
+14.08.2008.
+391. Poprawiony blad w procedurze mbs_multideBoorDerf.
+
+28.08.2008
+392. Nowa procedura xge_GetPixelColour (wymaga jeszcze dopracowania).
+
+5.09.2008.
+393. Poprawki diagnostyki bledow w procedurach biblioteki libeghole.
+
+8.09.2008.
+394. Zmiany w procedurach wypelniania wielokatnych otworow w libeghole
+    na podstawie optymalizacji nieliniowej - oszczedniejsze wykorzystanie
+    pamieci.
+
+10.09.2008.
+395. Uruchomienie opcji (konstrukcja punktu srodkowego, wybor kwadratury)
+    w procedurach wypelniania otworu w libeghole.
+
+396. Obsluga tych opcji w programie demonstracyjnym policz.
+
+11.09.2008.
+397. Uaktualnienie dokumentacji biblioteki limbultibs (wciaz brakuje
+    porzadnych opisow, ale przynajmniej naglowki sa zgodne ze stanem
+    faktycznym w tej chwili.
+
+13.09.2008.
+398. Poprawienie bledu wihajstra typu scrollwidget w libxgedit - szwankowalo
+    (niegroznie) obcinanie zawartosci wihajstra.
+
+399. Uaktualnienie dokumentacji biblioteki libxgedit.
+
+
+Wersja 0.22:
+
+15.09.2008.
+400. Poprawienie bledu w procedurach sledzenia promieni - kompensacja bledow
+    zaokraglen przez rozszerzenie boksow.
+
+17.09.2008.
+401. Nowe procedury w libeghole: g1h_GetFinalPatchCurvesf,
+    g1h_GetExtFinalPatchCurvesf, g1h_GetSplFinalPatchCurvesf,
+    g2h_GetFinalPatchCurvesf, g2h_GetExtFinalPatchCurvesf,
+    g2h_GetSplFinalPatchCurvesf, ktorych zadaniem jest ulatwienie
+    konstruowania rownan wiezow.
+
+18.09.2008.
+402. Zmiany w programie demonstracyjnym policz, majace na celu umozliwienie
+    nakladania wiezow - jeszcze niedokonczone.
+
+22.09.2008.
+403. Nowe procedury w libeghole: g1h_GetABasisFPatchCurvef,
+    g1h_GetBBasisFPatchCurvef, g1h_GetSplABasisFPatchCurvef,
+    g1h_GetSplBBasisFPatchCurvef, g1h_GetSplDBasisFPatchCurvef, oraz
+    g2h_GetABasisFPatchCurvef,  g2h_GetBBasisFPatchCurvef,
+    g2h_GetSplABasisFPatchCurvef, g2h_GetSplBBasisFPatchCurvef,
+    g2h_GetSplDBasisFPatchCurvef, ktorych zadaniem jest ulatwianie
+    konstruowania rownan wiezow nakladanych na krzywe wspolne
+    platow wypelniajacych otwor.
+
+24.09.2008.
+404. Procedura gh_DrawBFcpn zamiast g1h_DrawBFcpnf i g2h_DrawBFcpnf, ktore
+    roznily sie tylko nazwa.
+
+25.09.2008.
+405. Nowe procedury w libeghole: g1h_SetSplConstraintMatrixf,
+    g2h_SetSplConstraintMatrixf, g1h_SplFillHoleConstrf,
+    g2h_SplFillHoleConstrf.
+
+26.09.2008.
+406. Nowa procedura w libeghole, g1h_Q2SplFillHoleConstrf.
+
+407. Do libxgedit dodana wspolpraca z OpenGL (GLX), na razie jeszcze to
+    embrion.
+
+30.09.2008.
+408. Nowa procedura w libeghole, g1h_Q2NLFillHoleConstrf.
+
+2.10.2008.
+409. Nowa procedura w libeghole, g1h_Q2NLExtFillHoleConstrf.
+
+410. Kolejne postepy na drodze do uzywania OpenGL z libxgedit.
+
+3.10.2008.
+411. Nowe procedury w libeghole, g1h_NLSplFillHoleConstrf
+    i g2h_NLSplFillHoleConstrf.
+
+412. Poprawiony blad (rzadko objawiajacy sie) w procedurach nieliniowych
+    konstrukcji wypelniania otworow z wiezami.
+
+4.10.2008.
+413. Nowa procedura w libeghole, g1h_Q2NLSplFillHoleConstrf.
+
+17.10.2008.
+414. Do biblioteki libcamera dodana mozliwosc wprowadzenia plaszczyzn
+    obcinajacych: przedniej i tylnej, dotad byly tylko 4, teraz moze byc
+    ich 6. To wymusilo dodanie nowego parametru procedury CameraInitFramef
+    i dalej liczne zmiany we wszystkich programach testowych i demo,
+    wywolujacych te procedure. Rzecz zostala wymuszona przez prace
+    majace na celu zintegrowanie libxgedit z OpenGL-em.
+
+415. Do biblioteki libxgedit dodane procedury ustawiania macierzy
+    rzutowania OpenGL-a zgodnie z ustawieniem kamery z libcamera.
+
+416. Do biblioteki libxgedit dodana paleta "gotowych" kolorow na potrzeby
+    OpenGL-a.
+
+22.10.2008.
+417. Nowe procedury, g1h_Q2NLFillHoleAltConstrf
+    i g1h_Q2NLExtFillHoleAltConstrf w libeghole.
+
+23.10.2008.
+418. Nowe procedury w libeghole, g1h_SetSplAltConstraintMatrixf
+    i g1h_SplFillHoleAltConstrf.
+
+24.10.2008.
+419. Nowe procedury w libeghole, g2h_SetSplAltConstraintMatrixf,
+    g2h_SplFillHoleAltConstrf i g1h_Q2SplFillHoleAltConstrf.
+
+25.10.2008.
+420. Nowe procedury w libeghole, g1h_NLSplFillHoleAltConstrf,
+    g2h_NLSplFillHoleAltConstrf i g1h_Q2NLSplFillHoleAltConstrf.
+    To juz jest komplet 54 procedur wypelniania wielokatnego otworu.
+
+421. Zmiany w programie demonstracyjnym policz, unozliwiajace przetestowane
+    wszystkich tych procedur.
+
+10.11.2008.
+422. Dodany atrybut const dla tablic punktow kontrolnych w procedurach
+    rbez_NewBezPatchTreef i rbez_NewRBezPatchTreef.
+
+12.11.2008.
+423. Poprawienie bledu w libxgedit - w procedurach obslugi komunikatow
+    wihajstra z wezlami dla plata B-sklejanego (komunikat o bledzie
+    byl zamazywany przez odrysowywany wihajster).
+
+424. Rozbudowa programu demonstracyjnego pomnij o linie statusu na dole
+    okien i o podsystem wizualizacjii (metoda sledzenia promieni),
+    na razie niedokonczony.
+
+25.11.2008.
+425. Nowe procedury w libpknum, do obslugi symetrycznych i trojkatnych
+    macierzy wstegowych o nieregularnej wstedze: pkn_NRBArraySize,
+    pkn_NRBFindRowsf, pkn_NRBSymCholeskyDecompf, pkn_NRBSymMultf,
+    pkn_NRBLowerTrMultf, pkn_NRBUpperTrMultf, pkn_NRBLowerTrSolvef,
+    pkn_NRBUpperTrSolvef.
+
+2.12.2008.
+426. Nowe procedury w libmultibs, mbs_THBLSetupAMatrixf
+    i mbs_THBLSetupRHSf, jeszcze nieuruchomione w pelni.
+
+24.12.2008.
+427. Nowe procedury w libpknum, pkn_MVectorSumf i pkn_MVectorLinCombf.
+
+3.02.2009.
+428. Poprawiony blad w libeghole, w procedurze g1h_DrawBasAuxPatchesf
+  (dawala bledny wynik, nie od razu widoczny).
+
+13.02.2009.
+430. Do naglowka plikow w PostScripcie, generowanego przez ps_OpenFile,
+  dodany napis PS-Adobe-3.0 EPSF-3.0. Bez niego pliki byly odrzucane przez
+  Elsevier Electronic Submission System.
+
+15.02.2009.
+431. Nowa biblioteka, libg2blending, na razie z calkowicie eksperymentalna
+    zawartoscia.
+
+24.02.2009.
+432. W pliku gcc.mak zmienione opcje optymalizacji. Uzytkownik
+    zasygnalizowal problem z -O3 (bledna kompilacja przy uzyciu gcc 4.3).
+
+13.03.2009.
+433. Poprawiony blad w multibsd.h - makra mbs_KnotRemoveClosedC1d ...
+    mbs_KnotRemoveClosedC4d.
+
+17.03.2009.
+434. Nowe procedury, pkn_QuadRectanglesf, pkn_QuadSimpsonf
+    i pkn_QuadGaussLegendre4f.
+
+18.03.2009.
+435. Nowa wersja programu demonstracyjnego pomnij - dziala w podwojnej
+    precyzji, umie troche czytac i pisac, pozwala na eksperymenty
+    z konstruowaniem platow wypelniajacych przy uzyciu procedur
+    z biblioteki g2blending.
+
+19.03.2009.
+436. Zmiany formatu plikow z danymi pisanych i czytanych przez program
+    pomnij.
+
+437. Programy demonstracyjne sa umieszczane w katalogu demo/bin,
+    zamiast, jak dotad, w katalogach ze swoimi plikami zrodlowymi.
+
+
+Wersja 0.23:
+
+20.03.2009.
+434. Poprawki w procedurze g2bl_FindBlSurfaceLMTf.
+
+22.03.3009.
+435. Dodana procedura mbs_multiLaneReiesenfeldf, wymaga jeszcze
+    przetestowania.
+
+30.03.2009.
+436. Czyszczenie kodu biblioteki libeghole na podstawie diagnostyki icc.
+
+31.03.2009.
+437. Dodanie do programu policz mozliwosci zapisywania i czytania plikow.
+
+2.04.2009.
+438. Nowa biblioteka libbsfile, z procedurami czytania i pisania danych
+    dla programow demonstracyjnych. Format danych jest tymczasowy,
+    do rozwiniecia.
+
+10.04.2009.
+439. Nowy wihajster do przeksztalcen afinicznych w oknie 2d w libxgedit,
+    uruchomiony w programie pokrzyw. Realizuje powinowactwa afiniczne.
+
+13.04.2009.
+440. Nowy wihajster do przeksztalcen afinicznych w oknie 3d w libxgedit.
+    Realizuje powinowactwa afiniczne. Wprowadzony do programow
+    demonstracyjnych.
+
+21.04.2009.
+441. Poprawka w wihajstrze do powinowactw w oknie 2d w libxgedit.
+
+5.05.2009.
+442. Do libpknum dodane 6 procedur, obliczajacych wezly i wspolczynniki
+    zlozonych kwadratur Gaussa-Legendre'a do rzedu 16.
+
+9.05.2009.
+443. Do procedury xge_SetupDirList dolozony parametr prevdir i ustawianie
+    pozycji w liscie katalogow na pozycji dopiero co opuszczonego
+    katalogu.
+
+15.05.2009.
+444. Do biblioteki libxgedit dodane procedury umozliwiajace stworzenie
+    procesu potomnego i komunikacje z nim.
+
+22.05.2009.
+445. Poprawiony blad w procedurze xge_DrawStringEd.
+
+16.06.2009.
+446. Dodane nowe pola do wihajstra xge_T2KnotWinf i xge_T2KnotWind,
+    docelowo ma tu byc obsluga drugiego ciagu wezlow.
+
+17.06.2009.
+447. Zmiany w procedurach wstawiania wezlow w oknach xge_T2KnotWinf
+    i xge_T2KnotWind.
+
+19.06.2009.
+448. Do libpknum dodane jeszcze procedury podajace wezly i wspolczynniki
+    kwadratur Gaussa-Legendre'a rzedu 18 i 20.
+
+449. Poprawka w libxgedit, w procedurze rysowania wihajstra IntWidget.
+
+20.06.2009.
+450. Nowa procedura, pkn_NRBSymFindEigenvalueIntervalf. Dla symetrycznej
+    macierzy o nieregularnej wstedze znajduje przedzial, w ktorym leza
+    wszystkie wartosci wlasne (z twierdzenia Gershgorina).
+
+26.06.2009.
+451. Do struktur xge_2Dwinf, xge_2Dwind, xge_3Dwinf, xge_3Dwind dodane pole
+    current_tab, dla ulatwienia manipulowania wieloma obiektami.
+
+2.07.2009.
+452. Zmiany w programie demonstracyjnym pomnij, zwiazane z modelowaniem
+    platow wypelniajacych z wiezami.
+
+3.07.2009.
+453. Zmiany w procedurach xge_KnotWinfSetKnot i~xge_T2KnotWinfSetKnot;
+    parametr komunikatow xgemsg_KNOTWIN_CHANGE_KNOT
+    i xgemsg_T2KNOTWIN_CHANGE_KNOT jest poprzednim indeksem przesuwanego
+    wezla.
+
+8.07.2009.
+454. Nowe procedury pkn_NRBComputeQTSQf i pkn_NRBComputeQSQTf.
+
+9.07.2009.
+455. Nowe procedury pkn_NRBComputeQTSQbld i pkn_NRBComputeQSQTbld.
+
+456. Dodanie opisu tych czterech procedur do dokumentacji. Inne zaleglosci
+    pozostaly.
+
+3.08.2009.
+457. Dodane makra PKV_MALLOC i PKV_FREE.
+
+10.08.2009.
+458. Nowe procedury w libgeom, ProjectPointOnLine2f, ProjectPointOnLine3f,
+    ProjectPointOnLine4f, ProjectPointOnPlane3f, ProjectPointOnPlane4f,
+    OrtVector4f.
+
+21.08.2009.
+459. Nowy komunikat w libxgedit: xgemsg_TEXT_EDIT_VERIFY, dotychczasowy
+    xgemsg_TEXT_EDIT_COMMAND zmieniony na xgemsg_TEXT_EDIT_ENTER.
+
+6.09.2009.
+460. Prace nad komunikacja programu (aplikacji xgedit) z uruchamianym przez
+    fork/execl procesem. Zmiany w programie pomnij, ktory korzysta z tego
+    mechanizmu.
+
+
+Wersja 0.24:
+
+3.10.2009.
+461. Poprawiony blad w procedurze mbs_BCHornerDer2P3Rf.
+
+15.10.2009.
+462. Do programu demonstracyjnego pomnij dodana konstrukcja biharmonicznych
+    powierzchni wypelniajacych stopnia (2,2) (na razie bez rozszerzen).
+
+25.10.2009.
+463. Do libxgedit dane nowe dwa wihajstry: suwaki dla dwoch liczb
+    typu float oraz double.
+
+30.10.2009.
+464. Do libxgedit dodane suwaki dla dwoch liczb w wersji pionowej.
+
+465. Poprawiony blad w procedurach konstrukcji platow przejsciowych
+    (biharmonicznego i trojharmonicznego) zwiazany z alokacja pamieci.
+
+4.11.2009.
+466. Do libg2blending dodane nowe procedury, g2bl_SetupClosedTriharmAMatrixf
+    i g2bl_SetupClosedTriharmRHSf, umozliwiajace skonstruowanie
+    trojharmonicznej powierzchni wypelniajacej zamknietej (tj. o topologii
+    walca).
+
+11.11.2009.
+467. Do libbsfile dolozone zapisywanie informacji o tym, czy krzywa
+    B-sklejana lub plat B-sklejany jest zamkniety.
+
+16.11.2009.
+468. Poprawiony blad w procedurze xge_GetCurrentListBoxString.
+
+17.11.2009.
+469. Spore przerobki w programie demonstracyjnym pognij, dorobiona mozliwosc
+    zapisywania i czytania z pliku.
+
+470. Poprawiony blad, ktory przy tej okazji wylazl w programie pokrzyw.
+
+18.11.2009.
+471. Drobne zmiany w bibliotece libbsfile, dzieki czemu jest troche lepsza
+    wymiana danych miedzy programami pokrzyw i pognij.
+
+27.11.2009.
+472. Do libg2blending dorobiona procedura konstrukcji powierzchni
+    zamknietej (walcowej) przez minimalizacje funkcjonalu nieliniowego.
+
+473. Zmiany w programie demonstracyjnym pomnij, umozliwiajace konstruowanie
+    walcowych powierzchni wypelniajacych.
+
+4.12.2009.
+474. Zmiana nazwy biblioteki libgeom na libpkgeom; zamiast plikow
+    naglowkowych geom.h, geomf.h, geomd.h sa teraz pliki pkgeom.h,
+    pkgeomf.h, pkgeomd.h. Wprowadzenie tej zmiany wymagalo zmodyfikowania
+    znacznej czesci plikow zrodlowych.
+
+26.12.2009.
+475. Do okien 3D w libxgedit dodana mozliwosc powiekszenia dowolnego
+    z czterech okien na caly obszar wihajstra 3dwin; to jest przelaczane
+    za pomoca klawisza 'S' lub 's'.
+
+12.01.2010
+476. Nowa biblioteka, libbsmesh. Zawiera procedury przetwarzania siatek
+    nieregularnych, reprezentujacych powierzchnie. Na razie sa tam
+    procedury bsm_Doublingd i bsm_Averagingd, podwajania i usredniania
+    siatki, czyli podstawowych krokow algorytmow Doo-Sabina
+    i Catmulla-Clarka.
+
+13.01.2010
+477. Spore zmiany w bibliotece libbsfile; teraz jest mozliwosc czytania
+    pliku z wieloma danymi roznych rodzajow, bez potrzeby zgadywania,
+    co konkretnie dany plik zawiera (aplikacja moze stworzyc liste
+    przeczytanych krzywych, platow i siatek).
+
+15.01.2010
+478. Do libxgedit dodane kilka procedur uzytecznych dla programow
+    wzywajacych OpenGLa.
+
+18.01.2010
+479. Poprawiony blad w libxgedit, w wihajstrze do edycji napisow.
+
+28.01.2010
+480. Nowe procedury w libmultibs - obnizanie stopnia krzywych i platow
+    Beziera.
+
+481. Zmiana w libxgedit, w procedurach okna 3D - poszczegolne podokna maja
+    numery id ... id+3, zamiast 0 ... 3.
+
+5.02.2010
+482. Spore zmiany w libxgedit, m.in. wyswietlanie pozycji kursora w oknach
+    2Dwin i T2KnotWin, takze w wersji OpenGL.
+
+14.02.2010
+483. Zmiany procedur w bibliotece libbsfile.
+
+17.02.2010
+484. Makra w libxgedit do wybierania ksztaltu kursora.
+
+19.02.2010
+485. Poprawiony blad w procedurze czytania siatek w libbsfile.
+
+486. Zmiana naklowka procedury bsm_CheckMeshIntegrity (dodany atrybut const
+    parametrow tablicowych) w libbsmesh.
+
+487. Nowy program demonstracyjny, pozwalaj (na razie robi niewiele, ale
+    ma byc intensywnie rozwijany, docelowo ma zastapic pozostale programy).
+
+25.02.2010
+488. Nowa procedura w libmultibs - mbs_GrevilleAbscissaf.
+
+5.03.2010.
+489. Nowe procedury w libbsmesh - bsm_RemoveFacetNum i bsm_RemoveFacetd.
+
+6.03.2010.
+490. Poprawiony blad w procedurze xge_ErrorMessageMsg.
+
+8.03.2010.
+491. Poprawiony blad w procedurze czytania siatek w libbsfile
+    (nie bylo w stanie czytac ujemnych liczb calkowitych).
+
+12.03.2010.
+492. Nowa implementacja algorytmu usredniania siatek (bsm_Averagingd).
+
+13.03.2010.
+493. Dokonczona implementacja procedury usuwania scian z siatki
+   (bsm_RemoveFacetd).
+
+14.03.2010.
+494. Nowe procedury przetwarzania siatek, bsm_FacetEdgeDoublingNum
+    i bsm_FacetEdgeDoublingd. Dla wskazanej sciany k-katnej dodaja
+    k scian czworokatnych (czyli dokonuja podwajania krawedzi tej sciany).
+
+15.03.2010.
+495. Poprawki w programie demonstracyjnym pozwalaj.
+
+
+Wersja 0.25:
+
+23.03.2010.
+496. Poprawiony blad w procedurze bsm_RemoveFacetd.
+
+497. Do biblioteki libg2blending dodane procedury optymalizacji ksztaltu
+    platow B-sklejanych stopnia (2,2), napisane przez Mateusza Markowskiego:
+    g1bl_UFuncd, g1bl_UFuncGradd, g1bl_UFuncGradHessiand,
+    g1bl_InitBlSurfaceOptLMTd, g1bl_IterBlSurfaceOptLMTd
+    i g1bl_FindBlSurfaceLMTd (oraz pewna liczba dodatkowych procedur
+    pomocniczych).
+
+498. Do programu demonstracyjnego pomnij dodana mozliwosc wywolywania
+    procedur wymienionych w p. 497.
+
+26.03.2010.
+499. Nowe procedury, bsm_RemoveVertexNum i bsm_RemoveVertexd w bibliotece
+    libbsmesh.
+
+2.04.2010.
+500. Nowe procedury w libbsmesh: bsm_ContractEdgeNum i bsm_ContractEdged.
+
+3.04.2010.
+501. Nowa procedura w libbsmesh: bsm_FindRegularSubnets. Wyszukuje podsiatki
+    regularne d x d, reprezentujace platy wielomianowe stopnia (d-1,d-1).
+
+6.04.2010.
+502. Nowe procedury w libbsmesh: bsm_FindSpecialVSubnets
+    i bsm_FindSpecialFSubnets. Wyszukuja podsiatki Sabina, reprezentujace
+    fragmenty powierzchni z wielokatnym otworem, do wypelnienia jakimis
+    metodami specjalnymi.
+
+8.04.2010.
+503. Do programu demonstracyjnego policz dodana mozliwosc przyjecia
+    za siatke kontrolna dziedziny siatki wlasnej operatora rozdrabniania
+    siatek.
+
+504. Poprawiony blad w programie policz, zwiazany z obsluga pan/zoom
+    okna dziedziny (blad byl skutkiem zmian w libxgedit).
+
+505. Do wszystkich procedur wypelniania wielokatnych otworow w libeghole
+    dodany nowy parametr, void *usrptr, przekazywany do procedur
+    wyprowadzajacych platy, z ktorych sklada sie skonstruowana powierzchnia.
+    Parametr ten nie jest w zaden sposob interpretowany przez procedury,
+    ale umozliwia napisanie aplikacji nie korzystajacej ze zmiennych
+    globalnych do komunikacji z procedurami wyprowadzania.
+    Procedury przekazujace wyniki pomocnicze nie maja jeszcze tego
+    rozwiazania, to jest do ewentualnego zrobienia w razie potrzeby
+    w przyszlosci.
+
+13.04.2010.
+506. Drobne uzupelnienia procedur wypelniania wielokatnych otworow,
+   ulatwiajace ich uzywanie (nie trzeba osobno wywolywac procedur
+   konstrukcji bazy, do zrobienia jeszcze dla sklejanych).
+
+16.04.2010.
+507. Nowe procedury w libeghole: g1h_SymPatchMatrixSize,
+    g1h_GetSymPatchMatrixf, g1h_GetExtSymPatchMatrixf,
+    g1h_Q2GetSymPatchMatrixf, g1h_Q2GetExtSymPatchMatrixf,
+    g1h_MatrixFillSymHolef, g2h_SymPatchMatrixSize, g2h_GetSymPatchMatrixf,
+    g2h_GetExtSymPatchMatrixf i g2h_MatrixFillSymHolef.
+    Ich celem jest konstruowanie platow wypelniajacych klasy G1, G1Q2 i G2
+    za pomoca mnozenia wektora punktow kontrolnych siatki z otworem
+    przez ustalone macierze (nie ma zatem rozwiazywania ukladow
+    rownan liniowych itd. - powinno to dzialac szybciej). Macierz
+    jest znajdowana za pomoca procedur wypelniania otworow i moze byc
+    zachowywana przez program do wielokrotnego uzytku.
+    OGRANICZENIE: dziedzina musi byc symetryczna (tj.\ miec k-krotna
+    symetrie obrotowa) i wszystkie ciagi wezlow musza byc jednakowe
+    (np. rownoodlegle).
+
+21.04.2010.
+508. Nowa procedura bsm_TagBoundaryZoneVertices.
+
+27.04.2010.
+509. Nowa procedura pkv_RadToDegreeStr.
+
+16.05.2010
+510. Duze zmiany w programie pozwalaj, m.in. mozliwosc wizualizacji
+    za pomoca sledzenia promieni.
+
+19.05.2010.
+511. Poprawiony blad w procedurze xge_2DwinfApplyGeomWidget, zwiazany
+    z wihajstrem do scinania (shear).
+
+26.05.2010.
+512. Poprawiony blad w procedurze xgle_SetGLCameraf - zle obliczenie
+    parametrow rzutu perspektywicznego na podstawie wspolczynnika aspektu.
+
+2.06.2010.
+513. Do wihajstrow xge_3Dwinf i xge_3Dwind dorobiony atrybut WinBBox,
+    najwiekszy boks, ktory miesci sie caly w oknach rzutow rownoleglych.
+
+10.06.2010.
+514. Nowe procedury w libpknum: pkn_TMBSize, pkn_TMBElem, pkn_TMBElemSet,
+    pkn_TMBElemClear, pkn_TMBTestAndSet, pkn_TMBTestAndClear.
+    Sluza do obslugi symetrycznych lub trojkatnych macierzy bitowych.
+
+515. Do libeghole dodane dane opisujace siatki - wektory wlasne operatora
+    przetwarzania siatek. Siatki te moga byc dobrymi siatkami dziedziny
+    dla konstrukcji powierzchni wypelniajacych otwory (i sa uzywane przez
+    kilka programow demonstracyjnych, zatem sa tu na podoredziu).
+
+516. Poprawiony blad w procedurze GeomObjectBSplineMeshRefinement
+    - w razie niepowodzenia trzeba przypisac wartosc NULL wskaznikom
+    tablic.
+
+11.06.2010.
+517. Poprawiony blad w procedurze xgle_3DwinfDrawCursorPos, a takze
+    bledy w programach demonstracyjnych, ktore byly skutkiem zmian
+    w libxgedit, nieuwzglednionych w tych programach (zwiazane z wyborem
+    narzedzi pan/zoom, select, move itd.).
+
+518. Poczatki zmian w libg2blending, zwiazanych z rozszerzaniem biblioteki
+    o mozliwosc optymalizacji ksztaltu powierzchni siatkowych.
+
+14.06.2010.
+519. Do procedury gh_CreateDomaind dorobiona mozliwosc podania parametru
+    hole_knots o wartosci NULL - wtedy zostana wygenerowane domyslne wezly
+    rownoodlegle.
+
+22.06.2010.
+520. Poprawka w procedurze xge_3DwinfSetupPerspProj, zwiazana z obcinaniem
+    glebokosci rzutowanych obiektow.
+
+23.06.2010.
+521. Nowe procedury w libpkgeom - Point2Distancef i Point3Distancef.
+
+29.06.2010.
+522. Zmiany w libg2blending: nowy sposob obliczania funkcji podcalkowej dla
+    hesjanu (w nieliniowej optymalizacji powierzchni) i usuniecie wszystkich
+    procedur optymalizacji nieliniowej dla wersji pojedynczej precyzji -
+    nadmiar i niedomiar uniemozliwia obliczenia w tej wersji.
+
+02.07.2010
+523. Nowe procedury w bibliotece libg2blending. Dokonuja optymalizacji
+    powierzchni reprezentowanej przez siatke nieregularna. Na razie jest
+    to wstepna wersja kodu do celow eksperymentalnych.
+
+524. Dodana nowa procedura do libeghole: gh_HoleDomainAread. Oblicza
+    pole obszaru krzywoliniowego, ktory jest dziedzina parametryzacji
+    powierzchni wypelniajacej.
+
+07.07.2010.
+525. Zmiany w programie demonstracyjnym pozwalaj - dolaczony program procesu
+    potomnego do wykonywania czasochlonnych obliczen (optymalizacji siatki)
+    w tle, bez blokowania interakcji.
+
+03.08.2010.
+526. Nowe pliki zrodlowe g1bl*.c w libg2blending (autor: Mateusz Markowski),
+    z implementacja szybszego sposobu obliczania hesjanu.
+
+09.08.2010.
+527. Do libpsout dorobiona mozliwosc otwarcia naraz kilku plikow
+    wyjsciowych (to dziala jak stos). Jest to niedopracowane, ale dziala
+    w podstawowym zakresie.
+
+15.08.2010.
+528. Do libg2blending dodane wstepne wersje procedur optymalizacji
+    powierzchni siatkowych w wersji blokowej - jest tu jeszcze duzo do
+    zrobienia.
+
+529. Do programu demonstracyjnego pozwalaj dorobiona mozliwosc wywolywania
+    procedur wspomnianych w p. 528.
+
+17.08.2010.
+530. W libxgedit dodane wywolywanie funkcji wait po otrzymaniu SIGCHLD.
+
+30.08.2010.
+531. Do programu pozwalaj dorobiona mozliwosc optymalizacji ksztaltu
+    przejsciowych platow B-sklejanych stopnia (2,2) i (3,3) (na razie
+    tylko niezamknietych o swobodnym brzegu i nie ma biharmonicznych
+    i trojharmonicznych).
+
+532. Do libpknum dodana procedura pkn_PCGf, rozwiazujaca uklad rownan
+    liniowych metoda sprzezonych gradientow (CG) z preconditionerem
+    lub bez. Mnozenie wektora przez macierz ukladu lub przez odwrotnosc
+    preconditionera jest realizowana za pomoca procedur podanych jako
+    parametry (co umozliwia uzycie dowolnych reprezentacji tych macierzy
+    w programie).
+
+21.09.2010.
+533. Do biblioteki libbsfile dorobiona mozliwosc zapisywania i czytania
+    oznaczen jednobajtowych (liczb calkowitych) dla punktow kontrolnych.
+
+22.09.2010.
+534. Do procedur optymalizacji ksztaltu powierzchni siatkowej
+    w libg2blending dodany parametr mkcp, umozliwiajacy nakladanie
+    prostych wiezow (zaznaczone w tablicy wierzcholki siatki sa  ustalone).
+    Do przetestowania.
+
+23.09.2010.
+535. Do programu pozwalaj dorobiona mozliwosc nakladania wiezow
+    (przez ustalenie wskazanych punktow kontrolnych) dla optymalizacji
+    powierzchni siatkowych.
+
+27.09.2010.
+536. Poprawiony blad w procedurach w pslib.c - usuniete wielokrotne
+    wypisywanie kodu rysujacego markery (dalej jest to niedorobka
+    ktora moze spowodowac bledy po wprowadzeniu slownikow,
+    ale tymczasem zostala).
+
+29.09.2010.
+537. Nowe procedury obslugi kolejki (zwyklej) w libpkvaria.
+
+30.09.2010.
+538. Nowe procedury w libbsmesh, bsm_FindVertexDistances1
+    i bsm_FindVertexDistances2.
+
+17.10.2010.
+539. Nowe procedury w libbsmesh: bsm_HalfedgeLoopLength
+    i bsm_GlueHalfedgeLoopsd.
+
+21.10.2010.
+540. Poprawiony blad w procedurach czytania danych w libbsfile, zwiazany
+    z wymiarem przestrzeni dla krzywych i powierzchni wymiernych.
+
+22.10.2010.
+541. Do struktury RayObjectIntersf dodane pole object_id, do wykorzystania
+    przez aplikacje. Do procedur dodany odpowiedni parametr.
+    Zmiany te wymagaly przerobienia programow testowych i demonstracyjnych,
+    ktore wykonywaly obrazki powierzchni metoda sledzenia promieni.
+
+542. Do programu pozwalaj dorobiona mozliwosc nadawania roznych kolorow
+    poszczegolnym powierzchniom na obrazie wykonanym metoda sledzenia
+    promieni.
+
+28.10.2010.
+543. Nowy sposob tworzenia blokow w procedurach optymalizacji powierzchni
+    siatkowych w libg2blending, dziala znacznie sprawniej.
+
+544. Do programu pozwalaj dorobiona mozliwosc wywolywania optymalizacji
+    przy uzyciu nowych procedur optymalizacji z blokami.
+
+4.11.2010.
+545. Nowa procedura w libpkgeom: pkg_LineRayDist3f, znajduje odleglosc
+    odcinka od promienia.
+
+546. Nowa procedura rysowania suwaka w libxgedit - xge_DrawSlidebarfRGB,
+    do suwakow sluzacych do wyswietlania koloru.
+
+5.11.2010.
+547. Nowy wihajster do wyswietlania probki koloru RGB, obslugiwany przez
+    procedury xge_NewRGBSamplef i xge_DrawRGBSamplef.
+
+6.11.2010.
+548. Do programu demonstracyjnego pozwalaj dorobiona mozliwosc zaznaczania
+    wierzcholkow i krawedzi siatki za pomoca myszy.
+
+549. Czyszczenie kodu - usuwanie powodow dla gcc do wypisywania ostrzezen
+    (pare powaznych bledow zostalo przy tym wykrytych).
+
+
+Wersja 0.26:
+
+7.11.2010.
+550. Do programu demonstracyjnego pozwalaj dorobiona mozliwosc zaznaczania
+    wierzcholkow miedzy dwoma wskazanymi.
+
+11.11.2010.
+551. Dodane nowe komunikaty w libxgedit: xgemsg_2DWIN_SPECIAL_SELECT,
+    xgemsg_2DWIN_SPECIAL_UNSELECT, xgemsg_2DWIN_TRANSFORM_SPECIAL,
+    xgemsg_3DWIN_SPECIAL_SELECT, xgemsg_3DWIN_SPECIAL_UNSELECT,
+    xgemsg_3DWIN_TRANSFORM_SPECIAL, oraz nowe narzedzia dla okien
+    edycyjnych 2d i 3d, jeszcze nie oprogramowane jak nalezy.
+
+12.11.2010.
+552. Nowe komunikaty w libxgedit, xgemsg_2DWIN_UNDO i xgemsg_3DWIN_UNDO
+    (wysylane po nacisnieciu klawisza "u" lub "U").
+
+553. Nowa procedura w libpkvaria, pkv_DegreeStrToRad.
+
+13.11.2010.
+554. Do programu demonstracyjnego pozwalaj dodana mozliwosc przeksztalcen
+    geometrycznych (afinicznych i rzutow na sfere i walec) opisanych
+    za pomoca liczb (nie myszy) i mozliwosc cofania ostatniej zmiany.
+
+18.11.2010.
+555. Poprawki (zwiazane z obsluga blokow) w procedurach optymalizacji
+   ksztaltu powierzchni siatkowych w libg2blending.
+
+19.11.2010.
+556. Liczne drobne poprawki w programie demonstracyjnym pozwalaj.
+
+21.11.2010.
+557. Do okien edycji wezlow w libxgedit dorobiona mozliwosc blokowania
+   zmian wezlow (przydaje sie np. jesli wezly maja byc rownoodlegle).
+
+558. Do programu demonstracyjnego pokrzyw dorobiona mozliwosc stosowania
+    algorytmu Lane'a-Riesenfelda (dla krzywych z wezlami rownoodleglymi).
+
+22.11.2010.
+559. Do okien 3D w libxgedit dodana obsluga zapamietywania i przywracania
+    polozen obserwatora za pomoca klawiszy 'C' i 'c'.
+
+24.11.2010.
+560. Poprawki w programie demonstracyjnym pozwalaj - komunikacja miedzy
+    programami pozwalaj_proc i pozwalaj.
+
+561. Poprawka w procedurze blokowej optymalizacji ksztaltu powierzchni
+    siatkowej w libg2blending - dla trudnych danych procedura przedwczesnie
+    zglaszala niepowodzenie.
+
+25.11.2010.
+562. Poprawiony blad w procedurze xge_KnotWinfSetKnot.
+
+563. Drobne poprawki w programie demonstracyjnym pokrzyw (wyswietlanie
+    sciezki do biezacego katalogu).
+
+29.11.2010.
+564. Zmiany w programie demonstracyjnym pognij - wezly rownoodlegle
+    i wywolywanie algorytmu Lane'a-Riesenfelda.
+
+3.12.2010.
+565. Zmiany w programie demonstracyjnym pozwalaj - okreslanie punktu
+    i wektora dla konstrukcji "numerycznych" na podstawie punktow
+    kontrolnych obiektow (na razie tylko powierzchni siatkowych).
+
+5.12.2010.
+567. W programie demonstracyjnym pozwalaj obsluga zaznaczania/odznaczania
+    do 4 bitow dla kazdego punktu kontrolnego. Przydzial tych bitow jest
+    niezgodny z wersja dotychczasowa.
+
+8.12.2010.
+568. Zmiana procedury oznaczania punktow (ps_Mark_Circle) w libpsout;
+    teraz rysuje biala kropke w obwodce w biezacym kolorze, a potem go
+    przywraca (dotad bylo rysowanie na czarno).
+
+15.12.2010.
+569. Nowa biblioteka, libg1blending, do ktorej zostaly przeniesione
+    procedury konstrukcji B-sklejanych platow wypelniajacych klasy C^1
+    (z libg2blending).
+
+28.12.2010.
+570. Dostrajanie parametrow w procedurze optymalizacji ksztaltu powierzchni
+    siatkowej w libg2blending.
+
+5.01.2011.
+571. Poprawki z programie demonstracyjnym pozwalaj - obsluga wyswietlania
+    zaznaczonych punktow kontrolnych.
+
+13.01.2011.
+572. Dodane nowe komunikaty do libxgedit: xgemsg_2DWIN_KEY
+    i xgemsg_3DWIN_KEY.
+
+18.01.2011.
+573. Poprawiony blad w procedurze pkn_QuadSimpsond - wspolczynniki byly
+   2 razy za male.
+
+1.02.2011.
+574. Dorobiony niewidzialny kursor w libzgedit (czasami sie przydaje).
+
+575. Nowa procedura w libxgedit - xge_MoveInListBox.
+
+3.02.2011.
+576. Poprawki w procedurach xge_GetPixelColour i xge_GetPixelColourf
+    (powinny dzialac takze dla ekranow innych niz z 8 bitami na skladowa).
+
+577. Nowe procedury w libxgedit, xge_DrawVShadedRect i xge_DrawHShadedRect.
+
+578. Drobne zmiany wygladu niektorych wihajstrow (guzikow i wihajstrow do
+    liczb).
+
+579. Z libg2blending usuniete procedury dla pierwszego (nieudanego) blokowego
+    algorytm optymalizacji powierzchni siatkowych.
+
+4.02.2011.
+580. Zmiana wygladu suwakow i przelacznikow w libxgedit - mam nadzieje, ze
+    na lepsze.
+
+9.02.2011.
+581. Zmiana raytracera w programie pozwalaj, polegajaca na przejsciu do
+    arytmetyki podwojnej precyzji (w pojedynczej widac bylo skutki bledow
+    zaokraglen).
+
+582. Zmiana wygladu suwakow do wprowadzania skladowych koloru RGB.
+
+18.02.2011.
+583. Poprawiony blad w libg2blending - byly o 1 za krotkie tablice
+    w strukturze mesh_lmt_optdata, blad by sie objawil dla siatek
+    z wierzcholkami stopnia 16.
+
+584. Poczatek prac nad implementacja wielopoziomowej metody optymalizacji
+    ksztaltu powierzchni siatkowych - jest jeszcze b. duzo do zrobienia.
+
+20.02.2011.
+585. Do edytora napisow w xgedit dorobiona mozliwosc wprowadzania tekstu
+    z bufora X-ow (XFetchBytes wywolywane za pomoca prawego guzika myszy).
+
+12.03.2011.
+586. Troche porzadku w kodzie procedur w libg2blending.
+
+24.03.2011.
+587. Wstepna wersja wielopoziomowego algorytmu optymalizacji ksztaltu
+    powierzchni siatkowych - jeszcze z bledami.
+
+588. Dodanie mozliwosci wykonywania tego algorytmu do programu pozwalaj.
+
+27.03.2011.
+589. Poprawiony blad w algorytmie podzialu bloku dla metody wielopoziomowej
+    optymalizacji ksztaltu powierzchni w libxgedit.
+
+590. Zmienione poczatkowe intensywnosci oswietlenia w programie pozwalaj.
+
+
+Wersja 0.27:
+
+28.03.2011
+591. Nowe procedury, g2mbl_GetNvcp i g2mbl_MLSuggestNLevels, majace na celu
+    ulatwienie dobierania liczby blokow/poziomow dla procedury
+    optymalizacji ksztaltu powierzchni.
+
+592. Do procedury bsf_OpenOutputFile dodany parametr append - jesli rozny od
+    zera, do dane maja byc dopisywane na koncu pliku.
+
+593. Do programu demonstracyjnego pozwalaj dorobiona mozliwosc logowania
+    w pliku wynikow kolejnych iteracji procedury optymalizacji ksztaltu
+    powierzchni siatkowych.
+
+4.04.2011
+594. Poprawiony blad w implementacji przekondycjonera w procedurze
+    _g2mbl_MLmultQIx; dodany nowy przekondycjoner dla przeprowadzenia
+    eksperymentow.
+
+595. Poprawki w programie demonstracyjnym pozwalaj (zmiany rozmiaru okien na
+    domyslne).
+
+12.04.2011.
+596. Nowy algorytm podzialu bloku w procedurze wielopoziomowej
+    optymalizacji, jeszcze niedopracowany.
+
+15.04.2011.
+597. Nowy algorytm podzialu na bloki dla metody wielopoziomowej
+    optymalizacji ksztaltu powierzchni siatkowych. Dziala chyba dosc
+    przyzwoicie, choc jeszcze warto poszukac innych mozliwosci.
+
+19.04.2011.
+598. Nowa procedura, pkv_SortPermute2, ktora przestawia dane jednoczesnie
+    w dwoch tablicach, zgodnie z podana permutacja.
+
+599. Kolejny algorytm podzialu blokowego dla wielopoziomowej optymalizacji,
+    wyniki jego dzialania chyba wygladaja sensownie (ale jeszcze warto w nim
+    podlubac).
+
+26.04.2011.
+600. Nowy algorytm optymalizacji ksztaltu powierzchni siatkowej w
+    libg2blending - optymalizuje tylko ksztalt powierzchni, bez
+    regularyzacji (ale w obcietej przestrzeni), przeznaczony do
+    "wykonczeniowki". Na razie nieuruchomiony.
+
+27.04.2011.
+601. Algorytm optymalizacji ksztaltu doprowadzony do dzialania - teraz
+    trzeba zrobic testy, poprawki i strojenie.
+
+602. Do programu demonstracyjnego pozwalaj dodana mozliwosc wywolania
+    procedury optymalizacji (samego) ksztaltu powierzchni siatkowej.
+
+28.04.2011.
+603. Do procedury pkn_PCGf dodany parametr, ktory sluzy do wyprowadzenia
+    informacji o liczbie wykonanych iteracji metody CG.
+
+29.04.2011.
+604. Poprawione bledy w nowej metodzie (p. 600) optymalizacji ksztaltu.
+
+2.05.2011.
+605. Zmiany w procedurach optymalizacji ksztaltu (p. 600), majace na celu
+    zmniejszenie zapotrzebowania na pamiec.
+
+4.05.2011.
+606. Poprawiony blad w procedurze xge_StringEdMsg - nie wstawialo tekstu
+    bufora X na koncu napisu.
+
+607. Do procedury xge_StringEdMsg dorobiona mozliwosc wstawiania tekstu
+    do bufora X za pomoca myszy (przy uzyciu procedury XStoreBytes).
+
+608. Do programu demonstracyjnego pozwalaj dorobione wyswietlanie
+    wspolrzednych wybieranych punktow kontrolnych (tylko dla powierzchni
+    siatkowych - trzeba by dorobic takie cos dla wszystkich obiektow).
+
+5.05.2011.
+609. Do okien 2D i 3D w libxgedit dorobiona mozliwosc przywracania domyslnych
+    polozen wihajstrow (skalowan, obrotow i powinowactwa) za pomoca klawiszy
+    'r', 'R'.
+
+610. W programie demonstracyjnym pozwalaj zmieniony sposob wyswietlania
+    wspolrzednych punktow kontrolnych.
+
+6.05.2011.
+611. Poprawiony blad w programie pozwalaj - dokonujac czyszczenia listy
+    obiektow (Purge) trzeba przerywac proces pozwalaj_proc, jesli liczy.
+
+9.05.2011.
+612. W programie demonstracyjnym pozwalaj dorobione ulatwienie dialogu przy
+    zapisywaniu plikow - pojawia sie lista nazw plikow obecnych w biezacym
+    katalogu.
+
+10.05.2011.
+613. Duze zmiany w libxgedit - maja one na celu uporzadkowanie
+    przekierowywania wejscia do wihajstrow i w szczegolnosci mozliwosc
+    robienia tego niezaleznie dla poszczegolnych okien (do tej pory
+    wihajster mogl przejmowac komunikaty wysylane do wszystkich okien).
+    Pewnie sporoczasu zabierze ponowne doprowadzenie wszystkiego do
+    poprawnego dzialania. Sam chcialem.
+
+12.05.2011.
+614. Pomysl z p. 613 zarzucony, zamiast tego nowe, moze lepiej przemyslane
+    rozwiazanie. Do dopracowania, uruchomienia i wprowadzenia we wszystkich
+    programach demonstracyjnych.
+
+13.05.2011.
+615. Dokonczona implementacja nowego sposobu obslugi przekierowyania wejscia
+    do wihajstrow, w dodatku z obsluga zmian kursora. Wprowadzone
+    odpowiednie zmiany w programach demonstracyjnych, ktore trzeba by
+    jeszcze solidnie przetestowac.
+
+616. Do programu demonstracyjnego pozwalaj dodana mozliwosc interakcyjnego
+    okreslania przeksztalcenia wstepnego powierzchni przed optymalizacja.
+    Do zrobienia pozostaje wyswietlanie powierzchni przeksztalconej oraz
+    wprowadzanie wspolczynnikow przeksztalcenia z klawiatury.
+
+617. W libxgedit, w oknach edycji 3D poprawione obliczanie wielkosci obrazow
+    wihajstrow do wprowadzania przeksztalcen afinicznych (dzialalo zle,
+    jesli jedna z cwiartek byla powiekszona).
+
+14.05.2011.
+618. W libxgedit dodany nowy wihajster, xge_null_widget, ktorego celem jest
+    przechwytywanie wejscia w czasie, gdy ma ono byc ignorowane, np. wtedy,
+    gdy jakas procedura wykonuje dlugie obliczenia (i wtedy trzeba ustawic
+    kursor - zegarek, ktory sugeruje uzytkownikowi, aby spokojnie chwile
+    poczekal).
+
+15.05.2011.
+619. Poprawiony algorytm minimalizacji wzdluz trajektorii
+    Levenberga-Marquardta w procedurach g2mbl_MLOptBlockBd i
+    g2mbl_MLSOptBlockBd. Trzeba jeszcze go wstawic do pozostalych procedur,
+    ktore wykonuja taka minimalizacje.
+
+16.05.2011.
+620. Nowe procedury w libxgedit, xgle_MultMatrix3f i xgle_MultMatrix3d, dla
+    wygody programowania.
+
+17.05.2011.
+621. Nowe komunikaty w libxgedit, xgemsg_POPUP_REMOVED i
+    xgemsg_POPUPS_REMOVED, wysylane do aplikacji przed zamknieciem popup
+    menu.
+
+622. Do procedur xge_RemovePopup i xge_RemovePopups dodany parametr,
+    okreslajacy, czy okno nalezy odrysowac. Odpowiednie zmiany wprowadzone
+    do programow demonstracyjnych.
+
+623. Do programu demonstracyjnego pozwalaj dodana mozliwosc wstepnego
+    przeksztalcenia afinicznego siatki przed optymalizacja ksztaltu -
+    z okna edycji figury i z boksu dialogowego.
+
+19.05.2011.
+624. Do starszych procedur optymalizacji ksztaltu platow tensorowych
+    i powierzchni siatkowych w libg1blending i libg2blending wprowadzony
+    nowy algorytm minimalizacji wzdluz trajektorii Levenberga-Marquardta,
+    trzeba go jeszcze porzadnie przetestowac.
+
+24.05.2011.
+625. W procedurach optymalizacji w bibliotekach libg1blending
+    i libg2blending, w procedurach minimalizacji wzdluz trajektorii
+    Levenberga-Marquardta zloty podzial parametru nu jest zastapiony przez
+    zloty podzial jego logarytmu - w testach sprawdzilo sie to lepiej.
+
+26.05.2011.
+626. Poprawki w libxgedit, zwiazane z wihajstrami popup (wysylanie komunikatu
+    xgemsg_EXITING do usuwanego wihajstra) i z komunikatami informacyjnymi
+    i o bledach (przed wyswietleniem komunikatu trzeba zamknac poprzedni).
+
+627. Poprawki w programie prezentacyjnym tiffsh.
+
+31.05.2011.
+628. Nowe procedury obliczania gradientu i hesjanu funkcji minimalizowanej
+    przez procedury optymalizacji ksztaltu powierzchni siatkowych -
+    kilkakrotnie szybsze od dotychczasowych.
+
+2.06.2011.
+629. Kolejne poprawki w algorytmie wielopoziomowym optymalizacji powierzchni
+    siatkowych - jeszcze trzeba ich bedzie sporo.
+
+3.06.2011.
+630. Dalsze poprawki w algorytmie optymalizacji powierzchni siatkowych.
+
+7.06.2011.
+631. Poprawione kolejne bledy w procedurach optymalizacji ksztaltu
+    powierzchni siatkowych.
+
+10.06.2011.
+632. Kolejne poprawki w wielopoziomowych procedurach optymalizacji powierzchni
+    siatkowych.
+
+633. Do programu demonstracyjnego pozwalaj dorobiony (na razie prosty - ma
+    sie skomplikowac) kalkulator wyrazen arytmetycznych.
+
+11.06.2011.
+634. W edytorze napisow w libxgedit poprawiona obsluga zapisywania tekstu w
+    buforze XWindow.
+
+635. Nowa procedura, g2mbl_MLSetNextBlock, pomocnicza dla algorytmow
+    optymalizacji ksztaltu powierzchni siatkowych.
+
+21.06.2011.
+636. Do kalkulatora wbudowanego w program demonstracyjny pozwalaj dorobiona
+    mozliwosc obliczania wartosci funkcji abs, arccos, arcsin, arctan, cos,
+    exp, ln, sin, sqrt, tan.
+
+13.07.2011.
+637. Usuniete indywidualne dobieranie stalej C dla elementow specjalnych
+    i ich otoczenia w optymalizacji powierzchni siatkowych (libg2blending).
+    Nie ma ono specjalnego sensu, jesli jest mozliwa optymalizacja samego
+    ksztaltu.
+
+9.08.2011
+638. Do programu pozwalaj dolozona procedura "wygladzania" lamanej, ktorej
+    wierzcholki sa wierzcholkami siatki reprezentujacej powierzchnie.
+
+19.08.2011.
+639. Poprawki w algorytmie optymalizacji powierzchni siatkowych.
+
+640. Poprawka w programie demonstracyjnym pozwalaj - uaktualnianie listy
+    obiektow, jesli jest wyswietlana i zostal wczytay plik.
+
+22.08.2011.
+641. W libxgedit zmiana nazwy wihajstra do krecenia z Knob na Dial.
+
+642. Nowa procedura, xge_IsPopupOn.
+
+14.09.2011
+643. Zmiany w libxgedit - obsluga komunikatow ignorowanych przez wihajstry,
+    ktore maja ustawione przejecie wejscia.
+
+644. Zmiany w programach pokrzyw, pognij i pozwalaj, dostosowujace te
+    programy do zmian w libxgedit.
+
+18.09.2011.
+645. Poprawki w libxgedit, zwiazane z przejmowaniem i zwalnianiem
+    komunikatow wejscia (focus). Bledy doprowadzaly do wywalania programu
+    z powodu SIGESGV w pewnych przypadkach.
+
+22.09.2011.
+646. Poprawiony blad w procedurze xgle_Init - brakowalo tworzenia wihajstra
+    pustego (*xge_null_widget), przez co system przejmowania komunikatow
+    wejsciowych czasami sie wykrzaczal.
+
+647. W programie demonstracyjnym pozwalaj zmiana menu z parametrami kamery
+    z popup na zwykle.
+
+
+Wersja 0.28:
+
+23.09.2011.
+648. Pokretla w libxgedit od teraz reaguja na krecenie kolkiem myszy.
+
+
+3.10.2011.
+647. Do procedur xge_Init i xgle_Init dodany parametr, okreslajacy tytul
+    pierwszego okna.
+
+18.10.2011.
+648. Do procedury xgle_DrawGeomWinBackground dodane wylaczanie oswietlenia
+    w OpenGL - zle wyswietlalo napisy.
+
+25.10.2011.
+649. Poprawione bledy w programach demonstracyjnych pokrzyw i pognij - byla
+    zla obsluga wezlow rownoodleglych i krzywych zamknietych podczas
+    podwyzszania stopnia.
+
+27.10.2011.
+650. Zmiany w procedurze xge_KnotWinfMsg, jesli procedura nie konsumuje
+    komunikatu o nacisnieciu klawisza, to zwraca false.
+
+28.10.2011.
+651. Zmiany w wihajstrze okna z wezlami (xge_KnotWinf, xge_KnotWind),
+    umozliwiajace obsluge dwoch roznych ciagow wezlow w tym samym oknie.
+    Przydaoby sie to dopracowac.
+
+652. Zmiany w procedurach obslugi komunikatow guzika (xge_ButtonMsg)
+    i suwakow (xge_SlidebarfMsg, xge_SlidebardMsg), teraz zawiadamiaja
+    o ignorowanych komunikatach wejsciowych.
+
+29.10.2011.
+653. Do okna z wezlami dodane wysylanie nowych komunikatow,
+    xgemsg_KNOTWIN_MCLICK i xgemsg_KNOTWIN_MMOVE.
+
+30.10.2011.
+654. Drobna modyfikacja procedury xge_SetMenuWidgets, dopuszczajaca mozliwosc
+    wymiany tylko czesci listy wihajstrow.
+
+655. Nowy program demonstracyjny, poruszaj.
+
+7.11.2011.
+656. Do procedury pkn_QuickSort dodany parametr usrptr, ktory umozliwia
+    unikniecie uzywania w aplikacji zmiennych globalnych.
+
+9.11.2011.
+657. Zmiany w procedurze pkv_SortKernel - powinno teraz poprawnie sortowac
+    takze w systemach z procesorami big-endian (trzeba przetestowac,
+    ja nie mam jak).
+
+11.11.2011.
+658. Nowe procedury w libpknum, do obslugi nieregularnych macierzy rzadkich:
+    pkn_MultSPMVectorf, pkn_MultSPMTVectorf, pkn_SPMSortByRowsf,
+    pkn_SPMSortByColsf, pkn_SPMFindRowsf, pkn_SPMFindColsf, pkn_SPMSizeMMf,
+    pkn_SPMMultMMf (i ich odpowiedniki dla podwojnej precyzji).
+
+27.11.2011.
+659. Nowa procedura, mbs_multiBSCubicClosedInterpf, konstruuje kubiczne
+    interpolacyjne krzywe zamkniete.
+
+28.11.2011.
+660. Zmiany w pkgeom - kilka nowych procedur (skladanie przeksztalcen
+   w odwrotnej kolejnosci).
+
+5.12.2011.
+661. Poprawki w bibliotece pkgeom - pare nowych procedur, poprawki
+    w implementacji starych (skladanie przeksztalcen afinicznych).
+
+14.12.2011.
+662. Zmiana nazw procedur w libpkgeom (skladanie przeksztalcen w odwrotnej
+    kolejnosci), teraz sa to procedury Trans3Shiftf, Trans3Mirrorf,
+    Trans3Rotf, Trans3RotVf, Trans3Scalef.
+
+663. Nowe procedury w libpkgeom do skladania przeksztalcen afinicznych 2D
+    w odwrotnej kolejnosci: Trans2Shiftf, Trans2Rotf, Trans2Scalef.
+
+29.12.2011.
+664. Zmienione procedury obslugi macierzy rzadkich w libpknum - rozdzielenie
+    tablicy z wykazem pozycji od tablicy wspolczynnikow (mozna je indeksowac
+    rownolegle) i zamiast sortowania tych tablic dostep odbywa sie przez
+    tablice permutacji (znajdowane przez procedure sortowania), dzieki czemu
+    bez przestawiania elementow w tablicach mozna mnozyc te macierze.
+
+665. Nowe procedury w libbsmesh, ktore tworza macierze podwajania
+    i usredniania, w reprezentacji rzadkiej. Wszystko to trzeba jeszcze
+    uruchomic i przetestowac.
+
+2.01.2012.
+666. Nowa procedura w libbsmesh, bsm_RefinementMatd, ktora tworzy macierz
+    zageszczania siatki. Mozna jej uzywac jako alternatywy dla procedury
+    bsm_RefineBSMeshd, ktora zageszcza siatke bezposrednio.
+
+9.01.2012.
+667. Do procedury xgle_Init dorobione parametry wybierajace potrzebne
+    aplikacji bufory - glebokosci, akumulacji i maski.
+
+668. Nowa procedura, xgle_SetGLaccCameraf, umozliwiajaca antyaliasing
+    i efekt glebi ostrosci przy uzyciu OpenGL-owego buforu akumulacji.
+
+25.01.2012.
+669. Nowe procedury w libpknum: pkn_MultSPsubMVectorf,
+    pkn_MultSPsubMTVectorf, pkn_SPsubMMultMMf i pomocnicze pkn_SPsubMSortByRows,
+    pkn_SPsubMSortByCols, pkn_SPsubMFindRows, pkn_SPsubMFindCols,
+    pkn_SPsubMSizeMM - sluza do dzialan na podmacierzach macierzy
+    rzadkich.
+
+28.01.2012.
+670. Nowe procedury przetwarzania macierzy rzadkich: pkn_SPMindex2to3
+    (tworzy indeks potrojny z podwojnego, na wypadek potrzeby pomnozenia
+    macierzy przez podmacierz), oraz pkn_SPMemptyMultMM
+    i pkn_SPsubMemptyMultMM - wyznaczaja miejsca, w ktorych moga byc
+    niezerowe wspolczynniki iloczynu, bez samego mnozenia liczb.
+
+31.01.2012.
+671. Nowe procedury przetwarzania macierzy rzadkich, pkn_SPMSizeMMT,
+    pkn_SPMemptyMultMMT, pkn_SPMMultMMTf.
+
+21.02.2012.
+672. Poprawki w procedurach wielopoziomowych optymalizacji ksztaltu
+    powierzchni w libg2blending.
+
+24.02.2012.
+673. Nowe procedury pkv_Tic, pkv_Toc i pkv_Seconds w libpkvaria, do pomiarow
+    czasu obliczen.
+
+28.02.2012.
+674. Zmiany w procedurach optymalizacji ksztaltu powierzchni
+    w libg2blending, w celu dodania implementacji preconditionera
+    korzystajacego z siatki rzadkiej. Na razie to jest zrobione dla wersji
+    wielopoziomowej, ze skladnikiem regularyzujacym.
+
+675. Do programu demonstracyjnego pozwalaj dodana mozliwosc wywolywania
+    procedur optymalizacji ksztaltu z preconditionerem skonstruowanym przy
+    uzyciu siatki grubej.
+
+5.03.2012.
+676. Do libg2blending dodane procedury optymalizacji ksztaltu powierzchni
+    (samego ksztaltu), z preconditionerem z grubej siatki. Ta wersja bedzie
+    wymagala jeszcze sporo pracy, bo koszt uzycia preconditionera zjada
+    zyski z niego.
+
+8.03.2012.
+677. Do programu demonstracyjnego pozwalaj dorobione wyswietlanie informacji
+    o stopniu, liczbie wezlow i liczbie elementow siatki obiektow.
+
+9.03.2012.
+678. Poprawiony blad w procedurze pkv_SortPermute2 w libpkvaria.
+
+12.03.2012.
+679. Nowy algorytm mnozenia macierzy rzadkich, bardzo szybki, ale
+    korzystajacy z pamieci dodatkowej - procedury pkn_SPMCountMMnnz,
+    pkn_SPMFindMMnnzR, pkn_SPMCountMMnnzC, pkn_SPMFindMMnnzC,
+    pkn_SPMFastMultMMf.
+
+680. Nowy algorytm mnozenia macierzy rzadkich zastosowany w procedurze
+    bsm_RefinementMatd.
+
+13.03.2012.
+681. Procedury mnozenia macierzy rzadkich w roznych wariantach:
+    pkn_SPMCountMMTnnzR, pkn_SPMFindMMTnnzR, pkn_SPMCountMMTnnzC,
+    pkn_SPMFindMMTnnzC, pkn_SPMCountMTMnnzR, pkn_SPMFindMTMnnzR,
+    pkn_SPMCountMTMnnzC, pkn_SPMFindMTMnnzC.
+    Do zrobienia jeszcze to samo dla podmacierzy.
+
+13.03.2012.
+681. Procedury mnozenia podmacierzy rzadkich w roznych wariantach:
+    pkn_SPsubMCountMMTnnzR, pkn_SPsubMFindMMTnnzR, pkn_SPsubMCountMMTnnzC,
+    pkn_SPsubMFindMMTnnzC, pkn_SPsubMCountMTMnnzR, pkn_SPsubMFindMTMnnzR,
+    pkn_SPsubMCountMTMnnzC, pkn_SPsubMFindMTMnnzC.
+
+16.03.2012.
+683. Procedury mnozenia macierzy rzadkich, ktore nie wymagaja pamieci
+    dodatkowej do przechowywania informacji o tym, ktore wspolczynniki
+    nalezy pomnozyc i zsumowac. Procedury dodane wyzej (681 i 682)
+    rozdzielaja znajdowanie tej informacji od samych dzialan
+    zmiennopozycyjnych, co oszczedza duzo czasu, jesli mnozenie macierzy
+    o tak samo rozmieszczonych wspolczynnikach ma byc wykonane wielokrotnie.
+    Ale dla duzych macierzy ta informacja zajmuje potwornie duzo miejsca.
+
+19.03.2012.
+684. Kolejne procedury mnozenia macierzy rzadkich, warianty dla jednego lub
+    dwoch czynnikow transponowanych. Trzeba by toto przetestowac.
+
+685. Dodane procedury "pustego" mnozenia macierzy rzadkich,
+    pkn_SPMmultMMCempty, pkn_SPMmultMMTCempty i pkn_SPMmultMTMCempty.
+    Ich zadaniem jest znalezienie rozmieszczenia niezerowych wspolczynnikow
+    iloczynu.
+
+21.03.2012.
+686. W procedurach optymalizacji ksztaltu powierzchni siatkowych
+    z preconditionerem z gruba siatka w libg2blending zastosowane nowe
+    procedury szybkiego mnozenia macierzy.
+
+
+Wersja 0.29:
+
+26.03.2012.
+687. Poprawiony blad w procedurze _pkv_DestroyPixelBuffer.
+
+688. Do libpkgeom dodane procedury dzialan na kwaternionach (mnozenie,
+    mnozenie przez odwrotnosci i generowanie macierzy obrotu).
+
+689. W libxgedit nowy wihajster - kulka do obracania w przestrzeni R^3.
+
+27.03.2012.
+690. Zmiany w libraybez - wyodrebnienie procedur testowania przeciecia
+    promienia z boksem.
+
+691. Zmodyfikowany  sposob rekurencyjnego dzielenia blokow w procedurach
+    wielopoziomowych optymalizacji ksztaltu powierzchni w libg2blending.
+    Powinien ulatwic eksperymenty.
+
+28.03.2012.
+692. Nowe procedury wyznaczania przeciecia promienia z rurka, ktorej os jest
+    krzywa Beziera - w libraybez.
+
+693. Do programu demonstracyjnego pozwalaj dodana mozliwosc wykonywania
+    obrazow krzywych Beziera i B-sklejanych (w postaci rurki) metoda
+    sledzenia promieni. Do zrobienia rysowanie krzywych wymiernych
+    i mozliwosc ustawiania srednicy rurki.
+
+3.04.2012.
+694. Zmiany w libxgedit, zwiazane z dorabianiem nowych mozliwosci do
+    wihajstra - kulki kwaternionowej.
+
+4.04.2012.
+695. Czyszczenie kodu w celu usuniecia przyczyn wypisywania ostrzezen
+    przez kompilator.
+
+6.04.2012.
+696. Zmiany w libxgedit - poprawianie bledow w implementacji wysylania
+    komunikatow xgemsg_ENTERING i xgemsg_EXITING.
+
+10.04.2012.
+697. Nowe procedury w libbsmesh, bsm_CountSpecialVSubnets,
+    bsm_FindSpecialVSubnetList, bsm_CountSpecialFSubnets,
+    bsm_FindSpecialFSubnetLists.
+
+698. Poprawiony blad w libeghole - zle obliczanie wektora normalnego dla
+    procedur optymalizacji nieliniowej.
+
+11.04.2012.
+699. Czyszczenie kodu w testach i programach interakcyjnych dla usuniecia
+    ostrzezen kompilatora.
+
+700. Poprawki w programie pozwalaj, tworzenie listy elementow specjalnych
+    siatki dla powierzchni trzeciego stopnia - bedzie to w przyszlosci
+    wykorzystane w optymalizacji ksztaltu.
+
+18.04.2012.
+701. Do procedury optymalizacji ksztaltu powierzchni siatkowej (algorytm
+    dwupoziomowy blokowy) dodana mozliwosc uzycia preconditionera
+    skonstruowanego za pomoca grubej siatki.
+
+28.04.2012.
+702. Nowe procedury w libpkgeom - Point4to2f i Point2to4f.
+
+8.05.2012.
+703. Sporo nowych (a wlasciwie zaleglych) informacji dopisanych do
+    angielskiej dokumentacji - polska dokumentacja zostala w tyle.
+
+14.05.2012.
+704. Poprawiony blad w procedurach optymalizacji powierzchni (algorytm
+    wielopoziomowy-blad powodowal czasami przedwczesne konczenie opliczen).
+
+705. Modyfikacja algorytmu wielopoziomowego - inna kolejnosc wyboru blokow
+    dla poszczegolnych iteracji).
+
+22.05.2012.
+706. Poprawiony blad w procedurach optymalizacji ksztaltu powierzchni
+    siatkowych - w fazie obramowania w minimalizacji wzdluz trajektorii
+    Levenberga-Marquardta (blad byl skutkiem poprawiania innego bledu).
+
+707. Do programu demonstracyjnego pozwalaj dorobiona procedura optymalizacji
+    ksztaltu platow stopnia (9,9), wypelniajacych wielokatne otwory w
+    powierzchniach bikubicznych.
+
+29.05.2012.
+708. Nowy algorytm obramowania (bracketing) w procedurach optymalizacji
+    ksztaltu powierzchni siatkowych - do przetestowania.
+
+1.06.2012.
+709. Nowy algorytm optymalizacji powierzchni siatkowych - minimalizacja
+    funkcji wzdluz trajektorii Levenberga-Marquardta takze dla duzych
+    blokow, z wykorzystaniem metody CG (do przetestowania).
+
+4.06.2012.
+710. Poprawiony blad w libxgedit, zwiazany z przejmowaniem/zwalnianiem wejscia.
+
+711. Modyfikacja wihajstra - kulki kwaternionowej w libxgedit.
+
+12.06.2012.
+712. Pierwsze eksperymenty z programowaniem watkow (pthread). Odpowiednie
+    procedury dodane do libpkvaria.
+
+29.06.2012.
+713. W libpkvaria pierwsza chyba juz dobra implementacja watkow
+    wspolbieznych (realizowanych przy uzyciu pthread): karbowy ma n zadan do
+    wykonania przezk chlopow panszczyznianych. Karbowy tworzy te watki,
+    organizuje je w kolejke i daje kolejne zadania poszczegolnym chlopom, az
+    wszystkie zadania zostana rozdane, potem czeka na dokonczenie ostatniego
+    zadania, odprawia chlopow i wraca na dwor.
+
+5.07.2012.
+714. Zmiany w procedurach pomiaru czasu w libpkvaria - teraz jest pomiar
+    czasu fizycznego, a nie czasu dzialania procesu.
+
+715. Nowa procedura, pkv_FindNCPU w libpkvaria. Na podstawie pliku
+    /proc/cpuinfo znajduje liczbe procesorow w systemie.
+
+9.07.2012.
+716. Wykorzystanie watkow wspolbieznych w bibliotece libg2blending - na
+    razie do obliczania rownolegle calek po elementach w procedurach
+    wykorzystywanych przez metode wielopoziomowa (podstawowa i optymalizacji
+    ksztaltu).
+
+
+Wersja 0.30:
+
+14.08.2012
+717. Poprawiony blad w procedurze pkv_SetPThreadsToWork; objawial sie w
+    przypadku niepowodzenia obliczen ktoregos watku (gdy trzeba bylo
+    zakonczyc prace).
+
+718. Wprowadzona rownoleglosc do obliczen preconditionera w metodzie CG w
+    libg2blending; na razie watki wspolbiezne rozkladaja macierze dla malych
+    blokow metoda Choleskiego. W systemac 64-bitowych dziala rownolegle
+    obliczanie skladnikow preconditionera. W systemach 32-bitowych to jest
+    zablokowane (jest tam zwykla procedura rekurencyjna), calosc musi zostac
+    calkowicie przeprojektowana.
+
+20.08.2012.
+719. Poprawka w procedurze pkv_SetPThreadsToWork - dodatkowe zadanie dla
+    glownego watku, rozpoczynane po przydzieleniu pracy watkom dodatkowym.
+
+720. Wykorzystanie nowej wersji procedury pkv_SetPThreadsToWork w
+    zrownoleglonych algorytmach optymalizacji ksztaltu powierzchni w
+    libg2blending.
+
+721. Do programu demonstracyjnego pozwalaj dorobiony wihajster, ktory
+    umozliwia wybieranie liczby watkow dla obliczen rownoleglych w
+    optymalizacji ksztaltu powierzchni. Mozna badac, jak sprawnie sie to
+    zrownolegla.
+
+29.08.2012.
+722. Zmiana implementacji rownoleglej algorytmu obliczania preconditionera w
+    optymalizacji ksztaltu powierzchni w libg2blending (dla algorytmu
+    wielopoziomowego, procedury _g2mbl_MLmultQIxd i _g2mbl_MLSmultQIxd).
+    Poprzednia implementacja w procedurze rekurencyjnej tworzyla nowe watki,
+    co nie bylo dobrym pomyslem; w szczegolnosci duze zadania sprawialy
+    klopoty w systemie 32-bitowym.
+
+3.09.2012.
+723. Poprawki w algorytmach optymalizacji ksztaltu powierzchni - dostrajanie
+    kryteriow stopu.
+
+19.09.2012.
+724. Do procedury pkn_NRBSymCholeskyDecompd dorobiony parametr abort.
+    Umozliwia on przerwanie obliczen, jesli doprowadzenie ich do konca nie
+    ma sensu, np. podczas rozkladania macierzy uzytych do okreslenia
+    preconditionera przez watki wspolbiezne - jesli jedna z tych macierzy
+    nie jest dodatnio okreslona, to nie nalezy tracic czasu na rozkladanie
+    pozostalych.
+
+725. Wprowadzone odpowiednie zmiany wywolan procedury
+    pkn_NRBSymCholeskyDecompd przez procedury w bibliotekach libg1blending
+    i libg2blending.
+
+26.09.2012.
+726. Do struktur opisujacych wierzcholki drzew podzialu platow Beziera
+    dodany atrybut normalvect, ktory jest wskaznikiem do opcjonalnej tablicy
+    z punktami kontrolnymi plata opisujacego wektor normalny
+    reprezentowanego przez wierzcholek fragmentu plata (na potrzeby m.in.
+    znajdowania przeciec platow Beziera).
+
+27.09.2012.
+727. W libraybez wprowadzone procedury obslugi drzew binarnych podzialu
+    wymiernych krzywych Beziera w R^3.
+
+
+25.12.2012.
+728. W libpsout poprawiony blad - kody markerow w pslib nie byly wypisywane
+    w drugim pliku.
+
+4.01.2013.
+729. Do libraybez dodane procedury wyznaczania przeciec wymiernych platow
+    Beziera. Procedury te trzeba porzadnie przetestowac i dopracowac, na
+    razie nie sa wystarczajaco niezawodne.
+
+16.01.2013.
+730. Nowe procedury w libpkgeom: ExtendConvexCone2f, ExtendConvexCone2fv,
+    InsideConvexCone2f, sluza do przetwarzania stozkow wypuklych na
+    plaszczyznie, sa wykorzystywane w procedurach wyznaczania przeciec
+    wymiernych platow Beziera (ktore zostaly odpowiednio zmienione).
+
+731. Nowa procedura w libraybez, rbez_FindRayBezcOffsetIntersf, sluzy do
+    sledzenia promieni dla krzywych Beziera - wyznacza przeciecie promienia
+    z rurka, bedaca offsetem krzywej. To jest wolniejsze niz dotychczas
+    istniejaca procedura rbez_FindRayBezTubeIntersf, ale dokladniejsze i
+    chyba bardziej niezawodne.
+
+17.01.2013.
+732. Przerobka procedury mbs_multiBCHornerf, umozliwia obliczanie punktow
+    dla krzywych stopnia do 61 (dotychczas bez nadmiaru bylo maksymalnie
+    29). Inna sprawa, ze dokladnosc dla wysokich stopni moze byc slaba,
+    zwlaszcza dla wersji pojedynczej precyzji.
+
+733. W libxgedit nowy komunikat xgemsg_TEXT_WIDGET_CLICK, wysylany przez
+    wihajster wyswietlajacy tekst po pstryknieciu lewym guzikiem; podaje
+    pozycje pstryknietego znaku.
+
+734. W programie demonstracyjnym pozwalaj dorobiona mozliwosc szybkiego
+    zmieniania katalogu "do gory", podczas obslugi komunikatu
+    xgemsg_TEXT_WIDGET_CLICK wyslanego przez wihajster wyswietlajacy
+    sciezke do biezacego katalogu w oknach otwierania i zapisywania plikow z
+    danymi.
+
+18.01.2013.
+735. W programie demonstracyjnym pozwalaj dorobiony wihajster, ktory
+    umozliwia okreslenie liczby watkow generujacych obrazek metoda sledzenia
+    promieni. Sprawa wlasciwego oprogramowania tych watkow, zeby
+    rzeczywiscie przyspieszyc obliczenia, jest otwarta, do zrobienia kiedys.
+
+736. W libraybez dorobiona procedury znajdowania przeciec promienia z
+    offsetem wymiernej krzywej Beziera.
+
+19.01.2013
+737. Do programu pozwalaj dorobiona mozliwosc rysowania (przez ray tracer)
+    rurek offsetowych dla wymiernych krzywych Beziera i B-sklejanych (przy
+    okazji poprawiony pewien blad w module edycji krzywych B-sklejanych).
+
+21.01.2013.
+738. Poprawiony blad w programie pozwalaj, w procedurze wyznaczania
+    najblizszego punktu przeciecia z promieniem. Blad ten objawial sie tylko
+    wtedy, gdy program byl kompilowany z optymalizacja kodu i nie ustalilem
+    jego przyczyny - napisalem nowy, troche inny algorytm.
+
+739. Nowy, szybszy sposob wyznaczania cieni w procedurze sledzenia promieni
+    w programie pozwalaj.
+
+
+28.01.2013.
+740. Zmiany pielegnacyjne w libraybez - procedury pomocnicze do
+    rozwiazywania ukladow 2 rownan algebraicznych przeniesione do nowego
+    pliku zrodlowego - procedury te mialy kilka kopii, teraz sa
+    wspoldzielone.
+
+741. Usuniete pliki naglowkowe rbezintersf.h i rbezintersd.h, ich tresc
+    przeniesiona do raybezf.f i raybezd.h.
+
+742. Poprawiony blad w programie demonstracyjnym pozwalaj - doprowadzal w
+    pewnej sytuacji do zawieszenia (w oknie edycji obiektow trojwymiarowych,
+    gdy byl obrazek wykonany sledzeniem promieni, okno bylo zmaksymalizowane
+    i klawiszem 'S' byly mu przywracane male rozmiary).
+
+29.01.2013.
+743. W procedurach mbs_multiBezScalef i mbs_multiBezUnscalef dodana
+    mozliwosc przetwarzania krzywych stopnia <= 61, poprzednio stopien byl
+    ograniczony do 29 z powodu nadmiaru stalopozycyjnego.
+
+
+Wersja 0.31:
+
+11.02.2013
+744. Dodana do libpkgeom nowa procedura, AddCrossProduct3f.
+
+25.02.2013.
+745. Poprawiony blad w procedurach czytania w libbsfile (chodzilo o zly znak
+    nierownosci podczas sprawdzania liczby wspolrzednych przeczytanych
+    punktow).
+
+5.03.2013.
+746. Do naglowkow biblioteki libpknum dodane makro pkn_LowerTrMatIndex,
+    ktore w wielu przypadkach moze zastapic pkn_SymMatIndex, a daje znacznie
+    krotszy i szybszy kod.
+
+14.03.2013
+747. Do libpknum dodane nowe procedury, pkn_FindGivensRotationf,
+    pkn_ApplyGivensRotationf, pkn_ApplySymGivensRotationf,
+    pkn_SymMatFindEigenvaluesf.
+
+19.03.2013.
+748. Zmienione procedury sortowania: pkv_SortFast, pkv_SortKernel,
+    pkv_SortPermute i pkv_SortPermute2. Zmiany mialy na celu przyspieszenie
+    dzialania i powi"ekszenie zbioru dopuszczalnych danych (long double oraz
+    calkowite o dowolnej liczbie bajtow). Dzialanie nadal nie bylo testowane
+    z procesorem BIG ENDIAN. Sortowany ciag liczb long double nie moze
+    zawierac liczb w reprezentacji unnormal.
+
+749. W zwiazku ze zmianami naglowkow procedur sortowania trzeba bylo zmienic
+    wszystkie wywolania tych procedur, w sumie w 58 plikach zrodlowych.
+    Najwiecej zmian dotyczylo procedur mnozenia macierzy rzadkich,
+    w ktorych sortowanie jest wykorzystywane bardzo intensywnie.
+
+20.03.2013
+750. Poprawki w nowej procedurze pkv_SortFast - byl blad przy sortowaniu
+    liczb long double, ponadto poprawki maja przyspieszyc ich porownywanie.
+
+2.04.2013.
+751. Nowa procedura w libpknum, pkn_SymMatFindEigenvalueIntervalf, znajduje
+    (na podstawie twierdzenia Gershgorina) oszacowanie najmniejszej i
+    najwiekszej wartosci wlasnej macierzy symetrycznej.
+
+752. Nowa procedura w libpknum, pkn_NLMIterf, wykonuje jeden krok metody
+    znajdowania minimum funkcji (klasy C^2) wielu zmiennych. Metoda jest
+    hybrydowa, sklada sie z metody Newtona i z minimalizacji wzdluz
+    trajektorii Levenberga-Marquardta. Hesjan minimalizowanej funkcji jest
+    macierza symetryczna pelna. Trzeba to przetestowac.
+
+5.04.2013.
+753. Nowe procedury w libpknum: pkn_FindGivensRotXif, pkn_FindXiGivensRotf,
+    oraz pkn_QRDecompUHessenbergf, pkn_multiSolveQRUHessenbergf
+    i pkn_multiSolveUHessenbergLinEqd - do rozwiazywania ukladow rownan
+    liniowych z macierza gorna Hessenberga.
+
+23.04.2013.
+754. Nowe procedury w libcamera, do rzutowania punktow danych we
+    wspolrzednych jednorodnych: CameraProjectPoint3Rf,
+    CameraUnProjectPoint3Rf, CameraProjectPoint2Rf, CameraUnProjectPoint2Rf,
+    CameraProjectPoint3Rf2s.
+
+755. Do programu demonstracyjnego pozwalaj dorobiona mozliwosc edytowania
+    wymiernych krzywych Beziera (okreslanie wag za pomoca punktow Farina).
+    Wymagalo to poprawienia kilku bledow w programie.
+
+756. Do programu demonstracyjnego pozwalaj dorobiona mozliwosc edytowania
+    wymiernych krzywych B-sklejanych (NURBS - okreslanie wag za pomoca
+    punktow Farina). Rowniez to wymagalo poprawienia paru bledow.
+
+24.04.2013.
+757. Poprawki w libxgedit, w wihajstrze - oknie edycji wezlow dla plata
+    B-sklejanego, zwiazane z operacjami pan/zoom.
+
+758. Poprawki zwiazane ze znajdowaniem poprawnego odwzorowania dla okien
+    edycji wezlow krzywych i platow B-sklejanych w programie pozwalaj.
+
+30.04.2013.
+759. W programie pozwalaj zrobione wyswietlanie lamanych kontrolnych
+    krzywych Beziera i B-sklejanych w sposob pokazujacy orientacje krawedzi.
+
+760. W programie pozwalaj dorobione zageszczanie krzywych B-sklejanych z
+    wezlami rownoodleglymi przy uzyciu algorytmu Lane'a-Riesenfelda.
+
+3.05.2013.
+761. Do programu pozwalaj dorobiony kod podstawowej obslugi zaleznosci
+    miedzy obiektami. Zaleznosci tworza DAG. Zmiana obiektu powoduje
+    wywolanie procedur obslugi wszystkich obiektow zaleznych od niego,
+    dzieki czemu mozna np. miec zdefiniowany plat tensorowy jako produkt
+    sferyczny krzywych i wtedy zmiana kazdej z tych krzywych spowoduje
+    ponowne obliczenie reprezentacji plata. Obsluga przetwarzania
+    konkretnych zaleznosci i interakcja z tym zwiazana pozostaja do
+    zaprogramowania.
+
+6.05.2013.
+762. Do libxgedit dorobione mozliwe stany guzikow, umozliwiajace ich
+    deaktywacje lub wykorzystanie do celow specjalnych (combo box - guzik ma
+    inny kolor, aplikacja odpowiada za otwieranie menu popup z wyborem opcji
+    i wyswietlaniem nazwy opcji na guziku).
+
+10.05.2013.
+763. Zmiany w programie pozwalaj - w obsludze platow B-sklejanych, majace na
+    celu wprowadzenie troche porzadku i umozliwienie zrobienia w przyszlosci
+    powierzchni rozpinanych, zakreslanych i produktow sferycznych.
+    I doprowadzenie do dzialania optymalizacji platow wypelniajacych.
+
+13.05.2013.
+764. Do okna edycji wezlow plata B-sklejanego (xge_T2KnotWinf) w libxgdit
+    dorobiona oblsuga atrybutow locked_u i locked_v - jesli nie sa 0, to
+    wezlow w jednym lub drugim ciagu nie mozna modyfikowac.
+
+19.05.2013.
+765. Do okien xge_2Dwinf i xge_3Dwinf dorobiony brak reakcji na klawisz 'f',
+    jesli aplikacja nie znalazla boksu otaczajacego (i funkcja callback
+     zwrocila wartosc 0).
+
+766. Nowa procedura w libxgedit - xgle_2DwindDrawAxes - do rysowania osi
+    ukladu wspolrzednych w oknie xge_2Dwinf.
+
+21.05.2013.
+767. Poprawki w procedurze mbs_multiBSDegElevf - byl blad czytania przed
+    poczatkiem i za koncem tablicy wezlow.
+
+768. W programie pozwalaj usuniety atrybut maxcp obiektow reprezentujacych
+    krzywe i powierzchnie B-sklejane. Brak poprawnej obslugi tego atrybutu
+    (tj. uaktualniania wartosci) byl powodem paskudnych bledow wykonania.
+
+769. Mozliwa jest edycja B-sklejanych platow okreslonych jako produkt
+    sferyczny dwoch plaskich krzywych B-sklejanych. Bo przetestowania
+    i pelnego uruchomienia.
+
+770. Poprawiony blad w procedurze obslugi wihajstra listbox - nie ustawialo
+    obcinania przed rysowaniem, wskutek czego obraz wihajstra mogl sie
+    pojawic w niewlasciwym oknie.
+
+23.05.2013.
+771. Do libg1blending dodane procedury g1bl_SetupClosedBiharmAMatrixf i
+    g1bl_SetupClosedBiharmRHSf, ktore umozliwiaja konstruowanie rurek
+    B-sklejanych, ktorych parametryzacja spelnia rownanie biharmoniczne
+    z warunkiem brzegowym Dirichleta na dwoch zamknietych krzywych
+    brzegowych. Procedury te jeszcze trzeba uruchomic i przetestowac.
+
+772. Do programu pozwalaj dorobiona mozliwosc konstruowania B-sklejanych
+    platow biharmonicznych i trojharmonicznych - tez do dopracowania, bo na
+    razie to jest bardzo surowe.
+
+27.05.2013.
+773 Poprawiony blad w procedurze optymalizacji ksztaltu powierzchni
+    B-sklejanej stopnia (2,2) klasy G^1 w libg1blending.
+
+774. Poprawione troche bledow w programie demonstracyjnym pozwalaj.
+
+28.05.2013.
+775. Poprawiony blad w programie pozwalaj_proc - w optymalizacji ksztaltu
+    platow B-sklejanych byl zly zakres punktow poddawanych wstepnemu
+    przeksztalceniu (bledu nie byl widac, gdy przeksztalcenie bylo
+    tozsamosciowe).
+
+3.06.2013.
+776. Poprawki w programie pozwalaj - zmiana rownika lub poludnika produktu
+    sferycznego powoduje zlikwidowanie obrazka wykonanego za pomoca
+    sledzenia promieni (wczesniej tego nie bylo).
+
+10.06.2013.
+777. W programie pozwalaj, w boksie "Save as" dorobiona reakcja na
+    pstrykanie napisu ze sciezka do biezacego katalogu - mozna teraz wyjsc
+    o kilka poziomow w gore, podobnie jak w boksie czytania (co bylo
+    zrobione wczesniej).
+
+16.06.2013.
+778. Poprawiony blad w procedurze mbs_multiBSCurvesToBezf - nadpisywalo
+    pamiec za docelowa tablica.
+
+26.06.2013.
+779. Poprawiony blad w procedurze pkn_GaussDecomposePLUQf - mogla zawiadomic
+    o pomyslnym rozlozeniu na czynniki macierzy osobliwej.
+
+780. Nowa procedura w libraybez: rbez_HomotopicClosedBSC3f, ktorej zadaniem
+    jest badanie, czy dwie zamkniete krzywe B-sklejane (o tych samych
+    wezlach) w R^3 sa homotopijne, a dokladniej, czy plat stopnia (n,1)
+    otrzymany przez interpolacje afiniczna tych krzywych, jest homotopia.
+
+3.07.2013.
+781. Poprawki w procedurze pkn_NLMIterf w libpknum - algorytm jest teraz
+    odporniejszy na rozmaite paskudne funkcje, ktore ma minimalizowac.
+
+6.07.2013.
+782. Zmiany w procedurze pkn_NLMIterf: wartosc powrotna jest identyfikatorem
+    przyczyny zakonczenia dzialania (jednej z kilku mozliwych).
+
+22.07.2013
+783. Modyfikacja pkn_NLMIterf: zwracana wartosc okresla, czy w danej iteracji
+    zadzialal krok metody Newtona, czy Levenberga-Marquardta.
+
+784. Poprawione pliki naglowkowe, w ktorych nie bylo potrzebnej deklaracji
+    extern "C" (bylo ich kilka).
+
+24.07.2013.
+785. Zmiany w bibliotece libbsfile - zamiast statycznych wskaznikow do
+    procedur wprowadzajacych przeczytane z pliku dane do aplikacji, uzywane
+    sa wskazniki przechowywane w strukturze bsf_UserReaders przekazywanej
+    jako parametr. Dodatkowo procedury czytajace maja dodatkowy wskaznik
+    umozliwiajacy uwolnienie aplikacji od uzywania zmiennych statycznych
+    (te zmiany zaproponowal Roman Putanowicz).
+
+786. Zmiany w programie pozwalaj, majace na celu jego dostosowanie do zmian
+    list parametrow procedur opisanych w pliku bsfile.h.
+
+

@@ -1,0 +1,1096 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{The \texttt{libbsmesh} library}
+
+\section{\label{sect:bsmesh:representation}Mesh representation}
+
+A~mesh is an object consisting of \textbf{vertices}, \textbf{edges}
+and~\textbf{facets}. It may be used e.g.\ to represent a~polyhedron or
+a~spline surface. An edge is a~line segment between two vertices. A~facet is
+a~closed polyline made of the edges. An edge may belong to one or two
+facets; in the former case it is called a~\textbf{boundary edge}, and in the
+latter case it is an \textbf{internal edge}.
+
+In the mesh representation processed by procedures of this library a
+boundary and internal edge is represented by one or two \textbf{halfedges}
+respectively. A~halfedge is oriented; one of its vertices is the first, the
+other one is the second. The orientation of the other halfedge in the pair
+representing an internal edge is the opposite. Each halfedge is associated
+with one facet.
+
+The vertices, halfedges and facets are stored in arrays (indexed from~$0$),
+and identified by the array indices. The complete representation of the mesh
+consists of three numbers: the number of vertices,~$n_v$, the number of
+halfedges,~$n_h$, and the number of facets,~$n_f$, and of six arrays:
+the array of vertices~\texttt{v}, the array of vertex
+positions~\texttt{pos}, the array of indices of the halfedges
+having origins at the vertices~\texttt{vhei}, the array of
+halfedges~\texttt{he}, the array of facets~\texttt{fac} and the array of
+indices of the halfedges forming the facets~\texttt{fhei}. The vertices,
+halfedges and facets are described by the following structures:
+
+\vspace{\medskipamount}
+\begin{listingC}
+typedef struct {
+    char degree;
+    int  firsthalfedge;
+  } BSMfacet, BSMvertex;
+
+typedef struct {
+    int v0, v1; 
+    int facetnum;
+    int otherhalf;
+  } BSMhalfedge;  
+\end{listingC}
+
+
+\begin{figure}[ht]
+  \centerline{\begin{picture}(3000,1700)
+    \put(0,100){\epsfig{file=bsmesh.ps}}
+    \put(1900,1560){\texttt{int nv = 6, nhe = 11, nf = 3;}}
+    \put(1900,1440){\texttt{BSMvertex v[6] = \{\{3,0\},\{2,3\},}}
+    \put(1900,1320){\texttt{ \ \ \ \{2,5\},\{2,7\},\{1,9\},\{1,10\}\};}}
+    \put(1900,1200){\texttt{int vhei[11] = \{7,3,0,4,6,8,}}
+    \put(1900,1080){\texttt{ \ \ \ 10,1,2,5,9\};}}
+    \put(1900,960){\texttt{BSMhalfedge he[11] = \{\{0,3,1,1\},}}
+    \put(1900,840){\texttt{ \ \ \{3,0,0,0\},\{3,4,1,-1\},}}
+    \put(1900,720){\texttt{ \ \ \{0,1,2,4\},\{1,0,1,3\},}}
+    \put(1900,600){\texttt{ \ \ \{4,1,1,-1\},\{1,5,2,-1\},}}
+    \put(1900,480){\texttt{ \ \ \{0,2,0,8\},\{2,0,2,7\}}}
+    \put(1900,360){\texttt{ \ \ \{5,2,2,-1\},\{2,3,0,-1\}\};}}
+    \put(1900,240){\texttt{BSMfacet fac[3] = \{\{3,0\},}}
+    \put(1900,120){\texttt{ \ \ \{4,3\},\{4,7\}\};}}
+    \put(1300,0){\texttt{int fhei[11] = \{1,7,10,5,4,0,2,9,8,3,6\};}}
+  \end{picture}}
+  \caption{\label{fig:bsmesh}An example of a~mesh}
+\end{figure}
+An example of a~mesh representation is shown in Figure~\ref{fig:bsmesh}; the
+array with vertex positions is omitted. The numbers on the picture are
+indices to the arrays, which identify the vertices, halfedges and facets.
+For each halfedge its orientation is shown. The degree of the
+internal vertex~\texttt{0} is~$3$. The three halfedges, whose origin is this
+vertex, are \texttt{7}, \texttt{3} and~\texttt{0}---their indices are the
+first three numbers in the \texttt{vhei}~array. Vertex~\texttt{1}
+is~a~boundary vertex. It is incident with three edges, however it is the
+origin of only two halfedges, \texttt{4} and~\texttt{6}. The indices of
+halfedges for the $i$-th vertex are the \texttt{v[i].degree} numbers in the
+\texttt{vhei} array, from the \texttt{v[i].firsthalfedge}-th entry. Note that
+there is only one correct ordering of halfedge indices in the \texttt{vhei}
+array, as the last halfedge of a~boundary vertex must be the one without
+a~pair. The ordering of the halfedge indices for each vertex must reflect
+the orientation of all vertices---note that for each vertex on the picture
+this ordering is clockwise.
+
+The representation of a~facet is just the same as that of a~vertex---only
+two numbers are necessary, the number of halfedges (\texttt{degree}) and
+the index (\texttt{firsthalfedge}) of the first entry in the \texttt{fhei}~array
+with the indices of the halfedges. Their ordering is important---on the
+picture it is counterclockwise for all facets (for any part of a~mesh in
+space, if it is flattened and drawn, the orderings of halfedges for all
+vertices and facets must be opposite). Currently the meshes must be
+orientable, so no part of a~mesh may be a~M\"{o}bius band.
+
+There is no explicit list of vertices for a~facet---to find them, one has
+to find subsequent halfedges of the facet and then take the vertices, which
+are the origins of the halfedges.
+
+In the data structure representing a~halfedge the fields \texttt{v0}
+and~\texttt{v1} identify the origin and end of the halfedge,
+\texttt{facetnum} is the number of facet, the halfedge belongs to, and
+\texttt{otherhalf} is the index of the other halfedge in the pair. The
+orientations of the halfedges in a~pair must be opposite. If the halfedge
+represents a~boundary edge, it does not have a~pair, and the value of the
+\texttt{otherhalf} field must be~$-1$.
+
+\newpage
+\begin{listingC}
+boolean bsm_CheckMeshIntegrity (
+             int nv, const BSMvertex *v, const int *vhei,
+             int nh, const BSMhalfedge *he,
+             int nf, const BSMfacet *fac, const int *fhei );
+\end{listingC}
+
+The procedure \texttt{bsm\_CheckMeshIntegrity} verifies the topological
+consistency of a~mesh described by the parameters. The value returned is
+\texttt{true} is the mesh has passed the test, and \texttt{false} if errors
+have been detected or if the test was impossible to complete because of
+insufficient scratch memory. The following conditions are verified:
+\begin{itemize}
+\item The mesh has to have at least $1$~facet, $3$~halfedges
+and~$3$~vertices.
+\item The arrays \texttt{vhei} and~\texttt{fhei} must contain permutations
+of the set of numbers $\{0,\ldots,n_h-1\}$.
+\item Each halfedge must belong to some facet (its \texttt{facetnum} field must
+have the value from~$0$ to $n_f-1$). The values of the fields~\texttt{v0}
+and~\texttt{v1} must be from $0$ to $n_v-1$.
+\item Each halfedge must either be a~boundary halfedge (with
+$\texttt{otherhalf}=-1$) or make a~consistent pair with another halfedge
+(the two halfedges must point each other with the \texttt{otherhalf} field
+and have opposite orientations---the origin of one of them must be the end
+of the other).
+\item Each vertex must be the origin of at least one halfedge, but if it is
+an internal vertex (its last halfedge has a~pair), then its degree must be
+at least~$3$. Each halfedge in the list of halfedges of the $i$-th vertex
+must have the field~\texttt{v0} with the value~$i$.
+\item For each facet, the halfedges must form a~closed polyline, i.e.\ the
+end of a~halfedge must be the origin of the next halfedge of this facet (and
+the end of the last halfedge must be the origin of the first halfedge).
+The number~$i$ of the facet must be the value of the field \texttt{facetnum}
+of each of the facet's halfedges.
+\item The last thing to verify is the orientation, represented with the
+ordering of the halfedges and facets. The rule is briefly described with the
+example in Figure~\ref{fig:bsmesh}.
+\end{itemize}
+
+\medskip
+\begin{listingC}
+void bsm_TagMesh ( int nv, BSMvertex *mv, int *mvhei,
+                   int nhe, BSMhalfedge *mhe,
+                   int nfac, BSMfacet *mfac, int *mfhei,
+                   char *vtag, char *ftag,
+                   int *vi, int *vb, int *ei, int *eb );
+\end{listingC}
+The \texttt{bsm\_TagMesh} procedure is an auxiliary routine, whose purpose
+is to find and count the boundary vertices and facets. A~boundary vertex or
+facet has at least one boundary halfedge (having no pair). The first~$8$
+parameters describe the mesh. The arrays \texttt{vtag} and~\texttt{ftag}
+must have at least $n_v$ and~$n_f$ entries respectively. Each entry is set
+to~$0$ if the vertex or facet is internal, or to~$1$ if it is boundary.
+The last four parameters must point to variables, in which the total numbers
+of inner and boundary vertices and inner and boundary \emph{edges} are stored.
+
+
+\section{\label{sect:bsmesh:refinement}Mesh refinement procedures}
+
+Mesh refinement is an operation, which produces a~new mesh, usually with
+more vertices, halfedges and facets. By repeating this operation one may get
+a~sequence of meshes convergent to a~limiting surface. The mesh refinement
+is a~generalization of the Lane-Riesenfeld algorithm of inserting knots to
+B-spline surfaces (represented with uniform knots---the result is the
+representation with a~twice denser uniform knot sequence). One can use this
+operation to display an approximation of the limiting surface, i.e.\ one of
+the fine meshes from the sequence obtained with refinement, or to do
+something else (e.g.\ modify by repositioning vertices or by editing the
+topology) with a~fine mesh obtained by refinement.
+
+Note that the numbers of vertices, halfedges and facets of the subsequent
+obtained by iterating of refinement meshes grow exponentially, and it is
+easy to exceed the capacity of the computer's memory.
+
+The refinement operation is a~composition of two more elementary operations,
+called \texttt{doubling} and~\texttt{averaging}. One step of doubling is
+followed by~$n$~averaging steps, where~$n$ is a~parameter. If the refinement
+with~$n$~averaging steps is iterated, the limiting surface consists of
+polynomial patches of degree~$(n,n)$.
+
+There are two sets of procedures implementing these operations. The first
+set consists of procedures, which perform the operations directly, i.e.\
+they produce the new mesh representation, in particular with an array of
+vertex positions in a~$d$-dimensional space. The procedures of the second
+set, instead of computing the coordinates of the vertices, produce
+appropriate arrays. If the vertices $\bm{v}'_0,\ldots,\bm{v}'_{n_v'-1}$ of
+the given mesh and $\bm{v}_0,\ldots,\bm{v}_{n_v-1}$ are organised in the
+column matrices, then there exists a~matrix~$R$, such that
+\begin{align*}
+  V = RV',
+\end{align*}
+where
+\begin{align*}
+  V' = \left[\begin{array}{c}\bm{v}'_0 \\ \vdots \\ \bm{v}'_{n_f'}
+  \end{array}\right],\qquad
+  V = \left[\begin{array}{c}\bm{v}_0 \\ \vdots \\[-7pt] \vdots \\ \bm{v}_{n_f}
+  \end{array}\right].
+\end{align*}
+The matrix~$R$ is usually sparse (e.g.\ each row of the doubling matrix
+contains one coefficient equal to~$1$ and zeros, and the numbers of nonzero
+coefficients in rows of the averaging matrix are the degrees of the facets),
+therefore the irregular sparse matrix representation is used (see
+Section~\ref{sect:sparse:matrices}). The refinement
+matrices may be used to compute directly the vertices of the new mesh (which
+is useful e.g.\ with a~multiresolution representation of a~surface) and to
+construct a~preconditioner used by procedures of optimization of the surface
+shape, in the \texttt{libg2blending} library.
+
+\medskip
+\begin{listingC}
+boolean bsm_DoublingNum ( int inv, BSMvertex *imv, int *imvhei,
+                          int inhe, BSMhalfedge *imhe,
+                          int infac, BSMfacet *imfac, int *imfhei,
+                          int *onv, int *onhe, int *onfac );
+boolean bsm_Doublingd ( int spdimen,
+                int inv, BSMvertex *imv, int *imvhei, double *iptc,
+                int inhe, BSMhalfedge *imhe,
+                int infac, BSMfacet *imfac, int *imfhei,
+                int *onv, BSMvertex *omv, int *omvhei, double *optc,
+                int *onhe, BSMhalfedge *omhe,
+                int *onfac, BSMfacet *omfac, int *omfhei );
+\end{listingC}
+The procedure \texttt{bsm\_DoublingNum} computes the numbers of vertices,
+halfedges and facets, which will be produced by doubling. It may (and
+should) be used before calling the doubling procedure, to tell the
+application, how long arrays to allocate. The procedure returns \texttt{true}
+if the computation was successful, and \texttt{false} if the mesh
+representation is inconsistent or there was insufficient scratch memory for
+the computation.
+
+The procedure \texttt{bsm\_Doublingd} implements the doubling operation. The
+value returned is \texttt{true} after success, or \texttt{false} after
+failure, due to the inconsistency of the input mesh representation or to
+insufficient scratch memory.
+
+Parameters: \texttt{spdimen}---dimension of the space, in which the mesh
+vertices reside, i.e.\ number of coordinates of each vertex (usually~$3$,
+but not necessarily), \texttt{inv}, \texttt{inhe}, \texttt{infac}---numbers of
+the input mesh vertices, halfedges and facets respectively;
+\texttt{imv}---array of input mesh vertices, \texttt{imvhei}---array with
+lists of indices of halfedges with origins at input mesh vertices,
+\texttt{iptc}---array with coordinates of the input mesh vertices,
+\texttt{imhe}---array with input mesh halfedges, \texttt{imfac}---array with
+input mesh facets, \texttt{imfhei}---indices of halfedges for the input mesh
+facets.
+
+The parameters \texttt{onv}, \texttt{onhe}, \texttt{onfac} point to the
+variables, in which the numbers of vertices, halfedges and facets are
+stored. The arrays \texttt{omv}, \texttt{omvhei}, \texttt{optc},
+\texttt{omhe}, \texttt{omfac} and \texttt{omfhei} must be allocated by the
+caller, which stores the mesh representation there.
+
+\medskip
+\begin{listingC}
+int bsm_DoublingMatSize ( int inv, BSMvertex *imv, int *imvhei,
+                          int inhe, BSMhalfedge *imhe,
+                          int infac, BSMfacet *imfac, int *imfhei );
+boolean bsm_DoublingMatd ( int inv, BSMvertex *imv, int *imvhei,
+                           int inhe, BSMhalfedge *imhe,
+                           int infac, BSMfacet *imfac, int *imfhei,
+                           int *onv, BSMvertex *omv, int *omvhei,  
+                           int *onhe, BSMhalfedge *omhe,
+                           int *onfac, BSMfacet *omfac, int *omfhei,
+                           int *ndmat, index2 *dmi, double *dmc );  
+\end{listingC}
+The procedure \texttt{bsm\_DoublingMatSize} computes the number of nonzero
+coefficients of the doubling matrix, for a~mesh represented by the
+parameters. This number is returned as the function value (and it is
+non-positive if the procedure failed, because of the input mesh
+inconsistency or insufficient scratch memory).
+
+The procedure \texttt{bsm\_DoublingMatd} is an implementation of doubling,
+which matches precisely the operation of the \texttt{bsm\_Doublingd}
+procedure (i.e.\ it produces the same ordering of the output mesh vertices,
+halfedges and facets). Instead of computing the positions of the output mesh
+vertices, the procedure produces the doubling matrix (represented as
+a~sparse matrix).
+
+Parameters: \texttt{inv}, \texttt{imv}, \texttt{imvhei}, \texttt{inhe},
+\texttt{imhe}, \texttt{infac}, \texttt{imfac}, \texttt{imfhei}---represent
+the input mesh, see the description of the \texttt{bsm\_Doublingd}
+procedure.
+
+The output mesh representation is stored in the variables \texttt{*onv},
+\texttt{*onhe}, \texttt{*onfac} and in the arrays \texttt{omv},
+\texttt{omvhei}, \texttt{omhe}, \texttt{omfac} and \texttt{omfhei}, just
+like in the procedure \texttt{bsm\_Doublingd}.
+
+The doubling matrix representation is stored in the variable
+\texttt{*ndmat}---number of nonzero coefficients, the array
+\texttt{dmi}---distributions of nonzero coefficients, and \texttt{dmc}---the
+actual coefficients. All nonzero coefficients of the doubling matrix are
+equal to~$1$.
+
+The doubling matrix has $m$~rows, where $m$~is the number of the output
+mesh vertices, and $n$~columns, where $n$~is the number of the input mesh
+vertices.
+
+The value returned by \texttt{bsm\_DoublingMatd} is \texttt{true} in case of
+success, and \texttt{false} in case of failure, caused by the input data
+inconsistency or by insufficient scratch memory.
+
+
+\medskip
+\begin{listingC}
+boolean bsm_AveragingNum ( int inv, BSMvertex *imv, int *imvhei,
+                           int inhe, BSMhalfedge *imhe,
+                           int infac, BSMfacet *imfac, int *imfhei,
+                           int *onv, int *onhe, int *onfac );
+boolean bsm_Averagingd ( int spdimen,
+                 int inv, BSMvertex *imv, int *imvhei, double *iptc,
+                 int inhe, BSMhalfedge *imhe,
+                 int infac, BSMfacet *imfac, int *imfhei,
+                 int *onv, BSMvertex *omv, int *omvhei, double
+                 *optc,
+                 int *onhe, BSMhalfedge *omhe,
+                 int *onfac, BSMfacet *omfac, int *omfhei );
+\end{listingC}
+The procedure \texttt{bsm\_AveragingNum} computes the numbers of vertices,
+halfedges and facets, which will be produced by averaging. It may (and
+should) be used before calling the averaging procedure, to tell the
+application, how long arrays to allocate. The procedure returns \texttt{true}
+if the computation was successful, and \texttt{false} if the mesh
+representation is inconsistent or there was insufficient scratch memory for
+the computation.
+
+The procedure \texttt{bsm\_Averagingd} implements the averaging operation.
+The value returned is \texttt{true} after success, or \texttt{false} after
+failure, due to the inconsistency of the input mesh representation or to
+insufficient scratch memory.
+
+Parameters: \texttt{spdimen}---dimension of the space, in which the mesh
+vertices reside, i.e.\ number of coordinates of each vertex (usually~$3$,
+but not necessarily), \texttt{inv}, \texttt{inhe}, \texttt{infac}---numbers of
+the input mesh vertices, halfedges and facets respectively;
+\texttt{imv}---array of input mesh vertices, \texttt{imvhei}---array with
+lists of indices of halfedges with origins at input mesh vertices,
+\texttt{iptc}---array with coordinates of the input mesh vertices,
+\texttt{imhe}---array with input mesh halfedges, \texttt{imfac}---array with
+input mesh facets, \texttt{imfhei}---indices of halfedges for the input mesh
+facets.
+
+The parameters \texttt{onv}, \texttt{onhe}, \texttt{onfac} point to the
+variables, in which the numbers of vertices, halfedges and facets are
+stored. The arrays \texttt{omv}, \texttt{omvhei}, \texttt{optc},
+\texttt{omhe}, \texttt{omfac} and \texttt{omfhei} must be allocated by the
+caller, which stores the mesh representation there.
+
+\medskip
+\begin{listingC}
+int bsm_AveragingMatSize ( int inv, BSMvertex *imv, int *imvhei,
+                           int inhe, BSMhalfedge *imhe,
+                           int infac, BSMfacet *imfac, int *imfhei );
+boolean bsm_AveragingMatd ( int inv, BSMvertex *imv, int *imvhei,
+                            int inhe, BSMhalfedge *imhe,
+                            int infac, BSMfacet *imfac, int *imfhei,
+                            int *onv, BSMvertex *omv, int *omvhei,  
+                            int *onhe, BSMhalfedge *omhe,
+                            int *onfac, BSMfacet *omfac, int *omfhei,
+                            int *namat, index2 *ami, double *amc );  
+\end{listingC}
+The procedure \texttt{bsm\_AveragingMatSize} computes the number of nonzero
+coefficients of the averaging matrix, for a~mesh represented by the
+parameters. This number is returned as the function value (and it is
+non-positive if the procedure failed, because of the input mesh
+inconsistency or insufficient scratch memory).
+
+The procedure \texttt{bsm\_AveragingMatd} is an implementation of averaging,
+which matches precisely the operation of the \texttt{bsm\_Averagingd}
+procedure (i.e.\ it produces the same ordering of the output mesh vertices,
+halfedges and facets). Instead of computing the positions of the output mesh
+vertices, the procedure produces the averaging matrix (represented as
+a~sparse matrix).
+
+Parameters: \texttt{inv}, \texttt{imv}, \texttt{imvhei}, \texttt{inhe},
+\texttt{imhe}, \texttt{infac}, \texttt{imfac}, \texttt{imfhei}---represent
+the input mesh, see the description of the \texttt{bsm\_Averagingd}
+procedure.
+
+The output mesh representation is stored in the variables \texttt{*onv},
+\texttt{*onhe}, \texttt{*onfac} and in the arrays \texttt{omv},
+\texttt{omvhei}, \texttt{omhe}, \texttt{omfac} and \texttt{omfhei}, just
+like in the procedure \texttt{bsm\_Averagingd}.
+
+The averaging matrix representation is stored in the variable
+\texttt{*ndmat}---number of nonzero coefficients, the array
+\texttt{dmi}---distributions of nonzero coefficients, and \texttt{dmc}---the
+actual coefficients. Each nonzero coefficient of the averaging matrix is
+a~fraction $1/k$, where $k$ is the degree of an input mesh facet.
+
+The averaging matrix has $m$~rows, where $m$~is the number of the output
+mesh vertices, and $n$~columns, where $n$~is the number of the input mesh
+vertices.
+
+The value returned by \texttt{bsm\_AveragingMatd} is \texttt{true} in case of
+success, and \texttt{false} in case of failure, caused by the input data
+inconsistency or by insufficient scratch memory.
+
+
+\medskip
+\begin{listingC}
+boolean bsm_RefineBSMeshd ( int spdimen, int degree,
+            int inv, BSMvertex *imv, int *imvhei, double *iptc,
+            int inhe, BSMhalfedge *imhe,
+            int infac, BSMfacet *imfac, int *imfhei,
+            int *onv, BSMvertex **omv, int **omvhei, double **optc,
+            int *onhe, BSMhalfedge **omhe,
+            int *onfac, BSMfacet **omfac, int **omfhei );
+
+\end{listingC}
+The \texttt{bsm\_RefineBSMeshd} procedure is an implementation of the mesh
+refinement operation, which is the composition of doubling and $n$~averaging
+steps; the number~$n$ is specified by the \texttt{degree} parameter.
+The computation is done by a~call to the \texttt{bsm\_Doublingd} procedure,
+followed by $n$~calls to the \texttt{bsm\_Averagingd} procedure.
+
+There is no procedure to compute the lengths of arrays for the
+representation of the output mesh, as it is impossible to find these numbers
+without the actual representations of all-but-last intermediate meshes.
+Therefore the procedure allocates the suitable arrays using \texttt{malloc}
+(wrapped in the \texttt{PKV\_MALLOC} macro, see
+Section~\ref{sect:MALLOC:FREE}).
+
+Parameters: \texttt{spdimen}---dimension of the space, in which the mesh
+vertices reside, \texttt{inv}, \texttt{imv}, \texttt{imvhei}, \texttt{iptc},
+\texttt{inh}, \texttt{imh}, \texttt{infac}, \texttt{imfac},
+\texttt{imfhei}---representation of the input mesh.
+
+The parameters \texttt{onv}, \texttt{onhe}, \texttt{onfac} point to the
+variables, to which the numbers of vertices, halfedges and facets of the
+output mesh are assigned. The parameters \texttt{omv}, \texttt{omvhei},
+\texttt{optc}, \texttt{omhe}, \texttt{omfac} and \texttt{omfhei} point to
+the variables, to which the addresses of arrays allocated by the procedure
+\texttt{bsm\_RefineBSMeshd} are assigned. The contents of these arrays is
+the representation of the output (refined) mesh.
+
+The procedure returns \texttt{true} if the computation was successful, or
+false in case of failure, caused by insufficient memory or by failure of the
+doubling or averaging procedure.
+
+\medskip
+\begin{listingC}
+boolean bsm_RefinementMatd ( int degree,
+                             int inv, BSMvertex *imv, int *imvhei,
+                             int inhe, BSMhalfedge *imhe,
+                             int infac, BSMfacet *imfac, int *imfhei,
+                             int *onv, BSMvertex **omv, int **omvhei,
+                             int *onhe, BSMhalfedge **omhe,
+                             int *onfac, BSMfacet **omfac, int **omfhei,
+                             int *nrmat, index2 **rmi, double **rmc );  
+\end{listingC}
+The procedure \texttt{bsm\_RefinementMatd} implements mesh refinement
+(doubling followed by $n$ averaging operations), but instead of computing
+the vertices of the output mesh, it produces the refinement matrix.
+This is done by a~call to~\texttt{bsm\_DoublingMatd} followed by $n$~calls to
+\texttt{bsm\_AveragingMatd}. The doubling and averaging matrices are
+multiplied by procedures described in Section~\ref{sect:sparse:matrices}.
+
+The parameters with the same names are the same as in the
+\texttt{bsm\_RefineBSMeshd} procedure; instead of arrays with coordinates of
+the vertices of the input and output mesh there are the following three
+output parameters: \texttt{nrmat}, which points to the variable, to which
+the number of nonzero coefficients is assigned, and \texttt{rmi} and
+\texttt{rmc}, which point to pointers to the arrays with the distribution of
+nonzero coefficients of the refinement matrix and the actual coefficients
+(all arrays, whose addresses are assigned to the variables pointed by the
+parameters, are allocated with \texttt{PKV\_MALLOC} by
+\texttt{bsm\_RefinementMatd}, which also computes their lengths).
+
+The nonzero coefficients of the refinement matrix are positive, their sum in
+each row is~$1$. The number of rows of the refinement matrix is the number
+of vertices of the output mesh, and the number of columns is the number of
+vertices of the input mesh.
+
+The procedure returns \texttt{true} in case of success, and~\texttt{false}
+in case of failure, caused by inconsistency of the input data or by
+insufficient memory.
+
+\newpage
+\section{Eulerian and non-Eulerian operations}
+
+The procedures described in this section may be used to edit the meshes,
+which may produce meshes with the same or different topology. These
+procedures may be invoked by an interactive program, which allows the user
+e.g.\ to point a~facet and then let the program delete this facet or to
+double its edges. The repertoire of these operations is rather small, and it
+is my intention to extend it---when I~find enough time.
+
+\medskip
+\begin{listingC}
+void bsm_MergeMeshesd ( int spdimen,
+                  int nv1, BSMvertex *mv1, int *mvhei1, double *vpc1,
+                  int nhe1, BSMhalfedge *mhe1,
+                  int nfac1, BSMfacet *mfac1, int *mfhei1,
+                  int nv2, BSMvertex *mv2, int *mvhei2, double *vpc2,
+                  int nhe2, BSMhalfedge *mhe2,
+                  int nfac2, BSMfacet *mfac2, int *mfhei2,
+                  int *onv, BSMvertex *omv, int *omvhei, double *ovpc,
+                  int *onhe, BSMhalfedge *omhe,
+                  int *onfac, BSMfacet *omfac, int *omfhei );
+\end{listingC}
+The procedure \texttt{bsm\_MergeMeshesd} makes a~mesh, which is a~sum of two
+meshes. The numbers of vertices, halfedges and facets of the resulting mesh
+are respectively sums of numbers of the vertices, halfedges and facets of
+the two meshes. Before calling this procedure, an application must allocate
+suitable arrays for the result.
+
+The result consists of a~copy of the first mesh, and the ``shifted'' copy of
+the second mesh, whose vertices, halfedges and facets obtain new numbers.
+
+Parameters: \texttt{spdimen}---dimension of the space (i.e.\ the number of
+coordinates of each vertex), \\
+\texttt{nv1}, \texttt{mv1}, \texttt{mvhei1},
+\texttt{vpc1}, \texttt{nhe1}, \texttt{mhe1}, \texttt{nfac1}, \texttt{mfac1},
+\texttt{mfhei1}---representation of the first mesh, \\
+\texttt{nv2}, \texttt{mv2}, \texttt{mvhei2},
+\texttt{vpc2}, \texttt{nhe2}, \texttt{mhe2}, \texttt{nfac2}, \texttt{mfac2},
+\texttt{mfhei2}---representation of the second mesh.
+
+The output parameters \texttt{onv}, \texttt{omv}, \texttt{omvhei},
+\texttt{ovpc}, \texttt{onhe}, \texttt{omhe}, \texttt{onfac}, \texttt{omfac},
+\texttt{omfhei} point to the variables, to which the numbers of vertices,
+halfedges and facets are assigned and to arrays, in which the vertices,
+halfedges and facets are to be stored.
+
+\medskip
+\begin{listingC}
+boolean bsm_RemoveFacetNum ( int inv, BSMvertex *imv, int *imvhei,
+                             int inhe, BSMhalfedge *imhe,
+                             int infac, BSMfacet *imfac, int *imfhei,
+                             int nfr,
+                             int *onv, int *onhe, int *onfac );
+boolean bsm_RemoveFacetd ( int spdimen,
+                   int inv, BSMvertex *imv, int *imvhei, double *iptc,
+                   int inhe, BSMhalfedge *imhe,
+                   int infac, BSMfacet *imfac, int *imfhei,
+                   int nfr,
+                   int *onv, BSMvertex *omv, int *omvhei, double *optc,
+                   int *onhe, BSMhalfedge *omhe,
+                   int *onfac, BSMfacet *omfac, int *omfhei );
+\end{listingC}
+The procedures above may be used to remove a~facet from a~mesh.
+Removing a~facet involves removing all its halfedges and all vertices, which
+do not belong to any other halfedges, and renumbering the remaining
+vertices, halfedges and facets.
+
+The procedure \texttt{bsm\_RemoveFacetNum} computes the numbers of remaining
+vertices, halfedges and facets, which are necessary to allocate arrays for
+the result.
+
+The procedure \texttt{bsm\_RemoveFacetd} removes the facet, i.e.\ it
+produces a~new mesh, without the indicated facet.
+
+Parameters: \texttt{spdimen}---dimension of the space, i.e.\ the number of
+coordinates of each vertex. \\
+\texttt{inv}, \texttt{imv}, \texttt{imvhei}, \texttt{iptc}, \texttt{inhe},
+\texttt{imhe}, \texttt{infac}, \texttt{imfac},
+\texttt{imfhei}---representation of the input mesh, \\
+\texttt{nfr}---number of the facet to remove (must be between~$0$ and
+$n_f-1$).
+
+The output parameters \texttt{onv}, \texttt{omv}, \texttt{omvhei},
+\texttt{optc}, \texttt{onhe}, \texttt{omhe}, \texttt{onfac}, \texttt{omfac},
+\texttt{omfhei} point to the variables, to which the numbers of vertices,
+halfedges and facets are assigned and to arrays, in which the vertices,
+halfedges and facets are to be stored.
+
+
+\medskip
+\begin{listingC}
+void bsm_FacetEdgeDoublingNum ( int inv, BSMvertex *imv, int *imvhei,
+                                int inhe, BSMhalfedge *imhe,
+                                int infac, BSMfacet *imfac, int *imfhei,
+                                int fn,
+                                int *onv, int *onhe, int *onfac );
+boolean bsm_FacetEdgeDoublingd ( int spdimen,
+                 int inv, BSMvertex *imv, int *imvhei, double *iptc,
+                 int inhe, BSMhalfedge *imhe,
+                 int infac, BSMfacet *imfac, int *imfhei,
+                 int fn,
+                 int *onv, BSMvertex *omv, int *omvhei,
+                 double *optc,
+                 int *onhe, BSMhalfedge *omhe,
+                 int *onfac, BSMfacet *omfac, int *omfhei );
+\end{listingC}
+Doubling edges of a~facet is an Eulerian operation, which replaces each edge
+of the facet with a~quadrangular facet degenerated to a~line segment. Each
+vertex of the facet is replaced by two vertices (at the same position).
+After this operation one can ``extrude'' the new facets, i.e.\ move the
+vertices of the facet, whose edges have been doubled.
+
+The procedure \texttt{bsm\_FacetEdgeDoublingNum} computes the numbers of
+vertices, halfedges and facets of the mesh, which is the result of this
+operation. It should be called in order to allocate suitable arrays for the
+result.
+
+The procedure \texttt{bsm\_FacetEdgeDoublingd} doubles the edges of the
+indicated facet, i.e.\ it produces the new mesh, being the result of this
+operation.
+
+Parameters: \texttt{spdimen}---dimension of the space, i.e.\ the number of
+coordinates of each vertex. \\
+\texttt{inv}, \texttt{imv}, \texttt{imvhei}, \texttt{iptc}, \texttt{inhe},
+\texttt{imhe}, \texttt{infac}, \texttt{imfac},
+\texttt{imfhei}---representation of the input mesh, \\
+\texttt{fn}---number of the facet, whose edges are to be doubled
+(must be between~$0$ and $n_f-1$).
+
+The output parameters \texttt{onv}, \texttt{omv}, \texttt{omvhei},
+\texttt{optc}, \texttt{onhe}, \texttt{omhe}, \texttt{onfac}, \texttt{omfac},
+\texttt{omfhei} point to the variables, to which the numbers of vertices,
+halfedges and facets are assigned and to arrays, in which the vertices,
+halfedges and facets are to be stored.
+
+
+\medskip
+\begin{listingC}
+void bsm_RemoveVertexNum ( int inv, BSMvertex *imv, int *imvhei,
+                           int inhe, BSMhalfedge *imhe,
+                           int infac, BSMfacet *imfac, int *imfhei,
+                           int nvr,
+                           int *onv, int *onhe, int *onfac );
+boolean bsm_RemoveVertexd ( int spdimen,
+                int inv, BSMvertex *imv, int *imvhei, double *iptc,
+                int inhe, BSMhalfedge *imhe,
+                int infac, BSMfacet *imfac, int *imfhei,
+                int nvr,
+                int *onv, BSMvertex *omv, int *omvhei, double *optc,
+                int *onhe, BSMhalfedge *omhe,
+                int *onfac, BSMfacet *omfac, int *omfhei );
+\end{listingC}
+Removing a~vertex causes removing all halfedges incident with this vertex
+and all facets made of these halfedges. It may also cause removal of other
+vertices, if there are some, incident only with the halfedges to be removed.
+
+The procedure \texttt{bsm\_RemoveVertexNum} computes the number of vertices,
+halfedges and facets remaining in the mesh. It should be called by an
+application in order to allocate suitable arrays for the result.
+
+Parameters: \texttt{spdimen}---dimension of the space, i.e.\ the number of
+coordinates of each vertex. \\
+\texttt{inv}, \texttt{imv}, \texttt{imvhei}, \texttt{iptc}, \texttt{inhe},
+\texttt{imhe}, \texttt{infac}, \texttt{imfac},
+\texttt{imfhei}---representation of the input mesh, \\
+\texttt{nvr}---number of the vertex to remove
+(must be between~$0$ and $n_v-1$).
+
+The output parameters \texttt{onv}, \texttt{omv}, \texttt{omvhei},
+\texttt{optc}, \texttt{onhe}, \texttt{omhe}, \texttt{onfac}, \texttt{omfac},
+\texttt{omfhei} point to the variables, to which the numbers of vertices,
+halfedges and facets are assigned and to arrays, in which the vertices,
+halfedges and facets are to be stored.
+
+\medskip
+\begin{listingC}
+void bsm_ContractEdgeNum ( int inv, BSMvertex *imv, int *imvhei,
+                           int inhe, BSMhalfedge *imhe,
+                           int infac, BSMfacet *imfac, int *imfhei,
+                           int nche,
+                           int *onv, int *onhe, int *onfac );
+int bsm_ContractEdged ( int spdimen,
+                int inv, BSMvertex *imv, int *imvhei, double *iptc,
+                int inhe, BSMhalfedge *imhe,
+                int infac, BSMfacet *imfac, int *imfhei,
+                int nche,
+                int *onv, BSMvertex *omv, int *omvhei, double *optc,
+                int *onhe, BSMhalfedge *omhe,
+                int *onfac, BSMfacet *omfac, int *omfhei );
+\end{listingC}
+Edge contraction is an Eulerian operation, which removes an edge, and
+replaces its two vertices by one vertex. It may delete one or two facets
+adjacent to this edge, if any of the two facets is a~triangle.
+
+The procedure \texttt{bsm\_ContractEdgeNum} computes the numbers of
+vertices, halfedges and facets of the mesh being the result of edge
+contraction. It should be called by an application in order to allocate
+suitable arrays of this result.
+
+The procedure \texttt{bsm\_ContractEdged} performs the contracting an edge,
+i.e.\ it produces a~mesh, which is the result of this operation.
+
+Parameters: \texttt{spdimen}---dimension of the space, i.e.\ the number of
+coordinates of each vertex. \\
+\texttt{inv}, \texttt{imv}, \texttt{imvhei}, \texttt{iptc}, \texttt{inhe},
+\texttt{imhe}, \texttt{infac}, \texttt{imfac},
+\texttt{imfhei}---representation of the input mesh, \\
+\texttt{nche}---number of one of the halfedges, which represent the edge to
+be contracted (must be between~$0$ and $n_h-1$).
+
+The output parameters \texttt{onv}, \texttt{omv}, \texttt{omvhei},
+\texttt{optc}, \texttt{onhe}, \texttt{omhe}, \texttt{onfac}, \texttt{omfac},
+\texttt{omfhei} point to the variables, to which the numbers of vertices,
+halfedges and facets are assigned and to arrays, in which the vertices,
+halfedges and facets are to be stored.
+
+The value returned by \texttt{bsm\_ContractEdged} is the number of the
+vertex, which replaced the two vertices of the edge, or~$-1$ in case of
+failure.
+
+%\medskip
+\newpage
+\begin{listingC}
+int bsm_HalfedgeLoopLength ( int nv, BSMvertex *mv, int *mvhei,
+                             int nhe, BSMhalfedge *mhe,
+                             int he );
+\end{listingC}
+The procedure \texttt{bsm\_HalfedgeLoopLength} counts the boundary edges
+making a~closed polyline (boundary of the mesh). The procedure
+\texttt{bsm\_GlueHalfedgeLoopsd}, described below, may join into pairs the
+halfedges of two such polylines, which have the same number of edges.
+
+Parameters \texttt{nv}, \texttt{mv}, \texttt{mvhei}, \texttt{nhe},
+\texttt{mhe} represent the vertices and halfedges of the mesh (the algorithm
+implemented by this procedure does not need facets).
+
+The parameter \texttt{he} is the number of a~halfedge, which represents
+a~boundary edge (it is necessary to indicate, which closed polyline is of
+interest, as there may be more than one).
+
+\medskip
+\begin{listingC}
+boolean bsm_GlueHalfedgeLoopsd ( int spdimen,
+                     int inv, BSMvertex *imv, int *imvhei, double *ivc,
+                     int inhe, BSMhalfedge *imhe,
+                     int infac, BSMfacet *imfac, int *imfhei,
+                     int he1, int he2,
+                     int *onv, BSMvertex *omv, int *omvhei,
+                     double *ovc,
+                     int *onhe, BSMhalfedge *omhe,
+                     int *onfac, BSMfacet *omfac, int *omfhei );
+\end{listingC}
+The procedure \texttt{bsm\_GlueHalfedgeLoopsd} joins into pairs
+the halfedges representing boundary edges of two closed polylines, which
+have the same number of edges. The result is a~new mesh, whose boundary
+consists of two polylines less. The number of facets remains unchanged, but
+the number of vertices is smaller, as joining the halfedges causes
+identification of their vertices.
+
+The orientation of the mesh is preserved, i.e.\ it is possible to obtain
+a~torus, but it is impossible to obtain the Klein bottle (which, as well as
+all non-orientable surfaces, is prohibited by the procedures in this
+library).
+
+Parameters: \texttt{spdimen}---dimension of the space, i.e.\ the number of
+coordinates of each vertex. \\
+\texttt{inv}, \texttt{imv}, \texttt{imvhei}, \texttt{ivc}, \texttt{inhe},
+\texttt{imhe}, \texttt{infac}, \texttt{imfac},
+\texttt{imfhei}---representation of the input mesh.
+
+The parameters \texttt{he1} and \texttt{he2} are numbers of two halfedges to
+be joined (these halfedges will represent a~single edge in the resulting
+mesh). The two halfedges must have no pairs in the input mesh, and they must
+belong to two different closed polylines made of boundary edges. The number
+of edges in these polylines must be the same. The matching of halfedges in
+these polylines is determined by these parameters and the orientation
+conditions, which must be satisfied by the mesh.
+
+---number of one of the halfedges, which represent the edge to
+be contracted (must be between~$0$ and $n_h-1$).
+
+The output parameters \texttt{onv}, \texttt{omv}, \texttt{omvhei},
+\texttt{ovc}, \texttt{onhe}, \texttt{omhe}, \texttt{onfac}, \texttt{omfac},
+\texttt{omfhei} point to the variables, to which the numbers of vertices,
+halfedges and facets are assigned and to arrays, in which the vertices,
+halfedges and facets are to be stored.
+
+Tre value returned is \texttt{true} in case of success or \texttt{false} in
+case of failure, which may be caused by invalid data (i.e.\ the polylines
+with different numbers of edges) or by insufficient scratch memory pool.
+
+%\newpage
+\section{Extracting regular and special subnets}
+
+The procedures described in this section are useful when the mesh represents
+a~spline surface and it is necessary to convert this representation so as to
+find polynomial patches (in B-spline representation, which may be converted
+to the B\'{e}zier form), the surface consists of. An extensive use of these
+procedures is made by the procedures of shape optimization in the
+\texttt{libg2blending} library (see Chapter~\ref{chap:g2blending}).
+
+\medskip
+\begin{listingC}
+boolean bsm_FindRegularSubnets ( int nv, BSMvertex *mv, int *mvhei,
+                         int nhe, BSMhalfedge *mhe,
+                         int nfac, BSMfacet *mfac, int *mfhei,
+                         int d, void *usrptr,
+                         void (*output)( int d, int *vertnum, int *mtab,
+                                         void *usrptr ) );
+\end{listingC}
+The procedure \texttt{bsm\_FindRegularSubnets} searches the mesh in order to
+find all rectangular (square) subnets made of $d^2$~vertices,
+$(d-1)^2$~facets and $2d(d-1)$~edges. Such a~net is a~B-spline
+representation (with uniform knots) of a~polynomial patch of
+degree~$(d-1,d-1)$. This representation may be converted to the B\'{e}zier
+representation, which may be used to obtain the picture of the patch.
+
+The parameters \texttt{nv}, \texttt{mv}, \texttt{mvhei}, \texttt{nhe},
+\texttt{mhe}, \texttt{nfac}, \texttt{mfac}, \texttt{mfhei} are the usual
+representation of the mesh (no array with vertex positions is needed).
+
+The value of the parameter~\texttt{d} is the number~$d$, which determines
+the size of the subnets to be found.
+
+The parameter \texttt{usrptr} is a~pointer to an arbitrary data structure,
+which will be passed to the subprogram pointed by the
+parameter~\texttt{output}.
+
+The parameter \texttt{output} points to the subprogram, whose purpose is to
+do something with the subnets found in the mesh. This subprogram is called
+after finding each subnet, with the parameter~\texttt{d}, whose value is the
+number~$d$, two arrays with the information about the subnet and the pointer
+to the data structure given by the caller.
+
+The array \texttt{vertnum} contains $d^2$~numbers, which are identifiers of
+the vertices of the subnet. This array should be seen as a~square array with
+$d$~columns and~$d$ rows of the vertices (the numbers of vertices neighbouring
+in a~column are neighbours in the array, the numbers of neighbours in a~row
+take positions at a~distance~$d$ in the array).
+
+The array \texttt{mtab} contains $(2d-1)^2$ numbers, which are identifiers
+of the vertices, halfedges and facets. It is also a~square array with rows
+and columns of length $2d-1$, numbered from~$0$. Let the index entry be
+$(2d-1)i+j$; if $i$ and~$j$ are both even, the array entry contains a~vertex
+number. If both numbers $i$ and~$j$ are odd, then the array entry contains
+a~facet number. If $i+j$~is odd, then the contents of the array entry is
+a~halfedge number. In this way the index of a~facet is surrounded by the
+indices of halfedges (either belonging to this facet or the facet sharing an
+edge) and vertices.
+
+The return value is \texttt{true} if the computation is successful, or
+\texttt{false} in case of error, caused by invalid data or insufficient
+scratch memory.
+
+\medskip
+\begin{listingC}
+boolean bsm_FindSpecialVSubnets ( int nv, BSMvertex *mv, int *mvhei,
+                          int nhe, BSMhalfedge *mhe,
+                          int nfac, BSMfacet *mfac, int *mfhei,
+                          int d, void *usrptr,
+                          void (*output)( int d, int k, int *vertnum,
+                                          int *mtab, void *usrptr ) );
+\end{listingC}
+The procedure \texttt{bsm\_FindSpecialVSubnets} searches the mesh described
+by the parameters in order to find all special elements, having the form of an
+internal vertex of degree $k\neq 4$ surrounded by $k$~regular (square)
+subnets, each consisting of $d^2$~quadrangular facets. Such a~subnet is
+called here a~\textbf{Sabin net of radius~$d$}.
+
+If a~mesh has special elements, then the spline surface represented by this
+mesh has polygonal ($k$-sided) holes, which may be filled in some special
+way. The procedure \texttt{bsm\_FindSpecialVSubnets} may be used to find
+such special elements in order to construct the surfaces filling the holes.
+
+The parameters \texttt{nv}, \texttt{mv}, \texttt{mvhei}, \texttt{nhe},
+\texttt{mhe}, \texttt{nfac}, \texttt{mfac}, \texttt{mfhei} are the usual
+representation of the mesh (no array with vertex positions is needed).
+
+The value of the parameter~\texttt{d} is the number~$d$, which determines
+the size of the Sabin nets to be found.
+
+The parameter \texttt{usrptr} is a~pointer to an arbitrary data structure,
+which will be passed to the subprogram pointed by the
+parameter~\texttt{output}.
+
+The parameter \texttt{output} points to the subprogram, whose purpose is to
+do something with the subnets found in the mesh. This subprogram is called
+after finding each subnet, with the parameter~\texttt{d}, whose value is the
+number~$d$, the number~$k$, which is the degree of the central vertex of the
+subnet just found, and two arrays with the information about the subnet and
+the pointer to the data structure given by the caller.
+
+The array \texttt{vertnum} contains $1+kd(d+1)$ indices of the vertices of
+the subnet. First comes the index of the central vertex, then the
+surrounding vertices.
+
+The array \texttt{mtab} contains $k(2d+1)^2$ numbers, which are the indices
+of the vertices, halfedges and facets of $k$~square subnets around the
+special vertex.
+
+The value returned is \texttt{true} in case of success, or \texttt{false} in
+case of failure caused by a~data error or by insufficient scratch memory.
+
+
+\medskip
+\begin{listingC}
+boolean bsm_FindSpecialFSubnets ( int nv, BSMvertex *mv, int *mvhei,
+                          int nhe, BSMhalfedge *mhe,
+                          int nfac, BSMfacet *mfac, int *mfhei,
+                          int d, void *usrptr,
+                          void (*output)( int d, int k, int *vertnum,
+                                          int *mtab, void *usrptr ) );
+\end{listingC}
+Another type of a~special element in a~mesh is a~non-quadrangular facet. The
+procedure \texttt{bsm\_FindSpecialFSubnets} searches a~mesh in order to find
+all such facets surrounded by $kd(d+1)$~quadrangular facets, forming a~Sabin
+net of the second type (with a~special facet of degree $k\neq 4$)
+of radius~$d$. Such a~special element also leaves a~$k$-sided hole in the
+surface represented by the mesh, and special methods are needed to fill such
+holes.
+
+The parameters \texttt{nv}, \texttt{mv}, \texttt{mvhei}, \texttt{nhe},
+\texttt{mhe}, \texttt{nfac}, \texttt{mfac}, \texttt{mfhei} are the usual
+representation of the mesh (no array with vertex positions is needed).
+
+The value of the parameter~\texttt{d} is the number~$d$, which determines
+the size of the Sabin nets to be found.
+
+The parameter \texttt{usrptr} is a~pointer to an arbitrary data structure,
+which will be passed to the subprogram pointed by the
+parameter~\texttt{output}.
+
+The parameter \texttt{output} points to the subprogram, whose purpose is to
+do something with the subnets found in the mesh. This subprogram is called
+after finding each subnet, with the parameter~\texttt{d}, whose value is the
+number~$d$, the number~$k$, which is the degree of the central facet of the
+subnet just found, and two arrays with the information about the subnet and
+the pointer to the data structure given by the caller.
+
+The array \texttt{vertnum} contains $k(d+1)^2$ indices of the vertices of
+the subnet.
+
+The array \texttt{mtab} contains $k(2d+1)(2d+3)$ numbers, which are the indices
+of the vertices, halfedges and facets of $k$~rectangular subnets around the
+special facet.
+
+The value returned is \texttt{true} in case of success, or \texttt{false} in
+case of failure caused by a~data error or by insufficient scratch memory.
+
+
+\bigskip
+The procedures described below make lists of special elements of a~mesh,
+or more precisely, they search the mesh in order to find the Sabin nets of
+the first and second type, and store their identifiers and identifiers of
+their vertices in arrays.
+
+\medskip
+\begin{listingC}
+typedef struct {
+    byte  el_type;
+    byte  degree;
+    byte  snet_rad;
+    short snet_nvert;
+    int   first_snet_vertex;
+  } bsm_special_el;
+
+typedef struct {
+    int            nspecials;
+    int            nspvert;
+    int            nextravert;
+    bsm_special_el *spel;
+    int            *spvert;
+  } bsm_special_elem_list;
+\end{listingC}
+
+\medskip
+\begin{listingC}
+boolean bsm_CountSpecialVSubnets ( int nv, BSMvertex *mv, int *mvhei,
+                                   int nhe, BSMhalfedge *mhe,
+                                   int nfac, BSMfacet *mfac, int *mfhei,
+                                   byte snet_rad,
+                                   int *nspecials, int *nspvert );
+boolean bsm_FindSpecialVSubnetList (
+                               int nv, BSMvertex *mv, int *mvhei,
+                               int nhe, BSMhalfedge *mhe,
+                               int nfac, BSMfacet *mfac, int *mfhei,
+                               byte snet_rad,
+                               boolean append,
+                               bsm_special_elem_list *list );
+\end{listingC}
+The procedure \texttt{bsm\_CountSpecialVSubnets} searches the mesh in order
+to count the Sabin net of the first type (with the central vertex of degree
+$k\neq 4$) of radius~$d$ and their vertices. One should use this procedure
+before calling \texttt{bsm\_FindSpecialVSubnetList} in order to allocate the
+arrays for the list of the special elements. The addresses of the first
+elements of those arrays must be assigned to the fields \texttt{spel} and
+\texttt{spvert} of the data structure of type
+\texttt{bsm\_special\_elem\_list}, passed to
+\texttt{bsm\_FindSpecialVSubnetList} with use of the parameetr
+\texttt{list}.
+
+The procedure \texttt{bsm\_FindSpecialVSubnetList} searches the mesh and
+finds all Sabin nets of the first type of radius $d=$\texttt{snet\_rad}.
+The information about the Sabin nets found is stored in the arrays pointed
+by the fields \texttt{spel} and \texttt{spvert} of the structure pointed
+by the parameter \texttt{list}.
+
+The parameters \texttt{nv}, \texttt{mv}, \texttt{mvhei}, \texttt{nhe},
+\texttt{mhe}, \texttt{nfac}, \texttt{mfac}, \texttt{mfhei} are the usual
+representation of the mesh (no array with vertex positions is needed).
+
+The return value \texttt{true} signals a~success, and \texttt{false}
+indicates a~failure of the computation.
+
+
+\medskip
+\begin{listingC}
+boolean bsm_CountSpecialFSubnets ( int nv, BSMvertex *mv, int *mvhei,
+                                   int nhe, BSMhalfedge *mhe,
+                                   int nfac, BSMfacet *mfac, int *mfhei,
+                                   byte snet_rad,
+                                   int *nspecials, int *nspvert );
+boolean bsm_FindSpecialFSubnetLists (
+                                int nv, BSMvertex *mv, int *mvhei,
+                                int nhe, BSMhalfedge *mhe,
+                                int nfac, BSMfacet *mfac, int *mfhei,
+                                boolean append,
+                                byte snet_rad, 
+                                bsm_special_elem_list *list );
+\end{listingC}
+The procedure \texttt{bsm\_CountSpecialFSubnets} searches the mesh in order
+to count the Sabin net of the second type (with the central facet of degree
+$k\neq 4$) of radius~$d$ and their vertices. One should use this procedure
+before calling \texttt{bsm\_FindSpecialFSubnetList} in order to allocate the
+arrays for the list of the special elements. The addresses of the first
+elements of those arrays must be assigned to the fields \texttt{spel} and
+\texttt{spvert} of the data structure of type
+\texttt{bsm\_special\_elem\_list}, passed to
+\texttt{bsm\_FindSpecialFSubnetList} with use of the parameetr
+\texttt{list}.
+
+The procedure \texttt{bsm\_FindSpecialFSubnetList} searches the mesh and
+finds all Sabin nets of the second type of radius $d=$\texttt{snet\_rad}.
+The information about
+the Sabin nets found is stored in the arrays pointed by the fields
+\texttt{spel} and \texttt{spvert} of the structure pointed by the parameter
+\texttt{list}.
+
+The parameters \texttt{nv}, \texttt{mv}, \texttt{mvhei}, \texttt{nhe},
+\texttt{mhe}, \texttt{nfac}, \texttt{mfac}, \texttt{mfhei} are the usual
+representation of the mesh (no array with vertex positions is needed).
+
+The return value \texttt{true} signals a~success, and \texttt{false}
+indicates a~failure of the computation.
+
+
+\section{Other procedures}
+
+\begin{listingC}
+void bsm_TagBoundaryZoneVertices ( int nv, BSMvertex *mv, int *mvhei,
+                                   int nhe, BSMhalfedge *mhe,
+                                   char d, char *vtag );
+\end{listingC}
+The purpose of the procedure \texttt{bsm\_TagBoundaryZoneVertices} is to
+find all vertices, whose distance from the mesh boundary is less than
+a~number~$d$. The boundary vertices (incident with halfedges having no
+twins) are at the distance~$0$ from the boundary, and the distance between
+two different vertices is defined as the number of edges of the shortest
+path between them. If the mesh represents a~spline surface made of patches
+of degree $(d,d)$, then the vertices, whose distance from the mesh boundary
+is less than~$d$ determine the boundary of the surface (and cross
+derivatives of the surface up to the order $d-1$; if $d=2$ then this
+determines the tangent plane and curvature at each point of the boundary).
+
+The procedure, for each vertex, stores in the array \texttt{vtag} the
+smaller of the two numbers: $d$ or the distance of the vertex from the
+boundary.
+
+\medskip
+\begin{listingC}
+boolean bsm_FindVertexDistances1 ( int nv, BSMvertex *mv, int *mvhei,
+                                   int nhe, BSMhalfedge *mhe,
+                                   int nfac, BSMfacet *mfac, int *mfhei,
+                                   int v, int *dist );
+boolean bsm_FindVertexDistances2 ( int nv, BSMvertex *mv, int *mvhei,
+                                   int nhe, BSMhalfedge *mhe,
+                                   int nfac, BSMfacet *mfac, int *mfhei,
+                                   int v, int *dist );
+\end{listingC}
+The two procedures above find distances of all vertices of the mesh from
+a~given vertex. The distances are defined using two metrics, defined as
+follows:
+
+For two vertices, $v_1$ and~$v_2$, which are end points of an edge, the
+metric $\rho_1$ takes the value~$1$.
+
+For two vertices, $v_1$ and~$v_2$, which belong to one facet, the
+metric $\rho_2$ takes the value~$1$.
+
+Both metrics are defined as the maximal functions defined in the set of
+pairs of the vertices of a~mesh, which satisfy the conditions above and the
+triangle's inequality.
+
+For each vertex $v_i$, the procedures above store in the array \texttt{dist}
+the value of the metric $\rho_1(v,v_i)$ or~$\rho_2(v,v_i)$ respectively.
+If this value is infinite (which is possible, if the mesh is not connected),
+then the number of vertices $n_v$ is stored.
+

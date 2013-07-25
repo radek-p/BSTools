@@ -1,0 +1,610 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{Biblioteka \texttt{libmultibs}}
+
+\section[Podstawowe definicje i sposoby reprezentowania krzywych i p"lat"ow]%
+{Podstawowe definicje i sposoby reprezentowania \\ krzywych i p"lat"ow}
+
+\subsection{Krzywe B\'{e}ziera}
+\unl{Krzywa B\'{e}ziera} jest okre"slona wzorem
+\begin{align}\label{eq:Bezc:def}
+  \bm{p}(t) = \sum_{i=0}^n \bm{p}_iB^n_i(t),
+\end{align}
+w kt"orym wyst"epuj"a \unl{punkty kontrolne} $\bm{p}_0,\ldots,\bm{p}_n$
+oraz \unl{wielomiany Bernsteina}
+\begin{align}
+  B^n_i(t) \stackrel{\mathrm{def}}{=} \binom{n}{i}t^i(1-t)^{n-i},\quad
+  i=0,\ldots,n.
+\end{align}
+
+"Lamana, kt"orej kolejnymi wierzcho"lkami s"a
+punkty $\bm{p}_0,\ldots,\bm{p}_n$, nazywa si"e
+\unl{"la-} \unl{man"a kontroln"a krzywej}.
+Ka"rdy punkt kontrolny ma $d$ wsp"o"lrz"ednych i~wtedy krzywa le"ry
+w~przestrzeni $d$-wymiarowej. W~szczeg"olno"sci dla $d=1$
+wz"or~(\ref{eq:Bezc:def}) okre"sla wielomian zmiennej~$t$
+stopnia co najwy"rej~$n$.
+
+Reprezentacja krzywej B\'{e}ziera sk"lada si"e z~liczby~$n$ i~ci"agu $n+1$
+punkt"ow kontrolnych, kt"orych wsp"o"lrz"edne (w~sumie $(n+1)d$ liczb
+zmiennopozycyjnych) nale"ry umie"sci"c w~tablicy ,,po kolei''
+(tj.\ najpierw $d$~wsp"o"lrz"ednych punktu $\bm{p}_0$, potem $\bm{p}_1$
+itd.).
+
+\vspace{\medskipamount}
+\unl{Wymierna krzywa B\'{e}ziera} jest okre"slona wzorem
+\begin{align}
+  \bm{p}(t) =
+  \frac{\sum_{i=0}^n w_i\bm{p}_i B^n_i(t)}{\sum_{i=0}^n w_iB^n_i(t)},
+\end{align}
+w kt"orym wyst"epuj"a wielomiany Bernsteina, punkty kontrolne
+$\bm{p}_0,\ldots,\bm{p}_n$ i~\unl{wagi} $w_0,\ldots,w_n$. Krzywa taka
+le"ry w~tej samej przestrzeni, w~kt"orej le"r"a punkty kontrolne.
+
+Je"sli $w_i=0$ dla pewnego $i$, to wyra"renie $w_i\bm{p}_i$ mo"remy
+zast"api"c przez dowolny wektor $\bm{v}_i$, rozszerzaj"ac definicj"e
+krzywej, ale przynajmniej jedna waga musi by"c r"o"rna od zera.
+
+Punkty kontrolne $\bm{p}_i$ krzywej wymiernej s"a wygodne dla u"rytkownika
+programu, kt"ory mo"re interakcyjnie je dobiera"c, ale procedury w~tej
+bibliotece przetwarzaj"a tzw.\ \unl{reprezentacj"e jednorodn"a}.
+Dla krzywej w~przestrzeni $d$-wymiarowej jest ni"a krzywa wielomianowa
+po"lo"rona w~przestrzeni o wymiarze $d+1$:
+\begin{align}
+  \bm{P}(t) = \sum_{i=0}^n\bm{P}_iB^n_i(t),
+\end{align}
+kt"orej punkty kontrolne $\bm{P}_i$ s"a dane wzorem
+\begin{align}
+  \bm{P}_i = \left[\begin{array}{c}w_i\bm{p}_i \\ w_i \end{array}\right].
+\end{align}
+Ostatnia (tj.\ $d+{}$pierwsza) wsp"o"lrz"edna jednorodna jest wi"ec
+odpowiedni"a wsp"o"lrz"edn"a wagow"a. Je"sli $w_i=0$ to
+\begin{align}
+  \bm{P}_i = \left[\begin{array}{c}\bm{v}_i \\ 0 \end{array}\right].
+\end{align}
+
+Wsp"o"lrz"edne kartezja"nskie punktu $\bm{p}(t)$ krzywej wymiernej otrzymuje
+si"e przez podzielenie pierwszych $d$ wsp"o"lrz"ednych punktu $\bm{P}(t)$
+przez jego ostatni"a wsp"o"lrz"edn"a jednorodn"a.
+
+Reprezentacja krzywej wymiernej np.\ w~przestrzeni tr"ojwymiarowej sk"lada
+si"e z~liczby~$n$ (kt"ora okre"sla stopie"n reprezentacji) i~tablicy
+$4(n+1)$ liczb zmiennopozycyjnych, b"ed"acych wsp"o"lrz"ednymi kolejnych
+punkt"ow $\bm{P}_i$.
+Poniewa"r krzywe jednorodne s"a zwyk"lymi krzywymi wielomianowymi, wi"ec
+do ich przetwarzania w~wi"ekszo"sci przypadk"ow s"lu"r"a te same procedury,
+co do przetwarzania wielomianowych krzywych B\'{e}ziera.
+
+
+\subsection{Prostok"atne p"laty B\'{e}ziera}
+
+\begin{sloppypar}
+\unl{Prostok"atny p"lat B\'{e}ziera} jest okre"slony wzorem
+\begin{align}
+  \bm{p}(u,v) = \sum_{i=0}^n\sum_{j=0}^m \bm{p}_{ij}B^n_i(u)B^m_j(v),
+\end{align}
+w kt"orym wyst"epuj"a wielomiany Bernsteina $B^n_i$ i $B^m_j$ stopni
+odpowiednio $n$~i~$m$ oraz punkty kontrolne $\bm{p}_{ij}$. Dla ustalenia
+uwagi \unl{wierszem siatki kontrolnej} p"lata nazywamy "laman"a
+o~wierzcho"lkach
+w~punktach $\bm{p}_{0j},\ldots,\bm{p}_{nj}$ (dla $j\in\{0,\ldots,m\}$),
+a~\unl{kolumna} jest to "lamana o~wierzcho"lkach
+$\bm{p}_{i0},\ldots,\bm{p}_{im}$ (dla ka"rdego $i\in\{0,\ldots,n\}$).
+\end{sloppypar}
+
+Reprezentacja p"lata sk"lada si"e zatem z~liczb dodatnich $n$~i~$m$ oraz
+$(n+1)(m+1)$ punkt"ow kontrolnych, czyli $(n+1)(m+1)d$ liczb
+zmiennopozycyjnych,
+umieszczonych w~tablicy w kolejno"sci nast"epuj"acej: najpierw
+$d$~wsp"o"lrz"ednych punktu $\bm{p}_{00}$, potem $d$ wsp"o"lrz"ednych
+punktu $\bm{p}_{01}$ itd. Po wsp"o"lrz"ednych punktu $\bm{p}_{0m}$ nale"ry
+poda"c wsp"o"lrz"edne punktu $\bm{p}_{10}$ i~tak dalej, a"r do punktu
+$\bm{p}_{nm}$. Inaczej m"owi"ac, w~tablicy s"a umieszczone kolejne kolumny
+siatki kontrolnej.
+
+Na opisan"a wy"rej tablic"e mo"rna patrze"c na wiele r"o"rnych sposob"ow.
+Na przyk"lad, aby podda"c p"lat ustalonemu przekszta"lceniu afinicznemu
+wystarczy zastosowa"c to przekszta"lcenie do wszystkich jego punkt"ow
+kontrolnych. B"edziemy wi"ec wtedy widzie"c t"e tablic"e jako jednowymiarow"a
+tablic"e punkt"ow.
+
+Mo"remy te"r dokona"c podzia"lu p"lata za pomoc"a
+algorytmu de~Casteljau na dwie cz"e"sci, dziel"ac na po"lowy przedzia"l
+zmienno"sci parametru $u$~lub~$v$. W~tym ostatnim przypadku wystarczy
+zastosowa"c ten algorytm do wszystkich kolumn tak jak gdyby by"ly to "lamane
+kontrolne krzywych B\'{e}ziera. Tablica zawiera zatem reprezentacje $n+1$
+krzywych B\'{e}ziera stopnia $m$ i~pierwsza wsp"o"lrz"edna pierwszego punktu
+nast"epnej krzywej znajduje si"e o~$(m+1)d$ miejsc za pocz"atkiem
+reprezentacji krzywej danej. Zatem przyjmiemy, "re podzia"lka tej tablicy
+jest r"owna $d(m+1)$ (gdzie $d$~jest wymiarem przestrzeni, w kt"orej le"ry
+p"lat).
+
+Aby podzieli"c przedzia"l zmienno"sci parametru~$u$, nale"ry zastosowa"c
+algorytm de~Casteljau do wszystkich wierszy statki kontrolnej p"lata.
+Okazuje si"e, "re reprezentacj"e
+p"lata mo"rna potraktowa"c jak reprezentacj"e krzywej B\'{e}ziera
+stopnia~$n$, po"lo"ronej w~przestrzeni o~wymiarze $(m+1)d$ (ka"rda kolumna
+siatki kontrolnej jest jednym punktem tej przestrzeni). W~tym przypadku
+przetwarzamy \emph{jedn"a krzyw"a} B\'{e}ziera stopnia~$n$ w~przestrzeni
+$(m+1)d$-wymiarowej, a~podzia"lka tablicy jest nieistotna, poniewa"r krzywa
+jest tylko jedna.
+
+\vspace{\medskipamount}
+\unl{Wymierny p"lat B\'{e}ziera} jest okre"slony wzorem
+\begin{align*}
+  \bm{p}(u,v) =
+    \frac{\sum_{i=0}^n\sum_{j=0}^m w_{ij}\bm{p}_{ij}B^n_i(u)B^m_j(v)}%
+         {\sum_{i=0}^n\sum_{j=0}^m w_{ij}B^n_i(u)B^m_j(v)},
+\end{align*}
+w~kt"orym opr"ocz wielomian"ow Bernsteina i~punkt"ow kontrolnych
+wyst"epuj"a wagi $w_{ij}$. Procedury przetwarzaj"ace wymierne p"laty
+B\'{e}ziera w~bibliotece \texttt{libmultibs} przetwarzaj"a reprezentacj"e
+jednorodn"a, czyli tablic"e punkt"ow kontrolnych $\bm{P}_{ij}$
+wielomianowego p"lata B\'{e}ziera
+\begin{align}
+  \bm{P}(u,v) = \sum_{i=0}^n\sum_{j=0}^m\bm{P}_{ij}B^n_i(u)B^m_j(v),
+\end{align}
+po"lo"ronego w przestrzeni o wymiarze $d+1$. Zwi"azek punkt"ow kontrolnych
+$\bm{p}_{ij}$ i~wag $w_{ij}$ p"lata wymiernego z~punktami $\bm{P}_{ij}$ jest
+taki sam jak w~przypadku wymiernych krzywych B\'{e}ziera. Spos"ob
+przechowywania w~tablicy punkt"ow kontrolnych $\bm{P}_{ij}$ p"lata
+jednorodnego jest taki sam jak w przypadku p"lata wielomianowego (tylko
+wymiar przestrzeni, w kt"orej le"ry p"lat jednorodny i jego punkty kontrolne
+jest o $1$ wi"ekszy).
+
+
+\subsection{\label{ssect:BSC}Krzywe B-sklejane}
+
+Przyjmijmy $n\geq 0$ i~niemalej"acy ci"ag \unl{w"ez"l"ow} (liczb
+rzeczywistych) $u_0,\ldots,u_N$, taki "re $N>2n$ i~$u_n<u_{N-n}$.
+\unl{Krzywa B-sklejana} stopnia $n$ oparta na tym ci"agu w"ez"l"ow jest
+okre"slona wzorem
+\begin{align}\label{eq:BScurve:def}
+  \bm{s}(t) = \sum_{i=0}^{N-n-1} \bm{d}_iN^n_i(t),
+\end{align}
+w kt"orym wyst"epuj"a punkty kontrolne $\bm{d}_0,\ldots,\bm{d}_{N-n-1}$ oraz
+\unl{funkcje B-sklejane} $N^n_0,\ldots,N^n_{N-n-1}$. Funkcje te maj"a
+kilka r"ownowa"rnych definicji, m.in.\ mo"rna je
+zdefiniowa"c rekurencyjnym wzorem Mansfielda-deBoora-Coxa:
+\begin{align}\label{eq:BS:basis0}
+  N^0_i(t) &{}= \left\{\begin{array}{ll}1 & \mbox{dla $u_i\leq t<u_{i+1}$,} \\
+    0 & \mbox{w przeciwnym razie,} \end{array}\right. \\
+  \label{eq:BS:basisn}
+  N^j_i(t) &{}= \frac{t-u_i}{u_{i+j}-u_i} N^{j-1}_i(t) +
+    \frac{u_{i+j+1}-t}{u_{i+j+1}-u_{i+1}} N^{j-1}_{i+1}(t)\quad
+    \mbox{dla $j=1,\ldots,n$}.
+\end{align}
+
+Dziedzin"a krzywej B-sklejanej jest przedzia"l $[u_n,u_{N-n-1})$. W~ka"rdym
+przedziale $[u_k,u_{k+1})$ (dla $n\leq k<N-n$) krzywa \mbox{B-sklejana} jest
+"lukiem wielomianowym stopnia co najwy"rej $n$.
+
+Reprezentacja krzywej B-sklejanej sk"lada si"e z liczb ca"lkowitych
+$n$~i~$N$, okre"slaj"acych odpowiednio stopie"n i~indeks ostatniego w"ez"la,
+ci"agu w"ez"l"ow (tablicy liczb zmiennopozycyjnych) $u_0,\ldots,u_N$ oraz
+ci"agu punkt"ow kontrolnych $\bm{d}_0,\ldots,\bm{d}_{N-n-1}$, po"lo"ronych
+w~tej samej przestrzeni co krzywa --- je"sli wymiarem tej przestrzeni
+jest~$d$, to w~odpowiedniej tablicy nale"ry poda"c $(N-n)d$ liczb
+zmiennopozycyjnych.
+
+\vspace{\medskipamount}
+\begin{sloppypar}\hyphenpenalty=200
+Dla u"latwienia wyja"sniania niuans"ow dzia"lania procedur przyj"a"lem
+nast"epuj"ac"a terminologi"e: \unl{w"ez"ly brzegowe} to te, kt"ore
+wyznaczaj"a brzeg dziedziny krzywej, czyli $u_n$, $u_{N-n}$ i~wszystkie
+w"ez\-"ly r"owne jednemu z~tych dw"och; w"ez\-"ly brzegowe dzielimy na
+\unl{lewe} i~\unl{prawe}. \unl{W"ez"ly wewn"etrzne} to
+wszystkie w"ez"ly nale"r"ace do przedzia"lu $(u_n,u_{N-n})$; w"ez"lom tym
+odpowiadaj"a punkty po"l"aczenia "luk"ow wielomianowych krzywej. Opr"ocz
+tego mamy \unl{w"ez"ly zewn"etrzne}, kt"ore nie nale"r"a do
+przedzia"lu $[u_n,u_{N-n}]$.
+Niezale"rnie od tego w"ez"ly $u_0$ i~$u_N$ b"ed"a nazywane \unl{w"ez"lami
+skrajnymi}.
+Na przyk"lad, je"sli $n=3$, $N=15$ i
+\begin{align*}
+  u_0<u_1=u_2<u_3=u_4=u_5<u_6\leq\cdots\leq u_{11}<u_{12}=u_{13}=u_{14}=u_{15},
+\end{align*}
+to w"ez"ly $u_0$, $u_1$ i~$u_2$ s"a zewn"etrzne, w"ez"ly $u_3$, $u_4$
+i~$u_{12},\ldots,u_{15}$ s"a brzegowe, a~pozosta"le w"ez"ly s"a wewn"etrzne.
+W"ez"ly skrajne to $u_0$ i $u_{15}$.
+\end{sloppypar}
+
+W"ez"ly skrajne s"a potrzebne w definicji funkcji
+B-sklejanych $N^n_0$ oraz $N^n_{N-n-1}$, ale nie maj"a one wp"lywu na
+warto"sci tych funkcji w~przedziale $[u_n,u_{N-n})$, a~wi"ec tak"re na
+kszta"lt krzywej. W~r"o"rnych pakietach oprogramowania w"ez"ly te s"a
+wymagane lub nie; w~bibliotece \texttt{libmultibs} w"ez"ly te nale"ry
+podawa"c (wystarczy, "re spe"lniaj"a warunki $u_0\leq u_1$ oraz
+$u_{N-1}\leq u_N$).
+
+\vspace{\medskipamount}
+Ustalona krzywa sklejana mo"re mie"c r"o"rne reprezentacje; mog"a one
+r"o"rni"c si"e stopniem lub ci"agiem w"ez"l"ow. Konstruowanie reprezentacji,
+kt"orej ci"ag w"ez"l"ow zawiera dodatkowe liczby nazywa si"e \unl{wstawianiem
+w"ez"l"ow}. W szczeg"olno"sci reprezentacja, w~kt"orej wszystkie w"ez"ly
+maj"a krotno"s"c (liczb"e wyst"apie"n) $n+1$ (tj.\ jest
+$u_0=\cdots=u_n$, $u_{n+1}=\cdots=u_{2n+1}$, $u_{2n+2}=\cdots=u_{3n+2}$
+itd.), jest reprezentacj"a krzywej kawa"lkami B\'{e}ziera.
+
+Je"sli ostatni (o~najwi"ekszym indeksie) lewy w"eze"l brzegowy ma indeks
+$k>n$, to pocz"atkowe $k-n$ w"ez"l"ow (zaczynaj"ac od skrajnego lewego)
+i~pocz"atkowe $k-n$ punkt"ow jest w~reprezentacji krzywej zb"ednych i~mo"rna
+(dla pewnych cel"ow trzeba) je pomin"a"c. Podobnie, je"sli pierwszy
+(o~najmniejszym indeksie) prawy w"eze"l brzegowy ma indeks $k<N-n$, to
+ostatnie $N-n-k$ w"ez"l"ow i~punkt"ow kontrolnych jest zb"ednych.
+Reprezentacje ze zb"ednymi w"ez"lami i~punktami kontrolnymi mog"a powsta"c
+w~wyniku wstawiania w"ez"l"ow (np.\ podczas konwersji do postaci kawa"lkami
+B\'{e}ziera), oraz w~wyniku wyznaczania B-sklejanej reprezentacji pochodnej
+krzywej.
+
+Krzyw"a B-sklejan"a stopnia~$n$, kt"orej w"ez"ly brzegowe maj"a krotno"s"c
+wi"eksz"a lub r"own"a~$n$, nazywamy \unl{krzyw"a o ko"ncach zaczepionych}.
+Je"sli ostatni (o najwi"ekszym indeksie) lewy w"eze"l brzegowy ma indeks~$k$
+(poniewa"r w"ez"ly liczymy od $0$, wi"ec oczywi"scie $k\geq n$), to punkt
+kontrolny $\bm{d}_{k-n}$ jest punktem krzywej odpowiadaj"acym parametrowi
+$u_k$, tj.\ lewemu ko"ncowi dziedziny. Je"sli $k=n$, to jest to punkt
+$\bm{d}_0$; w~przeciwnym razie punkty $\bm{d}_0,\ldots,\bm{d}_{k-n-1}$ nie
+maj"a wp"lywu na kszta"lt krzywej (i~wraz z~w"ez"lami $u_0,\ldots,u_{k-n-1}$
+s"a zb"edne). Podobna regu"la dotyczy prawego w"ez"la
+brzegowego o najmniejszym indeksie --- je"sli jest to w"eze"l $u_{N-n}$
+o~krotno"sci $n$ lub $n+1$, to punkt kontrolny $\bm{d}_{N-n-1}$ jest punktem
+ko"ncowym krzywej (odpowiada on parametrowi $u_{N-n}$).
+
+Krzywa, kt"orej w"ez"ly brzegowe maj"a krotno"s"c mniejsz"a ni"r stopie"n,
+nazywa si"e \unl{krzyw"a o ko"ncach swobodnych}. Ka"rdy koniec krzywej
+mo"re by"c zaczepiony lub swobodny niezale"rnie od drugiego ko"nca.
+
+\vspace{\medskipamount}
+\unl{Zamkni"ete krzywe B-sklejane} s"a reprezentowane tak samo
+jak wszystkie krzywe B-sklejane. Aby krzywa B-sklejana stopnia~$n$ by"la
+zamkni"eta, musz"a by"c spe"lnione nast"epuj"ace warunki: ci"ag w"ez"l"ow
+$u_1,\ldots,u_{N-1}$ musi sk"lada"c si"e z~kolejnych element"ow
+niesko"nczonego ci"agu liczb, takiego "re ci"ag r"o"rnic jest nieujemny
+i~okresowy, o~okresie
+\begin{align*}
+  K=N-2n,
+\end{align*}
+przy czym musi by"c spe"lniony warunek $N>3n$.
+Ci"ag w"ez"l"ow musi by"c niemalej"acy i~musi istnie"c
+liczba dodatnia~$T$, taka "re
+\begin{align*}
+  u_{k+K}-u_k=T\qquad\mbox{dla $k=1,\ldots,2n-1$.}
+\end{align*}
+W"ez"ly $u_0$ i~$u_N$ s"a nieistotne dla kszta"ltu krzywej, ale musz"a
+spe"lnia"c warunki $u_0\leq u_1$ i~$u_{N-1}\leq u_N$.
+
+Ci"ag $\bm{d}_0,\ldots,\bm{d}_{N-n-1}$ musi sk"lada"c si"e
+z~kolejnych element"ow niesko"nczonego okresowego ci"agu punkt"ow o~okresie
+$N-2n$, a~zatem musz"a by"c spe"lnione r"owno"sci
+\begin{align*}
+  \bm{d}_{k+K} = \bm{d}_k\qquad\mbox{dla $k=0,\ldots,n-1$.}
+\end{align*}
+
+Aplikacja mo"re wykorzystywa"c ,,oszcz"edn"a'' reprezentacj"e zamkni"etej
+krzywej B-sklejanej, w~kt"orej w"ez"ly $u_{K+1},\ldots,u_{N-1}$ oraz
+punkty kontrolne $\bm{d}_{K},\ldots,\allowbreak\bm{d}_{N-n-1}$, mo"rliwe
+do odtworzenia na podstawie powy"rszych warunk"ow, s"a nieobecne. Jednak aby
+u"ry"c procedur z~biblioteki \texttt{libmultibs} trzeba utworzy"c
+,,robocz"a'' reprezentacj"e krzywej, sk"ladaj"ac"a si"e z tablic
+zawieraj"acych wszystkie w"ez"ly i~punkty kontrolne.
+
+Obliczanie punktu i~wiele innych oblicze"n dla krzywych zamkni"etych mo"re
+by"c wykonywane przez procedury biblioteki \texttt{libmultibs} przeznaczone
+do przetwarzania ,,zwyk"lych'' krzywych o~ko"ncach swobodnych. Zmiany
+reprezentacji takie jak wstawianie i~usuwanie w"ez"l"ow oraz podwy"rszanie
+stopnia wymaga u"rycia procedur, kt"ore zapewni"a spe"lnienie podanych
+wy"rej warunk"ow przez now"a reprezentacj"e krzywej. Procedury takie maj"a
+w~nazwie s"lowo ,,\texttt{Closed}'', przy czym w~wi"ekszo"sci przypadk"ow
+czekaj"a dopiero na napisanie.
+
+
+\subsection{P"laty B-sklejane}
+
+\unl{P"lat B-sklejany} jest okre"slony wzorem
+\begin{align}\label{eq:BSpatch:def}
+  \bm{s}(u,v) =
+  \sum_{i=0}^{N-n-1}\sum_{j=0}^{M-m-1}\bm{d}_{ij}N^n_i(u) N^m_j(v),
+\end{align}
+w kt"orym wyst"epuj"a dwa uk"lady funkcji B-sklejanych stopni (w og"olno"sci
+r"o"rnych) $n$ i $m$, oparte odpowiednio na (w~og"olno"sci r"o"rnych,
+nawet je"sli $n=m$) ci"agach w"ez"l"ow $u_0,\ldots,u_N$ i $v_0,\ldots,v_M$.
+Ka"rdy z~tych ci"ag"ow musi by"c niemalej"acy i~dostatecznie d"lugi (ma by"c
+$N>2n$, $M>2m$, $u_n<u_{N-n}$ i~$v_m<v_{M-m}$). Do ka"rdego z~tych ci"ag"ow
+stosuje si"e terminologia i~wszystkie uwagi podane w~poprzednim punkcie.
+
+Tablica punkt"ow kontrolnych $\bm{d}_{ij}$, kt"ore razem z~w"ez"lami
+stanowi"a reprezentacj"e p"lata, zawiera kolejno wsp"o"lrz"edne punkt"ow
+$\bm{d}_{00},\bm{d}_{01},\ldots,\bm{d}_{0,N-n-1}$, a nast"epnie
+$\bm{d}_{10},\bm{d}_{11},\ldots,\bm{d}_{1,N-n-1}$ itd., czyli kolejne
+kolumny siatki kontrolnej p"lata.
+
+Mi"edzy tymi kolumnami mog"a wyst"epowa"c
+w~tablicy obszary nieu"rywane, kt"ore umo"rliwiaj"a np.\ wstawianie
+w"ez"la do ci"agu $(v_i)$ w"ez"l"ow pocz"atkowej reprezentacji p"lata.
+Odbywa si"e to tak, jakby w"eze"l by"l wstawiany do reprezentacji wielu
+krzywych B-sklejanych, kt"orych "lamanymi kontrolnymi s"a kolumny siatki
+kontrolnej p"lata. Po wstawieniu w"ez"la d"lugo"s"c ka"rdego obszaru
+nieu"rywanego zmniejsza si"e o~$d$~miejsc na liczby zmiennopozycyjne (gdzie
+$d$~jest wymiarem przestrzeni, w~kt"orej le"ry p"lat). Podzia"lk"a tablicy
+w~tym przypadku jest odleg"lo"s"c pocz"atk"ow ci"ag"ow wsp"o"lrz"ednych
+kolejnych kolumn.
+
+Odpowiednikiem krzywych o ko"ncach zaczepionych i~krzywych o~ko"ncach
+swobodnych s"a \unl{p"laty o~brzegach zaczepionych} i~\unl{swobodnych}.
+Na przyk"lad, je"sli ci"ag w"ez"l"ow~,,$u$'' spe"lnia warunek
+$u_1=\cdots=u_n<u_{n+1}$, to krzywa sta"lego parametru $u=u_n$ (jedna
+z~czterech krzywych brzegowych p"lata) jest krzyw"a B-sklejan"a stopnia $m$,
+opart"a na ci"agu w"ez"l"ow ,,$v$'', kt"orej "lamana kontrolna jest pierwsz"a
+kolumn"a siatki kontrolnej p"lata. Oczywi"scie, ka"rdy z~czterech brzeg"ow
+p"lata mo"re by"c zaczepiony albo swobodny niezale"rnie od pozosta"lych.
+
+Odpowiednikiem krzywych zamkni"etych s"a p"laty zamkni"ete, kt"ore mog"a
+by"c rurkami lub torusami. Jeden lub oba ci"agi w"ez"l"ow, a~tak"re ci"ag
+wierszy lub kolumn siatki kontrolnej (traktowanych jako punkty) musz"a
+spe"lnia"c warunki dla zamkni"etych krzywych B-sklejanych.
+
+
+\subsection{Krzywe i p"laty NURBS}
+
+\unl{Krzywe i p"laty NURBS} (ang.\ \textsl{non-uniform rational B-splines})
+s"a to krzywe i~p"la\-ty powierzchni kawa"lkami wymiernych, kt"orych zwi"azek
+z~krzywymi i~p"latami B-sklejanymi jest taki sam, jak zwi"azek wymiernych
+krzywych i~p"lat"ow B\'{e}ziera z~wielomianowymi krzywymi i~p"latami
+B\'{e}ziera. Zatem, mo"rna wybra"c jeden lub dwa ci"agi w"ez"l"ow oraz
+uk"lad punkt"ow kontrolnych $\bm{d}_i$ lub $\bm{d}_{ij}$ w~przestrzeni
+$d$-wymiarowej i~ka"rdemu punktowi przyporz"adkowa"c wag"e $w_i$ albo
+$w_{ij}$. Nast"epnie wystarczy okre"sli"c wektory w~przestrzeni
+$d+1$-wymiarowej
+\begin{align}
+  \bm{D}_i =
+  \left[\begin{array}{c} w_i\bm{d}_i \\ w_i \end{array}\right]
+  \qquad\mbox{albo}\qquad
+  \bm{D}_{ij} =
+  \left[\begin{array}{c} w_{ij}\bm{d}_{ij} \\ w_{ij} \end{array}\right]
+\end{align}
+i~oblicza"c punkty krzywej lub p"lata B-sklejanego (kt"orego to s"a punkty
+kontrolne) po"lo"ronego w~tej przestrzeni, po czym dzieli"c pierwsze
+$d$~wsp"o"lrz"ednych ka"rdego takiego punktu przez wsp"o"lrz"edn"a
+$d+\mathord{\mbox{pierwsz"a}}$ (tzw.\ wagow"a), co daje w wyniku
+wsp"o"lrz"edne kartezja"nskie odpowiednich punkt"ow krzywej lub p"lata
+wymiernego.
+
+Procedury w bibliotece \texttt{libmultibs} przetwarzaj"a w"la"snie tak"a
+reprezentacj"e jednorodn"a.
+
+
+\subsection{\label{ssect:Coons:patch:def}P"laty Coonsa}
+
+P"laty Coonsa klasy~$C^k$ s"a to p"laty tensorowe okre"slone za pomoc"a
+odpowiednio g"ladkich krzywych opisuj"acych brzeg i~tzw.\ pochodne
+poprzeczne rz"edu $1,\ldots,k$. Dla dowolnego~$k\in\N$ p"lat Coonsa jest
+okre"slony wzorem
+\begin{align}\label{eq:Coons:patch:def}
+  \bm{p}(u,v) = \bm{p}_1(u,v)+\bm{p}_2(u,v)-\bm{p}_3(u,v),
+\end{align}
+w~kt"orym
+\begin{align*}
+  \bm{p}_1(u,v) &{}= \bm{C}(u)\hat{H}(v)^T, \quad
+  \bm{p}_2(u,v) = \tilde{H}(u)\bm{D}(v)^T, \quad
+  \bm{p}_3(u,v) = \tilde{H}(u)\bm{P}\hat{H}(v)^T,
+\end{align*}
+przy czym
+\begin{align*}
+  \bm{C}(u) &{}= [\bm{c}_{00}(u),\bm{c}_{10}(u),\bm{c}_{01}(u),\bm{c}_{11}(u),
+               \ldots,\bm{c}_{0k}(u),\bm{c}_{1k}(u)], \\
+  \bm{D}(v) &{}= [\bm{d}_{00}(v),\bm{d}_{10}(v),\bm{d}_{01}(v),\bm{d}_{11}(v),
+               \ldots,\bm{d}_{0k}(v),\bm{d}_{1k}(v)], \\
+  \tilde{H}(u) &{}= [\tilde{H}_{00}(u),\tilde{H}_{10}(u),
+                     \tilde{H}_{01}(u),\tilde{H}_{11}(u),\ldots,
+                     \tilde{H}_{0k}(u),\tilde{H}_{1k}(u)], \\
+  \hat{H}(v) &{}= [\hat{H}_{00}(v),\hat{H}_{10}(v),
+                     \hat{H}_{01}(v),\hat{H}_{11}(v),\ldots,
+                     \hat{H}_{0k}(v),\hat{H}_{1k}(v)].
+\end{align*}
+Krzywe $\bm{c}_{00},\ldots,\bm{c}_{1k}$ opisuj"a dwa przeciwleg"le brzegi
+p"lata i~pochodne poprzeczne na tych brzegach. Krzywe te musz"a mie"c
+identyczn"a dziedzin"e, kt"or"a oznaczymy~$[a,b]$. Podobnie, krzywe
+$\bm{d}_{00},\ldots,\bm{d}_{1k}$ opisuj"a drug"a par"e przeciwleg"lych
+brzeg"ow i~pochodne poprzeczne i~r"ownie"r musz"a mie"c identyczn"a dziedzin"e,
+$[c,d]$. Dziedzin"a p"lata Coonsa jest prostok"at $[a,b]\times[c,d]$.
+
+Macierz~$\bm{P}$ ma wymiary $(2k+2)\times(2k+2)$ i~sk"lada si"e z~punkt"ow
+danych krzywych oraz wektor"ow ich pochodnych rz"edu~$1,\ldots,k$:
+\begin{align}\label{eq:Coons:compat:cond}
+  \bm{P} ={}& \left[\begin{array}{ccccc}
+    \bm{c}_{00}(a) & \bm{c}_{10}(a) & \ldots & \bm{c}_{0k}(a) & \bm{c}_{1k}(a) \\
+    \bm{c}_{00}(b) & \bm{c}_{10}(b) & \ldots & \bm{c}_{0k}(b) & \bm{c}_{1k}(b) \\
+    \vdots & \vdots & & \vdots & \vdots \\
+    \bm{c}^{(k)}_{00}(a) & \bm{c}^{(k)}_{10}(a) & \ldots &
+    \bm{c}^{(k)}_{0k}(a) & \bm{c}^{(k)}_{1k}(a) \\
+    \bm{c}^{(k)}_{00}(b) & \bm{c}^{(k)}_{10}(b) & \ldots &
+    \bm{c}^{(k)}_{0k}(b) & \bm{c}^{(k)}_{1k}(b)
+  \end{array}\right] = \nonumber \\
+ &\left[\begin{array}{ccccc}
+    \bm{d}_{00}(c) & \bm{d}_{00}(d) & \ldots & \bm{d}_{0k}(c) & \bm{d}_{0k}(d) \\
+    \bm{d}_{10}(c) & \bm{d}_{10}(d) & \ldots & \bm{d}_{1k}(c) & \bm{d}_{1k}(d) \\
+    \vdots & \vdots & & \vdots & \vdots \\
+    \bm{d}^{(k)}_{00}(c) & \bm{d}^{(k)}_{00}(d) & \ldots &
+    \bm{d}^{(k)}_{0k}(c) & \bm{d}^{(k)}_{0k}(d) \\
+    \bm{d}^{(k)}_{10}(c) & \bm{d}^{(k)}_{10}(d) & \ldots &
+    \bm{d}^{(k)}_{1k}(c) & \bm{d}^{(k)}_{1k}(d)
+  \end{array}\right].
+\end{align}
+Krzywe okre"slaj"ace p"lat musz"a spe"lnia"c warunki zgodno"sci, przedstawione
+wy"rej w~postaci r"owno"sci macierzy.
+
+Funkcje $\tilde{H}_{mj}(u)$ i~$\hat{H}_{mj}(v)$ tworz"a tzw.\ lokalne bazy
+Hermite'a. Jest przyj"ete za"lo"renie,
+"re funkcje te s"a wielomianami stopnia $2k+1$ dla $k\in\{1,2\}$, cho"c mo"rna
+by u"ry"c zamiast nich innych funkcji klasy~$C^k$, np.\ funkcji sklejanych stopnia
+$k+1$. Funkcje te s"a okre"slone wzorem
+\begin{align*}
+  \tilde{H}_{mj}(u) = (b-a)^jH_{mj}\Bigl(\frac{u-a}{b-a}\Bigr),\qquad
+  \hat{H}_{mj}(v) = (d-c)^jH_{mj}\Bigl(\frac{v-c}{d-c}\Bigr).
+\end{align*}
+
+Dla $k=1$ jest
+\begin{alignat*}{2}
+  H_{00}(t) &{}= B^3_0(t)+B^3_1(t),\qquad &
+  H_{10}(t) &{}= B^3_2(t)+B^3_3(t),\\
+  H_{01}(t) &{}= \frac{1}{3}B^3_1(t),\qquad &
+  H_{11}(t) &{}= -\frac{1}{3}B^3_2(t).
+\end{alignat*}
+Poniewa"r wielomiany u"ryte do okre"slenia p"lata, tj.\ interpolacji
+w~obu kierunkach mi"edzy zadanymi krzywymi, s"a dla $k=1$ trzeciego stopnia,
+wi"ec p"laty Coonsa klasy~$C^1$ s"a nazywane \textbf{p"latami bikubicznymi
+Coonsa}, cho"c p"lat taki mo"re by"c okre"slony przez krzywe dowolnego
+stopnia.
+
+Dla $k=2$ p"lat jest okre"slony przy u"ryciu wielomian"ow pi"atego stopnia,
+\begin{alignat*}{2}
+  H_{00}(t) &{}= B^5_0(t)+B^5_1(t)+B^5_2(t),\qquad &
+  H_{10}(t) &{}= B^5_3(t)+B^5_4(t)+B^5_5(t), \\
+  H_{01}(t) &{}= \frac{1}{5}B^5_1(t)+\frac{2}{5}B^5_2(t), \qquad &
+  H_{11}(t) &{}= -\frac{2}{5}B^5_3(t)-\frac{1}{5}B^5_4(t), \\
+  H_{02}(t) &{}= \frac{1}{20}B^5_2(t), \qquad &
+  H_{12}(t) &{}= \frac{1}{20}B^5_3(t),
+\end{alignat*}
+w~zwi"azku z~czym p"laty Coonsa klasy~$C^2$ s"a nazywane \textbf{dwupi"etnymi
+p"latami Coonsa}.
+
+P"laty Coonsa (bikubiczne i~dwupi"etne) mog"a by"c okre"slone za pomoc"a
+krzywych wielomianowych albo sklejanych. W~pierwszym przypadku krzywe te s"a
+krzywymi B\'{e}ziera, a~za dziedzin"e p"lata przyjmuje si"e kwadrat $[0,1]^2$.
+Poszczeg"olne krzywe mog"a mie"c r"o"rne stopnie.
+
+Dziedzina p"lat"ow okre"slonych za pomoc"a krzywych sklejanych (o~reprezentacji
+B-sklejanej) mo"re by"c dowolnym prostok"atem $[a,b]\times[c,d]$. Krzywe
+okre"slaj"ace p"lat mog"a mie"c reprezentacje r"o"rnych stopni, reprezentacje
+te mog"a r"ownie"r mie"c r"o"rne ci"agi w"ez"l"ow (ale musz"a mie"c identyczne
+dziedziny, wyznaczone przez w"ez"ly brzegowe).
+
+Biblioteka \texttt{libmultibs} zawiera procedury wyznaczaj"ace reprezentacj"e
+B\'{e}ziera lub B-sklejan"a p"lata Coonsa na podstawie okre"slaj"acych go
+krzywych, a~tak"re procedury szybkiego tablicowania p"lat"ow Coonsa razem
+z~pochodnymi; procedury te znalaz"ly zastosowanie w~bibliotekach
+\texttt{libg1hole} i~\texttt{libg2hole}.
+
+
+\subsection{Nazwy procedur i parametr"ow}
+
+Jako u"latwienie dla u"rytkownika jest pomy"slany spos"ob nazywania procedur
+(kt"orych nazwy maj"a u"latwi"c odgadni"ecie spe"lnianej funkcji)
+i ich parametr"ow formalnych (kt"ore, je"sli maj"a tak"a sam"a nazw"e
+w~r"o"rnych procedurach, to oznaczaj"a to samo).
+
+Ka"rda procedura i~makro przeznaczone do wywo"lywania jako procedura
+w~bibliotece \texttt{libmultibs} ma nazw"e zaczynaj"ac"a si"e od prefiksu
+\texttt{mbs\_}.
+
+Je"sli bezpo"srednio po prefiksie wyst"epuje ci"ag znak"ow \texttt{multi},
+to procedura s"lu"ry do przetwarzania jednej lub wielu krzywych (liczba
+krzywych jest warto"sci"a parametru, kt"ory ma nazw"e \texttt{ncurves}).
+
+Ko"nc"owka nazwy sk"lada si"e z~dw"och cz"e"sci. Pierwsza cz"e"s"c mo"re
+by"c pusta, je"sli po prefiksie jest ,,\texttt{multi}'', albo
+okre"sla rodzaj krzywej lub p"lata przetwarzanego przez dan"a procedur"e lub
+makro. Litera \texttt{C} oznacza krzyw"a za"s \texttt{P} p"lat. Cyfra
+okre"s\-la wymiar przestrzeni (np.\ \texttt{2} oznacza p"laszczyzn"e),
+w~kt"orej le"ry krzywa lub p"lat. Litera \texttt{R} po cyfrze oznacza
+krzyw"a lub p"lat wymierny w reprezentacji jednorodnej. \textbf{Uwaga:} punkty
+kontrolne maj"a wtedy o~jedn"a wsp"o"lrz"edn"a wi"ecej. Druga cz"e"s"c
+ko"nc"owki jest liter"a \texttt{f} albo \texttt{d} i~wskazuje odpowiednio
+precyzj"e (pojedyncz"a, \texttt{float}, albo podw"ojn"a, \texttt{double}%
+\footnote{W~,,powa"rnych'' zastosowaniach nale"ry
+stosowa"c tylko podw"ojn"a precyzj"e, chyba, "re i~ona nie wystarczy.})
+arytmetyki zmiennopozycyjnej, w~kt"orej procedura otrzymuje dane
+i~wyprowadza wyniki.
+
+"Srodkowa cz"e"s"c nazwy okre"sla funkcj"e wykonywan"a przez procedur"e.
+Makra i~procedury o~tej samej nazwie r"o"rni"a si"e zastosowaniem ---
+uniwersalnym (je"sli jest przedrostek ,,\texttt{multi}'') albo do krzywych
+lub p"lat"ow w~przestrzeni o~wymiarze okre"slonym przez prefiks. Lista tych
+nazw zawiera m.in.
+\begin{mydescription}
+  \item\texttt{deBoor} --- obliczanie punkt"ow krzywych i~p"lat"ow
+    B-sklejanych za pomoc"a algorytmu de~Boora.
+  \item\texttt{deBoorDer} --- obliczanie punkt"ow i~pochodnych
+    krzywych i~p"lat"ow B-sklejanych za pomoc"a algorytmu de~Boora.
+  \item\texttt{BCHorner} --- obliczanie punkt"ow krzywych i~p"lat"ow
+    B\'{e}ziera za pomoc"a schematu Hornera.
+  \item\texttt{BCHornerDer} --- obliczanie punkt"ow i~pochodnych
+    krzywych i~p"lat"ow B\'{e}ziera za pomoc"a schematu Hornera.
+  \item\texttt{BCFrenet} --- obliczanie krzywizn i~wektor"ow uk"ladu Freneta
+    w~danym punkcie krzywej B\'{e}ziera.
+  \item\texttt{BCHornerNv} --- obliczanie wektora normalnego w~danym punkcie
+    p"lata B\'{e}ziera.
+  \item\texttt{KnotIns} --- wstawianie (jednego) w"ez"la przy u"ryciu
+    algorytmu Boehma.
+  \item\texttt{KnotRemove} --- usuwanie (jednego) w"ez"la.
+  \item\texttt{*Oslo*} --- procedury zwi"azane z~wstawianiem i~usuwaniem
+    (w~jednym kroku) wielu w"ez"l"ow przy u"ryciu algorytmu Oslo.
+  \item\texttt{MaxKnotIns} --- wstawianie w"ez"l"ow w~celu
+    otrzymania reprezentacji \mbox{B-sklejanej} z~wszystkimi w"ez"lami
+    wewn"etrznymi o~krotno"sci $n+1$ i~brzegowymi o~krotno"sci~$n$ lub
+    $n+1$, czyli reprezentacji kawa"lkami B\'{e}ziera.
+  \item\texttt{BisectB} --- podzia"l krzywych B\'{e}ziera na "luki
+    zwi"azany z~podzia"lem dziedziny na dwa odcinki o~tej samej d"lugo"sci,
+    algorytmem de~Casteljau.
+  \item\texttt{DivideB} --- podzia"l krzywych B\'{e}ziera na "luki
+    zwi"azany z~podzia"lem dziedziny na dwa odcinki o~dowolnych d"lugo"sciach,
+    algorytmem de~Casteljau.
+  \item\texttt{BCDegElev} --- podwy"rszanie stopnia krzywych i~p"lat"ow
+    B\'{e}ziera.
+  \item\texttt{BSDegElev} --- podwy"rszanie stopnia krzywych i~p"lat"ow
+    B-sklejanych.
+  \item\texttt{MultBez} --- mno"renie wielomian"ow i~krzywych B\'{e}ziera.
+  \item\texttt{MultBS} --- mno"renie funkcji i~krzywych sklejanych.
+  \item\texttt{BezNormal} --- wyznaczanie p"lata B\'{e}ziera
+    opisuj"acego wektor normalny danego p"lata B\'{e}ziera.
+  \item\texttt{BSCubicInterp} --- konstrukcja B-sklejanych interpolacyjnych
+    krzywych trzeciego stopnia.
+  \item\texttt{ConstructApproxBS} --- konstrukcja B-sklejanych krzywych
+    aproksymacyjnych.
+  \item\texttt{Closed} --- procedura, w~kt"orej nazwie wyst"epuje to s"lowo
+    s"lu"ry do przetwarzania krzywych zamkni"etych.
+\end{mydescription}
+
+\underline{Parametry formalne} procedur i~makr maj"a nast"epuj"ace nazwy:
+\begin{mydescription}
+  \item\texttt{spdimen} --- okre"sla wymiar $d$ przestrzeni, w~kt"orej le"r"a
+    krzywe, czyli liczb"e wsp"o"lrz"ednych ka"rdego punktu tej przestrzeni.
+    Je"sli ko"nc"owka nazwy procedury lub makra zawiera liter"e \texttt{R},
+    kt"ora wskazuje na obiekt wymierny, to punkty kontrolne maj"a o~$1$
+    wi"ecej wsp"o"lrz"edn"a.
+  \item\texttt{degree} ---okre"sla stopie"n reprezentacji krzywej. Stopie"n
+    p"lata ze wzgl"e\-du na ka"rdy z~jego parametr"ow jest okre"slany za
+    pomoc"a parametr"ow, kt"ore maj"a nazwy \texttt{degreeu}
+    i~\texttt{degreev}.
+  \item\texttt{lastknot} --- okre"sla liczb"e $N$, kt"ora jest indeksem
+    ostatniego w"ez"la, a~zatem ci"ag w"ez"l"ow sk"lada si"e z~$N+1$
+    w"ez"l"ow.
+  \item\texttt{knots} --- tablica liczb zmiennopozycyjnych, w~kt"orej podaje
+    si"e w"ez"ly. Dwie tablice z~ci"agami w"ez"l"ow sk"ladaj"acymi si"e na
+    reprezentacj"e p"lata B-sklejanego przekazuje si"e przy u"ryciu
+    parametr"ow o~nazwach \texttt{knotsu} i~\texttt{knotsv}.
+  \item\texttt{ctlpoints} --- tablica punkt"ow kontrolnych. W~przypadku, gdy
+    wymiar~$d$ przes\-trze\-ni jest r"owny~$1$ (procedura lub makro s"lu"ry do
+    przetwarzania funkcji skalarnych), parametr poprzez kt"ory przekazuje
+    si"e odpowiedni"a tablic"e nazywa si"e \texttt{coeff}.
+  \item\texttt{pitch} --- podzia"lka tablicy punkt"ow kontrolnych, tj.\
+    r"o"rnica indeks"ow pierwszych wsp"o"lrz"ednych pierwszych punkt"ow
+    kolejnych "lamanych kontrolnych lub kolumn siatki kontrolnej w~tablicy
+    \texttt{ctlpoints}. Zawsze tablice takie s"a traktowane jako tablice
+    \emph{liczb zmiennopozycyjnych}, a~zatem jednostka podzia"lki jest to
+    d"lugo"s"c reprezentacji zmiennopozycyjnej jednej liczby (nawet je"sli
+    parametr formalny \texttt{ctlpoints} jest typu np.\ \texttt{point3f}).
+\end{mydescription}
+Je"sli parametry procedury s"lu"r"a do przekazania dw"och reprezentacji,
+np.\ procedura na podstawie reprezentacji wej"sciowej konstruuje
+reprezentacj"e wynikow"a, to odpowiednie parametry maj"a nazwy rozszerzone
+o~fragment \texttt{in} albo \texttt{out}. Parametry s"lu"r"ace do
+przekazania danych wej"sciowych wyst"epuj"a w~listach parametr"ow
+\emph{przed} parametrami opisuj"acymi dane wyj"sciowe.
+
+
+

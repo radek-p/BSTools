@@ -1,0 +1,524 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{Biblioteka \texttt{libpkgeom}}
+
+W bibliotece \texttt{libpkgeom} s"a zebrane procedury realizuj"ace
+podstawowe dzia"lania na punktach i~wektorach w p"laszczy"znie
+i~przestrzeni tr"oj- i~czterowymiarowej. Dzia"lania te to dodawanie,
+odejmowanie, mno"renie i~interpolacja, a tak"re przekszta"lcenia afiniczne.
+Ponadto w bibliotece tej jest procedura znajdowania otoczki wypuk"lej zbioru
+punkt"ow na p"laszczy"znie. Inne procedury z geometrii obliczeniowej te"r
+b"ed"a w tej bibliotece.
+
+Wszystkie nazwy typ"ow danych maj"a na ko"ncu liter"e \texttt{f} albo
+\texttt{d}, co wskazuje na reprezentacj"e wsp"o"lrz"ednych --- pojedynczej
+(\texttt{float}) albo podw"ojnej (\texttt{double}) precyzji.
+
+\section{Dzia"lania na punktach i wektorach}
+
+\cprog{%
+typedef struct point2f \{ \\
+\ind{2}float x, y; \\
+\} point2f vector2f; \\
+\mbox{} \\
+typedef struct point3f \{ \\
+\ind{2}float x, y, z; \\
+\} point3f vector3f; \\
+\mbox{} \\
+typedef struct point4f \{ \\
+\ind{2}float X, Y, Z, W; \\
+\} point4f vector4f;}
+\hspace*{\parindent}%
+Punkty i wektory reprezentuje si"e za pomoc"a par, tr"ojek lub czw"orek
+liczb. Istotny w tej reprezentacji jest brak wszelkich dodatkowych danych,
+dzi"eki czemu np.\ tablica $n$ punkt"ow na p"laszczy"znie mo"re by"c
+przekazywana jako parametr do procedury, kt"ora przetwarza tablic"e $2n$
+liczb. Dlatego nie nale"ry robi"c z tego klasy j"ezyka \texttt{C++}, ani tym
+bardziej definiowa"c podklas z dodatkowymi atrybutami.
+
+Struktura typu \texttt{point3f} mo"re reprezentowa"c punkt w przestrzeni
+tr"ojwymiarowej albo punkt na p"laszczy"znie. W tym ostatnim przypadku pola
+\texttt{x}, \texttt{y}, \texttt{z} opisuj"a wsp"o"lrz"edne jednorodne tego
+punktu --- jego wsp"o"lrz"edne kartezja"nskie s"a r"owne \texttt{x/z}
+i~\texttt{y/z}. Podobnie, struktura typu \texttt{point4f} sk"lada si"e
+z~p"ol opisuj"acych wsp"o"lrz"edne jednorodne punktu w przestrzeni
+tr"ojwymiarowej.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+typedef struct ray3f \{ \\
+\ind{2}point3f p; \\
+\ind{2}vector3f v; \\
+\} ray3f;}
+Struktura typu \texttt{ray3f} s"lu"ry do reprezentowania promieni, tj.\
+p"o"lprostych o~pocz"atku w~punkcie~\texttt{p} i~o~kierunku okre"slonym
+przez wektor~\texttt{v}.
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef union trans2f \{ \\
+\ind{2}struct \{ \\
+\ind{4}float a11, a12, a13; \\
+\ind{4}float a21, a22, a23; \\
+\ind{2}\} U0; \\
+\ind{2}struct \{ \\
+\ind{4}float a[2][3]; \\
+\ind{4}short detsgn; \\
+\ind{2}\} U1; \\
+\} trans2f; \\
+\mbox{} \\
+typedef union trans3f \{ \\
+\ind{2}struct \{ \\
+\ind{4}float a11, a12, a13, a14; \\
+\ind{4}float a21, a22, a23, a24; \\
+\ind{4}float a31, a32, a33, a34; \\
+\ind{2}\} U0; \\
+\ind{2}struct \{ \\
+\ind{4}float a[3][4]; \\
+\ind{4}short detsgn; \\
+\ind{2}\} U1; \\
+\} trans3f;}
+Struktury typu \texttt{trans2f} i~\texttt{trans3f} reprezentuj"a
+przekszta"lcenia afiniczne przestrzeni dwu- i~tr"ojwymiarowej. Reprezentacja
+sk"lada si"e z~macierzy $3\times 3$ albo $4\times 4$, kt"orej ostatni wiersz
+ma zawsze posta"c $[0,0,1]$ albo $[0,0,0,1]$, w~zwi"azku z~czym nie jest
+pami"etany. Pole \texttt{detsgn} ma warto"s"c znaku wyznacznika macierzy.
+
+\vspace{\bigskipamount}
+\cprog{%
+void SetPoint2f ( point2f *p, float x, float y ); \\
+\#define SetVector2f(v,x,y) SetPoint2f ( v, x, y ) \\
+void SetPoint3f ( point3f *p, float x, float y, float z ); \\
+\#define SetVector3f(v,x,y,z) SetPoint3f ( v, x, y, z ) \\
+void SetPoint4f ( point4f *p, float X, float Y, float Z, float W ); \\
+\#define SetVector4f(v,X,Y,Z,W) SetPoint4f ( v, X, Y, Z, W )}
+Powy"rsze procedury i~makra s"lu"r"a do inicjalizacji punkt"ow i~wektor"ow.
+
+\vspace{\bigskipamount}
+\cprog{%
+void TransPoint2f ( const trans2f *tr, const point2f *p, \\
+\ind{20}point2f *q ); \\
+void TransPoint3f ( const trans3f *tr, const point3f *p, \\
+\ind{20}point3f *q );}
+Powy"rsze procedury obliczaj"a obraz $\bm{q}$ punktu $\bm{p}$
+w~przekszta"lceniu afinicznym odpowiednio przestrzeni dwu-
+i~tr"ojwymiarowej.
+
+\vspace{\bigskipamount}
+\cprog{%
+void TransVector2f ( const trans2f *tr, const vector2f *v, \\
+\ind{21}vector2f *w ); \\
+void TransVector3f ( const trans3f *tr, const vector3f *v, \\
+\ind{21}vector3f *w );}
+Powy"rsze procedury obliczaj"a obraz $\bm{w}$ wektora $\bm{v}$
+w~przekszta"lceniu liniowym, kt"ore jest cz"e"sci"a liniow"a
+przekszta"lcenia afinicznego reprezentowanego przez parametr \texttt{*tr}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void TransContra3f ( const trans3f *tri, const vector3f *v, \\
+\ind{21}vector3f *w );}
+Procedura \texttt{TransContra3f} oblicza obraz $\bm{w}$ wektora $\bm{v}$
+w~przekszta"lceniu liniowym, kt"orego macierz jest transpozycj"a macierzy
+cz"e"sci liniowej przekszta"lcenia afinicznego reprezentowanego przez
+parametr \texttt{*tri}. Je"sli wektor $\bm{v}$ jest wektorem normalnym
+pewnej p"laszczyzny~$\pi$, a~przekszta"lcenie reprezentowane przez parametr
+\texttt{*tri} jest \emph{odwrotno"sci"a} pewnego przekszta"lcenia~$A$, to
+obliczony wektor~$\bm{w}$ jest wektorem normalnym obrazu p"laszczyzny~$\pi$
+w~przekszta"lceniu~$A$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void Trans3Point2f ( const trans3f *tr, const point2f *p, \\
+\ind{21}point2f *q );}
+Procedura \texttt{Trans3Point2f} poddaje przekszta"lceniu afinicznemu
+\texttt{*tr} punkt $\bm{p}\in\R^3$, kt"orego pocz"atkowe dwie wsp"o"lrz"edne
+s"a warto"sciami p"ol \texttt{x}~i~\texttt{y} parametru \texttt{*p},
+a~trzecia jest r"owna~$0$.
+Wsp"o"lrz"edne $x$~i~$y$ obrazu s"a przypisywane odpowiednim polom
+parametru~\texttt{*q}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void Trans2Point3f ( const trans2f *tr, const point3f *p, \\
+\ind{21}point3f *q );}
+Procedura \texttt{Trans2Point3f} poddaje przekszta"lceniu afinicznemu
+punkt~$\bm{p}\in\R^2$, reprezentowany za pomoc"a wsp"o"lrz"ednych jednorodnych.
+
+\vspace{\bigskipamount}
+\cprog{%
+void Trans3Point4f ( const trans3f *tr, const point4f *p, \\
+\ind{21}point4f *q );}
+Procedura \texttt{Trans3Point4f} poddaje przekszta"lceniu afinicznemu
+\texttt{*tr} punkt~$\bm{p}\in\R^3$, kt"orego cztery wsp"o"lrz"edne jednorodne
+s"a warto"sciami odpowiednich p"ol parametru~\texttt{*p}.
+
+Wsp"o"lrz"edne jednorodne obrazu (takie "re wsp"o"lrz"edna wagowa punktu
+i~obrazu jest taka sama) s"a przypisywane odpowiednim polom parametru
+\texttt{*q}.
+
+\newpage
+\cprog{%
+void IdentTrans2f ( trans2f *tr ); \\
+void IdentTrans3f ( trans3f *tr );}
+Procedury \texttt{IdentTrans2f} i~\texttt{IdentTrans3f} dokonuj"a
+inicjalizacji struktury \texttt{*tr}, po~kt"orej reprezentuje ona
+przekszta"lcenie to"rsamo"sciowe przestrzeni dwu- albo tr"ojwymiarowej.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CompTrans2f ( trans2f *s, trans2f *t, trans2f *u ); \\
+void CompTrans3f ( trans3f *s, trans3f *t, trans3f *u );}
+Procedury \texttt{CompTrans2f} i~\texttt{CompTrans3f} wyznaczaj"a z"lo"renie
+przekszta"lce"n afinicznych reprezentowanych przez parametry~\texttt{*t}
+i~\texttt{*u} i~przypisuj"a je parametrowi~\texttt{*s}. Przekszta"lcenie to
+jest r"ownowa"rne wykonaniu najpierw przekszta"lcenia \texttt{*u},
+a~nast"epnie~\texttt{*t}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void GeneralAffineTrans3f ( trans3f *tr, \\
+\ind{24}vector3f *v1, vector3f *v2, vector3f *v3 );}
+Procedura \texttt{GeneralAffineTrans3f} oblicza z"lo"renie przekszta"lcenia
+reprezentowanego przez parametr \texttt{*tr} z~przekszta"lceniem, kt"orego
+cz"e"s"c liniowa jest reprezentowana przez macierz
+$[\bm{v}_1,\bm{v}_2,\bm{v}_3]$ (a~wektor przesuni"ecia jest zerowy).
+Obliczone z"lo"renie jest przypisywane parametrowi \texttt{*tr}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ShiftTrans2f ( trans2f *tr, float tx, float ty ); \\
+void ShiftTrans3f ( trans3f *tr, float tx, float ty, float tz );}
+Procedury \texttt{ShiftTrans2f} i~\texttt{ShiftTrans3f} wyznaczaj"a
+z"lo"renie przekszta"lcenia reprezentowanego przez parametr~\texttt{*tr}
+i~przesuni"ecia o~wektor $[t_x,t_y]^T$ albo $[t_x,t_y,t_z]^T$.
+Obliczone z"lo"renie jest przypisywane parametrowi \texttt{*tr}.
+ 
+\vspace{\bigskipamount}
+\cprog{%
+void RotTrans2f ( trans2f *tr, float angle );}
+Procedura \texttt{RotTrans2f} oblicza z"lo"renie przekszta"lcenia
+p"laszczyzny reprezentowanego przez parametr \texttt{*tr} z~obrotem
+wok"o"l punktu $[0,0]^T$ o~k"at \texttt{angle}. 
+Obliczone z"lo"renie jest przypisywane parametrowi \texttt{*tr}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void Rot3f ( trans3f *tr, byte j, byte k, float angle );}
+Procedura \texttt{Rot3f} oblicza z"lo"renie przekszta"lcenia
+reprezentowanego przez parametr \texttt{*tr} z~obrotem w~jednej
+z~p"laszczyzn uk"ladu. P"laszczyzna ta jest okre"slona przez parametry
+\texttt{j}~i~\texttt{k}, kt"ore musz"a mie"c \emph{r"o"rne} warto"sci ze
+zbioru $\{1,2,3\}$. Na przyk"lad obrotowi w~p"laszczy"znie $xy$ (wok"o"l
+osi~$z$) odpowiada \texttt{j}${}=1$, \texttt{k}${}=2$. K"at obrotu jest r"owny
+\texttt{angle}.
+Obliczone z"lo"renie przekszta"lce"n jest przypisywane parametrowi
+\texttt{*tr}.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+\#define RotXTrans3f(tr,angle) Rot3f ( tr, 2, 3, angle ) \\
+\#define RotYTrans3f(tr,angle) Rot3f ( tr, 3, 1, angle ) \\
+\#define RotZTrans3f(tr,angle) Rot3f ( tr, 1, 2, angle )}
+Powy"rsze trzy makra wywo"luj"a procedur"e \texttt{Rot3f} w~celu z"lo"renia
+przekszta"lcenia reprezentowanego przez parametr \texttt{*tr} z~obrotem
+wok"o"l osi $x$, $y$, $z$, czyli odpowiednio w~p"laszczyznach $yz$, $zx$
+i~$xy$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void RotVTrans3f ( trans3f *tr, vector3f *v, float angle );}
+\begin{sloppypar}
+Procedura \texttt{RotVTrans3f} oblicza z"lo"renie przekszta"lcenia
+afinicznego reprezentowanego przez pocz"atkow"a warto"s"c parametru
+\texttt{*tr} z~obrotem wok"o"l prostej
+przechodz"acej przez punkt $[0,0,0]^T$ o~kierunku \emph{jednostkowego}
+wektora~$\bm{v}$ o~k"at \texttt{angle}.
+Obliczone z"lo"renie przekszta"lce"n jest przypisywane parametrowi
+\texttt{*tr}.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+void FindRotVEulerf ( const vector3f *v, float angle, \\
+\ind{22}float *psi, float *theta, float *phi );}
+Procedura \texttt{FindRotVEulerf} oblicza k"aty Eulera (precesji
+\texttt{*psi}, nutacji \texttt{*theta} i~obrotu w"la"sciwego \texttt{*phi})
+reprezentuj"ace obr"ot wok"o"l prostej o~kierunku \emph{jednostkowego}
+wektora $\bm{v}$ o~k"at \texttt{angle}.
+
+\vspace{\bigskipamount}
+\cprog{%
+float TrimAnglef ( float angle );}
+\begin{sloppypar}
+Warto"sci"a procedury \texttt{TrimAnglef} jest liczb"a $\alpha$, kt"ora
+nale"ry do przedzia"lu $[-\pi,\pi]$ i~kt"ora r"o"rni si"e od warto"sci
+parametru \texttt{angle} o ca"lkowit"a wielokrotno"s"c liczby $2\pi$
+i~o~b"l"ad zaokr"aglenia.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+void CompEulerRotf ( float psi1, float theta1, float phi1, \\
+\ind{21}float psi2, float theta2, float phi2, \\
+\ind{21}float *psi, float *theta, float *phi );}
+Procedura \texttt{CompEulerRotf} oblicza k"aty Eulera $\psi$, $\theta$,
+$\varphi$ obrotu, kt"ory jest z"lo"reniem dw"och obrot"ow reprezentowanych
+odpowiednio przez k"aty Eulera $\psi_1$, $\theta_1$, $\varphi_1$ oraz
+$\psi_2$, $\theta_2$, $\varphi_2$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CompRotV3f ( const vector3f *v1, float a1, \\
+\ind{18}const vector3f *v2, float a2, \\
+\ind{18}vector3f *v, float *a );}
+Procedura \texttt{CompRotV3f} oblicza z"lo"renie dw"och obrot"ow w~$\R^3$,
+danych za pomoc"a wektor"ow jednostkowych osi obrotu, $\bm{v}_1$, $\bm{v}_2$
+i~k"at"ow $\alpha_1$, $\alpha_2$. Wyznaczany jest wektor~$\bm{v}$ osi
+z"lo"renia i~k"at $\alpha$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void EulerRotTrans3f ( trans3f *tr, \\
+\ind{23}float psi, float theta, float phi );}
+Procedura \texttt{EulerRotTrans3f} wyznacza z"lo"renie przekszta"lcenia
+afinicznego reprezentowanego przez pocz"atkow"a warto"s"c parametru
+\texttt{*tr} i~obrotu reprezenowanego przez k"aty Eulera $\psi$, $\theta$,
+$\varphi$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ScaleTrans2f ( trans2f *t, float sx, float sy ); \\
+void ScaleTrans3f ( trans3f *tr, float sx, float sy, float sz );}
+Procedury \texttt{ScaleTrans2f} i~\texttt{ScaleTrans3f} wyznaczaj"a
+z"lo"renie przekszta"lcenia afinicznego reprezentowanego przez pocz"atkow"a
+warto"s"c parametru \texttt{*tr} i~skalowania o~wsp"o"lczynnikach
+odpowiednio $s_x$ i~$s_y$ albo $s_x$, $s_y$ i~$s_z$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void MirrorTrans3f ( trans3f *tr, vector3f *n );}
+Procedura \texttt{MirrorTrans3f} wyznacza z"lo"renie przekszta"lcenia
+afinicznego reprezentowanego przez pocz"atkow"a warto"s"c parametru
+\texttt{*tr} i~odbicia symetrycznego wzgl"edem p"laszczyzny zawieraj"acej
+pocz"atek uk"ladu wsp"o"lrz"ednych, kt"orej wektorem normalnym jest
+wektor~$\bm{n}$.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean InvertTrans2f ( trans2f *tr ); \\
+boolean InvertTrans3f ( trans3f *tr );}
+Procedury \texttt{InvertTrans2f} i~\texttt{InvertTrans3f} wyznaczaj"a
+przekszta"lcenie odwrotne do przekszta"lcenia afinicznego reprezentowanego
+przez pocz"atkow"a warto"s"c parametru \texttt{*tr}, je"sli istnieje.
+Warto"sci"a procedury jest wtedy \texttt{true}, a~w~przeciwnym razie
+\texttt{false}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void MultVector2f ( double a, const vector2f *v, vector2f *w ); \\
+void MultVector3f ( double a, const vector3f *v, vector3f *w ); \\
+void MultVector4f ( double a, const vector4f *v, vector4f *w );}
+Powy"rsze procedury obliczaj"a wektor $\bm{w}=a\bm{v}$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void AddVector2f ( const point2f *p, const vector2f *v, \\
+\ind{19}point2f *q ); \\
+void AddVector3f ( const point3f *p, const vector3f *v, \\
+\ind{19}point3f *q );}
+Powy"rsze procedury obliczaj"a punkt $\bm{q}=\bm{p}+\bm{v}$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void AddVector2Mf ( const point2f *p, const vector2f *v, double t, \\
+\ind{20}point2f *q ); \\
+void AddVector3Mf ( const point3f *p, const vector3f *v, double t, \\
+\ind{20}point3f *q );}
+Powy"rsze procedury obliczaj"a punkt $\bm{q}=\bm{p}+t\bm{v}$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void SubtractPoints2f ( const point2f *p1, const point2f *p2, \\
+\ind{24}vector2f *v ); \\
+void SubtractPoints3f ( const point3f *p1, const point3f *p2, \\
+\ind{24}vector3f *v ); \\
+void SubtractPoints4f ( const point4f *p1, const point4f *p2, \\
+\ind{24}vector4f *v );}
+Powy"rsze procedury obliczaj"a wektor $\bm{v}=\bm{p}_1-\bm{p}_2$.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+void InterPoint2f ( const point2f *p1, const point2f *p2, double t, \\
+\ind{20}point2f *q ); \\
+void InterPoint3f ( const point3f *p1, const point3f *p2, double t, \\
+\ind{20}point3f *q ); \\
+void InterPoint4f ( const point4f *p1, const point4f *p2, double t, \\
+\ind{20}point4f *q );}
+Powy"rsze procedury obliczaj"a punkt $\bm{q}=\bm{p}_1+t(\bm{p}_2-\bm{p}_1)$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void MidPoint2f ( const point2f *p1, const point2f *p2, \\
+\ind{18}point2f *q ); \\
+void MidPoint3f ( const point3f *p1, const point3f *p2, \\
+\ind{18}point3f *q ); \\
+void MidPoint4f ( const point4f *p1, const point4f *p2, \\
+\ind{18}point4f *q );}
+Powy"rsze procedury wyznaczaj"a punkt
+$\bm{q}=\frac{1}{2}(\bm{p}_1+\bm{p}_2)$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void Interp3Vectors2f ( const vector2f *p0, const vector2f *p1, \\
+\ind{24}const vector2f *p2, \\
+\ind{24}const float *coeff, vector2f *p ); \\
+void Interp3Vectors3f ( const vector3f *p0, const vector3f *p1, \\
+\ind{24}const vector3f *p2, \\
+\ind{24}const float *coeff, vector3f *p ); \\
+void Interp3Vectors4f ( const vector4f *p0, const vector4f *p1, \\
+\ind{24}const vector4f *p2, \\
+\ind{24}const float *coeff, vector4f *p );}
+Powy"rsze procedury obliczaj"a kombinacj"e liniow"a trzech wektor"ow danych
+jako parametry; wsp"o"lczynniki kombinacji s"a podane w~tablicy \texttt{coeff}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void NormalizeVector2f ( vector2f *v ); \\
+void NormalizeVector3f ( vector3f *v );}
+Powy"rsze procedury obliczaj"a \texttt{*v\,:=\,}$\frac{1}{\|\bm{v}\|_2}\bm{v}$.
+
+\vspace{\bigskipamount}
+\cprog{%
+double DotProduct2f ( const vector2f *v1, const vector2f *v2 ); \\
+double DotProduct3f ( const vector3f *v1, const vector3f *v2 ); \\
+double DotProduct4f ( const vector4f *v0, const vector4f *v1 );}
+Powy"rsze procedury obliczaj"a odpowiednie iloczyny skalarne.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+double det2f ( const vector2f *v1, const vector2f *v2 ); \\
+double det3f ( const vector3f *v1, const vector3f *v2, \\
+\ind{15}const vector3f *v3 ); \\
+double det4f ( const vector4f *v0, const vector4f *v1, \\
+\ind{15}const vector4f *v2, const vector4f *v3 );}
+Powy"rsze procedury obliczaj"a wyznaczniki macierzy o~wymiarach odpowiednio
+$2\times2$, $3\times3$ i~$4\times4$, kt"orych kolumny s"a wektorami podanymi
+jako parametry.
+
+\vspace{\bigskipamount}
+\cprog{%
+void Point3to2f ( const point3f *P, point2f *p ); \\
+void Point4to3f ( const point4f *P, point3f *p );}
+Powy"rsze procedury obliczaj"a wsp"o"lrz"edne kartezja"nskie punktu $\bm{p}$
+na podstawie wsp"o"lrz"ednych jednorodnych.
+
+\vspace{\bigskipamount}
+\cprog{%
+void Point2to3f ( const point2f *p, float w, point3f *P ); \\
+void Point3to4f ( const point3f *p, float w, point4f *P );}
+Powy"rsze procedury obliczaj"a wsp"o"lrz"edne jednorodne punktu~$\bm{p}$
+z~wag"a~$w$ na podstawie wsp"o"lrz"ednych kartezja"nskich.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CrossProduct3f ( const vector3f *v1, const vector3f *v2, \\
+\ind{22}vector3f *v );}
+Procedura \texttt{CrossProduct3f} oblicza iloczyn wektorowy wektor"ow
+$\bm{v}_1$ i~$\bm{v}_2$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void OrtVector2f ( const vector2f *v1, const vector2f *v2, \\
+\ind{19}vector2f *v ); \\
+void OrtVector3f ( const vector3f *v1, const vector3f *v2, \\
+\ind{19}vector3f *v ); \\
+void OrtVector4f ( const vector4f *v1, const vector4f *v2, \\
+\ind{19}vector4f *v );}
+Procedury \texttt{OrtVector2f}, \texttt{OrtVector3f} i~\texttt{OrtVector4f}
+obliczaj"a wektor
+$\bm{v}=\bm{v}_2-\frac{\scp{\bm{v}_1}{\bm{v}_2}}{\scp{\bm{v}_1}{\bm{v}_1}}\bm{v}_1$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CrossProduct4P3f ( const vector4f *v0, const vector4f *v1, \\
+\ind{24}const vector4f *v2, vector3f *v );}
+Procedura \texttt{CrossProduct4P3f} oblicza pierwsze trzy wsp"o"lrz"edne
+wektora, kt"ory jest iloczynem wektorowym w~$\R^4$ wektor"ow $\bm{v}_1$,
+$\bm{v}_2$ i~$\bm{v}_3$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void OutProduct4P3f ( const vector4f *v0, const vector4f *v1, \\
+\ind{22}vector3f *v );}
+Procedura \texttt{OutProduct4P3f} oblicza wektor
+\begin{align*}
+  \bm{v} = \left[\begin{array}{c}
+     X_0W_1-W_0X_1 \\ Y_0W_1-W_0Y_1 \\ Z_0W_1-W_0Z_1
+  \end{array}\right].
+\end{align*}
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void ProjectPointOnLine2f ( const point2f *p0, const point2f *p1, \\
+\ind{28}point2f *q ); \\
+void ProjectPointOnLine3f ( const point3f *p0, const point3f *p1, \\
+\ind{28}point3f *q ); \\
+void ProjectPointOnLine4f ( const point4f *p0, const point4f *p1, \\
+\ind{28}point4f *q );}
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void ProjectPointOnPlane3f ( const point3f *p0, const point3f *p1, \\
+\ind{29}const point3f *p2, point3f *q ); \\
+void ProjectPointOnPlane4f ( const point4f *p0, const point4f *p1, \\
+\ind{29}const point4f *p2, point4f *q );}
+
+
+%\newpage
+\section{Boksy}
+
+Prostok"aty i~prostopad"lo"sciany przydaj"a si"e w~wielu zastosowaniach,
+zw"laszcza w~szacowaniu po"lo"renia bardziej skomplikowanych figur
+geometrycznych. Zdefiniowane ni"rej typy opisuj"a takie boksy.
+W~przysz"lo"sci podstawowe procedury wykonuj"ace dzia"lania na boksach
+maj"a by"c cz"e"sci"a biblioteki \texttt{libpkgeom}.
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct Box2f \{ \\  
+\mbox{} \ \ \ float x0, x1, y0, y1; \\
+\mbox{} \ \} Box2f; \\
+\mbox{} \\
+typedef struct Box3f \{ \\
+\mbox{} \ \ \ float x0, x1, y0, y1, z0, z1; \\
+\mbox{} \ \} Box3f;}
+
+
+\section{Znajdowanie otoczki wypuk"lej}
+
+Nag"l"owki procedur znajdowania otoczki wypuk"lej (w~wersji dla pojedynczej
+i~podw"ojnej precyzji) znajduj"a si"e w~pliku \texttt{convh.h}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void FindConvexHull2f ( int *n, point2f *p );}
+Procedura \texttt{FindConvexHull2f} znajduje otoczk"e
+wypuk"l"a zbioru $n$ punkt"ow na p"laszczy"znie.
+Na wej"sciu punkty te s"a podane w~tablicy \texttt{p}. Pocz"atkowa warto"s"c
+parametru \texttt{*n} jest liczb"a tych punkt"ow. Ko"ncowa zawarto"s"c tej
+tablicy to niekt"ore z~tych punkt"ow, mianowicie kolejne wierzcho"lki
+wielok"ata, kt"ory jest otoczk"a zbioru punkt"ow danych. Liczba
+wierzcho"lk"ow otoczki jest ko"ncow"a warto"sci"a parametru \texttt{*n}.
+
+

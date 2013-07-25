@@ -1,0 +1,45 @@
+HOWTO make it
+
+To begin one needs the following software ready to work:
+
+- The GNU make program (using another make may require changing the Makefiles).
+
+- The gcc compiler and ar program. Testing the quality of code generated
+  by various versions of the compiler was not done.
+
+- The TeX typesetting system (for the documentation); the documentation uses
+  the Computer Modern, Concrete Roman and Euler font packages.
+
+- The pstools package (psnup, to format the documentation with two pages
+  on one side of a sheet of paper).
+
+- Ghostscript and (for convenience, non-obligatory) Ghostview programs.
+
+- The X Window system (to run the demo programs),
+  there are no requirements concerning any details (no particular window
+  manager, graphical or other library: OpenGL, Motif, Gnome, KDE,
+  Athena widgets etc. are not requred).
+
+A Linux distribution usually has all the above present. What to do in
+another system, I do not know, but whoever wants to use it, will find out.
+
+
+To compile the package, issue (in this directory) the commands
+
+	make mrproper
+	make
+
+By default, the GNU gcc compiler, with optimization options turned on,
+will be used. Writing 'make debug' instead of 'make' causes using
+the -g option, which is useful with the DDD debugger.
+Writing 'make icc' causes using the Intel icc compiler
+(but it has to be installed).
+
+After the compilation the command
+
+	make clean
+
+leaves the final product (the libraries and demonstration programs),
+but it removes the *.o files and PostScript figures, unless they were
+considered necessary by me.
+ 

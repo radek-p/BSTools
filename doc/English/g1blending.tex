@@ -1,0 +1,131 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{The \texttt{libg1blending} library}
+
+This chapter is waiting until I~have enough time to write it. A~great part
+of this library has been written by Mateusz Markowski.
+
+\begin{listingC}
+boolean g1bl_SetupBiharmAMatrixf ( int lastknotu, int lastknotv,
+                   int *n, int **prof, float **Amat, float ***arow );
+boolean g1bl_SetupBiharmRHSf ( int lastknotu, int lastknotv,
+                        int spdimen, int pitch, const float *cpoints,
+                        float *rhs );
+\end{listingC}
+
+\begin{listingC}
+int g1bl_NiSize ( int nkn );
+int g1bl_NijSize ( int nkn );
+int g1bl_MijSize ( int nkn );
+\end{listingC}
+
+\begin{listingC}
+void g1bl_TabNid ( int nkn, double *bf, double *dbf, double *ddbf,
+                   double *Nitab );
+void g1bl_TabNijd ( int nkn, double *bf, double *dbf, double *ddbf,
+                    double *Nijtab );
+double g1bl_UFuncd ( int nkn, const double *qcoeff, double *Nitab,
+                 int lastknotu, int lastknotv, int pitch, point3d *cp,
+                 char *dirty,
+                 double tC, double *ftab );
+\end{listingC}
+
+\begin{listingC}
+double g1bl_QFuncd ( int nkn, const double *qcoeff, double *Nitab,
+               int lastknotu, int lastknotv, int pitch, point3d *cp,
+               char *dirty,
+               double tC, double *ftab );
+double g1bl_biharmFuncd ( int nkn, const double *qcoeff,
+               double *Nitab,
+               int lastknotu, int lastknotv, int pitch, point3d *cp,
+               char *dirty,
+               double tC, double *ftab );
+\end{listingC}
+
+\begin{listingC}
+void g1bl_UFuncGradd ( int nkn, const double *qcoeff, double *Nitab,
+                       int lastknotu, int lastknotv,
+                       int pitch, point3d *cp, char *dirty,
+                       double tC, double *ftab, double *gtab,
+                       double *func, double *grad );
+void g1bl_UFuncGradHessiand ( int nkn, const double *qcoeff,
+                  double *Nitab, double *Nijtab, double *Mijtab,
+                  int lastknotu, int lastknotv,  
+                  int pitch, point3d *cp, char *dirty,
+                  double tC, double *ftab, double *gtab,
+                  double *htab, double *func, double *grad,
+                  int hsize, const int *prof, double **hrows );
+double g1bl_SurfNetDiameterSqd ( int lastknotu, int lastknotv,
+                                 int pitch, const point3d *cp );
+\end{listingC}
+
+\begin{listingC}
+boolean g1bl_InitBlSurfaceOptLMTd ( int lastknotu, int lastknotv,
+                                    int pitch, point3d *cp,
+                                    double C, double dO, double dM,
+                                    int nkn1, int nkn2,
+                                    void **data );
+boolean g1bl_IterBlSurfaceOptLMTd ( void *data, boolean *finished );
+void g1bl_OptLMTDeallocated ( void **data );
+boolean g1bl_FindBlSurfaceLMTd ( int lastknotu, int lastknotv,
+                                 int pitch, point3d *cp,
+                                 double C, double dO, double dM,
+                                 int maxit, int nkn1, int nkn2 );
+\end{listingC}
+
+\begin{listingC}
+boolean g1bl_ClosedInitBlSurfaceConstrOptLMTd (
+                 int lastknotu, int lastknotv, int pitch, point3d *cp,
+                 int nconstr, double *constrmat, double *constrrhs,   
+                 double C, double dO, double dM, int nkn1, int nkn2,  
+                 void **data );
+boolean g1bl_ClosedIterBlSurfaceConstrOptLMTd ( void *data,
+                 boolean *finished );
+void g1bl_ClosedConstrOptLMTDeallocated ( void **data );
+boolean g1bl_ClosedFindBlSurfaceConstrLMTd (
+                 int lastknotu, int lastknotv, int pitch, point3d *cp,
+                 int nconstr, double *constrmat, double *constrrhs,   
+                 double C, double dO, double dM,
+                 int maxit, int nkn1, int nkn2 );
+\end{listingC}
+
+\begin{listingC}
+boolean g1bl_SetupULConstraintsd ( int lastknotu, int lastknotv,
+                      int spdimen, int ppitch, double *cp,
+                      int nucurv, double *ucknots,
+                      int cpitch, double *uccp,   
+                      int *nconstr, double *cmat, double *crhs );
+
+boolean g1bl_SetupUNLConstraintsd ( int lastknotu, int lastknotv,
+                            int ppitch, point3d *cp,
+                            int nucurv, double *ucknots,
+                            int cpitch, point3d *uccp,  
+                            int *nconstr, double *cmat, double *crhs );
+
+boolean g1bl_SetupClosedULConstraintsd (
+                        int lastknotu, int lastknotv,
+                        int spdimen, int ppitch, double *cp,
+                        int nucurv, double *ucknots,
+                        int cpitch, double *uccp,   
+                        int *nconstr, double *cmat, double *crhs );
+\end{listingC}
+
+\begin{listingC}
+boolean g1bl_SetupClosedUNLConstraintsd (
+                        int lastknotu, int lastknotv,
+                        int ppitch, point3d *cp,
+                        int nucurv, double *ucknots,
+                        int cpitch, point3d *uccp,  
+                        int *nconstr, double *cmat, double *crhs );
+
+
+boolean g1bl_FuncTSQFd ( int nkn,
+                 int lastknotu, int lastknotv, int pitch, point3d *cp,
+                 double tC,
+                 double *fT, double *fS, double *fQ, double *fF );
+\end{listingC}
+

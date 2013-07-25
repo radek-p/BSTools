@@ -1,0 +1,278 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\thispagestyle{empty}
+\vspace*{4.0cm}
+\centerline{\Huge BSTools}
+\vspace{0.75cm}
+\centerline{\Huge biblioteki procedur}
+\vspace{1.0cm}
+\centerline{\Large Przemys"law Kiciak}
+\vspace{1.0cm}
+\centerline{\large Wersja 0.29, 20 kwietnia 2012,}
+\vspace{\smallskipamount}
+\centerline{\large\TeX-owane \today.}
+
+\vspace{1.0cm}
+\noindent
+\textbf{Uwaga:} ta dokumentacja jest niekompletna
+i~wymaga gruntownej rewizji.
+
+\newpage
+\thispagestyle{empty}
+\vspace*{\fill}
+\noindent
+Rozpowszechnianie oprogramowanie, kt"orego dotyczy ta dokumentacja, odbywa
+si"e na zasadach licencji GNU opracowanych przez Free Software Foundation.
+Procedury, kt"orych kody "zr"od"lowe znajduj"a si"e w~podkatalogach
+\texttt{../src} i~\texttt{../include} s"a rozpowszechniane
+na licencji \textsl{GNU Lesser General Public License}, kt"orej pe"lny tekst
+znajduje si"e w~pliku \texttt{COPYING.LIB}, za"s programy demonstracyjne
+i~testowe oraz generuj"ace obrazki do tej dokumentacji (w~katalogach
+\texttt{../demo}, \texttt{../test} i~\texttt{./pict}) na licencji
+\textsl{GNU General Public License}, kt"orej tekst jest podany w~pliku
+\texttt{COPYING}.
+
+\vspace{\bigskipamount}
+\noindent
+Copyright \copyright\ by Przemys"law Kiciak, 2005--2012.
+
+\vspace*{\fill}
+
+\tableofcontents
+
+\chapter{Przegl"ad}
+
+\section{Wst"ep}
+
+Pakiet procedur BSTools napisa"lem w~celu przeprowadzania eksperyment"ow
+stanowi"acych cz"e"s"c mojej pracy naukowej, a~tak"re dla rozrywki.
+G"l"owna cz"e"s"c pakietu sk"lada si"e z~procedur przetwarzania krzywych
+i~powierzchni B\'{e}ziera i~B-sklejanych, st"ad nazwa. W"lasno"sci krzywych
+i~powierzchni oraz teoretyczne podstawy dzia"lania procedur ich przetwarzania
+s"a opisane w~mojej ksi"a"rce
+
+\vspace{\medskipamount}
+\centerline{\large\emph{Podstawy modelowania krzywych i~powierzchni}}
+\vspace{\smallskipamount}
+\centerline{\large\emph{zastosowania w~grafice komputerowej}}
+
+\vspace{\medskipamount}
+\noindent
+wydanej przez Wydawnictwa Naukowo-Techniczne%
+\footnote{%
+Opr"ocz mojej istnieje jeszcze wiele innych ksi"a"rek, w~kt"orych s"a
+przedstawione algorytmy realizowane przez opisane tu procedury;
+zgodnie z~moj"a wiedz"a "radna z~ksi"a"rek po"swi"econych w~ca"lo"sci tej
+tematyce nie zosta"la jeszcze (do pocz"atku roku 2005) przet"lumaczona
+na j"ezyk polski.}.
+Pakiet BSTools (wersja~0{.}12)
+jest dodatkiem do drugiego wydania tej ksi"a"rki (z~roku 2005).
+\emph{W~odr"o"rnieniu} od ksi"a"rki (kt"orej kopiowanie, nawet
+fragment"ow, \emph{musi} by"c poprzedzone uzys\-ka\-niem zgody WNT),
+pakiet ten \emph{wolno} kopiowa"c i~swobodnie rozpowszechnia"c,
+a~tak"re modyfikowa"c i~u"rywa"c w~dowolnych programach, na zasadach
+Mniejszej Licencji GNU, kt"orej pe"lny tekst znajduje si"e w~pliku
+\texttt{COPYING.LIB}.
+
+W~mojej drugiej ksi"a"rce,
+
+\vspace{\medskipamount}
+\centerline{\large\emph{Konstrukcje powierzchni g"ladko wype"lniaj"acych}}
+\vspace{\smallskipamount}
+\centerline{\large\emph{wielok"atne otwory}}
+
+\vspace{\medskipamount}
+\noindent
+wydanej przez Oficyn"e Wydawnicz"a Politechniki Warszawskiej (prace naukowe,
+Elektronika, z.~159, 2007) s"a opisane konstrukcje powierzchni klasy~$G^1$
+i~$G^2$, kt"orych implementacje s"a w~bibliotece \texttt{libeghole}
+w~tym pakiecie (w~wersji 0.18 do"l"aczonej do ksi"a"rki s"a dwie osobne
+biblioteki, \texttt{libg1hole} i~\texttt{libg2hole}, kt"ore p"o"zniej zosta"ly
+po"l"aczone i~znacznie rozbudowane).
+
+\vspace{\medskipamount}
+Procedury z~pakietu BSTools mog"a by"c u"ryte w~dowolnym (oby godziwym)
+celu, na przyk"lad do napisania systemu modelowania lub dowolnego programu
+graficznego. W~tym celu trzeba je ,,uodporni"c'', tj.\ dopracowa"c pe"lny
+system wykrywania i~obs"lugi b"l"ed"ow, oraz przeprowadzi"c stosowne testy.
+Jak wiadomo, osob"a o~najmniejszych kompetencjach do testowania dowolnego
+programu jest jego autor (co go zreszt"a nie usprawiedliwia, je"sli
+tego nie robi). Osoby ch"etne do udzia"lu w~tym przedsi"ewzi"eciu, a~tak"re
+do rozwijania pakietu i~wykorzystywania go w~zastosowaniach, b"ed"a
+mile widziane.
+
+\section{Kr"otki opis bibliotek}
+
+Pakiet BSTools obecnie sk"lada si"e z~nast"epuj"acych bibliotek:
+\begin{description}
+\item[\texttt{libpkvaria}]--- R"o"rno"sci, jak to: obs"luga pami"eci
+pomocniczej, sortowanie i inne.
+\item[\texttt{libpknum}]--- Procedury numeryczne u"rywane w r"o"rnych
+konstrukcjach krzywych B-sklejanych, ale nadaj"ace si"e do wykorzystania
+tak"re w~dowolnym innym celu.
+\item[\texttt{libpkgeom}]--- Procedury geometryczne.
+\item[\texttt{libcamera}]--- Rzutowanie perspektywiczne i~r"ownoleg"le.
+\item[\texttt{libpsout}]--- Tworzenie plik"ow z~rysunkami w~j"ezyku
+PostScript\raisebox{3pt}{\tiny(TM)}.
+\item[\texttt{libmultibs}]--- Obs"luga krzywych i~powierzchni B\'{e}ziera
+i~B-sklejanych.
+\item[\texttt{libraybez}]--- "Sledzenie promieni (wyznaczanie przeci"e"c
+promienia z p"latem).
+\item[\texttt{libeghole}]--- Wype"lnianie wielok"atnych otwor"ow
+w~kawa"lkami bikubicznych po\-wierzch\-niach B-sklejanych z~ci"ag"lo"sci"a~$G^1$,
+$G^2$ i~$G^1Q^2$.
+\item[\texttt{libbsmesh}]--- Procedury obslugi siatek reprezentujacych
+powierzchnie.
+\item[\texttt{libg1blending}]--- Procedury optymalizacji kszta"ltu
+powierzchni B-sklejanych stopnia~$(2,2)$, klasy~$G^1$.
+\item[\texttt{libg2blending}]--- Procedury optymalizacji kszta"ltu
+bikubicznych powierzchni B-sklejanych i~reprezentowanych przez siatki,
+klasy~$G^2$.
+\item[\texttt{libbsfile}]--- Pisanie i~czytanie plikow z~danymi opisujacymi
+krzywe i~powierzchnie.
+\item[\texttt{libxgedit}]--- Obs"luga dialogu (poprzez okna i~wihajstry)
+aplikacji w~systemie XWindow (na potrzeby program"ow demonstracyjnych).
+\end{description}
+
+Procedury s"a napisane w~czystym j"ezyku~C, bez "radnych zale"rno"sci
+sprz"etowych ani systemowych, z~jednym wyj"atkiem: procedura sortowania
+w~bibliotece \texttt{libpkvaria} jest napisana przy za"lo"reniu, "re
+procesor umieszcza poszczeg"olne bajty s"lowa maszynowego w~kolejno"sci
+little-endian. Ewentualne przeniesienie pakietu na komputer wyposa"rony
+w~procesor taki jak Motorola wymaga przepisania tej procedury (to zostalo
+zrobione, ale jeszcze nie zostalo przetestowane).
+
+
+\section{Kompilacja pakietu}
+
+Dostarczone pliki Makefile s"a przystosowane do dzia"lania w~systemie Linux.
+Aby skompilowa"c pakiet, dokumentacj"e i~programy demonstracyjne, nale"ry
+mie"c zainstalowane:
+\begin{itemize}
+  \item program GNU make,
+  \item kompilator gcc i~program ar,
+  \item biblioteki XWindow i OpenGL (dla program"ow demonstracyjnych),
+  \item system \TeX\ (do skompilowania dokumentacji --- potrzebny jest
+    pakiet \LaTeX\ i~zestawy font"ow Concrete Roman i~Euler),
+  \item a ponadto programy Ghostscript i~Ghostview, kt"ore s"lu"r"a do
+    wygodnego ogl"adania dokumentacji i~obrazk"ow wygenerowanych przez
+    programy testowe.
+\end{itemize}
+Aby skompilowa"c ca"ly pakiet, wystarczy w~g"l"ownym katalogu rozpakowanego
+pakietu wyda"c polecenie \texttt{make}. Mo"rna to poprzedzi"c poleceniem
+\texttt{make clean}, aby wymusi"c kompilacj"e wszystkich plik"ow
+"zr"od"lowych.
+
+Programy demonstracyjne mo"rna uruchomi"c w~systemie XWindow, przy czym nie
+ma "radnych wymaga"n co do konkretnego menagera okien, nie s"a te"r wymagane
+"radne specjalistyczne biblioteki (takie jak Motif itd.). Niekt"ore programy
+demonstracyjne korzystaj"a z~OpenGL-a, potrzebne s"a biblioteki
+\texttt{libGL}, \texttt{libGLU} i~\texttt{libGLX}.
+
+
+\section{Pliki nag"l"owkowe}
+
+Pliki nag"l"owkowe bibliotek znajduj"a si"e w~katalogu \texttt{../include}.
+Ka"rda biblioteka mo"re mie"c wi"ecej ni"r jeden plik nag"l"owkowy, co
+umo"rliwia skr"ocenie kompilacji program"ow nie odwo"luj"acych si"e do
+wszystkich procedur w~danej bibliotece.
+\begin{description}
+\item[\texttt{libpkvaria}]--- plik \texttt{pkvaria.h}.
+\item[\texttt{libpknum}]--- pliki \texttt{pknumf.h} i~\texttt{pknumd.h},
+zawieraj"ace nag"l"owki procedur odpowiednio w~wersjach pojedynczej
+(\texttt{IEEE-754 single}) i~podw"ojnej (\texttt{IEEE-754 double}) precyzji
+arytmetyki zmiennopozycyjnej. U"rycie pliku \texttt{pknum.h} powoduje
+w"l"aczenie obu tych plik"ow, dzi"eki czemu mo"rna wygodniej kompilowa"c
+programy wykonuj"ace obliczenia w~obu precyzjach.
+\item[\texttt{libpkgeom}]--- pliki \texttt{pkgeomf.h} i~\texttt{pkgeomd.h} oraz
+\texttt{pkgeom.h}, kt"ore umo"rliwiaj"a korzystanie z~procedur pojedynczej
+i~podw"ojnej oraz obu precyzji.
+
+Procedury znajdowania otoczki wypuk"lej zbioru punkt"ow maj"a osobny plik
+\texttt{convh.h}, kt"ory zawiera nag"l"owki wersji dla obu precyzji.
+\item[\texttt{libcamera}]--- pliki \texttt{cameraf.h}, \texttt{camerad.h}
+i~\texttt{camera.h} zawieraj"a opisy kamer,
+tj.\ obiekt"ow opisuj"acych rzutowanie perspektywiczne i~r"ownoleg"le,
+w~wersji pojedynczej, podw"ojnej i~obu precyzji.
+
+Pliki \texttt{stereof.h}, \texttt{stereod.h} i~\texttt{stereo.h} zawieraj"a
+opisy pary takich kamer, kt"orej mo"rna u"ry"c do wykonania pary obraz"ow
+stereoskopowych. 
+\item[\texttt{libpsout}]--- plik \texttt{psout.h} zawiera nag"l"owki
+wszystkich procedur w~tej bibliotece.
+\item[\texttt{libmultibs}]--- pliki \texttt{multibsf.h}, \texttt{multibsd.h}
+i~\texttt{multibs.h} zawieraj"a opisy procedur w~pojedynczej, podw"ojnej
+oraz obu precyzjach.
+\item[\texttt{libraybez}]--- pliki \texttt{raybezf.h} (pojedyncza precyzja),
+\texttt{raybezd.h} (podw"ojna precyzja) i~\texttt{raybez.h} (obie wersje).
+\item[\texttt{libeghole}]--- pliki \texttt{eg1holef.h}, \texttt{eg2holef.h}
+(pojedyncza precyzja), \texttt{eg1holed.h} i~\texttt{eg2holed.h}
+(podw"ojna precyzja). Nie ma plik"ow dla obu wersji jed\-no\-cze"s\-nie.
+\item[\texttt{libbsmesh}]--- plik \texttt{bsmesh.h}
+\item[\texttt{libg1blending}]--- pliki \texttt{g1blendingf.h},
+\texttt{g1blendingd.h} (procedury pojedynczej i~podw"ojnej precyzji).
+\item[\texttt{libg2blending}]--- pliki \texttt{g2blendingf.h},
+\texttt{g2blendingd.h}, \texttt{g2mblendingd.h}. Niekt"ore procedury s"a
+tylko w~wersji podw"ojnej precyzji, poniewa"r zakres liczb pojedynczej
+precyzji jest niewystarczaj"acy do przeprowadzenia oblicze"n.
+\item[\texttt{libbsfile}]--- plik \texttt{bsfile.h}, procedury s"a tylko dla
+wersji podw"ojnej precyzji.
+\item[\texttt{libxgedit}]--- pliki \texttt{xgedit.h} i~\texttt{xgledit.h};
+drugi plik zawiera nag"l"owki procedur dla aplikacji u"rywaj"acej OpenGL-a.
+Dodatkowe pliki, \texttt{xgergb.h} i~\texttt{xglergb.h}, kt"orych nie nale"ry
+w"l"acza"c bezpo"srednio zawieraj"a definicje kolor"ow odpowiadaj"acych
+angielskim nazwom.
+\end{description}
+
+Procedury s"a skompilowane jako programy w~C, ale powy"rsze pliki
+nag"l"owkowe zawieraj"a odpowiednie fragmenty powoduj"ace kompilowanie
+programu w~C++ tak, aby da"lo si"e go zlinkowa"c z~tymi bibliotekami.
+
+
+\section{Kolejno"s"c linkowania}
+
+Procedury w~poszczeg"olnych bibliotekach wywo"luj"a procedury z~innych
+bibliotek, w~zwi"azku z~czym linkowanie programu wymaga podania tych
+bibliotek we~w"la"sciwej kolejno"sci (w~przeciwnym razie kompilator nie
+znajdzie potrzebnej procedury w~bibliotece, kt"orej przeszukiwanie
+zako"nczy"l wcze"sniej). Jedna z~w"la"sciwych kolejno"sci jest taka:
+
+\vspace{\medskipamount}
+\centerline{\texttt{xgedit raybez bsfile g2blending g1blending bsmesh camera}}
+
+\centerline{\texttt{eghole multibs psout pkgeom pknum pkvaria}}
+\vspace{\medskipamount}
+
+\noindent
+i~nale"ry j"a zachowa"c pisz"ac np.\ w"lasne pliki \texttt{Makefile}.
+Oczywi"scie, biblioteki, kt"orych dany program nie u"rywa, mo"rna pomin"a"c.
+
+
+\section{Zasady modyfikowania procedur}
+
+Licencja GNU nie nak"lada "radnych ogranicze"n na zmiany, jakich kto"s
+chcia"lby dokona"c w~oprogramowaniu (ale fakt dokonania zmiany musi by"c
+zaznaczony w~kodzie, tak aby nie by"lo w"atpliwo"sci, "re to nie autor
+oryginalnego programu co"s sknoci"l). Dlatego wszelkie zasady mog"a by"c
+tylko "ryczeniami autora.
+\begin{enumerate}
+\item\begin{sloppypar}
+  Z~wyj"atkiem tworzenia plik"ow postscriptowych, oraz biblioteki
+  \texttt{xgedit}, wszystkie procedury s"a niezale"rne od wszelkich "srodowisk,
+  w~jakich mog"lyby by"c u"ryte (i~tak powinno pozosta"c).%
+  \end{sloppypar}
+\item Dokonuj"ac zmiany procedury w~wersji pojedynczej lub podw"ojnej
+  precyzji trzeba wprowadzi"c analogiczn"a zmian"e w~tej drugiej wersji
+  (je"sli istnieje; je"sli nie, wskazane jest napisanie jej, z~u"ryciem
+  identycznego algorytmu, cho"c dla niekt"orych algorytm"ow pojedyncza
+  precyzja ma niewystarczaj"acy zakres).
+\item Po dokonaniu zmiany wskazane jest uaktualnienie dokumentacji
+  i~zrealizowanie odpowiedniego programu testowego. B"ed"e wdzi"eczny
+  za informacje o~zmianach (i~mog"e je w"l"acza"c do nast"epnych wersji
+  pakietu).
+\end{enumerate}
+

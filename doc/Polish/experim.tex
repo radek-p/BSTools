@@ -1,0 +1,57 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{Eksperymenty}
+
+Tu s"a opisy r"o"rnych eksperyment"ow, kt"ore jeszcze nie dojrza"ly do
+w"l"aczenia do bibliotek. Gdzie"s to musi by"c udokumentowane.
+
+\section{Konwersja p"lata tr"ojk"atnego do tensorowego}
+
+P"lat tr"ojk"atny stopnia $n$ jest reprezentowany przez $(n+1)(n+2)/2$
+punkt"ow kontrolnych. P"lat tensorowy stopnia $(n,n)$ jest reprezentowany za
+pomoc"a $(n+1)^2$ punkt"ow kontrolnych. Znalezienie reprezentacji p"lata
+polega na pomno"reniu odpowiedniej macierzy przej"scia przez wektor
+punkt"ow kontrolnych reprezentacji tr"ojk"atnej --- powstaje wektor punkt"ow
+kontrolnych reprezentacji tensorowej.
+
+Macierz przej"scia ma wymiary $(n+1)^2\times(n+1)(n+2)/2$ i jest rzadka,
+tj.\ wi"ekszo"s"c jej wsp"o"lczynnik"ow r"o"rni si"e od zera. Rozmieszczenie
+niezerowych wsp"o"lczynnik"ow dla $n\in\{1,\ldots,9\}$ jest pokazane na
+rys.~\ref{fig:trconv:mat}.
+
+\begin{figure}[h]
+  \[
+    \begin{array}{c}\mbox{\epsfig{file=tbez1.ps}}\end{array}\quad
+    \begin{array}{c}\mbox{\epsfig{file=tbez2.ps}}\end{array}\quad
+    \begin{array}{c}\mbox{\epsfig{file=tbez3.ps}}\end{array}\quad
+    \begin{array}{c}\mbox{\epsfig{file=tbez4.ps}}\end{array}\quad
+    \begin{array}{c}\mbox{\epsfig{file=tbez5.ps}}\end{array}\quad
+    \begin{array}{c}\mbox{\epsfig{file=tbez6.ps}}\end{array}
+  \]
+  \[
+    \begin{array}{c}\mbox{\epsfig{file=tbez7.ps}}\end{array}\quad
+    \begin{array}{c}\mbox{\epsfig{file=tbez8.ps}}\end{array}\quad
+    \begin{array}{c}\mbox{\epsfig{file=tbez9.ps}}\end{array}
+  \]
+  \caption{\label{fig:trconv:mat}Struktura macierzy przej"scia od postaci
+    tr"ojk"atnej do tensorowej}
+\end{figure}
+Dzi"eki temu, "re macierze przej"scia s"a rzadkie, mo"rna je reprezentowa"c
+w~ma"lej ilo"sci pami"eci. Reprezentacja u"rywana przez procedur"e opisan"a
+ni"rej sk"lada si"e z~tablicy, kt"ora zawiera warto"sci bezwzgl"edne
+wsp"o"lczynnik"ow r"o"rne od $0$ i~$1$ (ka"rda liczba wyst"epuje w~niej
+tylko raz) i~kodu, kt"ory opisuje mno"renie (a~w~szcze\-g"ol\-no"s\-ci
+umo"rliwia odtworzenie macierzy). Procedura konwersji jest interpreterem
+tego kodu.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_ConvertTBezToTensorf ( int spdimen, int degree, \\
+\ind{20}const float *trctlp, float *rpctlp );}
+
+...................................
+

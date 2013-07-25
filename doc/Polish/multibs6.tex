@@ -1,0 +1,861 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\newpage
+\section{\label{sect:Coons:patch:procedures}Przetwarzanie p"lat"ow Coonsa}
+
+\subsection{P"laty wielomianowe}
+
+Wielomianowe p"laty Coonsa s"a reprezentowane za pomoc"a krzywych B\'{e}ziera,
+kt"orych stopnie mog"a by"c r"o"rne. Dziedzin"a p"lata jest kwadrat $[0,1]^2$,
+zatem liczby $a,b,c,d$ opisane w~p.~\ref{ssect:Coons:patch:def} s"a r"owne
+odpowiednio $0,1,0,1$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BezC1CoonsFindCornersf ( int spdimen, \\
+\ind{34}int degc00, const float *c00, \\
+\ind{34}int degc01, const float *c01, \\
+\ind{34}int degc10, const float *c10, \\
+\ind{34}int degc11, const float *c11, \\
+\ind{34}float *pcorners );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_BezC1CoonsFindCornersf} wyznacza macierz~$\bm{P}$
+o~wymiarach $4\times\nobreak 4$, kt"orej elementami s"a odpowiednie punkty
+krzywych $\bm{c}_{00},\bm{c}_{10},\bm{c}_{01},\bm{c}_{11}$ i~wektory ich
+pochodnych.%
+\end{sloppypar}
+
+Parametry: \texttt{spdimen} --- wymiar~$d$ przestrzeni, w~kt"orej le"r"a
+krzywe i~reprezentowany przez nie wielomianowy bikubiczny (klasy~$C^1$)
+p"lat Coonsa. Ka"rda para parametr"ow \texttt{degc??} i~\texttt{c??}
+opisuje jedn"a z~krzywych, stopie"n i~tablic"e punkt"ow kontrolnych.
+
+Parametr \texttt{pcorners} jest wska"znikiem tablicy, w~kt"orej ma by"c
+umieszczony wynik; tablica ta musi mie"c d"lugo"s"c~$16d$.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_BezC1CoonsToBezf ( int spdimen, \\
+\ind{31}int degc00, const float *c00, \\
+\ind{31}int degc01, const float *c01, \\
+\ind{31}int degc10, const float *c10, \\
+\ind{31}int degc11, const float *c11, \\
+\ind{31}int degd00, const float *d00, \\
+\ind{31}int degd01, const float *d01, \\
+\ind{31}int degd10, const float *d10, \\
+\ind{31}int degd11, const float *d11, \\
+\ind{31}int *n, int *m, float *p );}
+Procedura \texttt{mbs\_BezC1CoonsToBezf} wyznacza reprezentacj"e B\'{e}ziera
+bikubicznego p"lata Coonsa (klasy~$C^1$) okre"slonego przez dane krzywe
+wielomianowe. Warto"sci"a procedury jest \texttt{true}, je"sli obliczenie
+zako"nczy"lo si"e sukcesem, a~\texttt{false} w~przeciwnym razie (przyczyn"a
+niepowodzenia mo"re by"c brak pami"eci na stosie pami"eci pomocniczej).
+
+Warto"s"c parametru \texttt{spdimen} jest wymiarem~$d$ przestrzeni, w~kt"orej
+le"r"a krzywe i~okre"slony przez nie p"lat. Ka"rda para parametr"ow
+\texttt{degc??} i~\texttt{c??} opisuje odpowiedni"a krzyw"a z~rodziny
+$\bm{c}_{00},\bm{c}_{01},\bm{c}_{10},\bm{c}_{11}$, przez podanie stopnia
+i~tablicy punkt"ow kontrolnych. Kolejne pary parametr"ow \texttt{degd??}
+i~\texttt{d??} opisuj"a w~ten sam spos"ob krzywe z~rodziny
+$\bm{d}_{00},\bm{d}_{01},\bm{d}_{10},\bm{d}_{11}$. Krzywe te musz"a
+spe"lnia"c (z~dok"ladno"sci"a do b"l"ed"ow zaokr"agle"n) warunki
+zgodno"sci~(\ref{eq:Coons:compat:cond}), co \emph{nie jest} sprawdzane.
+
+Zmienne \texttt{*n} i~\texttt{*m} otrzymuj"a warto"sci opisuj"ace stopie"n
+reprezentacji B\'{e}ziera p"lata. Warto"sci"a~$n$ zmiennej \texttt{*n} jest
+najwi"eksza z~warto"sci parametr"ow \texttt{degc??} lub~$3$ (je"sli liczba~$3$
+jest wi"eksza). Podobnie, warto"s"c~$m$ zmiennej \texttt{*m} jest najwi"eksz"a
+z~warto"sci parametr"ow \texttt{degd??} lub~$3$. W~tablicy wskazywanej przez
+parametr \texttt{p} procedura umieszcza punkty kontrolne B\'{e}ziera p"lata;
+tablica ta musi by"c dostatecznie pojemna (musi mie"c d"lugo"s"c co najmniej
+$(n+1)(m+1)d$).
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_TabCubicHFuncDer2f ( float a, float b, \\
+\ind{20}int nkn, const float *kn, \\
+\ind{20}float *hfunc, float *dhfunc, float *ddhfunc );}
+Procedura \texttt{mbs\_TabCubicHFuncDer2f} tablicuje wielomiany
+$\tilde{H}_{00},\tilde{H}_{10},\tilde{H}_{01}$ i~$\tilde{H}_{11}$,
+bed"ace podstaw"a definicji bikubicznego p"lata Coonsa, oraz ich pochodne
+rz"edu~$1$ i~$2$. Wyniki tego obliczenia mog"a by"c u"ryte do stablicowania
+bikubicznego p"lata Coonsa na siatce prostok"atnej, za pomoc"a procedury
+\texttt{mbs\_TabBezC1CoonsDer2f} (p"lat wielomianowy) lub
+\texttt{mbs\_TabBSC1CoonsDer2f} (p"lat sklejany).
+
+Parametry \texttt{a} i~\texttt{b} opisuj"a ko"nce odcinka przyj"etego
+za dziedzin"e krzywych $\bm{c}_{ij}$ lub $\bm{d}_{ij}$; dla wielomianowych
+p"lat"ow Coonsa ich warto"sciami powinny by"c liczby $0$ i~$1$.
+
+Parametr \texttt{nkn} okre"sla liczb"e~$k$ punkt"ow $u_m\in[a,b]$, w~kt"orych
+nale"ry obliczy"c warto"sci wielomian"ow; punkty te (tj.\ liczby
+zmiennopozycyjne) s"a podane w~tablicy \texttt{kn}.
+
+Warto"sci wielomian"ow oraz ich pochodnych rz"edu~$1$ i~$2$ s"a wpisywane
+odpowiednio do tablic \texttt{hfunc}, \texttt{dhfunc} i~\texttt{ddhfunc}.
+Tablice te musz"a mie"c d"lugo"s"c co najmniej~$4k$; na ka"rdych kolejnych
+czterech pozycjach w~tablicy s"a wpisywane warto"sci czterech wielomian"ow
+lub ich pochodnych w~kolejnym punkcie $u_m$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_TabCubicHFuncDer3f ( float a, float b, int nkn, \\
+\ind{20}const float *kn, \\
+\ind{20}float *hfunc, float *dhfunc, float *ddhfunc, \\
+\ind{20}float *dddhfunc );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_TabBezC1CoonsDer2f ( int spdimen, \\
+\ind{8}int nknu, const float *knu, const float *hfuncu, \\
+\ind{8}const float *dhfuncu, const float *ddhfuncu, \\
+\ind{8}int nknv, const float *knv, const float *hfuncv, \\
+\ind{8}const float *dhfuncv, const float *ddhfuncv, \\
+\ind{8}int degc00, const float *c00, \\
+\ind{8}int degc01, const float *c01, \\
+\ind{8}int degc10, const float *c10, \\
+\ind{8}int degc11, const float *c11, \\
+\ind{8}int degd00, const float *d00, \\
+\ind{8}int degd01, const float *d01, \\
+\ind{8}int degd10, const float *d10, \\
+\ind{8}int degd11, const float *d11, \\
+\ind{8}float *p, float *pu, float *pv, \\
+\ind{8}float *puu, float *puv, float *pvv );}
+Procedura \texttt{mbs\_TabBezC1CoonsDer2f} s"lu"ry do szybkiego stablicowania
+bikubicznego wielomianowego p"lata Coonsa, razem z~pochodnymi cz"astkowymi
+rz"edu~$1$ i~$2$, dla punkt"ow $(u_i,v_j)$, gdzie $i\in\{0,\ldots,k-1\}$,
+$j\in\{0,\ldots,l-1\}$.
+
+Parametr~\texttt{spdimen} okre"sla wymiar~$d$ przestrzeni, w~kt"orej jest
+p"lat. Parametr~\texttt{nknu} okre"sla liczb"e~$k$, tablica~\texttt{knu}
+zawiera liczby $t_0,\ldots,t_{k-1}$. Tablice \texttt{hfuncu},
+\texttt{dhfuncu},
+\texttt{ddhfuncu} zawieraj"a odpowiednio warto"sci wielomian"ow
+$H_{00},H_{10},H_{01},H_{11}$ i~ich pochodnych rz"edu~$1$ i~$2$ w~punktach
+$u_0,\ldots,u_{k-1}$; warto"sci te najpro"sciej jest obliczy"c
+wywo"luj"ac zawczasu procedur"e \texttt{mbs\_TabCubicHFuncDer2f}
+(z~parametrami \texttt{a}${}=0$, \texttt{b}${}=1$).
+
+Ci"ag liczb $v_j$ okre"slaj"acych drugie wsp"o"lrz"edne punkt"ow
+tablicowania p"lata jest w~analogiczny spos"ob opisany za pomoc"a
+parametr"ow \texttt{nknv} i~\texttt{knv}, tablice \texttt{hfuncv},
+\texttt{dhfuncv} i~\texttt{ddhfuncv} zawieraj"a warto"sci funkcji $H_{ij}$
+i~ich pochodnych dla tych liczb.
+
+Pary parametr"ow \texttt{degc??} i~\texttt{c??} oraz \texttt{degd??}
+i~\texttt{d??} opisuj"a krzywe B\'{e}ziera okre"slaj"ace p"lat.
+Krzywe te musz"a spe"lnia"c (z~dok"ladno"sci"a do b"l"ed"ow zaokr"agle"n)
+warunki zgodno"sci~(\ref{eq:Coons:compat:cond}).
+
+Do tablic wskazywanych przez parametry \texttt{p}, \texttt{pu}, \texttt{pv},
+\texttt{puu}, \texttt{puv}, \texttt{pvv} procedura wpisuje obliczone punkty
+p"lata i~wektory pochodnych cz"astkowych rz"edu~$1$ i~$2$; je"sli kt"ory"s
+z~tych parametr"ow ma warto"s"c \texttt{NULL}, to odpowiednia pochodna
+nie jest tablicowana. W~przeciwnym razie wskazywana tablica musi mie"c
+d"lugo"s"c co najmniej~$k^2d$.
+
+Warto"sci"a procedury jest \texttt{true} w~razie sukcesu i~\texttt{false}
+w~razie niepowodzenia oblicze"n (z~powodu braku miejsca na stosie
+pami"eci pomocniczej).
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_TabBezC1CoonsDer3f ( int spdimen, \\
+\ind{8}int nknu, const float *knu, const float *hfuncu, \\
+\ind{8}const float *dhfuncu, const float *ddhfuncu, \\
+\ind{8}const float *dddhfuncu, \\
+\ind{8}int nknv, const float *knv, const float *hfuncv, \\
+\ind{8}const float *dhfuncv, const float *ddhfuncv, \\
+\ind{8}const float *dddhfuncv, \\
+\ind{8}int degc00, const float *c00, \\
+\ind{8}int degc01, const float *c01, \\
+\ind{8}int degc10, const float *c10, \\
+\ind{8}int degc11, const float *c11, \\
+\ind{8}int degd00, const float *d00, \\
+\ind{8}int degd01, const float *d01, \\
+\ind{8}int degd10, const float *d10, \\
+\ind{8}int degd11, const float *d11, \\
+\ind{8}float *p, float *pu, float *pv, \\
+\ind{8}float *puu, float *puv, float *pvv, \\
+\ind{8}float *puuu, float *puuv, float *puvv, float *pvvv );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_TabBezC1Coons0Der2f ( int spdimen, \\
+\ind{8}int nknu, const float *knu, const float *hfuncu, \\
+\ind{8}const float *dhfuncu, const float *ddhfuncu, \\
+\ind{8}int nknv, const float *knv, const float *hfuncv, \\
+\ind{8}const float *dhfuncv, const float *ddhfuncv, \\
+\ind{8}int degc00, const float *c00, \\
+\ind{8}int degc01, const float *c01, \\
+\ind{8}int degd00, const float *d00, \\
+\ind{8}int degd01, const float *d01, \\
+\ind{8}float *p, float *pu, float *pv, \\
+\ind{8}float *puu, float *puv, float *pvv );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_TabBezC1Coons0Der2f} jest nieco uproszczon"a wersj"a
+procedury \texttt{mbs\_TabBezC1CoonsDer2f} dla przypadku, gdy krzywe
+$\bm{c}_{10},\bm{c}_{11},\bm{d}_{10}$ i~$\bm{d}_{11}$ s"a zerowe
+(tj.\ gdy wszystkie ich punkty kontrolne maj"a zerowe wszystkie
+wsp"o"lrz"edne). Stablicowanie p"lata okre"slonego przez takie krzywe mo"re
+by"c wykonane w~kr"otszym czasie; z~procedury tej korzysta biblioteka
+\texttt{libg1hole}.%
+\end{sloppypar}
+
+Parametry procedury \texttt{mbs\_TabBezC1Coons0Der2f} s"a takie same,
+jak parametry proceury \texttt{mbs\_TabBezC1CoonsDer2f} o~tych samych
+nazwach.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_TabBezC1Coons0Der3f ( int spdimen, \\
+\ind{8}int nknu, const float *knu, const float *hfuncu, \\   
+\ind{8}const float *dhfuncu, const float *ddhfuncu, \\
+\ind{8}const float *dddhfuncu, \\
+\ind{8}int nknv, const float *knv, const float *hfuncv, \\
+\ind{8}const float *dhfuncv, const float *ddhfuncv, \\
+\ind{8}const float *dddhfuncv, \\
+\ind{8}int degc00, const float *c00, \\
+\ind{8}int degc01, const float *c01, \\
+\ind{8}int degd00, const float *d00, \\
+\ind{8}int degd01, const float *d01, \\
+\ind{8}float *p, float *pu, float *pv, \\
+\ind{8}float *puu, float *puv, float *pvv, \\
+\ind{8}float *puuu, float *puuv, float *puvv, float *pvvv );}
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BezC2CoonsFindCornersf ( int spdimen, \\
+\ind{34}int degc00, const float *c00, \\
+\ind{34}int degc01, const float *c01, \\
+\ind{34}int degc02, const float *c02, \\
+\ind{34}int degc10, const float *c10, \\
+\ind{34}int degc11, const float *c11, \\
+\ind{34}int degc12, const float *c12, \\
+\ind{34}float *pcorners );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_BezC2CoonsFindCornersf} wyznacza macierz~$\bm{P}$  
+o~wymiarach $6\times\nobreak 6$, kt"orej elementami s"a odpowiednie punkty
+krzywych
+$\bm{c}_{00},\bm{c}_{10},\bm{c}_{01},\bm{c}_{11},\bm{c}_{02},\bm{c}_{12}$
+i~wektory ich pochodnych.%   
+\end{sloppypar}
+
+Parametry: \texttt{spdimen} --- wymiar~$d$ przestrzeni, w~kt"orej le"r"a
+krzywe i~reprezentowany przez nie wielomianowy dwupi"etny (klasy~$C^2$)
+p"lat Coonsa. Ka"rda para parametr"ow \texttt{degc??} i~\texttt{c??}
+opisuje jedn"a z~krzywych, stopie"n i~tablic"e punkt"ow kontrolnych.
+
+Parametr \texttt{pcorners} jest wska"znikiem tablicy, w~kt"orej ma by"c
+umieszczony wynik; tablica ta musi mie"c d"lugo"s"c~$36d$.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_BezC2CoonsToBezf ( int spdimen, \\
+\ind{31}int degc00, const float *c00, \\
+\ind{31}int degc01, const float *c01, \\
+\ind{31}int degc02, const float *c02, \\
+\ind{31}int degc10, const float *c10, \\
+\ind{31}int degc11, const float *c11, \\
+\ind{31}int degc12, const float *c12, \\
+\ind{31}int degd00, const float *d00, \\
+\ind{31}int degd01, const float *d01, \\
+\ind{31}int degd02, const float *d02, \\
+\ind{31}int degd10, const float *d10, \\
+\ind{31}int degd11, const float *d11, \\
+\ind{31}int degd12, const float *d12, \\
+\ind{31}int *n, int *m, float *p );}
+Procedura \texttt{mbs\_BezC2CoonsToBezf} dokonuje konwersji dwupi"etnego
+p"lata Coonsa do postaci B\'{e}ziera. P"lat jest dany za pomoc"a
+$12$~krzywych wielomianowych, opisuj"acych brzeg (krzywe $c_{00}$, $c_{10}$,
+$d_{00}$, $d_{10}$) i~pochodne poprzeczne rz"edu~$1$ (krzywe $c_{01}$,
+$c_{11}$, $d_{01}$, $d_{11}$) i~$2$ (krzywe $c_{02}$, $c_{12}$, $d_{02}$,
+$d_{12}$). Wszystkie te krzywe s"a dane w~postaci B\'{e}ziera, ich stopnie
+s"a okre"slone za pomoc"a pa\-ra\-met\-r"ow
+\texttt{degc00}, \ldots, \texttt{degd12},
+punkty kontrolne (w~przestrzeni o~wymiarze \texttt{spdimen}) s"a dane
+w~tablicach \texttt{c00}, \ldots, \texttt{d12}.
+
+Parametry wyj"sciowe to \texttt{*n} i~\texttt{*m}, kt"ore otrzymuj"a
+warto"sci okre"slaj"ace stopie"n, oraz tablica \texttt{p}, do kt"orej
+procedura wpisuje wsp"o"lrz"edne punkt"ow kontrolnych B\'{e}ziera p"lata.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_TabQuinticHFuncDer3f (  float a, float b, \\
+\ind{32}int nkn, const float *kn, \\
+\ind{32}float *hfunc, float *dhfunc, \\
+\ind{32}float *ddhfunc, float *dddhfunc );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_TabQuinticHFuncDer3f} tablicuje wielomiany   
+$\tilde{H}_{00},\tilde{H}_{10},\tilde{H}_{01}$, $\tilde{H}_{11},\tilde{H}_{02}$
+i~$\tilde{H}_{12}$, bed"ace podstaw"a definicji dwupi"etnego p"lata Coonsa,
+oraz ich pochodne rz"edu~$1$, $2$ i~$3$. Wyniki tego obliczenia mog"a by"c
+u"ryte do stablicowania dwupi"etnego p"lata Coonsa na siatce prostok"atnej,
+za pomoc"a procedury \texttt{mbs\_TabBezC2CoonsDer3f} (p"lat wielomianowy) lub
+\texttt{mbs\_TabBSC2CoonsDer3f} (p"lat sklejany).%
+\end{sloppypar}
+
+Parametry \texttt{a} i~\texttt{b} opisuj"a ko"nce odcinka przyj"etego
+za dziedzin"e krzywych $\bm{c}_{ij}$ lub $\bm{d}_{ij}$; dla wielomianowych
+p"lat"ow Coonsa ich warto"sciami powinny by"c liczby $0$ i~$1$.
+
+Parametr \texttt{nkn} okre"sla liczb"e~$k$ punkt"ow $u_m\in[a,b]$,
+w~kt"orych nale"ry obliczy"c warto"sci wielomian"ow; punkty te (tj.\ liczby
+zmiennopozycyjne) s"a podane w~tablicy \texttt{kn}.
+
+Warto"sci wielomian"ow oraz ich pochodnych rz"edu~$1$, $2$ i~$3$ s"a wpisywane 
+odpowiednio do tablic \texttt{hfunc}, \texttt{dhfunc}, \texttt{ddhfunc}
+i~\texttt{dddhfunc}. Tablice te musz"a mie"c d"lugo"s"c co najmniej~$6k$;
+na ka"rdych kolejnych sze"sciu pozycjach w~tablicy s"a wpisywane warto"sci
+sze"sciu wielomian"ow lub ich pochodnych w~kolejnym punkcie $u_m$.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_TabBezC2CoonsDer3f ( int spdimen, \\
+\ind{8}int nknu, const float *knu, const float *hfuncu, \\
+\ind{8}const float *dhfuncu, const float *ddhfuncu, \\
+\ind{8}const float *dddhfuncu, \\
+\ind{8}int nknv, const float *knv, const float *hfuncv, \\
+\ind{8}const float *dhfuncv, const float *ddhfuncv, \\
+\ind{8}const float *dddhfuncv, \\
+\ind{8}int degc00, const float *c00, \\
+\ind{8}int degc01, const float *c01, \\
+\ind{8}int degc02, const float *c02, \\
+\ind{8}int degc10, const float *c10, \\
+\ind{8}int degc11, const float *c11, \\
+\ind{8}int degc12, const float *c12, \\
+\ind{8}int degd00, const float *d00, \\
+\ind{8}int degd01, const float *d01, \\
+\ind{8}int degd02, const float *d02, \\
+\ind{8}int degd10, const float *d10, \\
+\ind{8}int degd11, const float *d11, \\
+\ind{8}int degd12, const float *d12, \\
+\ind{8}float *p, float *pu, float *pv, float *puu, \\
+\ind{8}float *puv, float *pvv, \\
+\ind{8}float *puuu, float *puuv, float *puvv, float *pvvv );}
+Procedura \texttt{mbs\_TabBezC2CoonsDer3f} s"lu"ry do szybkiego stablicowania
+dwupi"etnego wielomianowego p"lata Coonsa, razem z~pochodnymi cz"astkowymi
+rz"edu~$1$, $2$ i~$3$, dla punkt"ow $(u_i,v_j)$, gdzie
+$i\in\{0,\ldots,k-1\}$, $j\in\{0,\ldots,l-1\}$.
+
+\begin{sloppypar}
+Parametr~\texttt{spdimen} okre"sla wymiar~$d$ przestrzeni, w~kt"orej jest
+p"lat. Parametr~\texttt{nknu} okre"sla liczb"e~$k$, tablica~\texttt{knu}
+zawiera liczby $u_0,\ldots,u_{k-1}$. Tablice \texttt{hfuncu},
+\texttt{dhfuncu},
+\texttt{ddhfuncu} i~\texttt{dddhfuncu} zawieraj"a odpowiednio warto"sci
+wielomian"ow $H_{00},H_{10},H_{01},H_{11},H_{02},H_{12}$ i~ich pochodnych
+rz"edu~$1$, $2$ i~$3$ w~punktach $t_0,\ldots,t_{k-1}$; warto"sci te
+najpro"sciej jest obliczy"c wywo"luj"ac zawczasu procedur"e
+\texttt{mbs\_TabQuinticHFuncDer3f} (z~parametrami \texttt{a}${}=0$,
+\texttt{b}${}=1$).%
+\end{sloppypar}
+
+Parametry \texttt{nknv}, \texttt{knv}, \texttt{hfuncv}, \texttt{dhfuncv},
+\texttt{ddhfuncv} i~\texttt{dddhfuncv} w~analogiczny spos"ob reprezentuj"a
+ci"ag $v_0,\ldots,v_{l-1}$ i~warto"sci i~pochodne funkcji $H_{ij}$
+w~punktach z~tego ci"agu.
+
+Pary parametr"ow \texttt{degc??} i~\texttt{c??} oraz \texttt{degd??}
+i~\texttt{d??} opisuj"a krzywe B\'{e}ziera okre"slaj"ace p"lat.
+Krzywe te musz"a spe"lnia"c (z~dok"ladno"sci"a do b"l"ed"ow zaokr"agle"n)
+warunki zgodno"sci~(\ref{eq:Coons:compat:cond}).
+
+Do tablic wskazywanych przez parametry \texttt{p}, \texttt{pu}, \texttt{pv},
+\texttt{puu}, \texttt{puv}, \texttt{pvv}, \texttt{puuu}, \texttt{puuv},
+\texttt{puvv} i~\texttt{pvvv} procedura wpisuje obliczone punkty
+p"lata i~wektory pochodnych cz"astkowych rz"edu~$1$, $2$ i~$3$; je"sli kt"ory"s
+z~tych parametr"ow ma warto"s"c \texttt{NULL}, to odpowiednia pochodna
+nie jest tablicowana. W~przeciwnym razie wskazywana tablica musi mie"c
+d"lugo"s"c co najmniej~$k^2d$.
+
+Warto"sci"a procedury jest \texttt{true} w~razie sukcesu i~\texttt{false}
+w~razie niepowodzenia oblicze"n (z~powodu braku miejsca na stosie
+pami"eci pomocniczej).
+
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_TabBezC2Coons0Der3f ( int spdimen, \\
+\ind{8}int nknu, const float *knu, const float *hfuncu, \\
+\ind{8}const float *dhfuncu, const float *ddhfuncu, \\
+\ind{8}const float *dddhfuncu, \\
+\ind{8}int nknv, const float *knv, const float *hfuncv, \\
+\ind{8}const float *dhfuncv, const float *ddhfuncv, \\
+\ind{8}const float *dddhfuncv, \\
+\ind{8}int degc00, const float *c00, \\
+\ind{8}int degc01, const float *c01, \\
+\ind{8}int degc02, const float *c02, \\
+\ind{8}int degd00, const float *d00, \\
+\ind{8}int degd01, const float *d01, \\
+\ind{8}int degd02, const float *d02, \\
+\ind{8}float *p, float *pu, float *pv, float *puu, float *puv, \\
+\ind{8}float *pvv, \\
+\ind{8}float *puuu, float *puuv, float *puvv, float *pvvv );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_TabBezC2Coons0Der3f} jest nieco uproszczon"a wersj"a
+procedury \texttt{mbs\_TabBezC2CoonsDer3f} dla przypadku, gdy krzywe
+$\bm{c}_{10},\bm{c}_{11},\bm{c}_{12},\bm{d}_{10},\bm{d}_{11}$, i~$\bm{d}_{12}$
+s"a zerowe (tj.\ gdy wszystkie ich punkty kontrolne maj"a zerowe wszystkie
+wsp"o"lrz"edne). Stablicowanie p"lata okre"slonego przez takie krzywe mo"re
+by"c wykonane w~kr"otszym czasie; z~procedury tej korzysta biblioteka
+\texttt{libg1hole}.%
+\end{sloppypar}
+
+Parametry procedury \texttt{mbs\_TabBezC2Coons0Der3f} s"a takie same,   
+jak parametry proceury \texttt{mbs\_TabBezC2CoonsDer3f} o~tych samych
+nazwach.
+
+
+\newpage
+\subsection{P"laty sklejane}
+
+Sklejane p"laty Coonsa s"a okre"slone za pomoc"a krzywych B-sklejanych;
+zar"owno stopnie poszczeg"olnych krzywych, jak i~ci"agi w"ez"l"ow u"ryte do
+ich reprezentowania, mog"a by"c r"o"rne; krzywe $\bm{c}_{ij}$ musz"a mie"c
+tylko wsp"oln"a dziedzin"e (wyznaczon"a przez w"ez"ly brzegowe w~ich
+ci"agach w"ez"l"ow) i~to samo dotyczy krzywych $\bm{d}_{ij}$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BSC1CoonsFindCornersf ( int spdimen, \\
+\ind{8}int degc00, int lastknotc00, const float *knotsc00, \\
+\ind{8}const float *c00, \\
+\ind{8}int degc01, int lastknotc01, const float *knotsc01, \\
+\ind{8}const float *c01, \\
+\ind{8}int degc10, int lastknotc10, const float *knotsc10, \\
+\ind{8}const float *c10, \\
+\ind{8}int degc11, int lastknotc11, const float *knotsc11, \\
+\ind{8}const float *c11, \\
+\ind{8}float *pcorners );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_BSC1CoonsFindCornersf} wyznacza macierz~$\bm{P}$
+o~wymiarach $4\times\nobreak 4$, kt"orej elementami s"a odpowiednie punkty
+krzywych $\bm{c}_{00},\bm{c}_{10},\bm{c}_{01},\bm{c}_{11}$ i~wektory ich  
+pochodnych.%
+\end{sloppypar}
+
+Parametry: \texttt{spdimen} --- wymiar~$d$ przestrzeni, w~kt"orej le"r"a
+krzywe i~reprezentowany przez nie sklejany bikubiczny (klasy~$C^1$) 
+p"lat Coonsa. Ka"rda czw"orka parametr"ow \texttt{degc??},
+\texttt{lastknotc??}, \texttt{knotsc??} i~\texttt{c??}    
+opisuje jedn"a z~krzywych, stopie"n, numer ostatniego w"ez"la, tablic"e
+w"ez"l"ow i~tablic"e punkt"ow kontrolnych.    
+
+Parametr \texttt{pcorners} jest wska"znikiem tablicy, w~kt"orej ma by"c
+umieszczony wynik; tablica ta musi mie"c d"lugo"s"c~$16d$.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_BSC1CoonsToBSf ( int spdimen, \\
+\ind{8}int degc00, int lastknotc00, const float *knotsc00, \\
+\ind{8}const float *c00, \\
+\ind{8}int degc01, int lastknotc01, const float *knotsc01, \\
+\ind{8}const float *c01, \\
+\ind{8}int degc10, int lastknotc10, const float *knotsc10, \\
+\ind{8}const float *c10, \\
+\ind{8}int degc11, int lastknotc11, const float *knotsc11, \\
+\ind{8}const float *c11, \\
+\ind{8}int degd00, int lastknotd00, const float *knotsd00, \\
+\ind{8}const float *d00, \\
+\ind{8}int degd01, int lastknotd01, const float *knotsd01, \\
+\ind{8}const float *d01, \\
+\ind{8}int degd10, int lastknotd10, const float *knotsd10, \\
+\ind{8}const float *d10, \\
+\ind{8}int degd11, int lastknotd11, const float *knotsd11, \\
+\ind{8}const float *d11, \\
+\ind{8}int *degreeu, int *lastuknot, float *uknots, \\
+\ind{8}int *degreev, int *lastvknot, float *vknots, float *p );}
+Procedura \texttt{mbs\_BSC1CoonsToBSf} wyznacza reprezentacj"e B-sklejan"a
+bikubicznego p"lata Coonsa (klasy~$C^1$) okre"slonego przez dane krzywe
+sklejane. Warto"sci"a procedury jest \texttt{true}, je"sli obliczenie
+zako"nczy"lo si"e sukcesem, a~\texttt{false} w~przeciwnym razie (przyczyn"a
+niepowodzenia mo"re by"c brak pami"eci na stosie pami"eci pomocniczej
+lub niepoprawne ci"agi w"ez"l"ow w~reprezentacjach krzywych).
+
+Warto"s"c parametru \texttt{spdimen} jest wymiarem~$d$ przestrzeni, w~kt"orej
+le"r"a krzywe i~okre"slony przez nie p"lat. Ka"rda czw"orka parametr"ow
+\texttt{degc??}, \texttt{lastknotc??}, \texttt{knotsc??} i~\texttt{c??}
+opisuje odpowiedni"a krzyw"a z~rodziny
+$\bm{c}_{00},\bm{c}_{01},\bm{c}_{10},\bm{c}_{11}$, przez podanie stopnia
+numeru ostatniego w"ez"la, ci"agu w"ez"l"ow i~tablicy punkt"ow kontrolnych.
+Kolejne pary parametr"ow \texttt{degd??}, \texttt{lastknotd??},
+\texttt{knotsd??} i~\texttt{d??} opisuj"a w~ten sam spos"ob krzywe z~rodziny
+$\bm{d}_{00},\bm{d}_{01},\bm{d}_{10},\bm{d}_{11}$. Krzywe te musz"a
+spe"lnia"c (z~dok"ladno"sci"a do b"l"ed"ow zaokr"agle"n) warunki
+zgodno"sci~(\ref{eq:Coons:compat:cond}), co \emph{nie jest} sprawdzane.
+
+Zmienne \texttt{*n} i~\texttt{*m} otrzymuj"a warto"sci opisuj"ace stopie"n
+reprezentacji B-sklejanej p"lata. Warto"s"c~$n$ zmiennej \texttt{*n} jest
+najwi"eksza z~warto"sci parametr"ow \texttt{degc??} lub~$3$ (je"sli liczba~$3$
+jest wi"eksza). Podobnie, warto"s"c~$m$ zmiennej \texttt{*m} jest najwi"eksz"a
+z~warto"sci parametr"ow \texttt{degd??} lub~$3$. Parametry
+\texttt{lastuknot}, \texttt{uknots}, \texttt{lastvknot} i~\texttt{vknots}
+s"lu"r"a do wyprowadzenia ci"ag"ow w"ez"l"ow skonstruowanej reprezentacji
+B-sklejanej p"lata Coonsa. W~tablicy wskazywanej przez
+parametr \texttt{p} procedura umieszcza punkty kontrolne.
+
+Tablice \texttt{unkots}, \texttt{vknots} i~\texttt{p} musz"a by"c
+dostatecznie pojemne; aby zarezerwowa"c te tablice, mo"rna pos"lu"ry"c si"e
+procedur"a \texttt{mbs\_FindBSCommonKnotSequencef} dla rodzin krzywych
+$\bm{c}_{ij}$ oraz $\bm{d}_{ij}$; zmienne wskazywane przez parametr
+\texttt{lastknot} tej procedury powinny mie"c warto"sci pocz"atkowe~$3$.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_TabBSC1CoonsDer2f ( int spdimen, \\
+\ind{8}int nknu, const float *knu, const float *hfuncu, \\
+\ind{8}const float *dhfuncu, const float *ddhfuncu, \\
+\ind{8}int nknv, const float *knv, const float *hfuncv, \\
+\ind{8}const float *dhfuncv, const float *ddhfuncv, \\
+\ind{8}int degc00, int lastknotc00, const float *knotsc00, \\
+\ind{8}const float *c00, \\
+\ind{8}int degc01, int lastknotc01, const float *knotsc01, \\
+\ind{8}const float *c01, \\
+\ind{8}int degc10, int lastknotc10, const float *knotsc10, \\
+\ind{8}const float *c10, \\
+\ind{8}int degc11, int lastknotc11, const float *knotsc11, \\
+\ind{8}const float *c11, \\
+\ind{8}int degd00, int lastknotd00, const float *knotsd00, \\
+\ind{8}const float *d00, \\
+\ind{8}int degd01, int lastknotd01, const float *knotsd01, \\
+\ind{8}const float *d01, \\
+\ind{8}int degd10, int lastknotd10, const float *knotsd10, \\
+\ind{8}const float *d10, \\
+\ind{8}int degd11, int lastknotd11, const float *knotsd11, \\
+\ind{8}const float *d11, \\
+\ind{8}float *p, float *pu, float *pv, \\
+\ind{8}float *puu, float *puv, float *pvv );}
+Procedura \texttt{mbs\_TabBSC1CoonsDer2f} s"lu"ry do szybkiego stablicowania
+bikubicznego sklejanego p"lata Coonsa, razem z~pochodnymi cz"astkowymi
+rz"edu~$1$ i~$2$, dla punkt"ow $(u_i,v_j)$, gdzie $i\in\{0,\ldots,k_u-1\}$,
+$j\in\{0,\ldots,k_v-1\}$.
+
+Parametr~\texttt{spdimen} okre"sla wymiar~$d$ przestrzeni, w~kt"orej jest
+p"lat. Pa\-ra\-met\-ry~\texttt{nknu} i~\texttt{nknv} okre"slaj"a liczby~$k_u$
+i~$k_v$, tablice~\texttt{knu} i~\texttt{knv}
+zawierj"a odpowiednio liczby $u_0,\ldots,u_{k_u-1}$ i~$v_0,\ldots,v_{k_v-1}$.
+Tablice \texttt{hfuncu}, \texttt{dhfuncu},
+\texttt{ddhfuncu} zawieraj"a odpowiednio warto"sci wielomian"ow
+$\tilde{H}_{00},\tilde{H}_{10},\tilde{H}_{01},\tilde{H}_{11}$
+i~ich pochodnych rz"edu~$1$ i~$2$ w~punktach
+$u_0,\ldots,u_{k_u-1}$; warto"sci te najpro"sciej jest obliczy"c
+wywo"luj"ac zawczasu procedur"e \texttt{mbs\_TabCubicHFuncDer2f}
+z~parametrami \texttt{a}, \texttt{b} o~warto"sciach b"ed"acych ko"ncami
+przedzia"lu zmienno"sci parametru~$u$ p"lata. Podobnie, tablice
+\texttt{hfuncv}, \texttt{dhfuncv}, \texttt{ddhfuncv} zawieraj"a
+warto"sci wielomian"ow $\hat{H}_{00},\hat{H}_{10},\hat{H}_{01},\hat{H}_{11}$  
+i~ich pochodnych rz"edu~$1$ i~$2$ w~punktach $v_0,\ldots,v_{k_v-1}$
+
+Czw"orki parametr"ow \texttt{degc??}, \texttt{lastknotc??}, \texttt{knotsc??}
+i~\texttt{c??} oraz \texttt{degd??}, \texttt{lastknotd??}, \texttt{knotsd??}
+i~\texttt{d??} opisuj"a krzywe B-sklejane okre"slaj"ace p"lat.
+Krzywe te musz"a spe"lnia"c (z~dok"ladno"sci"a do b"l"ed"ow zaokr"agle"n)
+warunki zgodno"sci~(\ref{eq:Coons:compat:cond}).
+
+Do tablic wskazywanych przez parametry \texttt{p}, \texttt{pu}, \texttt{pv},
+\texttt{puu}, \texttt{puv}, \texttt{pvv} procedura wpisuje obliczone punkty
+p"lata i~wektory pochodnych cz"astkowych rz"edu~$1$ i~$2$; je"sli kt"ory"s
+z~tych parametr"ow ma warto"s"c \texttt{NULL}, to odpowiednia pochodna
+nie jest tablicowana. W~przeciwnym razie wskazywana tablica musi mie"c
+d"lugo"s"c co najmniej~$k_uk_vd$.
+
+Warto"sci"a procedury jest \texttt{true} w~razie sukcesu i~\texttt{false}
+w~razie niepowodzenia oblicze"n (z~powodu braku miejsca na stosie
+pami"eci pomocniczej).
+
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_TabBSC1Coons0Der2f ( int spdimen, \\
+\ind{8}int nknu, const float *knu, const float *hfuncu, \\
+\ind{8}const float *dhfuncu, const float *ddhfuncu, \\
+\ind{8}int nknv, const float *knv, const float *hfuncv, \\
+\ind{8}const float *dhfuncv, const float *ddhfuncv, \\
+\ind{8}int degc00, int lastknotc00, const float *knotsc00, \\
+\ind{8}const float *c00, \\
+\ind{8}int degc01, int lastknotc01, const float *knotsc01, \\
+\ind{8}const float *c01, \\
+\ind{8}int degd00, int lastknotd00, const float *knotsd00, \\
+\ind{8}const float *d00, \\
+\ind{8}int degd01, int lastknotd01, const float *knotsd01, \\
+\ind{8}const float *d01, \\
+\ind{8}float *p, float *pu, float *pv, \\
+\ind{8}float *puu, float *puv, float *pvv );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_TabBSC1Coons0Der2f} jest nieco uproszczon"a wersj"a
+procedury \texttt{mbs\_TabBSC1CoonsDer2f} dla przypadku, gdy krzywe
+$\bm{c}_{10},\bm{c}_{11},\bm{d}_{10}$ i~$\bm{d}_{11}$ s"a zerowe
+(tj.\ gdy wszystkie ich punkty kontrolne maj"a zerowe wszystkie
+wsp"o"lrz"edne). Stablicowanie p"lata okre"slonego przez takie krzywe mo"re
+by"c wykonane w~kr"otszym czasie.%
+\end{sloppypar}
+
+Parametry procedury \texttt{mbs\_TabBSC1Coons0Der2f} s"a takie same,
+jak parametry proceury \texttt{mbs\_TabBSC1CoonsDer2f} o~tych samych
+nazwach.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BSC2CoonsFindCornersf ( int spdimen, \\
+\ind{8}int degc00, int lastknotc00, const float *knotsc00, \\
+\ind{8}const float *c00, \\
+\ind{8}int degc01, int lastknotc01, const float *knotsc01, \\
+\ind{8}const float *c01, \\
+\ind{8}int degc02, int lastknotc02, const float *knotsc02, \\
+\ind{8}const float *c02, \\
+\ind{8}int degc10, int lastknotc10, const float *knotsc10, \\
+\ind{8}const float *c10, \\
+\ind{8}int degc11, int lastknotc11, const float *knotsc11, \\
+\ind{8}const float *c11, \\
+\ind{8}int degc12, int lastknotc12, const float *knotsc12, \\
+\ind{8}const float *c12, \\
+\ind{8}float *pcorners );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_BSC2CoonsFindCornersf} wyznacza macierz~$\bm{P}$
+o~wymiarach $6\times\nobreak 6$, kt"orej elementami s"a odpowiednie punkty
+krzywych
+$\bm{c}_{00},\bm{c}_{10},\bm{c}_{01},\bm{c}_{11},\bm{c}_{02},\bm{c}_{12}$
+i~wektory ich pochodnych.%
+\end{sloppypar}
+
+Parametry: \texttt{spdimen} --- wymiar~$d$ przestrzeni, w~kt"orej le"r"a
+krzywe i~reprezentowany przez nie sklejany dwupi"etny (klasy~$C^2$) 
+p"lat Coonsa. Ka"rda czw"orka parametr"ow \texttt{degc??},
+\texttt{lastknotc??}, \texttt{knotsc??} i~\texttt{c??}    
+opisuje jedn"a z~krzywych, stopie"n, numer ostatniego w"ez"la, tablic"e
+w"ez"l"ow i~tablic"e punkt"ow kontrolnych.    
+
+Parametr \texttt{pcorners} jest wska"znikiem tablicy, w~kt"orej ma by"c
+umieszczony wynik; tablica ta musi mie"c d"lugo"s"c~$36d$.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_BSC2CoonsToBSf ( int spdimen, \\
+\ind{8}int degc00, int lastknotc00, const float *knotsc00, \\
+\ind{8}const float *c00, \\
+\ind{8}int degc01, int lastknotc01, const float *knotsc01, \\
+\ind{8}const float *c01, \\
+\ind{8}Aint degc02, int lastknotc02, const float *knotsc02, \\
+\ind{8}const float *c02, \\
+\ind{8}int degc10, int lastknotc10, const float *knotsc10, \\
+\ind{8}const float *c10, \\
+\ind{8}int degc11, int lastknotc11, const float *knotsc11, \\
+\ind{8}const float *c11, \\
+\ind{8}int degc12, int lastknotc12, const float *knotsc12, \\
+\ind{8}const float *c12, \\
+\ind{8}int degd00, int lastknotd00, const float *knotsd00, \\
+\ind{8}const float *d00, \\
+\ind{8}int degd01, int lastknotd01, const float *knotsd01, \\
+\ind{8}const float *d01, \\
+\ind{8}int degd02, int lastknotd02, const float *knotsd02, \\
+\ind{8}const float *d02, \\
+\ind{8}int degd10, int lastknotd10, const float *knotsd10, \\
+\ind{8}const float *d10, \\
+\ind{8}int degd11, int lastknotd11, const float *knotsd11, \\
+\ind{8}const float *d11, \\
+\ind{8}int degd12, int lastknotd12, const float *knotsd12, \\
+\ind{8}const float *d12, \\
+\ind{8}int *degreeu, int *lastuknot, float *uknots, \\
+\ind{8}int *degreev, int *lastvknot, float *vknots, float *p );}
+Procedura \texttt{mbs\_BSC2CoonsToBSf} wyznacza reprezentacj"e B-sklejan"a
+dwupi"etnego p"lata Coonsa (klasy~$C^2$) okre"slonego przez dane krzywe
+sklejane. Warto"sci"a procedury jest \texttt{true}, je"sli obliczenie
+zako"nczy"lo si"e sukcesem, a~\texttt{false} w~przeciwnym razie (przyczyn"a
+niepowodzenia mo"re by"c brak pami"eci na stosie pami"eci pomocniczej
+lub niepoprawne ci"agi w"ez"l"ow w~reprezentacjach krzywych).
+
+Warto"s"c parametru \texttt{spdimen} jest wymiarem~$d$ przestrzeni, w~kt"orej
+le"r"a krzywe i~okre"slony przez nie p"lat. Ka"rda czw"orka parametr"ow
+\texttt{degc??}, \texttt{lastknotc??}, \texttt{knotsc??} i~\texttt{c??}
+opisuje odpowiedni"a krzyw"a z~rodziny
+$\bm{c}_{00},\bm{c}_{01},\bm{c}_{02},\bm{c}_{10},\bm{c}_{11},\bm{c}_{12}$,
+przez podanie stopnia
+numeru ostatniego w"ez"la, ci"agu w"ez"l"ow i~tablicy punkt"ow kontrolnych.
+Kolejne pary parametr"ow \texttt{degd??}, \texttt{lastknotd??},
+\texttt{knotsd??} i~\texttt{d??} opisuj"a w~ten sam spos"ob krzywe z~rodziny
+$\bm{d}_{00},\bm{d}_{01},\bm{d}_{02},\bm{d}_{10},\bm{d}_{11},\bm{d}_{12}$.
+Krzywe te musz"a spe"lnia"c (z~dok"ladno"sci"a do b"l"ed"ow zaokr"agle"n) warunki
+zgodno"sci~(\ref{eq:Coons:compat:cond}), co \emph{nie jest} sprawdzane.
+
+Zmienne \texttt{*n} i~\texttt{*m} otrzymuj"a warto"sci opisuj"ace stopie"n
+reprezentacji B-sklejanej p"lata. Warto"s"c~$n$ zmiennej \texttt{*n} jest
+najwi"eksza z~warto"sci parametr"ow \texttt{degc??} lub~$5$ (je"sli
+liczba~$5$ jest wi"eksza). Podobnie, warto"s"c~$m$ zmiennej \texttt{*m}
+jest najwi"eksz"a z~warto"sci parametr"ow \texttt{degd??} lub~$5$. Parametry
+\texttt{lastuknot}, \texttt{uknots}, \texttt{lastvknot} i~\texttt{vknots}
+s"lu"r"a do wyprowadzenia ci"ag"ow w"ez"l"ow skonstruowanej reprezentacji
+B-sklejanej p"lata Coonsa. W~tablicy wskazywanej przez
+parametr \texttt{p} procedura umieszcza punkty kontrolne.
+
+Tablice \texttt{unkots}, \texttt{vknots} i~\texttt{p} musz"a by"c
+dostatecznie pojemne; aby zarezerwowa"c te tablice, mo"rna pos"lu"ry"c si"e
+procedur"a \texttt{mbs\_FindBSCommonKnotSequencef} dla rodzin krzywych
+$\bm{c}_{ij}$ oraz $\bm{d}_{ij}$; zmienne wskazywane przez parametr
+\texttt{lastknot} tej procedury powinny mie"c warto"sci pocz"atkowe~$5$.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_TabBSC2CoonsDer3f ( int spdimen, \\
+\ind{8}int nknu, const float *knu, const float *hfuncu, \\
+\ind{8}const float *dhfuncu, const float *ddhfuncu, \\
+\ind{8}const float *dddhfuncu, \\
+\ind{8}int nknv, const float *knv, const float *hfuncv, \\
+\ind{8}const float *dhfuncv, const float *ddhfuncv, \\
+\ind{8}const float *dddhfuncv, \\
+\ind{8}int degc00, int lastknotc00, const float *knotsc00, \\
+\ind{8}const float *c00, \\
+\ind{8}int degc01, int lastknotc01, const float *knotsc01, \\
+\ind{8}const float *c01, \\
+\ind{8}int degc02, int lastknotc02, const float *knotsc02, \\
+\ind{8}const float *c02, \\
+\ind{8}int degc10, int lastknotc10, const float *knotsc10, \\
+\ind{8}const float *c10, \\
+\ind{8}int degc11, int lastknotc11, const float *knotsc11, \\
+\ind{8}const float *c11, \\
+\ind{8}int degc12, int lastknotc12, const float *knotsc12, \\
+\ind{8}const float *c12, \\
+\ind{8}int degd00, int lastknotd00, const float *knotsd00, \\
+\ind{8}const float *d00, \\
+\ind{8}int degd01, int lastknotd01, const float *knotsd01, \\
+\ind{8}const float *d01, \\
+\ind{8}int degd02, int lastknotd02, const float *knotsd02, \\
+\ind{8}const float *d02, \\
+\ind{8}int degd10, int lastknotd10, const float *knotsd10, \\
+\ind{8}const float *d10, \\
+\ind{8}int degd11, int lastknotd11, const float *knotsd11, \\
+\ind{8}const float *d11, \\
+\ind{8}int degd12, int lastknotd12, const float *knotsd12, \\
+\ind{8}const float *d12, \\
+\ind{8}float *p, float *pu, float *pv, \\
+\ind{8}float *puu, float *puv, float *pvv, \\
+\ind{8}float *puuu, float *puuv, float *puvv, float *pvvv );}
+Procedura \texttt{mbs\_TabBSC2CoonsDer3f} s"lu"ry do szybkiego stablicowania
+dwupi"etnego sklejanego p"lata Coonsa, razem z~pochodnymi cz"astkowymi
+rz"edu~$1$, $2$ i~$3$, dla punkt"ow $(u_i,v_j)$, gdzie $i\in\{0,\ldots,k_u-1\}$,
+$j\in\{0,\ldots,k_v-1\}$.
+
+Parametr~\texttt{spdimen} okre"sla wymiar~$d$ przestrzeni, w~kt"orej jest
+p"lat. Pa\-ra\-met\-ry~\texttt{nknu} i~\texttt{nknv} okre"slaj"a liczby~$k_u$
+i~$k_v$, tablice~\texttt{knu} i~\texttt{knv}
+zawierj"a odpowiednio liczby $u_0,\ldots,u_{k_u-1}$ i~$v_0,\ldots,v_{k_v-1}$.
+Tablice \texttt{hfuncu}, \texttt{dhfuncu}, \texttt{ddhfuncu}, \texttt{dddhfuncu}
+zawieraj"a odpowiednio warto"sci wielomian"ow
+$\tilde{H}_{00},\tilde{H}_{10},\tilde{H}_{01},\tilde{H}_{11},%
+\tilde{H}_{02},\tilde{H}_{12}$ i~ich pochodnych rz"edu~$1$, $2$ i~$3$
+w~punktach $u_0,\ldots,u_{k_u-1}$; warto"sci te najpro"sciej jest obliczy"c
+wywo"luj"ac zawczasu procedur"e \texttt{mbs\_TabQuinticHFuncDer3f}
+z~parametrami \texttt{a}, \texttt{b} o~warto"sciach b"ed"acych ko"ncami
+przedzia"lu zmienno"sci parametru~$u$ p"lata. Podobnie, tablice
+\texttt{hfuncv}, \texttt{dhfuncv}, \texttt{ddhfuncv}, \texttt{dddhfuncv}
+zawieraj"a warto"sci wielomian"ow $\hat{H}_{00},\hat{H}_{10},%
+\hat{H}_{01},\hat{H}_{11},\hat{H}_{02},\hat{H}_{12}$
+i~ich pochodnych rz"edu~$1$, $2$ i~$3$ w~punktach $v_0,\ldots,v_{k_v-1}$
+
+Czw"orki parametr"ow \texttt{degc??}, \texttt{lastknotc??}, \texttt{knotsc??}
+i~\texttt{c??} oraz \texttt{degd??}, \texttt{lastknotd??}, \texttt{knotsd??}
+i~\texttt{d??} opisuj"a krzywe B-sklejane okre"slaj"ace p"lat.
+Krzywe te musz"a spe"lnia"c (z~dok"ladno"sci"a do b"l"ed"ow zaokr"agle"n)
+warunki zgodno"sci~(\ref{eq:Coons:compat:cond}).
+
+Do tablic wskazywanych przez parametry \texttt{p}, \texttt{pu}, \texttt{pv},
+\texttt{puu}, \texttt{puv}, \texttt{pvv}, \texttt{puuu}, \texttt{puuv},
+\texttt{puvv}, \texttt{pvvv} procedura wpisuje obliczone punkty
+p"lata i~wektory pochodnych cz"astkowych rz"edu~$1$, $2$ i~$3$; je"sli kt"ory"s
+z~tych parametr"ow ma warto"s"c \texttt{NULL}, to odpowiednia pochodna
+nie jest tablicowana. W~przeciwnym razie wskazywana tablica musi mie"c
+d"lugo"s"c co najmniej~$k_uk_vd$.
+
+Warto"sci"a procedury jest \texttt{true} w~razie sukcesu i~\texttt{false}
+w~razie niepowodzenia oblicze"n (z~powodu braku miejsca na stosie
+pami"eci pomocniczej).
+
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_TabBSC2Coons0Der3f ( int spdimen, \\
+\ind{8}int nknu, const float *knu, const float *hfuncu, \\
+\ind{8}const float *dhfuncu, const float *ddhfuncu, \\
+\ind{8}const float *dddhfuncu, \\
+\ind{8}int nknv, const float *knv, const float *hfuncv, \\
+\ind{8}const float *dhfuncv, const float *ddhfuncv, \\
+\ind{8}const float *dddhfuncv, \\
+\ind{8}int degc00, int lastknotc00, const float *knotsc00, \\
+\ind{8}const float *c00, \\
+\ind{8}int degc01, int lastknotc01, const float *knotsc01, \\
+\ind{8}const float *c01, \\
+\ind{8}int degc02, int lastknotc02, const float *knotsc02, \\
+\ind{8}const float *c02, \\
+\ind{8}int degd00, int lastknotd00, const float *knotsd00, \\
+\ind{8}const float *d00, \\
+\ind{8}int degd01, int lastknotd01, const float *knotsd01, \\
+\ind{8}const float *d01, \\
+\ind{8}int degd02, int lastknotd02, const float *knotsd02, \\
+\ind{8}const float *d02, \\
+\ind{8}float *p, float *pu, float *pv, \\
+\ind{8}float *puu, float *puv, float *pvv, \\
+\ind{8}float *puuu, float *puuv, float *puvv, float *pvvv );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_TabBSC2Coons0Der3f} jest nieco uproszczon"a wersj"a
+procedury \texttt{mbs\_TabBSC2CoonsDer3f} dla przypadku, gdy krzywe
+$\bm{c}_{10},\bm{c}_{11},\bm{c}_{12},\bm{d}_{10},\bm{d}_{11}$ i~$\bm{d}_{12}$
+s"a zerowe (tj.\ gdy wszystkie ich punkty kontrolne maj"a zerowe wszystkie
+wsp"o"lrz"edne). Stablicowanie p"lata okre"slonego przez takie krzywe mo"re
+by"c wykonane w~kr"otszym czasie.%
+\end{sloppypar}
+
+Parametry procedury \texttt{mbs\_TabBSC2Coons0Der3f} s"a takie same,
+jak parametry proceury \texttt{mbs\_TabBSC2CoonsDer3f} o~tych samych
+nazwach.
+
+
+\newpage
+\section{Produkt sferyczny}
+
+\begin{sloppypar}
+Produkt sferyczny p"laskich krzywych parametrycznych,
+$\bm{p}(t)=[x_{\bm{p}}(t),y_{\bm{p}}(t)]^T$
+i~$\bm{q}(t)=[x_{\bm{q}}(t),y_{\bm{q}}(t)]^T$,
+jest powierzchni"a parametryczn"a w~$\R^3$, dan"a wzorem
+\begin{align*}
+  \bm{s}(u,v) = \left[\begin{array}{c}
+    x_{\bm{p}}(u)x_{\bm{q}}(v) \\
+    y_{\bm{p}}(u)x_{\bm{q}}(v) \\
+    y_{\bm{q}}(v)
+  \end{array}\right].
+\end{align*}
+Krzywe~$\bm{p}$ i~$\bm{q}$ s"a zwane odpowiednio r"ownikiem (\textsl{equator})
+i~po"ludnikiem (\textsl{meridian}). Procedury opisane ni"rej obliczaj"a
+punkty kontrolne reprezentacji B-sklejanej produktu sferycznego p"laskich
+krzywych B-sklejanych, odpowiednio kawa"lkami wielomianowej i~wymiernej.%
+\end{sloppypar}
+
+Ci"ag w"ez"l"ow r"ownika jest ci"agiem ,,$u$'' produktu sferycznego,
+a~ci"ag w"ez"l"ow po"ludnika jest ci"agiem ,,$v$''.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_SphericalProductf ( \\
+\ind{6}int degree\_eq, int lastknot\_eq, const point2f *cpoints\_eq, \\
+\ind{6}int degree\_mer, int lastknot\_mer, const point2f *cpoints\_mer, \\
+\ind{6}int pitch, point3f *spr\_cp );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_SphericalProductRf ( \\
+\ind{6}int degree\_eq, int lastknot\_eq, const point3f *cpoints\_eq, \\
+\ind{6}int degree\_mer, int lastknot\_mer, const point3f *cpoints\_mer, \\
+\ind{6}int pitch, point4f *spr\_cp );}
+

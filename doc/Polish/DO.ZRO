@@ -1,0 +1,39 @@
+Rzeczy do zrobienia.
+
+1. Biblioteka libmultibs
+- Obnizanie stopnia krzywych Beziera i B-sklejanych.
+- Rasteryzacja krzywych (dokonczenie).
+- Triangulacja platow obcietych.
+- Obsluga trojkatnych platow Beziera.
+- Obsluga platow Coonsa.
+- Obcinanie krzywych Beziera i B-sklejanych.
+
+2. Biblioteka libgeom
+- Reprezentacja obrotow za pomoca kwaternionow.
+
+3. Biblioteka libcamera
+- Reprezentacja polozenia kamery za pomoca kwaternionow.
+
+4. Biblioteka libpkvaria
+- Dopracowanie przydzialu pamieci.
+
+5. Biblioteka libraytrp
+- Drzewa binarnego podzialu plata B-sklejanego.
+- Sledzenie promieni dla platow B-sklejanych.
+- Sledzenie promieni dla platow obcietych.
+
+6. Biblioteka libpsout
+- Zachowywanie i odtwarzanie kontekstu graficznego.
+- Obsluga koloru.
+- Kompresja kolorowych obrazow rastrowych.
+
+7. Biblioteka libpknum
+- Obsluga macierzy rzadkich nieregularnych.
+- Calkowanie numeryczne.
+
+8. Programy przykladowe.
+- Demo dla krzywych interpolacyjnych.
+- Demo powierzchni B-sklejanych.
+
+... i mnostwo innych pozytecznych rzeczy.
+

@@ -1,0 +1,2 @@
+#!/bin/sh
+xdvi -geometry +128+0 bstools &

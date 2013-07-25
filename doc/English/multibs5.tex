@@ -1,0 +1,1167 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\newpage
+\section{Algebraic operations on spline functions and curves}
+
+\begin{sloppypar}
+The purpose of the procedures described in this section is computing
+a~B-spline representation of the sum of (vector) B-spline curves
+and the product of (scalar) functions and (vector) curves. These operations
+are necessary in various applications, e.g.\ in constructing surfaces, which
+prescribed order of geometric continuity.
+\end{sloppypar}
+
+
+\subsection{Addition of splines}
+
+Adding, i.e.\ computing the representation of a sum of B-spline curves
+must be preceded by finding the degree of this representation.
+The degree of the sum is the greatest of degrees of the terms.
+The knot sequence is determined by the knot sequence of the terms, which
+must determine the same domain. To add two curves (which must reside in the
+same space), it is necessary to find the representation of those curves,
+with the degree and the knot sequence, which will be used to represent the
+result. This auxiliary task is the most complicated and costly part
+of the procedure of adding the spline curves. The last and the simplest
+part of the computation is summing the coefficients (the control points)
+of the terms.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_FindBSCommonKnotSequencef ( int *degree, int *lastknot, \\
+\ind{30}float **knots, int nsequences, ...\ );}
+The procedure \texttt{mbs\_FindBSCommonKnotSequencef} obtains $k$~knot
+sequences, used to represent B-spline curves of given degrees.
+The task of this procedure is to find a~minimal degree and a~knot sequence
+suitable to represent the sum of the curves. This degree~$n$ is the greatest
+of the given degrees or the initial value of the variable \texttt{*degree},
+if it is greater (it is thus possible to enforce the greater degree of the
+common representation of the curves). The knot sequence found by this
+procedure has the following properties:
+\begin{itemize}
+\item The boundary knots have multiplicities $n+1$ (thus the external
+  knots, including the extremal ones, coincide with the boundary knots).
+\item The sequence contains all internal knots from the given sequences.
+\item The multiplicities of the internal knots are chosen so that
+  after the degree elevation up to~$n$ it is possible to represent each
+  curve with this knot sequence.
+\end{itemize}
+
+The parameters \texttt{degree}, \texttt{lastknot} and~\texttt{knots} are
+used to output the result (due to the C~language syntax they appear at
+the beginning of the parameter list, which deviates from the convention
+assumed in the BSTools package).
+The variables pointed by these parameters obtain values, which are
+the degree, the number of the last knot and a~pointer to the array with
+knots respectively.
+
+\vspace{\medskipamount}
+\begin{sloppypar}
+\noindent
+\textbf{Caution:} The procedure allocates this array on the scratch memory
+stack, and the calling subprogram is responsible for its deallocation,
+(using \texttt{pkv\_FreeScratchMem} or \texttt{pkv\_SetScratchMemTop}).%
+\end{sloppypar}
+
+\vspace{\medskipamount}
+The parameter \texttt{nsequences} specifies the number~$k$ of given knot
+sequences (there must be $k\geq 1$). At the calling point it must be followed
+by $3k$~parameters. The consecutive triples of parameters describe the knot
+sequences. The first element of a triple is the degree $n_i$
+(of type \texttt{int}), the second element is the index $N_i$ of the last
+knot (of type \texttt{int}), and the third element is a~pointer to the array
+with the knots ($N_i+1$ floating point numbers --- this parameter is of type
+\texttt{float*}).
+
+All given knot sequences must have the same knot with the number $n_i$;
+the same concerns the knot with the number $N_i-n_i$.
+
+The value returned is \texttt{true} if the computation was successful,
+and \texttt{false} in case of failure. The possible reasons of failure are
+invalid data or insufficient space on the stack of scratch memory.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_multiAdjustBSCRepf ( int ncurves, int spdimen, \\
+\ind{12}int indegree, int inlastknot, const float *inknots, \\
+\ind{12}int inpitch, const float *inctlpoints, \\
+\ind{12}int outdegree, int outlastknot, const float *outknots, \\
+\ind{12}int outpitch, float *outctlpoints );}
+The procedure \texttt{mbs\_multiAdjustBSCRepf} ,,adjusts'' the
+representation of B-spline curves, i.e.\ it finds a~representation of
+a~given degree, based on the given knot sequence. If necessary,
+degree elevation is done, followed by inserting knots (with the Oslo
+algorithm). To add $k$ B-spline curves with different representations
+(but with the same domain), one has to find the degree and knot sequence
+suitable to represent them all (using
+\texttt{mbs\_FindBSCommonKnotSequencef}), and then find the proper
+representation of each term, by calling
+\texttt{mbs\_multiAdjustBSCRepf}.
+
+The parameters: \texttt{ncurves} --- number of curves, \texttt{spdimen} ---
+space dimension, \texttt{indegree}, \texttt{inlastknot},
+\texttt{inknots} --- degree, index of the last knot and pointer to the array
+with knots of the given representation, \texttt{inpitch} --- pitch of the
+array \texttt{inctlpoints}, with the control points of the curve.
+
+The parameters \texttt{outdegree}, \texttt{outlastknot} and~\texttt{outknots}
+describe the degree and knot sequence of the representation to be found.
+The control points of this representation will be stored in the array
+\texttt{outctlpoints}, whose pitch is \texttt{outpitch}.
+
+The value returned is \texttt{true} in case of success and \texttt{false}
+in case of failure (caused by invalid data or insufficient space on the
+scratch memory stack).
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_AdjustBSCRepC1f(indegree,inlastknot,inknots, \bsl \\
+\ind{4}inctlpoints,outdegree,outlastknot,outknots,outctlpoints) \bsl \\
+\ind{2}mbs\_multiAdjustBSCRepf (1,1,indegree,inlastknot,inknots,0, \bsl \\ 
+\ind{4}inctlpoints,outdegree,outlastknot,outknots,0,outctlpoints) \\
+\#define mbs\_AdjustBSCRepC2f(indegree,inlastknot,inknots, \bsl \\      
+\ind{4}inctlpoints,outdegree,outlastknot,outknots,outctlpoints) \bsl \\
+\ind{2}mbs\_multiAdjustBSCRepf (1,2,indegree,inlastknot,inknots,0, \bsl \\ 
+\ind{4}(float*)inctlpoints,outdegree,outlastknot,outknots,0, \bsl \\
+\ind{4}(float*)outctlpoints) \\
+\#define mbs\_AdjustBSCRepC3f(indegree,inlastknot,inknots, \bsl \\
+\ind{4}inctlpoints,outdegree,outlastknot,outknots,outctlpoints) ... \\       
+\#define mbs\_AdjustBSCRepC4f(indegree,inlastknot,inknots, \bsl \\           
+\ind{4}inctlpoints,outdegree,outlastknot,outknots,outctlpoints) ...}                   
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiAddBSCurvesf ( int ncurves, int spdimen, \\
+\ind{19}int degree1, int lastknot1, const float *knots1, \\
+\ind{19}int pitch1, const float *ctlpoints1, \\
+\ind{19}int degree2, int lastknot2, const float *knots2, \\
+\ind{19}int pitch2, const float *ctlpoints2, \\
+\ind{19}int *sumdeg, int *sumlastknot, float *sumknots, \\
+\ind{19}int sumpitch, float *sumctlpoints );}
+The procedure \texttt{mbs\_multiAddBSCurvesf} computes the sums
+of \texttt{ncurves} pairs of B-spline curves in the space of dimension
+\texttt{spdimen}.
+
+The first curve of each pair is described with the parameters
+\texttt{degree1} (degree), \texttt{lastknot1} (the index of the last knot),
+\texttt{knots1} (array of knots) i~\texttt{ctlpoints1} (array with control points,
+whose pitch is \texttt{pitch1}).
+
+The second curve of each pair is similarly described by the parameters
+\texttt{degree2}, \texttt{lastknot2}, \texttt{knots2}, \texttt{pitch2}
+and \texttt{ctlpoints2}.
+
+\begin{sloppypar}\hyphenpenalty=200
+The output parameters are \texttt{*sumdeg} (it is assigned the degree of the sum)
+\texttt{*sumlastknot} (the index of the last knot of the sum representation)
+\texttt{sumknots} (array in which the procedure stores the knots of the
+sum representation), \texttt{sumctlpoints} (array in which the procedure stores
+the control points of the sums; its pitch is \texttt{sumpitch}).
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_AddBSCurvesC1f(degree1,lastknot1,knots1,ctlpoints1, \bsl \\
+\ind{4}degree2,lastknot2,knots2,ctlpoints2, \bsl \\
+\ind{4}sumdeg,sumlastknot,sumknots,sumctlpoints) \bsl \\
+\ind{2}mbs\_multiAddBSCurvesf (1,1,degree1,lastknot1,knots1,0, \bsl \\
+\ind{4}ctlpoints1,degree2,lastknot2,knots2,0,ctlpoints2, \bsl \\    
+\ind{4}sumdeg,sumlastknot,sumknots,0,sumctlpoints) \\
+\#define mbs\_AddBSCurvesC2f(degree1,lastknot1,knots1,ctlpoints1, \bsl \\
+\ind{4}degree2,lastknot2,knots2,ctlpoints2, \bsl \\
+\ind{4}sumdeg,sumlastknot,sumknots,sumctlpoints) \bsl \\
+\ind{2}mbs\_multiAddBSCurvesf (1,2,degree1,lastknot1,knots1,0, \bsl \\
+\ind{4}(float*)ctlpoints1, \bsl \\
+\ind{4}degree2,lastknot2,knots2,0,(float*)ctlpoints2, \bsl \\
+\ind{4}sumdeg,sumlastknot,sumknots,0,(float*)sumctlpoints) \\
+\#define mbs\_AddBSCurvesC3f(degree1,lastknot1,knots1,ctlpoints1, \bsl \\
+\ind{4}degree2,lastknot2,knots2,ctlpoints2, \bsl \\
+\ind{4}sumdeg,sumlastknot,sumknots,sumctlpoints) ... \\
+\#define mbs\_AddBSCurvesC4f(degree1,lastknot1,knots1,ctlpoints1, \bsl \\    
+\ind{4}degree2,lastknot2,knots2,ctlpoints2, \bsl \\  
+\ind{4}sumdeg,sumlastknot,sumknots,sumctlpoints) ...}
+
+\begin{figure}[ht]
+\centerline{\epsfig{file=addspl.ps}}
+\caption{Spline functions of degrees $3$ and~$4$ and their sum}
+\end{figure}
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiSubtractBSCurvesf ( int ncurves, int spdimen, \\
+\ind{19}int degree1, int lastknot1, const float *knots1, \\
+\ind{19}int pitch1, const float *ctlpoints1, \\
+\ind{19}int degree2, int lastknot2, const float *knots2, \\
+\ind{19}int pitch2, const float *ctlpoints2, \\
+\ind{19}int *sumdeg, int *sumlastknot, float *sumknots, \\
+\ind{19}int sumpitch, float *sumctlpoints );}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_SubtractBSCurvesC1f(degree1,lastknot1,knots1, \bsl \\
+\ind{4}ctlpoints1,degree2,lastknot2,knots2,ctlpoints2, \bsl \\
+\ind{4}sumdeg,sumlastknot,sumknots,sumctlpoints) \bsl \\
+\ind{2}mbs\_multiSubtractBSCurvesf (1,1,degree1,lastknot1,knots1,0, \bsl \\
+\ind{4}ctlpoints1,degree2,lastknot2,knots2,0,ctlpoints2, \bsl \\
+\ind{4}sumdeg,sumlastknot,sumknots,0,sumctlpoints) \\
+\#define mbs\_SubtractBSCurvesC2f(degree1,lastknot1,knots1, \bsl \\
+\ind{4}ctlpoints1,degree2,lastknot2,knots2,ctlpoints2, \bsl \\
+\ind{4}sumdeg,sumlastknot,sumknots,sumctlpoints) \bsl \\
+\ind{2}mbs\_multiSubtractBSCurvesf (1,2,degree1,lastknot1,knots1,0, \bsl \\
+\ind{4}(float*)ctlpoints1,degree2,lastknot2,knots2,0, \bsl \\
+\ind{4}(float*)ctlpoints2,sumdeg,sumlastknot,sumknots,0, \bsl \\
+\ind{4}(float*)sumctlpoints) \\
+\#define mbs\_SubtractBSCurvesC3f(degree1,lastknot1,knots1, \bsl \\
+\ind{4}ctlpoints1,degree2,lastknot2,knots2,ctlpoints2, \bsl \\
+\ind{4}sumdeg,sumlastknot,sumknots,sumctlpoints) ... \\
+\#define mbs\_SubtractBSCurvesC4f(degree1,lastknot1,knots1, \bsl \\
+\ind{4}ctlpoints1,degree2,lastknot2,knots2,ctlpoints2, \bsl \\
+\ind{4}sumdeg,sumlastknot,sumknots,sumctlpoints) ...}
+
+
+
+\newpage
+\subsection{Transformation between Bernstein and scaled Bernstein bases}
+
+This section contains the description of auxiliary procedures
+used by the procedures of multiplication of spline functions and curves.
+
+To multiply the polynomials given by the coefficients in the
+Bernstein bases, it is convenient to transform the data to the
+\emph{scaled bases}.
+The scaled basis of degree~$n$ consists of the polynomials
+\begin{align}
+  b^n_i(t) \stackrel{\mathrm{def}}{=} \frac{1}{\binom{n}{i}}B^n_i(t) =
+  t^i(1-t)^{n-i}.
+\end{align}
+The coefficients in this basis are obtained by multiplying the
+coefficients of the polynomial in the Bernstein basis by
+$\binom{n}{i}$.
+
+The result of multiplication of the polynomials represented
+in the scaled bases of degrees $n$ and $m$ is the sequence of coefficients
+in the scaled basis of degree $n+m$. Having it, we can transform it
+to the Bernstein basis of degree $n+m$, with the appropriate divisions.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBezScalef ( int degree, int narcs, \\
+\ind{26}int ncurves, int spdimen, \\
+\ind{26}int pitch, float *ctlpoints );}
+The procedure \texttt{mbs\_multiBezScalef} obtains an array of B\'{e}zier
+curves of degree \texttt{degree} in the space of dimension \texttt{spdimen}
+and it computes the coefficients of the curves in the scaled basis.
+An assumption is made that these curves are consecutive arcs of
+B-spline curves, which have been obtained by the appropriate knot insertions
+(e.g.\ with the \texttt{mbs\_multiMaxKnotInsf} procedeure).
+
+\begin{sloppypar}
+The parameters: \texttt{degree} --- degree of the curves, \texttt{narcs} --- the
+number of B\'{e}zier arcs making each B-spline curve,
+\texttt{ncurves} --- the number of B-spline curves, \texttt{spdimen} ---
+the dimension~$d$ of the space, in which the curves reside.
+\end{sloppypar}
+
+The parameter \texttt{pitch} specifies the pitch of the array \texttt{ctlpoints},
+which before calling the procedure contains the control points of
+the curves (i.e.\ their coefficients in the Bernstein bases
+of degree $n={}$\texttt{degree}),
+and on return it contains the coefficients in the scaled bases.
+The parameter \texttt{pitch} specifies the distance between the beginnings
+of the first control points of consecutive \emph{B-spline curves}.
+The representations of consecutive B\'{e}zier curves always occupy $(n+1)d$
+places, without unused areas between them. The pitch of this array
+cannot be less than $(n+1)d$\texttt{*narcs}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBezUnscalef ( int degree, int narcs, \\
+\ind{28}int ncurves, int spdimen, \\
+\ind{28}int pitch, float *ctlpoints );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_multiBezUnscalef} obtains the array
+with the representations of polynomial curves in the scaled bases
+and it does the transformation to the Bernstein bases, i.e.\ to the
+B\'{e}zier representation. The parameters of this procedure
+(except for the description of the initial and final contents of
+the array \texttt{ctlpoints}) are identical as the parameters of the
+procedure \texttt{mbs\_multiBezScalef}.
+\end{sloppypar}
+
+
+\subsection{Multiplication of spline functions and curves}
+
+The procedures described in this section multiply polynomial and spline
+curves (i.e.\ vector functions) by scalar polynomials and splines.
+The data for the procedures consist of representations of one or more
+scalar functions (polynomial or splines) $s_i$ and one or more vector
+functions (polynomials or splines) $\bm{v}_i$. Both these numbers have to
+be equal or one of them must be~$1$. The procedures compute the B\'{e}zier
+or B-spline representations of the vector functions
+\begin{align*}
+  \bm{w}_i(t) = s_i(t)\bm{v}_i(t),
+\end{align*}
+and if there is only one scalar sunction $s_0$ and more vector functions,
+then each vector function will be multiplied by $s_0$, and similarly
+if there are many scalar functions $s_i$ and one vector function $\bm{v}_0$
+then the procedures compute the products of the functions $s_i$ with $\bm{v}_0$.
+
+The procedures described here may be applied in various advanced constructions.
+The simplest is the degree elevation of a~curve, by multiplying it by
+the constanf scalar function $s_0(t)=1$ (the degree of representation of $s_0$
+is the difference between the degrees of the initial and final curve
+representations). However, in this case it is better to use the specific
+procedure of degree elevation (e.g.\ \texttt{mbs\_multiBSDegElevf}), which
+makes this computation in a~less heavy-handed manner.%
+\begin{figure}[ht]
+  \centerline{\epsfig{file=splmult.ps}}
+  \caption{Multiplication of a~planar vector B-spline curve by a~spline function.}
+\end{figure}
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_BSProdRepSizef ( int degree1, int lastknot1, \\
+\ind{25}const float *knots1, \\
+\ind{25}int degree2, int lastknot2, \\
+\ind{25}const float *knots2 );}
+The procedure \texttt{mbs\_BSProdRepSizef} gets \emph{two} knot sequences,
+\texttt{knots1} of length \texttt{lastknot1+1} and \texttt{knots2}
+of length \texttt{lastknot2+1}. The first sequence is the part of representation
+of spline functions of degree \texttt{degree1}, and the second --- of the
+functions of degree \texttt{degree2}. The sequences should determine the same
+domain of the spline curves. The value of the procedure is the index of
+the last element of the shortest knot sequence sufficient to represent the
+product of any spline functions possible to represent with the two given knot
+sequences.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_SetBSProdKnotsf ( int degree1, int lastknot1, \\
+\ind{27}const float *knots1, \\
+\ind{27}int degree2, int lastknot2, \\
+\ind{27}const float *knots2, \\
+\ind{27}int *degree, int *lastknot, \\
+\ind{27}float *knots );}
+The procedura \texttt{mbs\_SetBSProdKnotsf} gets two knot sequences
+and it generates another sequence, which is sufficient to represent the
+product of splines defined with the given two knot sequences.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiMultBezCf ( int nscf, int degscf, int scfpitch, \\
+\ind{26}const float *scfcoeff, \\
+\ind{26}int spdimen, \\
+\ind{26}int nvecf, int degvecf, int vecfpitch, \\
+\ind{26}const float *vecfcp, \\
+\ind{26}int *degprod, int prodpitch, \\
+\ind{26}float *prodcp );}
+The procedure \texttt{mbs\_multiMultBezCf} multiplies the polynomials
+represented in the Bernstein polynomial basis of degree \texttt{degscf}
+and polynomial vector functions (B\'{e}zier curves) of degree
+\texttt{degvecf}. The parameter \texttt{spdimen} specifies the dimension of
+the space, in which the curves reside. The number of the scalar functions
+is determined by the parameter \texttt{nscf}, and the number of the vector
+curves is specified by the parameter \texttt{nvecf}. The number of products
+computed by the procedure is the greater number of the two, see remarks
+at the beginning of this section.
+
+The array \texttt{scfcoeff} contains the coefficients of the polynomials
+in the Bernstein basis; the coefficients of each polynomial occupy
+the consecutive places in the array, and its pitch (difference
+between the indexes of the first coefficients of two consecutive
+polynomials) is specified by the parameter \texttt{scfpitch}.
+Similarly, the parameter \texttt{vecfpitch} specifies the pitch
+of the array \texttt{vecfcp} with the vector coefficients of the curves
+(each coefficient consists of \texttt{spdimen} numbers).
+
+The products are represented in the Bernstein basis of degree equal to
+the sum of degrees of the arguments (i.e.\
+$\mathord{\mbox{\texttt{degscf}}}+\mathord{\mbox{\texttt{degvecf}}}$);
+this degree is returned as the value of the parameter \texttt{degprod}.
+The representations of consecutive products consist of the sequences of
+$\mathord{\mbox{\texttt{spdimen}}}*(\mathord{\mbox{stopie"n}}+1)$ numbers,
+which are stored by the procedure to the array \texttt{prodcp}, whose pitch is
+\texttt{prodpitch}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiMultBSCf ( int nscf, int degscf, \\
+\ind{25}int scflastknot, const float *scfknots, \\
+\ind{25}int scfpitch, const float *scfcoeff, \\
+\ind{25}int spdimen, \\
+\ind{25}int nvecf, int degvecf, \\
+\ind{25}int vecflastknot, const float *vecfknots, \\
+\ind{25}int vecfpitch, const float *vecfcp, \\
+\ind{25}int *degprod, int *prodlastknot, \\
+\ind{25}float *prodknots, \\
+\ind{25}int prodpitch, float *prodcp );}
+The procedure \texttt{mbs\_multiMultBSCf} computes the representations of
+the products of \texttt{nscf} scalar spline functions $s_i$ and \texttt{nvecf}
+vector spline functions $\bm{v}_i$. The numbers of the scalar functions and the
+vector functions may be different (one of them must be then $1$),
+see the remarks at the beginning of this section.
+
+The scalar functions are represented with the parameters \texttt{degscf}
+(representation degree), \texttt{scflastknot} and \texttt{scfknots} (index
+of the last knot and the array with these knots), \texttt{scfcoeff}
+and~\texttt{scfpitch} (array with the coefficients in the B-spline basis
+and the pitch of this array).
+
+The vector functions in the space of dimension \texttt{spdimen} are similarly
+represented by the parameters \texttt{degvecf}, \texttt{vecflastknot},
+\texttt{vecfknots}, \texttt{vecfpitch} and \texttt{vecfcp}.
+
+The result is stored in the arrays \texttt{prodknots} (knots) and \texttt{prodcp}
+(vector coefficients in the B-spline basis of degree equal to the sum of
+degrees of the factors; this degree is returned using the parameter
+\texttt{degprod}). The pitch of the latter array is specified by the
+parameter  \texttt{prodpitch}. The initial value of the parameter 
+\texttt{*prodlastknot} specifies the amount of space in the array
+\texttt{prodknots}
+(it has to be greater by $1$ than the value of this parameter).
+It is necessary to compute this length and to allocate the array
+\emph{before} calling the procedure
+\texttt{mbs\_multiMultBSCf}. It is best to do it using the procedure
+\texttt{mbs\_BSProdRepSizef}, which scans the knot sequences of the
+arguments of the multiplication, passed as its parameters.
+
+
+\subsection{Computing normal vector patches}
+
+\cprog{%
+void mbs\_BezP3NormalDeg ( int degreeu, int degreev, \\
+\ind{26}int *ndegu, int *ndegv ); \\
+char mbs\_BezP3Normalf ( int degreeu, int degreev, \\
+\ind{24}const point3f *ctlpoints, \\
+\ind{24}int *ndegu, int *ndegv, vector3f *ncp );}
+\hspace*{\parindent}The procedure \texttt{mbs\_BezP3Normalf} computes the
+control points of the patch $\bm{n}=\bm{p}_u\wedge\bm{p}_v$,
+which describes the normal vector of a~given polynomial B\'{e}zier patch
+$\bm{p}$ of degree $(n,m)$ in~$\R^3$.
+The parameters $\mathord{\mbox{\texttt{degreeu}}}=n$
+and~$\mathord{\mbox{\texttt{degreev}}}=m$ specify the degree
+of the patch~$\bm{p}$. Its control points are given
+in the array \texttt{ctlpoints}, which contains the subsequent
+columns without unused areas between them.
+
+The degree of the patch~$\bm{n}$ is \texttt{*ndegu}$=2n-1$ with respect to~$u$
+and~\texttt{*ndegv}$=2m-1$ with respect to~$v$, and its control points
+are stored by the procedure in the array \texttt{ncp} (without unused areas
+between the columns).
+
+\begin{sloppypar}
+The value returned by the procedure \texttt{mbs\_BezP3Normalf} is~$0$
+in case of failure (invalid parameters or not enough scratch memory),
+or~$1$ if the computation has been successful.
+\end{sloppypar}
+
+\vspace{\smallskipamount}
+The procedure \texttt{mbs\_BezP3NormalDeg} computes the degree of
+the normal vector patch. It may be used to allocate a~sufficient memory
+block for storing the control points of this patch.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BezP3RNormalDeg ( int degreeu, int degreev, \\
+\ind{27}int *ndegu, int *ndegv ); \\
+char mbs\_BezP3RNormalf ( int degreeu, int degreev, \\
+\ind{25}const point4f *ctlpoints, \\
+\ind{25}int *ndegu, int *ndegv, vector3f *ncp );}
+The procedure \texttt{mbs\_BezP3RNormalf} computes the control points
+of the polynomial B\'{e}zier patch~$\bm{n}$, which describes the normal
+vector of a~given rational B\'{e}zier patch~$\bm{p}$ of degree~$(n,m)$
+in~$\R^3$.
+These control points are obtained by rejecting the weight coordinate
+of the control points of the patch
+$\bm{N}=\bm{P}\wedge\bm{P}_u\wedge\bm{P}_v$ in $\R^4$.
+The parameters $\mathord{\mbox{\texttt{degreeu}}}=n$
+and~$\mathord{\mbox{\texttt{degreev}}}=m$ specify the degree of the given
+patch~$\bm{p}$. The control points of its homogeneous representation
+are given in the array \texttt{ctlpoints}, which contains the subsequent
+columns without unused areas between them.
+
+\begin{figure}[ht]
+  \centerline{\raisebox{90pt}[0pt][0pt]{a)}\epsfig{file=nvtest1.ps}}
+  \centerline{\raisebox{96pt}[0pt][0pt]{b)}\epsfig{file=nvtest2.ps}}
+  \caption{Control nets of B\'{e}ziera patches and their}
+  \centerline{normal vector patches: a) polynomial patch, b) rational patch.}
+\end{figure}
+The degree of the normal vector patch is \texttt{*ndegu}$=3n-2$ with respect
+to~$u$ and~\texttt{*ndegv}$=3m-2$ with respect to~$v$, and its control points
+are stored in the array \texttt{ncp} (without unused areas between the columns).
+
+The procedure \texttt{mbs\_BezP3RNormalf} returns~$0$ in case of failure
+(invalid parameters or not enough scratch memory), or~$1$, in case of
+success.
+
+\vspace{\smallskipamount}
+The procedure \texttt{mbs\_BezP3RNormalDeg} computes the degree of the
+patch~$\bm{n}$. It may be used to allocate a~sufficient memory block for
+the control points of~$\bm{n}$.
+
+
+\clearpage
+\section{B-spline end knots change}
+
+\cprog{%
+void mbs\_multiBSChangeLeftKnotsf ( int ncurves, int spdimen, \\
+\ind{35}int degree, float *knots, \\
+\ind{35}int pitch, float *ctlpoints, \\
+\ind{35}float *newknots );}
+\begin{sloppypar}
+\hspace{\parindent}%
+The procedure \texttt{mbs\_multiBSChangeLeftKnotsf} changes the representation
+of B-spline curves of degree~$n$, by replacing the initial $n+1$ knots
+by the knots given in the array \texttt{newknots}. It may cause
+extending or trimming the domain and in this case the first
+polynomial arc of each curve is extended or shortened.
+\end{sloppypar}
+
+The new knots must be given in the nondecreasing order, and there must be
+$u_n<u_{n+1}$
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBSChangeRightKnotsf ( int ncurves, int spdimen, \\
+\ind{36}int degree, \\
+\ind{36}int lastknot, float *knots, \\
+\ind{36}int pitch, float *ctlpoints, \\
+\ind{36}float *newknots );}
+\begin{sloppypar}
+The procedure \texttt{ mbs\_multiBSChangeRightKnotsf } changes the representation
+of B-spline curves of degree~$n$, by replacing its last $n+1$ knots
+(i.e.\ the knots $u_{N-n},\ldots,u_N$) by the knots given in the array
+\texttt{newknots}. It may cause extending or trimming the domain and in this
+case the last polynomial arc of each curve is elongated or shortened.
+\end{sloppypar}
+
+The new knots must be given in the nondecreasing order, and there must be
+$u_{N-n}>u_{N-n-1}$.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BSChangeLeftKnotsC1f(degree,knots,coeff,newknots) \bsl \\        
+\ind{2}mbs\_multiBSChangeLeftKnotsf(1,1,degree,knots,0,coeff,newknots) \\        
+\#define mbs\_BSChangeLeftKnotsC2f(degree,knots,ctlpoints,newknots) \bsl \\        
+\ind{2}mbs\_multiBSChangeLeftKnotsf(1,2,degree,knots,0, \bsl \\
+\ind{30}(float*)ctlpoints,newknots) \\
+\#define mbs\_BSChangeLeftKnotsC3f(degree,knots,ctlpoints,newknots) \bsl \\
+\ind{2}... \\
+\#define mbs\_BSChangeLeftKnotsC4f(degree,knots,ctlpoints,newknots) \bsl \\
+\ind{2}... \\
+\#define mbs\_BSChangeRightKnotsC1f(degree,lastknot,knots,coeff, \bsl \\
+\ind{34}newknots) ... \\
+\#define mbs\_BSChangeRightKnotsC2f(degree,lastknot,knots, \bsl \\
+\ind{34}ctlpoints,newknots) ... \\
+\#define mbs\_BSChangeRightKnotsC3f(degree,lastknot,knots, \bsl \\
+\ind{34}ctlpoints,newknots) ... \\
+\#define mbs\_BSChangeRightKnotsC4f(degree,lastknot,knots, \bsl \\
+\ind{34}ctlpoints,newknots)}
+\begin{sloppypar}
+The macros shown above call the procedure \texttt{mbs\_multiBSChangeLeftKnotsf}
+and \texttt{mbs\_multiBSChangeRightKnotsf} in order to change
+the representation of one B-spline curve in the space of dimension
+$1,\ldots,4$.
+\end{sloppypar}
+
+\begin{figure}[ht]
+  \centerline{\epsfig{file=chknots.ps}}
+  \caption{A B-spline curve before and after the end representation change.}
+\end{figure}
+
+
+\clearpage
+\section{Constructing curves of interpolation}
+
+The construction of a~curve of interpolation is sometimes the main
+problem, and sometimes it is a~part of a~bigger problem, like the
+construction of lofted surfaces or filleting surfaces.
+
+
+\subsection{Cubic spline curves of interpolation}
+
+This section is devoted to the procedure of computing of a~B-spline
+representation of cubic spline curves of interpolation. The interpolation
+knots (given as input data) will be the knots of the curves, and the first
+and last interpolation knots will be the curve (boundary) knots of
+multiplicity~$3$. In addition, there will be two extremal knots,
+necessary in the B-spline representation.
+ 
+Apart from the knots and interpolation conditions it is necessary
+to specify \emph{boundary conditions}. The conditions which may be processed
+by the current version of the procedure are described later.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBSCubicInterpf ( int lastinterpknot, \\
+\ind{31}float *interpknots, \\
+\ind{31}int ncurves, int spdimen, \\
+\ind{31}int xpitch, const float *x, \\
+\ind{31}int ypitch, \\
+\ind{31}char bcl, const float *ybcl, \\
+\ind{31}char bcr, const float *ybcr, \\
+\ind{31}int *lastbsknot, \\
+\ind{31}float *bsknots, \\
+\ind{31}int bspitch, \\
+\ind{31}float *ctlpoints );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_multiBSCubicInterpf} constructs cubic B-spline
+curves of interpolation of class~$C^2$.
+\end{sloppypar}
+\begin{sloppypar}
+The parameters: \texttt{lastinterpknot} specifies the index of the last
+interpolation knot, which will be denoted by~$N$. The interpolation knots
+$u_0,\ldots,u_N$, which have to form an increasing sequence,
+are to be specified in the array \texttt{interpknots}.
+\end{sloppypar}
+
+\begin{figure}[ht]
+  \centerline{\begin{picture}(2050,2883)
+    \put(0,0){\epsfig{file=intbsc.ps}}
+    \put(0,2770){a)}
+    \put(1100,2770){b)}
+    \put(0,1770){c)}
+    \put(1100,1770){d)}
+    \put(0,770){e)}
+    \put(1100,770){f)}
+  \end{picture}}
+  \caption{Cubic B-spline curves of interpolation.}
+  \centerline{The knots are the numbers $0,1,\ldots,10$. The boundary conditions are:}
+  \centerline{a) given derivatives at end points, b) Bessel end conditions,}
+  \centerline{c) given second order derivatives, d) natural spline,}
+  \centerline{e) not-a-knot condition, f) third order derivatives
+    at end points equal to~$\bm{0}$.}
+\end{figure}%
+The parameters \texttt{ncurves} and \texttt{spdimen} specify the number of
+curves and the space dimension. The array~\texttt{x} contains the coordinates of
+points to be interpolated; for each curve it is necessary to supply
+$\mathord{\mbox{\texttt{spdimen}}}(\mathord{\mbox{\texttt{lastinterpknot}}}+1)$
+floating point numbers. The pitch of this array (i.e.\ the distance between
+the beginnings of data for consecutive curves) is specified by the parameter
+\texttt{xpitch}.
+
+The parameter \texttt{ypitch} specifies the pitch of the arrays \texttt{ybcl}
+and~\texttt{ybcr}, which contain the data describing the boundary conditions.
+
+The parameters \texttt{bcl} and~\texttt{bcr} are used to select the
+boundary conditions at the left and right end of the curves respectively;
+all the curves are constructed with the boundary conditions of the same kind,
+but at each end the boundary condition may be different. The valid values
+of the two parameters are defined (as macros) in the file \texttt{multibs.h},
+and their current list is as follows:
+\begin{mydescription}
+  \item[]\texttt{BS3\_BC\_FIRST\_DER} --- the boundary condition is given
+    by specifying the derivative vector of each curve at the left or right
+    interpolation knot (i.e.\ at $u_0$ or $u_N$).
+    The coordinates of those vectors for all the curves must be given
+    in the array \texttt{ybcl} (for the knot $u_0$) or \texttt{ybcr}
+    (for the knot $u_N$). Thus the arrays \texttt{ybcl}
+    and~\texttt{ybcr} for each curve contain \texttt{spdimen}
+    floating point numbers, being the coordinates of those vectors.
+  \item[]\texttt{BS3\_BC\_FIRST\_DER0} --- the boundary condition is as above,
+    with zero derivative vector at the appropriate interpolation knot.
+    The parameter \texttt{ybcl} or \texttt{ybcr} is then ignored, so
+    its value may be \texttt{NULL}.
+  \item[]\texttt{BS3\_BC\_SECOND\_DER} --- the boundary condition is given
+    by specifying the second order derivative vector at the knot
+    $u_0$ or $u_N$. The coordinates of this vector (or vectors, if there
+    is more than one curve to construct) are given in the array
+    \texttt{ybcl} or \texttt{ybcr} respectively.
+  \item[]\texttt{BS3\_BC\_SECOND\_DER0} --- The boundary condition is as above,
+    with the zero derivative vector at the appropriate knot.
+    The parameter \texttt{ybcl} or \texttt{ybcr} is ignored and
+    its value may be \texttt{NULL}.
+
+    A~curve satisfying such a~condition at both ends is called
+    a~\textbf{natural spline curve}.
+  \item[]\texttt{BS3\_BC\_THIRD\_DER} --- the boundary condition is given by
+    specifying the third order derivative vector of the curves.
+    Their coordinates are given in the array \texttt{ybcl} or \texttt{ybcr}.
+  \item[]\texttt{BS3\_BC\_THIRD\_DER0} --- the boundary condition is given
+    by requiring that the third order derivative at the end be the
+    zero vector. As the third order derivative of a~cubic polynomial arc
+    is constant, this boundary condition means that the first or the last
+    polynomial arc of the curve is a~piece of a~parabola.
+    The parameter \texttt{ybcl} or \texttt{ybcr} for this boundary condition is
+    ignored, and its value may be \texttt{NULL}.
+  \item[]\texttt{BS3\_BC\_BESSEL} --- selects the so called Bessel boundary
+    condition. The derivative of the curve at the first or the last
+    interpolation knot is the derivative of the quadratic curve of interpolation
+    for the first three or the last three knots and points.
+
+    The parameter \texttt{ybcl} or \texttt{ybcr} in case of the Bessel end
+    condition is ignored, and its value may be \texttt{NULL}.
+  \item[]\texttt{BS3\_BC\_NOT\_A\_KNOT} --- the not-a-knot boundary condition;
+    the interpolation knot $u_1$ or $u_{N-1}$ is not a~knot of the spline curve,
+    i.e.\ the polynomial arcs of the curve meet at that knot with the
+    $C^\infty$ continuity. The parameter \texttt{ybcl} or \texttt{ybcr}
+    is ignored, and its value may be \texttt{NULL}.
+\end{mydescription}
+
+The representation of the curves of interpolation constructed with
+this procedure is given by the following parameters: \texttt{*lastbsknot}
+--- the number of the last knot of the spline curve, \texttt{bsknots} ---
+array with the knots (these are the interpolation knots, but
+the knots $u_0$ and~$u_N$ in this array are of multiplicity~$3$, and there
+are two extremal knots in addition, whose presence is required by the
+representation). The input parameter \texttt{bspitch}
+specifies the pitch of the array \texttt{ctlpoints}, in which the control
+points of conescutive curves of interpolation are stored.
+
+
+\subsection{Hermite curves of interpolation}
+
+The procedures described in this section implement a~quite particular
+construction: they find B\'{e}zier and B-spline curves of degree~$n$,
+which satisfy the Hermite interpolation conditions imposed at two knots,
+$0$ and~$1$ or $u_n$ and~$u_{N-n}$ respectively. There is an application,
+in which Ineeded such procedures, and the algorithm for this case is
+faster than the general algorithm of solving the Hermite interpolation
+problem for a~B-spline curve.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiInterp2knHermiteBezf ( int ncurves, int spdimen, \\
+\ind{26}int degree, \\
+\ind{26}int nlbc, int lbcpitch, const float *lbc, \\
+\ind{26}int nrbc, int rbcpitch, const float *rbc, \\
+\ind{26}int pitch, float *ctlpoints );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_multiInterp2knHermiteBezf} constructs \texttt{ncurves}
+B\'{e}zier curves of degree~$n$ (the degree is specified by the parameter
+\texttt{degree}) in the space of dimension~$d$ (specified by the parameter
+\texttt{spdimen}).
+\end{sloppypar}
+
+The number of interpolation conditions for each curve
+at the knot~$0$ is equal to \texttt{nlbc}, and at the knot~$1$ is
+\texttt{nrbc}. Both parameters must be nonnegative and their sum must
+be $n+1$ (this ensures the uniqueness of solution of the interpolation
+problem).
+
+The interpolation conditions are given in the arrays \texttt{lbc} (for the
+knot~$0$) and~\texttt{rbc} (for the knto~$1$). The initial $d$~numbers
+in each array specify the point of the first curve, the next $d$~numbers are
+coordinates of the derivative vector, then the second order derivative etc.
+The data, which describe the interpolation conditions for
+the second curve are stored starting at the position
+\texttt{lbcpitch} and~\texttt{rbcpitch} respectively.
+
+The control points of the curves (i.e.\ the construction result)
+are stored in the array \texttt{ctlpoints}, whose pitch (the distance
+between the beginnings of data which describe the consecutive
+curves) is the value of the parameter \texttt{pitch}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiInterp2knHermiteBSf ( int ncurves, int spdimen, \\
+\ind{26}int degree, \\
+\ind{26}int lastknot, const float *knots, \\
+\ind{26}int nlbc, int lbcpitch, const float *lbc, \\
+\ind{26}int nrbc, int rbcpitch, const float *rbc, \\
+\ind{26}int pitch, float *ctlpoints );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_multiInterp2knHermiteBSf} constructs \texttt{ncurves}
+\mbox{B-spline} curves of degree~$n$ (the degree is the value of the parameter
+\texttt{degree}) in the space of dimension~$d$ (specified by the parameter
+\texttt{spdimen}). The curve is defined with the knot sequence of
+length $N+1$, goven in the array \texttt{knots}
+(the number $N$ is the value of the parameter \texttt{lastknot}).
+\end{sloppypar}
+
+The number of the interpolation conditions for each curve
+at the knot $u_n$ is the value of the parameter \texttt{nlbc}, and at the
+knot $u_{N-n}$ is specified by \texttt{nrbc}, and none of the parameters may have
+the value greater than~$n$. Their sum must be $N-n$ to ensure that the
+interpolation problem has a~unique solution.
+
+The knots in the array \texttt{knots} must satisfy the conditions
+$u_1=\cdots=u_n<u_{n+1}$ and $u_{N-n-1}<u_{N-n}=\cdots=u_{N-1}$,
+which are not verified by the procedure. The interpolation conditions
+are given in the arrays \texttt{lbc} (for the knot $u_n$) and~\texttt{rbc}
+(for the knot $u_{N-n}$). The first $d$~numbers in each array specify
+the appropriate point of the first curve, the next $d$~numbers describe the
+derivative vector, then the second order derivative etc.
+The data, which decsribe the interpolation conditions for the next curve
+begin at the positions \texttt{lbcpitch} and \texttt{rbcpitch} respectively.
+
+The control points of the curves (i.e.\ the result of the construction)
+are stored in the array \texttt{ctlpoints}, whose pitch
+(distance between the beginnings of the data for consecutive curves)
+is specified by the input parameter \texttt{pitch}.
+
+
+\newpage
+\section{Constructing curves of approximation}
+
+\begin{sloppypar}
+One can impose more interpolation conditions for a~function or a~curve
+than the dimension of the appropriate space. The resulting system of equations
+is overdeterminate and often inconsistent. By solving the related least squares
+problem we obtain a~function or a~curve, which satisfies the interpolation
+conditions with some error. Such a~construction may be done with
+the procedures described in this section.
+\end{sloppypar}
+
+\begin{figure}[ht]
+  \centerline{\epsfig{file=bsapprox.ps}}
+  \caption{Planar B-spline curve of approximation.}
+\end{figure}
+\begin{sloppypar}
+A~spline curve of approximation may be constructed by the procedure \\
+\texttt{mbs\_multiConstructApproxBSCf} described later. The procedures
+described below are auxiliary and probably they will not be called
+directly by application programs.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_ApproxBSKnotsValidf ( int degree, int lastknot, \\
+\ind{28}const float *knots, \\
+\ind{28}int lastiknot, const float *iknots );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_ApproxBSKnotsValidf} verifies, whether the sequences
+of interpolation knots and spline curve knots satisfy the assumptions of the
+Schoenberg-Whitney theorem. If they do, then the construction of
+the curve of approximation is feasible.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_ApproxBSBandmSizef ( int degree, const float *knots, \\
+\ind{29}int lastiknot, const float *iknots );}
+The procedure \texttt{mbs\_ApproxBSBandmSizef} computes the length of
+the array needed to represent the band matrix of the system of linear
+equations solved as a~linear least squares problem in the construction
+of the approximation curve.
+
+The parameters \texttt{degree} and~\texttt{knots} describe
+the space of spline functions, whose elements are to describe the curve
+(degree and the array of knots respectively; the length of this sequence
+is determined by the interpolation knots).
+The parameter \texttt{lastiknot} and \texttt{iknots} describe the
+\emph{interpolation} knots of the curve --- the interpolation conditions
+specified at these knots will be satisfied with some error.
+
+The value returned by the procedure is the length of the array
+for storing the nonzero coefficients of the matrix of the system
+of equations.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_ConstructApproxBSProfilef ( int degree, int lastknot, \\
+\ind{28}const float *knots, \\
+\ind{28}int lastiknot, const float *iknots, \\
+\ind{28}bandm\_profile *prof );}
+The procedure \texttt{mbs\_ConstructApproxBSProfilef} constructs the profile
+of the band matrix (see Section~\ref{sect:band:matrix}) of the system of
+equations solved in the construction of the approximation curve.
+The parameters \texttt{degree}, \texttt{lastknot}, \texttt{knots},
+\texttt{lastiknot}, \texttt{iknots} describe the knots of the spline curve
+and the interpolation knots (see the description of the procedure
+\texttt{mbs\_ApproxBSBandmSizef}).
+
+The parameter \texttt{prof} points to the array of length
+\texttt{lastknot}$-$\texttt{degree}$+1$. The procedure stores the profile
+of the matrix in this array.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_ConstructApproxBSMatrixf ( int degree, int lastknot, \\
+\ind{30}const float *knots, \\
+\ind{30}int lastiknot, const float *iknots, \\
+\ind{30}int *nrows, int *ncols, \\
+\ind{30}bandm\_profile *prof, \\
+\ind{30}float *a );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_ConstructApproxBSMatrixf} computes the coefficients
+of the matrix of the system of equations, whose least squares solution
+represents the spline function or curve of approximation.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean mbs\_multiConstructApproxBSCf ( int degree, int lastknot, \\
+\ind{30}const float *knots, \\
+\ind{30}int lastpknot, const float *pknots, \\
+\ind{30}int ncurves, int spdimen, \\
+\ind{30}int ppitch, const float *ppoints, \\
+\ind{30}int bcpitch, float *ctlpoints );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_multiConstructApproxBSCf} constructs spline
+functions or curves of approximation, by setting up the appropriate
+system of linear equations and solving it as a~linear least squares problem.
+\end{sloppypar}
+
+Parameters: \texttt{degree} --- degree of the curves, \texttt{lastknot} ---
+number of the last knot, \texttt{knots} --- array of knots,
+\texttt{lastpknot} --- number of the last interpolation knot,
+\texttt{pknots} --- array with the interpolation knots, \texttt{ncurves} ---
+number of curves, \texttt{spdimen} --- dimension of the space with the curves.
+
+\begin{sloppypar}
+The parameters \texttt{ppitch} and~\texttt{ppoints} describe the
+interpolation conditions; \texttt{ppitch} is the pitch of the array
+\texttt{ppoints} with the points corresponding to the subsequent
+interpolation knots.
+\end{sloppypar}
+
+The parameter \texttt{bcpitch} is the pitch of the array \texttt{ctlpoints},
+in which the procedure stores the control points of the curves of
+approximation.
+
+The value returned by the procedure is \texttt{true} if the computation
+has been successful, or \texttt{false} otherwise. The reason of the failure
+may be that the knot sequences do not satisfy the assumptions of the
+Schoenberg-Whitney theorem (which leads to an irregular least squares problem),
+or insufficient scratch memory.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_ConstructApproxBSC1f(degree,lastknot,knots,\bsl \\
+\ind{4}lastpknot,pknots,ppoints,ctlpoints) \bsl \\
+\ind{2}mbs\_multiConstructApproxBSCf (degree,lastknot,knots,lastpknot,\bsl \\
+\ind{4}pknots,1,1,0,(float*)ppoints,0,(float*)ctlpoints) \\
+\#define mbs\_ConstructApproxBSC2f(degree,lastknot,knots,\bsl \\
+\ind{4}lastpknot,pknots,ppoints,ctlpoints) \bsl \\
+\ind{2}mbs\_multiConstructApproxBSCf (degree,lastknot,knots,lastpknot,\bsl \\
+\ind{4}pknots,1,2,0,(float*)ppoints,0,(float*)ctlpoints) \\
+\#define mbs\_ConstructApproxBSC3f(degree,lastknot,knots,\bsl \\
+\ind{4}lastpknot,pknots,ppoints,ctlpoints) ... \\
+\#define mbs\_ConstructApproxBSC4f(degree,lastknot,knots,\bsl \\
+\ind{4}lastpknot,pknots,ppoints,ctlpoints) ...}
+The above macros call
+\texttt{mbs\_multiConstructApproxBSCf} in order to construct
+one curve of approximation in the space of dimension $1,\ldots,4$.
+
+
+\newpage
+\section{B\'{e}zier curve clipping}
+
+\cprog{%
+boolean mbs\_FindPolynomialZerosf ( int degree, const float *coeff, \\
+\ind{28}int *nzeros, float *zeros, float eps );}
+\hspace*{\parindent}The procedure \texttt{mbs\_FindPolynomialZerosf} computes
+real zeros of a~polynomial of degree~$n$ in the interval~$[0,1]$.
+
+Input parameters: \texttt{degree} --- degree $n$ of the polynomial,
+\texttt{coeff} --- coefficients of the polynomial in the Bernstein
+basis of degree~$n$, \texttt{eps} --- required accuracy of the results
+(it must be a~positive number).
+
+Output parameters: \texttt{*nzeros} --- the variable, which will be assigned the
+number of zeros found, \texttt{*zeros} --- array in which the zeros will
+be stored. The length of this array must be at least~$n$.
+
+The value of the procedure is \texttt{true}, after the computation has been
+successful, and \texttt{false} otherwise, i.e.\ if not enough scratch memory
+was available.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_ClipBC2f ( int ncplanes, const vector3f *cplanes, \\
+\ind{12}int degree, const point2f *cpoints, \\
+\ind{12}void (*output) (int degree, const point2f *cpoints) );}
+The procedure \texttt{mbs\_ClipBC2f} clips a~planar polynomial B\'{e}zier
+curve to a~convex polygon, i.e.\ it computes and outputs the arcs of the
+curve located inside that polygon.
+
+The parameters: \texttt{ncplanes} --- number of halfplanes, whose intersection
+is the polygon, \texttt{cplanes} --- array with the representations
+of the halfplanes. For the halfplane $ax+by+c>0$ the numbers
+$a$, $b$, $c$ are coordinates of the appropriatre vector in the
+array~\texttt{cplanes}.
+
+The parameters \texttt{degree} and \texttt{cpoints} specify the curve,
+i.e.\ its degree and the control points respectively.
+The parameter \texttt{output} points to the procedure to be called in order
+to output (e.g.\ draw) each arc of the curve, located inside the polygon.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_ClipBC2Rf ( int ncplanes, const vector3f *cplanes, \\
+\ind{12}int degree, const point3f *cpoints, \\
+\ind{12}void (*output) (int degree, const point3f *cpoints) );}
+The procedure \texttt{mbs\_ClipBC2Rf} clips a~planar rational B\'{e}zier
+curve to a~convex polygon, i.e.\ it computes and outputs the arcs of the
+curve located inside that polygon.
+
+The parameters: \texttt{ncplanes} --- number of halfplanes, whose intersection
+is the polygon, \texttt{cplanes} --- array with the representations
+of the halfplanes. For the halfplane $ax+by+c>0$ the numbers
+$a$, $b$, $c$ are coordinates of the appropriatre vector in the
+array~\texttt{cplanes}.
+
+The parameters \texttt{degree} and \texttt{cpoints} specify the curve,
+i.e.\ its degree and the control points of the homogeneous curve respectively.
+The parameter \texttt{output} points to the procedure to be called in order
+to output (e.g.\ draw) each arc of the curve, located inside the polygon.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_ClipBC3f ( int ncplanes, const vector4f *cplanes, \\
+\ind{12}int degree, const point3f *cpoints, \\
+\ind{12}void (*output) (int degree, const point3f *cpoints) );}
+The procedure \texttt{mbs\_ClipBC3f} clips a~polynomial B\'{e}zier
+curve in the $3D$ space to a~convex polyhedron, i.e.\ it computes and
+outputs the arcs of the curve located inside that polyhedron.
+
+The parameters: \texttt{ncplanes} --- number of halfspaces, whose intersection
+is the polyhedron, \texttt{cplanes} --- array with the representations
+of the halfspaces. For the halfspace $ax+by+cz+d>0$ the numbers
+$a$, $b$, $c$, $d$ are coordinates of the appropriatre vector in the
+array~\texttt{cplanes}.
+
+The parameters \texttt{degree} and \texttt{cpoints} specify the curve,
+i.e.\ its degree and the control points respectively.
+The parameter \texttt{output} points to the procedure to be called in order
+to output (e.g.\ draw) each arc of the curve, located inside the polygon.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_ClipBC3Rf ( int ncplanes, const vector4f *cplanes, \\
+\ind{12}int degree, const point4f *cpoints, \\
+\ind{12}void (*output) (int degree, const point4f *cpoints) );}
+The procedure \texttt{mbs\_ClipBC3Rf} clips a~rational B\'{e}zier
+curve in the $3D$ space to a~convex polyhedron, i.e.\ it computes and
+outputs the arcs of the curve located inside that polyhedron.
+
+The parameters: \texttt{ncplanes} --- number of halfspaces, whose intersection
+is the polyhedron, \texttt{cplanes} --- array with the representations
+of the halfspaces. For the halfspace $ax+by+cz+d>0$ the numbers
+$a$, $b$, $c$, $d$ are coordinates of the appropriatre vector in the
+array~\texttt{cplanes}.
+
+The parameters \texttt{degree} and \texttt{cpoints} specify the curve,
+i.e.\ its degree and the control points of the homogeneous curve respectively.
+The parameter \texttt{output} points to the procedure to be called in order
+to output (e.g.\ draw) each arc of the curve, located inside the polygon.
+
+
+\newpage
+\section{Polyline shape testing}
+
+\cprog{%
+boolean mbs\_MonotonicPolylinef ( int spdimen, int npoints, \\
+\ind{33}int pitch, const float *points, \\
+\ind{33}const float *v ); \\
+boolean mbs\_MonotonicPolylineRf ( int spdimen, int npoints, \\
+\ind{34}int pitch, const float *points, \\
+\ind{34}const float *v );}
+\begin{sloppypar}
+\hspace*{\parindent}The procedures \texttt{mbs\_MonotonicPolylinef}
+and~\texttt{mbs\_MonotonicPolylineRf} \\
+test, whether a~polyline is monotonic with respect to the vector~$\bm{v}$.
+\end{sloppypar}
+
+The polyline is in the space $\R^d$, whose dimension is specified
+by the parameter \texttt{spdimen}. For the procedure
+\texttt{mbs\_MonotonicPolylinef} its value must be~$d$, and for the procedure
+\texttt{mbs\_MonotonicPolylineRf} it must be $d+1$.
+
+The parameter \texttt{npoints} specifies the number of points. The cartesian
+coordinates (for the procedure \texttt{mbs\_MonotonicPolylinef}) or the
+homogeneous coordinates \texttt{mbs\_MonotonicPolylineRf}) of those points
+are given in the array \texttt{points}. The parameter \texttt{pitch}
+specifies the distance of the beginnings of the representations
+of consecutive points (which may be other than \texttt{spdimen}).
+
+The parameter \texttt{v} points to the array with $d$~numbers,
+the coordinates of the vector~$\bm{v}$.
+
+Each procedure returns \texttt{true} after detecting that the projections
+of consecutive points on the line, whose direction is given by the
+vector~$\bm{v}$ are ordered along this line
+(and, in case of the procedure \texttt{mbs\_MonotonicPolylineRf},
+the weight coordinates of the points have the same sign)
+and \texttt{false} otherwise.
+
+\vspace{\medskipamount}
+The procedures may be used to test, whether the control polylines of
+curves are monotonic with respect to the vector~$\bm{v}$. This is a~sufficient
+condition of monotonicity of B\'{e}zier and B-spline curves
+(assuming, for the rational curves, that all weight coordinates have the
+same sign).
+
+
+\newpage
+\section{Curve rasterization}
+
+The procedures of rasterization of curves represent pixels as
+structures of type \texttt{xpoint} and they use the buffer and its macros
+defined in the file \texttt{pkvaria.h}. In particular the curves of
+degree~$1$ are rasterized as line segments, using the procedure
+\texttt{\_pkv\_DrawLine} from the \texttt{libpkvaria} library.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_RasterizeBC2f ( int degree, const point2f *cpoints, \\
+\ind{25}void (*output)(const xpoint *buf, int n), \\
+\ind{25}boolean outlast ); \\
+void mbs\_RasterizeBC2Rf ( int degree, const point3f *cpoints, \\
+\ind{26}void (*output)(const xpoint *buf, int n), \\
+\ind{26}boolean outlast );}
+The procedures \texttt{mbs\_RasterizeBC2f} and~\texttt{mbs\_RasterizeBD2Rf}
+rasterize B\'{e}zier curves, i.e.\ they compute pixels which form
+eight-connected approximate images of the curves.
+
+The parameters: \texttt{degree} --- degree of the curve, \texttt{cpoints}
+--- control points (for a~rational curve must be represented with the
+homogeneous coordinates), \texttt{output} --- an output procedurw (called
+to output pixels, i.e.\ on the screen). The parameter \texttt{outlast}
+specifies, whether the last pixel of the curve is to be output.
+Drawing a~spline curve (consisting of more than one polynomial arc)
+or a~closed curve one should not output the last pixel of each arc.
+
+The number of calls of the \texttt{output} procedure depends on the number
+of pixels to draw and on the capacity of the internal buffer.
+The parameter~\texttt{n} of the \texttt{output} procedure is the number of
+pixels to output.
+
+\begin{figure}[ht]
+  \centerline{\epsfig{file=rasterbc.ps}}
+  \caption{Raster images of polynomial and rational cubic B\'{e}zier curves.}
+\end{figure}
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_RasterizeBS2f ( int degree, int lastknot, \\
+\ind{25}const float *knots, \\
+\ind{25}const point2f *cpoints, \\
+\ind{25}void (*output)(const xpoint *buf, int n), \\
+\ind{25}boolean outlast ); \\
+void mbs\_RasterizeBS2Rf ( int degree, int lastknot, \\
+\ind{26}const float *knots, \\
+\ind{26}const point3f *cpoints, \\
+\ind{26}void (*output)(const xpoint *buf, int n), \\
+\ind{26}boolean outlast );}
+The procedures \texttt{mbs\_RasterizeBS2f} and~\texttt{mbs\_RasterizeBS2Rf}
+rasterize planar B-spline curves. The parameters
+\texttt{degree} (degree), \texttt{lastknot} (number of the last knot),
+\texttt{knots} (array with the knots) and~\texttt{cpoints} (array with the
+control poitns) describe the curve.
+The parameter \texttt{output} points to the procedure which will be called
+in order to output or otherwise process the pixels. The parameter
+\texttt{outlast} specifies, whether the last pixel of the curve should be
+output or not.
+
+\vspace{\medskipamount}
+\noindent
+\textbf{TO DO:} Clipping the curves before the rasterization. Testing,
+whether the curve is so short that its image consists of one pixel.
+Postprocessing the pixels in order to improve the smoothness of the image.
+
+
+\begin{figure}[ht]
+  \centerline{\epsfig{file=rasterbs.ps}}
+  \caption{Raster images of cubic polynomial and rational B-spline curves.}
+\end{figure}
+
+\clearpage
+

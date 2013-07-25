@@ -1,0 +1,536 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\newpage
+\section{Drawing trimmed patches}
+
+\subsection{\label{ssect:trimpatch:bound}Domain representation}
+
+The domain of a~trimmed B-spline patch of degree $(n,m)$, with the knots
+$u_0,\ldots,u_N$ and $v_0,\ldots,v_M$ is a~subset of the rectangle
+$[u_n,u_{N-n}]\times[v_m,v_{M-m}]$. In particular, it is always a~bounded
+area. The boundary of the domain is the sum of planar curvilinear closed
+polylines. Every such a~polyline may consist of
+\begin{itemize}
+  \item polylines (sequences of line segments),
+  \item B\'{e}zier curves,
+  \item B-spline curves,
+\end{itemize}
+called hereafter the boundary elements.
+The points (vertices of the polylines and control points of the curves)
+may be given with the cartesian coordinates (then they are of type
+\texttt{point2f}) or homogeneous coordinates (in this case
+they are of type \texttt{vector3f}).
+
+The data describing every such a~polyline must satisfy the following condition:
+the B-spline curves must be continuous and the end point of each boundary
+element (polyline or curve) is the first point of the of the element that
+follows (the last element is followed by the first one). If this condition
+is not satisfied then the procedures of drawing trimmed patches will insert
+the appropriate line segments.
+
+Another condition is the absence of points at infinity. It is sufficient
+that all weight coordinates are positive, though it is not required.
+However, specifying an unbounded patch boundary may cause a~program
+execution error. Therefore all polylines and curves must lie in the rectangle
+specified as the domain of the untrimmed patch.
+
+\vspace{\medskipamount}
+The boundary of the domain is represented with an array containing
+structures of type \texttt{polycurvef}.
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct\{ \\
+\ind{4}boolean closing; \\
+\ind{4}byte\ind{4}spdimen; \\
+\ind{4}short\ind{3}degree; \\
+\ind{4}int\ind{5}lastknot; \\
+\ind{4}float\ind{3}*knots; \\
+\ind{4}float\ind{3}*points; \\
+\ind{2}\} polycurvef;
+}
+The attribute \texttt{closing} specifies the boundary element following
+the current one. If its value is \texttt{false}, then there is a~new element
+after the current one (and it is described by the next structure in the array).
+If \texttt{closing} is \texttt{true}, then the end of the current element
+should be connected with the beginning of the first element in the array,
+or with the last of the preceding elements, preceded by an element
+with the \texttt{closing} attribute \texttt{true}
+(in this way the curvilinear polygon is closed).
+
+\begin{sloppypar}
+The attribute \texttt{spdimen} may be equal to \texttt{2} or \texttt{3}.
+In the former case the attribute \texttt{points} points to an array
+of structures \texttt{point2f} with the cartesian coordinates of points
+in the plane. In the latter case it points to an array of structures
+\texttt{vector3f}, with the homogeneous coordinates of points
+(the curve, whose control points are represented in this way
+is rational, and its representation is homogeneous).
+\end{sloppypar}
+
+The attribute \texttt{degree} specifies the degree~$n$ of the curve,
+it must not be less than~$1$.
+
+The attribute \texttt{lastknot} specifies the number~$N$ of the last
+vertex of the polyline or the last knot of the B-spline curve.
+
+The attribute \texttt{knots} points to an array with the knots of
+the B-spline curve, of length $N+1$.
+
+The attribute \texttt{points} points to an array with the vertices of the
+polyline or the control polygon. Depending on the value of the attribute
+\texttt{spdimen} this array contains pairs of triples of floating point
+numbers.
+
+To specify a~\textbf{polyline} consisting of~$N$ line segments,
+one should set the attributes
+\texttt{degree=1}, \texttt{lastknot=$N$}, \texttt{knots=NULL}. The array
+pointed by \texttt{points} must contain \texttt{spdimen*$(N+1)$}
+floating point numbers (or $N+1$ structures of type \texttt{point2f} or
+\texttt{vector3f}).
+
+To specify a~\textbf{B\'{e}zier curve} of degree $n>0$, the attributes
+should be \texttt{degree=$n$}, \texttt{lastknot=-1}, \texttt{knots=NULL}.
+The array pointed by \texttt{points} must contain \\
+\texttt{spdimen*$(n+1)$}
+floating point numbers (or $n+1$ structur of type \texttt{point2f} or
+\texttt{vector3f}).
+
+To specify a~\textbf{B-spline curve} of degree $n>0$, one should set up the
+attributes \texttt{degree=$n$}, \texttt{lastknot=$N$}. The attribute
+\texttt{knots} must point an array with $N+1$ floataing point numbers,
+being the knots, and \texttt{points} must point an array with
+\texttt{spdimen*$(N-n)$} floating point numbers, the coordinates
+of the control points.
+
+It is not required that B-spline curves be represented with clamped knots,
+but the curve should be connected with the neighbouring boundary elements.
+In particular one can specify a~connected part of the boundary domain
+as a~single closed B-spline curve.
+
+\vspace{\medskipamount}
+The boundary of the domain may (but it does not have to) be oriented.
+One can use the convention that moving along the boundary according to their
+natural parameterization one has the inside of the domain on the
+left hand (or right hand) side. The drawing procedures must be implemented
+in such a~way that the appropriate information is available.
+The boundary elements may intersect, and it must not cause execution
+errors.
+
+\vspace{\medskipamount}\noindent
+\textbf{Example.} The boundary of the domain in Figure~\ref{fig:trimpatch}
+is described as follows:%
+\begin{figure}[ht]
+  \centerline{\epsfig{file=trimpatch.ps}}
+  \caption{\label{fig:trimpatch}A~trimmed domain and a~trimmed B-spline patch.}
+\end{figure}
+
+\vspace{\medskipamount}
+\noindent{\ttfamily
+\#define n  3 \\
+\#define NNt1a 10 \\
+float ut1a[NNt1a+1] = \\
+\ind{2}\{-0.5, 0.0, 0.0, 0.0, 1.4, 2.8, 4.2, 5.6, 5.6, 5.6, 6.1\}; \\
+point2f cpt1a[NNt1a-n] = \\
+\ind{2}\{\{4.0,0.4\},\{3.5,0.4\},\{2.8,0.8\},\{2.6,2.0\},\{2.8,3.2\},\{3.5,3.6\}, \\
+\ind{3}\{4.0,3.6\}\}; \\
+point2f cpd1a[3] = \{\{4.0,3.6\},\{4.0,4.0\},\{1.2,4.0\}\}; \\
+point3f cpt1b[4] = \{\{1.2,4.0,1.0\},\{1.5,3.0,1.0\},\{0.5,2.5,0.75\},\\
+\ind{20}\{0.0,2.5,1.0\}\}; \\
+point2f cpd1b[4] = \{\{0.0,2.5\},\{0.0,0.0\},\{4.0,0.0\},\{4.0,0.4\}\}; \\
+point2f cpd1c[5] = \{\{0.3,1.1\},\{1.6,1.6\},\{2.1,1.1\},\{1.6,0.6\}, \\
+\ind{20}\{0.3,1.1\}\}; \\
+point3f cpt1c[4] = \{\{2.0,3.3,1.0\},\{0.6,1.65,0.5\},\{0.6,1.25,0.5\}, \\
+\ind{20}\{2.0,2.5,1.0\}\}; \\
+point3f cpt1d[4] = \{\{2.0,2.5,1.0\},\{1.25,1.25,0.5\},\{1.25,1.5,0.5\}, \\
+\ind{20}\{2.0,3.0,1.0\}\}; \\
+point2f cpd1e[2] = \{\{2.0,3.0\},\{2.0,3.3\}\}; \\
+polycurvef boundary1[8] = \\
+\ind{2}\{\{false,2,n,NNt1a,\&ut1a[0],(float*)\&cpt1a[0]\}, /* B-spline */ \\
+\ind{3}\{false,2, 1, \ 2, NULL,(float*)\&cpd1a[0]\}, \ /* polyline */ \\
+\ind{3}\{false,3, 3, -1, NULL,(float*)\&cpt1b[0]\}, \ /* B\'{e}zier curve */ \\
+\ind{3}\{true, 2, 1, \ 3, NULL,(float*)\&cpd1b[0]\}, \ /* polyline */ \\
+\ind{3}\{true, 2, 1, \ 4, NULL,(float*)\&cpd1c[0]\}, \ /* polyline */ \\
+\ind{3}\{false,3, 3, -1, NULL,(float*)\&cpt1c[0]\}, \ /* B\'{e}zier curve */ \\
+\ind{3}\{false,3, 3, -1, NULL,(float*)\&cpt1d[0]\}, \ /* B\'{e}zier curve */ \\
+\ind{3}\{true, 2, 1, \ 1, NULL,(float*)\&cpd1e[0]\}\}; /* line segment */
+}\vspace{\medskipamount}
+
+The boundary in this example consists of four closed curves.
+The first is the ``outer border'' and it consists of four elements:
+a~B-spline curve, a~polyline of two line sements, a~rational B\'{e}zier curve
+and a~polyline of three line segments. The second curve is one
+closed polyline and the third curve consists of two halfcircles
+(represented as rational cubic B\'{e}zier curves) and a~polyline
+consisting of one line segment.
+
+The \textbf{index} of a~point of a~plane is the number of circulations
+(in the counterclockwise direction) of this point along the boundary
+according to the orientation of this boundary. The first two of the three
+closed curves above are oriented so that moving along these curves we have the
+inside of the domain on the left hand side. The third curve has the opposite
+orientation. Therefore the index of all points outside the ``outer border''
+is~$0$ and the index of the points inside the polygon bounded by the second
+curve is~$2$. The domain is defined as the set of points, whose index~is~$1$.
+
+
+\subsection{Domain boundary compilation}
+
+To draw a~trimmed patch it is necessary to compute many times the common points
+of straight lines with the boundary of the domain. To save time the
+representation described in the previous section is translated into
+a~code, which describes the polylines and B\'{e}zier curves, which form
+the boundary.
+
+\vspace{\bigskipamount}
+\cprog{%
+int  mbs\_TrimCVBoundSizef ( int nelem, const polycurvef *bound );}
+The procedure \texttt{mbs\_TrimCVBoundSizef} computes the length
+(in bytes) of the code, which describes the boundary of the trimmed
+patch domain. The given boundary representation is as described
+in the previous section. Its parts are polylines, B\'{e}zier curves
+and B-spline curves, described with the elements of the array
+\texttt{bound} of length \texttt{nelem}.
+
+This procedure may be used for allocation of the sufficient memory block.
+
+\vspace{\bigskipamount}
+\cprog{%
+void *mbs\_CompileTrimPatchBoundf ( int nelem, \\
+\ind{35}const polycurvef *bound, \\
+\ind{35}void *buffer );}
+The procedure \texttt{mbs\_CompileTrimPatchBoundf} ``compiles''
+the boundary representation, i.e.\ it produces the code representing
+the polylines and B\'{e}zier curves (the B-spline curves are replaced
+with the appropriate sequences of B\'{e}zier arcs).
+
+The parameter \texttt{nelem} specifies the length of the array \texttt{bound},
+whose elements describe the domain boundary. The parameter \texttt{buffer}
+points to the array, in which the code is to be stored. The array must be
+long enough (one can compute the necessary length using
+\texttt{mbs\_TrimCVBoundSizef}). If the parameter
+\texttt{buffer} is (\texttt{NULL}),
+then the procedure allocates a~long enough memory block from the scratch
+memory pool (using \texttt{pkv\_GetScratchMem}).
+
+The procedure returns the pointer to the array with the code
+(i.e.\ the given value of the parameter \texttt{buffer} or the address
+of the allocated memory block, if \texttt{buffer} was \texttt{NULL}).
+It may also return \texttt{NULL}, which indicates an error
+(e.g.\ insufficient scratch memory).
+
+
+\subsection{Line pictures}
+
+\begin{sloppypar}\hyphenpenalty=400
+A line picture of a~patch or its domain consists of the curves being the
+images of the parts of domain boundary and of lines of constant parameters.
+To draw such a~picture one should find these lines, i.e.\ find the
+intersections of appropriate straight lines with the domain boundary.
+This is done by the procedure \texttt{mbs\_FindBoundLineIntersectionsf},
+described below. The ``higher level'' procedure
+\texttt{mbs\_DrawTrimBSPatchDomf} generates a~set of straight lines
+and it computes their intersections with the domain.
+Each such an intersection is output by calling the \textbf{output procedure}
+given as a~parameter. That procedure should draw or display in some way
+the line segment in the domain or its image (a~piece of a~curve of a~constant
+parameter) on the patch.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct \{ \\
+\ind{4}float t; \\
+\ind{4}char \ sign1, sign2; \\
+\ind{2}\} signpoint1f;}
+The structure of type \texttt{signpoint1f} is used to describe an
+intersection point of a~straight line with the domain boundary.
+The line is given in the parametric form, and it divides the plane
+into two halfplanes. The attribute~\texttt{t} of the structure
+is set to the value of the parameter of the line corresponding to
+the intersection point, and the attributes \texttt{sign1} and~\texttt{sign2}
+describe the orientation of the intersection. Their possible values are
+$0$, $-1$ and~$+1$, which correspond to the cases when the initial point
+(\texttt{sign1}) or the end point (\texttt{sign2}) of a~small part of the
+boundary is located on the line or in one of the two halfplanes.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_FindBoundLineIntersectionsf ( const void *bound, \\
+\ind{39}const point2f *p0, float t0, \\
+\ind{39}const point2f* p1, float t1, \\
+\ind{39}signpoint1f *inters, \\
+\ind{39}int *ninters );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_FindBoundLineIntersectionsf} computes the
+intersection points of the straight line given by its two
+points, \texttt{p0} and~\texttt{p1}, with the boundary of the domain of
+the trimmed patch, represented by the code in the array
+\texttt{bound} (generated by \texttt{mbs\_CompileTrimPatchBoundf}).
+The intersection points are stored in the array \texttt{inters}.
+If the boundary has a~common line segment with the straignt line,
+then it is represented in the array \texttt{inters} by two elements,
+corresponding to the end points of the segment. In that case the
+attributes \texttt{sign1} and~\texttt{sign2} of the two elements
+are set to~$0$.
+\end{sloppypar}
+
+The numbers \texttt{t0} and~\texttt{t1} are the parameters of the straight
+line corresponding to the points \texttt{p0} and \texttt{p1}. Both these
+points and their corresponding parameters must be different.
+
+The initial value of the parameter \texttt{*ninters} specifies the length
+(capacity) of the array \texttt{inters}, i.e.\ the maximal number of
+the intersection points that the program expects to find. Upon exit
+this parameter has the value of the intersection points found.
+In case of error (e.g.\ in the code, or the overflow of the
+array~\texttt{inters}), the parameter \texttt{inters} is assigned a~negative
+value.
+
+The array \texttt{inters} after finding all the intersection points
+is sorted in the order of increasing values of the attributes~\texttt{t}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_DrawTrimBSPatchDomf ( int degu, int lastuknot, \\
+\ind{20}const float *uknots, \\
+\ind{20}int degv, int lastvknot, \\
+\ind{20}const float *vknots, \\
+\ind{20}int nelem, const polycurvef *bound, \\
+\ind{20}int nu, float au, float bu, \\
+\ind{20}int nv, float av, float bv, \\
+\ind{20}int maxinters, \\
+\ind{20}void (*NotifyLine)(char,int,point2f*,point2f*), \\
+\ind{20}void (*DrawLine)(point2f*,point2f*,int), \\
+\ind{20}void (*DrawCurve)(int,int,const float*) );}
+The procedure \texttt{mbs\_DrawTrimBSPatchDomf} may be used to draw a~line
+image of the domain of a~trimmed B-spline patch, or the patch itself.
+Its purpose is to generate a~set of line segments in the domain
+and to pass each line segment to and output procedure.
+The details of further processing of the line segments
+(e.g.\ displaying on the screen or writing in a~PostScript file)
+is thus kept away from the procedure
+\texttt{mbs\_DrawTrimBSPatchDomf}.
+
+The first $8$ parameters of the procedure describe the boundary of the
+trimmed B-spline patch. They are: degree~$n$ of the patch with respect to
+the parameetr~$u$ (\texttt{degu}), the number~$N$ of the last knot
+in the knot sequence $u_0,\ldots,u_N$ (\texttt{lastuknot}), the array with
+these knots (\texttt{uknots}), the degree~$m$ of the patch with respect to~$v$
+(\texttt{degv}), the number~$M$ of the last knot in the sequence
+$v_0,\ldots,v_M$, the array with these knots (\texttt{vknots}), the number of
+boundary elements (\texttt{nelem}) and the array \texttt{bound}, whose
+elements describe the domain boundary, as described in
+Section~\ref{ssect:trimpatch:bound}.
+
+The six parameters that follow specify the set of lines, whose intersections
+with the patch boundary are to be found. The set consists of
+``vertical'' and ``horizontal'' lines (lines of constant parameters
+$u$ and $v$ respectively).
+
+The ``vertical'' lines correspond to the knots $u_n,\ldots,u_{N-n}$
+(and thus they have nonempty intersections with the domain)
+and in addition to the numbers, which divide each interval $[u_i,u_{i+1}]$,
+$i=n,\ldots,N-n-1$, into equal subintervals.
+The default number of the subintervals is the value of~\texttt{nu},
+but it may be modified so that the length of each subinterval be
+not less than the value of the parameter \texttt{au} and not greater than
+the value of \texttt{bu}.
+
+In a~similar way the parameters \texttt{nv}, \texttt{av} and~\texttt{bv}
+specify the set of ``horizontal'' lines (of constant parameter~$v$),
+generated by the procedure.
+
+The parameter \texttt{maxinters} is the maximal expected number of intersection
+points od a~single line with the domain boundary. According to its value
+the procedure allocates a~buffer for these points. In case of overflow in
+this buffer the procedure may fail.
+
+The last three parameters point to the output procedures.
+Each of them may be \texttt{NULL}, which causes ignoring the appropriate
+result of the computations.
+
+The first output procedure, \texttt{NotifyLine}, is called for each
+subsequent ``vertical'' or ``horizontal'' line from the set generated
+by the procedure. Its first parameter (of type \texttt{char}) is~$1$
+if the line is vertical, and~$2$ if horizontal.
+The second parameter specifies the number of the appropriate interval
+between the knots, and the next two parameters are the end points of the
+intersection of the line with the domain of the untrimmed patch.
+For example, if the first parameter is~$1$, and the second is~$k$,
+then the line is vertical, i.e.\ it is a~line of constant parameter~$u$,
+which is the number from the interval $[u_k,u_{k+1})$.
+This number is the value of the $x$ coordinate of the points passed
+as the third and the fourth parameter.
+
+The output procedure \texttt{DrawLine} is called after finding the
+intersections of the domain boundary with the line, for \emph{each} pair
+of consecutive intersection points. The points are passed as the first two
+parameters. The third parameter is the index of the points inside the line
+segment (see Section~\ref{ssect:trimpatch:bound}). If the boundary
+is oriented in such a~way that moving along it according to the orientation
+we have the inside of the domain on the left hand side, then this index
+will always be~$1$ (for the line segments inside the domain) or~$0$
+(for the line segments outside the domain). In general the orientation
+of the particular closed curves, which describe the domain boundary,
+may be arbitrary. The decision, which line segments are inside
+and which are outside the domain is left to the procedure
+\texttt{DrawLine} (it may implement e.g.\ the parity rule:
+the domain contains the line segments with the index odd).
+
+The procedure \texttt{DrawCurve} is called in order to draw the
+elements of the domain boundary. The first parameter is always~$d=2$
+or~$3$, to distinguish between planar polynomial and rational (represented
+in the homoheneous form) B\'{e}zier curves. The second parameter specifies
+the degree~$n$ of the curve (if it is~$1$ then the curve is a~line segment,
+the procedure may take advantage of that). The third parameter
+is an array with the control points. It contains $(n+1)d$ floating point
+numbers, the coordinates of the control points.
+
+
+\subsection*{Example --- output proceures for line pictures}
+
+Example procedures below were used to draw the domain and the patch
+shown in Figure~\ref{fig:trimpatch}, using PostScript.
+
+The picture on the left hand side shows the domain of a~B-spline patch,
+i.e.\ the intersections of the constant parameter lines corresponding to
+the knots of the patch, and the domain boundary.
+The line segments are drawn with the procedure shown below.
+It calls some procedure \texttt{MapPoint} in order to map
+(scale and translate) the line segments.
+
+\vspace{\medskipamount}
+\noindent{\ttfamily
+void DrawLine1 ( point2f *p0, point2f *p1, int index ) \\
+\{ \\
+\ind{2}point2f q0, q1; \\
+\ind{2}if ( index == 1 ) \{ \\
+\ind{4}ps\_Set\_Line\_Width ( 2.0 ); \\
+\ind{4}MapPoint ( frame, p0, \&q0 ); \\
+\ind{4}MapPoint ( frame, p1, \&q1 ); \\
+\ind{4}ps\_Draw\_Line ( q0.x, q0.y, q1.x, q1.y ); \\
+\ind{2}\} \\
+\} /*DrawLine1*/
+}\vspace{\medskipamount}
+
+The domain boundary has been drawn by the procedure
+\texttt{DrawCurve1}, whose shortened version follows
+(the full version is in the file \texttt{trimpatch.c}):
+
+\vspace{\medskipamount}
+\noindent{\ttfamily
+void DrawCurve1 ( int dim, int degree, const float *cp ) \\
+\{ \\
+\#define DENS 50 \\
+\ind{2}int i, size; \\
+\ind{2}float t; \\
+\ind{2}point2f *c, p; \\
+\ind{2}ps\_Set\_Line\_Width ( 6.0 ); \\
+\ind{2}if ( degree == 1 ) \{ \\
+\ind{4}/* A~B\'{e}zier curve of degree $1$ is a~line segment, so this case */ \\
+\ind{4}/* is treated in a~special way.\ The array cp contains 4 */ \\
+\ind{4}/* or 6 numbers, the cartesian or homogeneous coordinates */ \\
+\ind{4}/* (depending on the value of dim) of the end points.\ */ \\
+\ind{4}... \\
+\ind{2}\} \\
+\ind{2}else /* degree > 1, we draw a~polyline */ \{ \\
+\ind{4}if ( c = pkv\_GetScratchMem ( size=(DENS+1)*sizeof(point2f) ) ) \{ \\
+\ind{6}if ( dim == 2 ) \{ \\
+\ind{8}for ( i = 0; i <= DENS; i++ ) \{ \\
+\ind{10}t = (float)i/(float)DENS; \\
+\ind{10}mbs\_BCHornerC2f ( degree, cp, t, \&p ); \\
+\ind{10}MapPoint ( frame, \&p, \&c[i] ); \\
+\ind{8}\} \\
+\ind{6}\} \\
+\ind{6}else if ( dim == 3 ) \{ \\
+\ind{8}for ( i = 0; i <= DENS; i++ ) \{ \\
+\ind{10}t = (float)i/(float)DENS; \\
+\ind{10}mbs\_BCHornerC2Rf ( degree, (point3f*)cp, t, \&p ); \\
+\ind{10}MapPoint ( frame, \&p, \&c[i] ); \\
+\ind{8}\} \\
+\ind{6}\} \\
+\ind{6}else goto out; \\
+\ind{6}ps\_Draw\_Polyline ( c, DENS ); \\
+out: \\
+\ind{6}pkv\_FreeScratchMem ( size ); \\
+\ind{4}\} \\
+\ind{2}\} \\
+\#undef DENS \\
+\} /*DrawCurve1*/
+}\vspace{\medskipamount}
+
+The call of \texttt{mbs\_DrawTrimBSPatchDomf}, which produced this picture,
+looks like this:
+
+\vspace{\medskipamount}
+\noindent{\ttfamily
+\ind{2}mbs\_DrawTrimBSPatchDomf ( n1, NN1, u1, m1, MM1, v1, 8, boundary1, \\
+\ind{28}1, 2.0, 2.0, 1, 2.0, 2.0, \\
+\ind{28}20, NULL, DrawLine1, DrawCurve1 );
+}\vspace{\medskipamount}
+
+The first $6$ parameters specify the degree and knots, and also the untrimmed
+domain, as described before.
+The domain is the rectangle $[0,4]\times[0,4]$, and the lengths of
+the intervals between the knots are between $1$ and~$1.5$.
+Therefore the values of the parameters \texttt{nu}, \texttt{au}, \texttt{bu},
+\texttt{nv}, \texttt{av}, \texttt{bv} ensure drawing only the lines of constant
+parameters corresponding to the knots.
+
+To draw the picture of the trimmed patch as on the right hand side
+of Figure~\ref{fig:trimpatch} one must map the lines in the domain
+onto the patch, and then to use the appropriate perspective projection.
+The procedure \texttt{DrawLine2} used in this case is the following:
+
+\vspace{\medskipamount}
+\noindent{\ttfamily
+void DrawLine2 ( point2f *p0, point2f *p1, int index ) \\
+\{ \\
+\#define LGT 0.05 \\
+\ind{2}void     *sp; \\
+\ind{2}int      i, k; \\
+\ind{2}float    t, d; \\
+\ind{2}vector2f v; \\
+\ind{2}point2f  q, *c; \\
+\ind{2}point3f  p, r; \\
+\ind{2}if ( index == 1 ) \{ \\
+\ind{4}ps\_Set\_Line\_Width ( 2.0 ); \\
+\ind{4}SubtractPoints2f ( p1, p0, \&v ); \\
+\ind{4}d = sqrt ( DotProduct2f(\&v,\&v) ); \\
+\ind{4}k = (int)(d/LGT+0.5); \\
+\ind{4}sp = pkv\_GetScratchMemTop (); \\
+\ind{4}c = (point2f*)pkv\_GetScratchMem ( (k+1)*sizeof(point2f) ); \\
+\ind{4}for ( i = 0; i <= k; i++ ) \{ \\
+\ind{6}t = (float)i/(float)k; \\
+\ind{6}InterPoint2f ( p0, p1, t, \&q ); \\
+\ind{6}mbs\_deBoorP3f ( n1, NN1, u1, m1, MM1, v1, 3*(MM1-m1), \\
+\ind{22}\&cp1[0][0], q.x, q.y, \&p ); \\
+\ind{6}PhotoPointUDf ( \&CPos, \&p, \&r ); \\
+\ind{6}c[i].x = r.x;  c[i].y = r.y; \\
+\ind{4}\} \\
+\ind{4}ps\_Draw\_Polyline ( c, k ); \\
+\ind{4}pkv\_SetScratchMemTop ( sp ); \\
+\ind{2}\} \\
+\#undef LGT \\
+\} /*DrawLine2*/
+}\vspace{\medskipamount}
+ 
+An explanation: instead of a~curve the procedure draws a~polyline.
+The number of its line segments depends on the length of the line segment
+in the domain of the patch. One can take into account also the shape
+of the patch, which is a~bit more complicated. The procedure
+\texttt{DrawLine2} has an access to the representation of the patch
+(its knots and control points) via global variables. The points of the patch
+are computed using the de~Boor algorithm (by the \texttt{mbs\_deBoorP3f}
+procedure). One can decrease the computational cost, by specifying with
+the parameter \texttt{NotifyLine} a~procedure, whose task would be to
+find the B-spline (or even a~piecewise B\'{e}zier) representation of the
+curve of constant parameters $u$ or $v$. The procedure specified as
+the parameter \texttt{DrawLine} after calling \texttt{NotifyLine}
+would then just draw the arcs of this curve of the constant parameter.
+

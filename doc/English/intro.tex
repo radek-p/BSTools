@@ -1,0 +1,269 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\thispagestyle{empty}
+\vspace*{4.0cm}
+\centerline{\Huge BSTools}
+\vspace{0.75cm}
+\centerline{\Huge procedure libraries}
+\vspace{1.0cm}
+\centerline{\Large Przemys{\l}aw Kiciak}
+\vspace{1.0cm}
+\centerline{\large Version 0.29, April, 20, 2012,}
+\vspace{\smallskipamount}
+\centerline{\large\TeX-processed \today.}
+
+\vspace{1.0cm}
+\centerline{Most of this file contains a~quick and dirty translation}
+\centerline{of the Polish documentation,}
+\centerline{which is also quick and dirty.}
+
+\vspace{1.0cm}
+\noindent
+\textbf{Caution:} This documentation is incomplete
+and it needs a thorough revision.
+
+\newpage
+\thispagestyle{empty}
+\vspace*{\fill}
+\noindent
+The distribution of the software described in this document is subject
+to the terms of the GNU licenses published by Free Software Foundation.
+The procedures, whose sources are in the 
+\texttt{../src} and \texttt{../include} subdirectories are distributed
+on terms of the \textsl{GNU Lesser General Public License}, whose full text
+is in the file \texttt{COPYING.LIB}. The demonstration programs, test programs
+and the programs which generate the pictures for this documentation
+(in the directories \texttt{../demo}, \texttt{../test} and \texttt{./pict})
+are distributed on the terms of the \textsl{GNU General Public License},
+given in the file \texttt{COPYING}.
+
+\vspace{\bigskipamount}
+\noindent
+Copyright \copyright\ by Przemys{\l}aw Kiciak, 2005--2012.
+
+\vspace*{\fill}
+
+\tableofcontents
+
+\chapter{Overview}
+
+\section{Introduction}
+
+I wrote the BSTools procedure package in order to make experiments
+being part of my scientific work, and for pleasure. The main part of the package
+consists of the procedures processing B\'{e}zier and B-spline curves and
+surfaces, hence the name. The mathematical properties of the curves and surfaces
+and the theoretical bases of the procedures processing these objects
+are described in my book
+
+\vspace{\medskipamount}
+\centerline{\large\emph{Podstawy modelowania krzywych i~powierzchni}}
+\vspace{\smallskipamount}
+\centerline{\large\emph{zastosowania w~grafice komputerowej}}
+
+\vspace{\medskipamount}
+\noindent
+published by Wydawnictwa Naukowo-Techniczne%
+\footnote{%
+Apart from my book there are also many other books, which describe the
+algorithms implemented in the procedures described here; to my knowledge,
+none of those books has been translated yet (before 2005) to Polish.}.
+The BSTools package (version 0{.}12)
+is an appendix to the second edition of this book (of the year 2005).
+\emph{As opposed to} the book (whose copying, even fragments, \emph{must}
+be preceded by getting a~permision of the publisher),
+this package \emph{may be} freely copied and distributed, and
+it may be moodified and used in any programs, on terms of the
+FSF Lesser GNU Public License, to be read in the file
+\texttt{COPYING.LIB}.
+
+My second book,
+
+\vspace{\medskipamount}
+\centerline{\large\emph{Konstrukcje powierzchni g{\l}adko wype{\l}niaj{\k a}cych}}
+\vspace{\smallskipamount}
+\centerline{\large\emph{wielok{\k a}tne otwory}}
+
+\vspace{\medskipamount}
+\noindent
+published by Oficyna Wydawnicza Politechniki Warszawskiej (prace naukowe,
+Elektronika, z.~159, 2007) contains a~description of the constructions
+of surfaces of class~$G^1$ and~$G^2$, implemented in the library
+\texttt{libeghole} (the version 0.18 of the package, accompanying the book,
+contains two libraries, \texttt{libg1hole} and~\texttt{libg2hole},
+which have been merged and considerably extended).
+
+\vspace{\medskipamount}
+The procedures of this package may be used for any (hopefully decent)
+purpose, for example to write a~modelling system or a~graphical application.
+To do this, they must be made robust, i.e.\ it is necessary to implement
+and test a~full system of error detection and signalling.
+As it is known, the last person appropriate for making tests of any
+procedure is its author (but there is no justification for him if
+he does not do it). People interested in participation in this enterprise
+and interested in using the package in applications are welcome.
+
+
+\section{Short description of the libraries}
+
+The BSTools package currently consists of the following libraries:
+\begin{description}
+\item[\texttt{libpkvaria}]--- varieties, like scratch memory management,
+sorting etc.
+\item[\texttt{libpknum}]--- numerical procedures used in various constructions
+of B-spline curves, but suitable for general use.
+\item[\texttt{libpkgeom}]--- geometric procedures.
+\item[\texttt{libcamera}]--- perspective and parallel projections.
+\item[\texttt{libpsout}]--- PostScript\raisebox{3pt}{\tiny(TM)} picture
+generation.
+\item[\texttt{libmultibs}]--- processing of B\'{e}zier and B-spline
+curves and surfaces.
+\item[\texttt{libraybez}]--- ray tracing (computing ray/patch intersections).
+\item[\texttt{libeghole}]--- filling polygonal holes in piecewise bicubic
+spline surfaces with $G^1$, $G^2$ and $G^1Q^2$ continuity.
+\item[\texttt{libbsmesh}]--- procedures for processing meshes reprezenting
+surfaces.
+\item[\texttt{libg1blending}]--- procedures of shape optimization of
+B-spline patches of degree~$(2,2)$, of class~$G^1$.
+\item[\texttt{libg2blending}]--- procedures of shape optimization of bicubic
+B-spline patches and mesh surfaces of class~$G^2$.
+\item[\texttt{libbsfile}]--- Reading/writing files with data describing
+curves and surfaces.
+\item[\texttt{libxgedit}]--- support for interaction (using windows
+and widgets) with an XWindow application (mainly for demonstration programs).
+\end{description}
+
+The procedures are written in~C, with no hardware or system dependencies,
+with one exception: the sorting procedure in the \texttt{libpkvaria} library
+assumes the little-endian byte ordering. A~migration to a~big-endian processor
+(e.g.\ Motorola) requires the appropriate reimplementation of this procedure
+(this has been done, but it has not been tested yet).
+
+
+\section{Compilation}
+
+The \texttt{Makefile}s are written for the Linux system. To compile the package,
+the documentation and the demos, it is necessary to have
+\begin{itemize}
+  \item the GNU make program,
+  \item the gcc compiler and the ar program,
+  \item XWindow and OpenGL libraries (for demonstration programs),
+  \item the \TeX\ system (for the documentation, which
+    uses the \LaTeX$2_{\varepsilon}$ package and Concrete Roman and Euler
+    font packages),
+  \item plus Ghostscript and Ghostview programs for convenient browsing
+    of the documentation and the pictures generated by test programs.
+\end{itemize}
+To compile the full package, run \texttt{make} from the main package directory.
+This may be preceded by \texttt{make clean}, in order to force the compilation
+of all sources.
+
+The demonstration programs work in the XWindow system. There are no special
+requirements (like Motif etc.). Some demonstration programs use OpenGL, and
+the following libraries are needed: \texttt{libGL}, \texttt{libGLU} and
+\texttt{libGLX}.
+
+
+\section{Header files}
+
+The header files are stored in the \texttt{../include} directory.
+Each library may have more than one header file, to shorten the compilation
+time for programs not using all procedures.
+\begin{description}
+\item[\texttt{libpkvaria}]--- the file \texttt{pkvaria.h}.
+\item[\texttt{libpknum}]--- the files \texttt{pknumf.h} and \texttt{pknumd.h},
+with procedure prototypes of IEEE-754 single precision (\texttt{float})
+and double precision (\texttt{double}) floating-point arithmetic
+versions respectively. Including the \texttt{pknum.h} file causes
+including both above files, which helps to compile programs using procedures
+of both precisions. 
+\item[\texttt{libpkgeom}]--- the files \texttt{pkgeomf.h}, \texttt{pkgeomd.h} and
+\texttt{pkgeom.h}, which make it possible to use the procedures of the
+single, double and both precisions.
+
+The convex hull procedures have a~separate file
+\texttt{convh.h}, with the prototypes for both precisions.
+\item[\texttt{libcamera}]--- the files \texttt{cameraf.h}, \texttt{camerad.h}
+and \texttt{camera.h} with the descriptions of the cameras,
+i.e.\ objects, which implement perspective and parallel projections,
+in single, double, and both precisions.
+
+The files \texttt{stereof.h}, \texttt{stereod.h} and \texttt{stereo.h}
+describe pairs of such cameras, which may be used for the generation of
+stereo pairs of pictures.
+
+\item[\texttt{libpsout}]--- the file \texttt{psout.h} contains the prototypes
+of all procedures in this library.
+\item[\texttt{libmultibs}]--- the files \texttt{multibsf.h}, \texttt{multibsd.h}
+and \texttt{multibs.h} describe procedures of single, double and both precisions.
+\item[\texttt{libraybez}]--- the files \texttt{raybezf.h} (single precision),
+\texttt{raybezd.h} (double precision) and \texttt{raybez.h} (both versions).
+\item[\texttt{libeghole}]--- the files \texttt{eg1holef.h}, \texttt{eg2holef.h}
+(single precision), \texttt{eg1holed.h} and \texttt{eg2holed.h}
+(double precision). There are no header files for both precision versions together.
+\item[\texttt{libbsmesh}]--- the file \texttt{bsmesh.h}
+\item[\texttt{libg1blending}]--- the files \texttt{g1blengingf.h} and
+\texttt{g1blendingd.h} (single and double precision respectively).
+\item[\texttt{libg2blending}]--- the files \texttt{g2blendingf.h},
+\texttt{g2blendingd.h} and \texttt{g2mblendingd.h}. Some procedures have the
+double precision version only, because of the insufficient range of the
+single precision numbers.
+\item[\texttt{libbsfile}]--- the file \texttt{bsfile.h}, the input/output
+procedures implemented at this point use double precision only.
+\item[\texttt{libxgedit}]--- the files \texttt{xgedit.h} and
+\texttt{xgledit.h}. Additional files, \texttt{xgergb.h} and
+\texttt{xglergb.h} are not supposed to be included directly by applications
+(they are included by \texttt{xgedit.h} and \texttt{xgledit.h}). These files
+contain some colour definitions, with English colour names.
+\end{description}
+
+The procedures are compiled as C programs and the header files contain
+the code, which causes the C++ compiler to see them in this way.
+Therefore the C++ programs should be linked with these libraries without
+problems.
+
+
+\section{Linking order}
+
+The procedures of some libraries refer to procedures of other libraries.
+To link the program it is necessary to list the libraries in the proper 
+order (otherwise the compiler may fail to resolve some references).
+The proper order of the libraries is
+
+\vspace{\medskipamount}
+\centerline{\texttt{xgedit raybez bsfile g2blending g1blending bsmesh camera}}
+
+\centerline{\texttt{eghole multibs psout pkgeom pknum pkvaria}}
+\vspace{\medskipamount}
+
+\noindent
+and it should be preserved in the user-written \texttt{Makefile}s.
+Unused libraries may of course be omitted.
+
+
+\section{Principles of modification}
+
+The GNU license does not limit the modifications, which one might want to do
+(but the fact of modifying the software must be notified in the source code,
+to make clear that it was not the original author, who made the mess).
+Therefore any principles of making the modifications are only
+the authors wishes.
+\begin{enumerate}
+\item Except of PostScript file generation and the \texttt{libxgedit}
+  library all procedures are totally independent of any environment, in
+  which they might work (and this should be preserved).
+\item Making a~change in a~procedure of the single or double precision,
+  should be accompnied by a~similar modification of the other version
+  (if it exists; if not, it is desired to write that other version,
+  using the same algorithm, though for some algorithms the single precision may
+  be insufficient).
+\item After each change the documentation should be updated, and a~test
+  program should be written. I~would be grateful for notifying me
+  about changes, so that I~can incorporate them into the future versions
+  of the package.
+\end{enumerate}
+

@@ -1,0 +1,546 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\newpage
+\section{Rysowanie p"lat"ow obci"etych}
+
+\subsection{\label{ssect:trimpatch:bound}Reprezentacja dziedziny}
+
+Dziedzina obci"etego p"lata B-sklejanego stopnia $(n,m)$, o~w"ez"lach
+$u_0,\ldots,u_N$ oraz $v_0,\ldots,v_M$ jest podzbiorem prostok"ata
+$[u_n,u_{N-n}]\times[v_m,v_{M-m}]$. W~szczeg"olno"sci jest to zawsze zbi"or
+ograniczony.
+Brzeg dziedziny powierzchni obci"etej jest sum"a p"laskich krzywoliniowych
+"lamanych zamkni"etych. Ka"rda taka "lamana sk"lada si"e z
+\begin{itemize}
+  \item "lamanych (ci"ag"ow odcink"ow),
+  \item krzywych B\'{e}ziera,
+  \item krzywych B-sklejanych,
+\end{itemize}
+zwanych dalej elementami brzegu,
+przy czym punkty (wierzcho"lki "lamanej i~punkty kontrolne) mog"a by"c dane
+za pomoc"a wsp"o"lrz"ednych kartezja"nskich (wtedy s"a typu
+\texttt{point2f}) albo jednorodnych (wtedy s"a typu \texttt{vector3f}).
+
+Dane opisuj"ace ka"rd"a tak"a "laman"a musz"a spe"lnia"c nast"epuj"acy
+warunek: krzywe B-sklejane musz"a by"c ci"ag"le, a~ponadto
+punkt ko"ncowy ka"rdego elementu ("lamanej lub krzywej) jest
+punktem pocz"atkowym elementu nast"epnego (przy czym za element nast"epny
+elementu ostatniego uwa"ra si"e element pierwszy). Je"sli ten warunek nie
+jest spe"lniony, to procedury rysowania p"lat"ow obci"etych wstawi"a
+odpowiednie odcinki.
+
+Drugi warunek to brak punkt"ow niew"la"sciwych. Wystarczy, aby wszystkie
+wsp"o"lrz"edne wagowe by"ly dodatnie, cho"c nie jest to konieczne. Natomiast
+niespe"lnienie tego warunku, czyli podanie brzegu, kt"ory jest
+nieograniczony, mo"re spowodowa"c b"l"ad wykonania programu. Co~wi"ecej,
+wszystkie "lamane i~krzywe musz"a le"re"c w~prostok"acie, kt"ory jest
+dziedzin"a p"lata nieobci"etego.
+
+
+\vspace{\medskipamount}
+Brzeg dziedziny b"edzie reprezentowany za pomoc"a tablicy zawieraj"acej
+struktury typu \texttt{polycurvef}.
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct\{ \\
+\ind{4}boolean closing; \\
+\ind{4}byte\ind{4}spdimen; \\
+\ind{4}short\ind{3}degree; \\
+\ind{4}int\ind{5}lastknot; \\
+\ind{4}float\ind{3}*knots; \\
+\ind{4}float\ind{3}*points; \\
+\ind{2}\} polycurvef;
+}
+Pole \texttt{closing} okre"sla, z~czym "l"aczy si"e koniec elementu. Je"sli
+warto"sci"a tego pola jest \texttt{false}, to z~nast"epnym elementem (tj.\
+z~elementem opisanym przez nast"epny element tablicy). Je"sli \texttt{true},
+to z pocz"atkiem elementu pierwszego w~tablicy lub ostatniego
+z~element"ow poprzedzaj"acych dany, kt"orego poprzednik ma pole
+\texttt{closing} o~warto"sci \texttt{true} (czyli z~pocz"atkiem
+ostatniego elementu wyznaczaj"acego pocz"atek nowego zamkni"etego
+fragmentu brzegu).
+
+\begin{sloppypar}
+Pole \texttt{spdimen} mo"re mie"c warto"s"c \texttt{2} lub \texttt{3}.
+W~pierwszym przypadku pole \texttt{points} wskazuje tablic"e struktur
+\texttt{point2f} --- zawieraj"a one wsp"o"lrz"edne kartezja"nskie punkt"ow
+na p"laszczy"znie. W~drugim przypadku tablica wskazywana przez pole
+\texttt{points} zawiera struktury \texttt{vector3f}, kt"ore zawieraj"a
+wsp"o"lrz"edne jednorodne punkt"ow (co oznacza, "re krzywa, kt"orej to s"a
+punkty kontrolne, jest wymierna, w~reprezentacji jednorodnej).
+\end{sloppypar}
+
+Pole \texttt{degree} okre"sla stopie"n $n$ krzywej, kt"ory musi by"c wi"ekszy
+lub r"owny $1$.
+
+Pole \texttt{lastknot} okre"sla indeks~$N$ ostatniego wierzcho"lka "lamanej
+albo ostatniego w"ez"la krzywej B-sklejanej.
+
+Pole \texttt{knots} jest wska"znikiem do tablicy w"ez"l"ow krzywej
+B-sklejanej, o~d"lugo"sci $N+1$.
+
+Pole \texttt{points} jest wska"znikiem do tablicy zawieraj"acej wierzcho"lki
+"lamanej, tablica ta zawiera pary lub tr"ojki liczb typu \texttt{float},
+zale"rnie od warto"sci pola \texttt{spdimen}.
+
+Aby okre"sli"c \textbf{"laman"a} z"lo"ron"a z $N$ odcink"ow,
+nale"ry polom strukury nada"c warto"sci
+\texttt{degree=1}, \texttt{lastknot=$N$}, \texttt{knots=NULL}. W tablicy
+wskazywanej przez pole \texttt{points} ma by"c \texttt{spdimen*$(N+1)$}
+liczb typu \texttt{float} ($N+1$ struktur \texttt{point2f} lub
+\texttt{vector3f}).
+
+Aby okre"sli"c \textbf{krzyw"a B\'{e}ziera} stopnia $n>0$, nale"ry polom
+struktury nada"c warto"sci
+\texttt{degree=$n$}, \texttt{lastknot=-1}, \texttt{knots=NULL}. W tablicy
+wskazywanej przez pole \texttt{points} ma by"c \texttt{spdimen*$(n+1)$}
+liczb typu \texttt{float} ($n+1$ struktur \texttt{point2f} lub
+\texttt{vector3f}).
+
+Aby okre"sli"c \textbf{krzyw"a B-sklejan"a} stopnia $n>0$, nale"ry polom
+struktury nada"c warto"sci
+\texttt{degree=$n$}, \texttt{lastknot=$N$}. Pole \texttt{knots} ma
+wskazywa"c tablic"e $N+1$ liczb typu \texttt{float}, zawieraj"ac"a ci"ag
+w"ez"l"ow, a~pole \texttt{points} tablic"e
+\texttt{spdimen*$(N-n)$} liczb typu \texttt{float}, zawieraj"ac"a
+wsp"o"lrz"edne punkt"ow kontrolnych.
+
+Nie ma wymagania, aby reprezentacja krzywej B-sklejanej wchodz"acej
+w~sk"lad brzegu by"la o~ko"ncach zaczepionych, ale krzywa taka musi
+"l"aczy"c si"e z s"asiednimi elementami brzegu. W~szczeg"olno"sci mo"rna
+okre"sli"c sp"ojny fragment brzegu dziedziny p"lata jako jedn"a
+zamkni"et"a krzyw"a B-sklejan"a.
+
+\vspace{\medskipamount}
+Brzeg p"lata obci"etego mo"re (ale nie musi) by"c zorientowany. Mo"rna
+przyj"a"c konwencj"e, "re podczas poruszania si"e wzd"lu"r wszystkich
+"lamanych i~krzywych opisuj"acych brzeg zgodnie z~naturaln"a
+parametryzacj"a, mamy wn"etrze dziedziny po lewej stronie (albo po prawej).
+Procedury rysowania p"lata powinny by"c tak zaimplementowane, aby
+odpowiednia informacja by"la wyprowadzana. Ponadto brzeg mo"re mie"c
+samoprzeci"ecia, co nie powinno powodowa"c b"l"ed"ow wykonania programu.
+
+\vspace{\medskipamount}\noindent
+\textbf{Przyk"lad.} Brzeg dziedziny p"lata na
+rys.~\ref{fig:trimpatch} ma nast"epuj"acy opis:%
+\begin{figure}[ht]
+  \centerline{\epsfig{file=trimpatch.ps}}
+  \caption{\label{fig:trimpatch}Obraz dziedziny i B-sklejanego p"lata
+    obci"etego}
+\end{figure}
+
+\vspace{\medskipamount}
+\noindent{\ttfamily
+\#define n  3 \\
+\#define NNt1a 10 \\
+float ut1a[NNt1a+1] = \\
+\ind{2}\{-0.5, 0.0, 0.0, 0.0, 1.4, 2.8, 4.2, 5.6, 5.6, 5.6, 6.1\}; \\
+point2f cpt1a[NNt1a-n] = \\
+\ind{2}\{\{4.0,0.4\},\{3.5,0.4\},\{2.8,0.8\},\{2.6,2.0\},\{2.8,3.2\},\{3.5,3.6\}, \\
+\ind{3}\{4.0,3.6\}\}; \\
+point2f cpd1a[3] = \{\{4.0,3.6\},\{4.0,4.0\},\{1.2,4.0\}\}; \\
+point3f cpt1b[4] = \{\{1.2,4.0,1.0\},\{1.5,3.0,1.0\},\{0.5,2.5,0.75\},\\
+\ind{20}\{0.0,2.5,1.0\}\}; \\
+point2f cpd1b[4] = \{\{0.0,2.5\},\{0.0,0.0\},\{4.0,0.0\},\{4.0,0.4\}\}; \\
+point2f cpd1c[5] = \{\{0.3,1.1\},\{1.6,1.6\},\{2.1,1.1\},\{1.6,0.6\}, \\
+\ind{20}\{0.3,1.1\}\}; \\
+point3f cpt1c[4] = \{\{2.0,3.3,1.0\},\{0.6,1.65,0.5\},\{0.6,1.25,0.5\}, \\
+\ind{20}\{2.0,2.5,1.0\}\}; \\
+point3f cpt1d[4] = \{\{2.0,2.5,1.0\},\{1.25,1.25,0.5\},\{1.25,1.5,0.5\}, \\
+\ind{20}\{2.0,3.0,1.0\}\}; \\
+point2f cpd1e[2] = \{\{2.0,3.0\},\{2.0,3.3\}\}; \\
+polycurvef boundary1[8] = \\
+\ind{2}\{\{false,2,n,NNt1a,\&ut1a[0],(float*)\&cpt1a[0]\}, /* B-sklejana */ \\
+\ind{3}\{false,2, 1, \ 2, NULL,(float*)\&cpd1a[0]\}, \ /* "lamana */ \\
+\ind{3}\{false,3, 3, -1, NULL,(float*)\&cpt1b[0]\}, \ /* krzywa B\'{e}ziera */ \\
+\ind{3}\{true, 2, 1, \ 3, NULL,(float*)\&cpd1b[0]\}, \ /* "lamana */ \\
+\ind{3}\{true, 2, 1, \ 4, NULL,(float*)\&cpd1c[0]\}, \ /* "lamana */ \\
+\ind{3}\{false,3, 3, -1, NULL,(float*)\&cpt1c[0]\}, \ /* krzywa B\'{e}ziera */ \\
+\ind{3}\{false,3, 3, -1, NULL,(float*)\&cpt1d[0]\}, \ /* krzywa B\'{e}ziera */ \\
+\ind{3}\{true, 2, 1, \ 1, NULL,(float*)\&cpd1e[0]\}\}; /* odcinek */
+}\vspace{\medskipamount}
+
+Brzeg w~przyk"ladzie sk"lada si"e z~trzech zamkni"etych krzywych. Pierwsza
+z~nich jest ,,obrysem zewn"etrznym'' i~sk"lada si"e z~czterech element"ow:
+krzywej B-sklejanej, "lamanej z"lo"ronej z~dw"och odcink"ow, wymiernej krzywej
+B\'{e}ziera i~"lamanej z"lo"ronej z~trzech odcink"ow. Druga krzywa to
+jedna "lamana zamkni"eta z"lo"rona z~czterech odcink"ow, a~trzecia krzywa
+sk"lada si"e z~dw"och p"o"lokr"eg"ow (reprezentowanych jako wymierne krzywe
+B\'{e}ziera trzeciego stopnia) i~"lamanej sk"ladaj"acej si"e z~jednego
+odcinka.
+
+\textbf{Indeksem} dowolnego punktu na p"laszczy"znie nazwiemy liczb"e
+okr"a"re"n (w~kierunku przeciwnym do zegara) wykonanych wok"o"l tego punktu
+podczas obchodzenia brzegu zgodnie z~jego orientacj"a. Pierwsze dwie
+z~trzech krzywych zamkni"etych opisuj"acych brzeg p"lata w~przyk"ladzie s"a
+zorientowane tak, "re poruszaj"ac si"e wzd"lu"r nich ma si"e wn"etrze
+dziedziny po lewej stronie. Trzecia krzywa jest zorientowana odwrotnie.
+Dlatego indeks punkt"ow na zewn"atrz ,,obrysu'' (pierwszej krzywej)
+i~wewn"atrz wielok"ata, kt"orego brzegiem jest druga krzywa jest r"owny~$0$,
+za"s punkty w~dw"och p"o"lkolach ograniczonych przez trzeci"a krzyw"a maj"a
+indeks r"owny~$2$. Indeks punkt"ow z~wn"etrza dziedziny jest r"owny~$1$.
+
+
+\subsection{Kompilacja brzegu dziedziny}
+
+Rysowanie p"lata obci"etego wymaga wielokrotnego obliczania punkt"ow
+przeci"ecia prostych z~brzegiem dziedziny p"lata. Dla oszcz"edno"sci czasu
+reprezentacja opisana w~poprzednim punkcie jest t"lumaczona na kod
+zawieraj"acy opis "lamanych i~krzywych B\'{e}ziera, z~kt"orych sk"lada si"e
+brzeg.
+
+\vspace{\bigskipamount}
+\cprog{%
+int  mbs\_TrimCVBoundSizef ( int nelem, const polycurvef *bound );}
+Warto"sci"a procedury \texttt{mbs\_TrimCVBoundSizef} jest d"lugo"s"c
+(w~bajtach) kodu opisuj"acego brzeg dziedziny p"lata obci"etego. Brzeg jest
+reprezentowany zgodnie z~opisem w~poprzednim punkcie; poszczeg"olne cz"e"sci
+brzegu s"a "lamanymi, krzywymi B\'{e}ziera lub krzywymi B-sklejanymi
+opisanymi przez kolejne elementy tablicy \texttt{bound} o~d"lugo"sci
+\texttt{nelem}.
+
+Procedury tej mo"rna u"ry"c w~celu zarezerwowania odpowiedniej tablicy do
+przechowania kodu.
+
+\vspace{\bigskipamount}
+\cprog{%
+void *mbs\_CompileTrimPatchBoundf ( int nelem, \\
+\ind{35}const polycurvef *bound, \\
+\ind{35}void *buffer );}
+Procedura \texttt{mbs\_CompileTrimPatchBoundf} dokonuje ,,kompilacji'' opisu
+brzegu dziedziny obci"etego p"lata B-sklejanego, tj.\ generuje kod
+reprezentuj"acy "lamane i~krzywe B\'{e}ziera, z~kt"orych sk"lada si"e brzeg
+(krzywe B-sklejane s"a zast"epowane ci"agami odpowiednich krzywych
+B\'{e}ziera).
+
+Parametr \texttt{nelem} okre"sla d"lugo"s"c tablicy \texttt{bound}, kt"orej
+elementy opisuj"a brzeg dziedziny, za"s parametr \texttt{buffer} jest
+tablic"a, w~kt"orej ma by"c umieszczony kod. Zak"lada si"e, "re tablica ta
+jest dostatecznie d"luga (do obliczenia potrzebnej jej d"lugo"sci s"lu"ry
+procedura \texttt{mbs\_TrimCVBoundSizef}). Je"sli warto"s"c parametru
+\texttt{buffer} jest wska"znikiem pustym (\texttt{NULL}),
+to procedura rezerwuje w~pami"eci pomocniczej (za pomoc"a
+\texttt{pkv\_GetScratchMem}) tablic"e o~d"lugo"sci obliczonej
+za pomoc"a procedury \texttt{mbs\_TrimCVBoundSizef}.
+
+Warto"sci"a procedury jest wska"znik tablicy zawieraj"acej utworzony kod
+(czyli pocz"atkowa warto"s"c parametru \texttt{buffer} lub adres tablicy
+zarezerwowanej przez procedur"e), albo \texttt{NULL}, je"sli wyst"api"l
+b"l"ad (np.\ brak pami"eci).
+
+
+\subsection{Wykonywanie obrazk"ow kreskowych}
+
+\begin{sloppypar}\hyphenpenalty=400
+Obrazek kreskowy p"lata lub jego dziedziny sk"lada si"e z~krzywych
+b"ed"acych obrazami brzegu oraz linii sta"lego pierwszego i~drugiego
+parametru. Aby narysowa"c taki obrazek nale"ry wyznazy"c te linie, czyli
+wyznaczy"c cz"e"sci wsp"olne odpowiednich prostych z~dziedzin"a p"lata. To
+zadanie wykonuje opisana ni"rej procedura
+\texttt{mbs\_FindBoundLineIntersectionsf}. Bardziej ,,wysokopoziomowa''
+procedura \texttt{mbs\_DrawTrimBSPatchDomf} generuje zbi"or prostych
+i~wyznacza ich cz"e"sci wsp"olne z~dziedzin"a. Dla ka"rdej takiej cz"e"sci
+(odcinka) procedura wywo"luje podan"a jako parametr \textbf{procedur"e
+wyj"sciow"a}, kt"ora w~odpowiedni spos"ob wy"swietla ten odcinek
+w~dziedzinie albo jego obraz (fragment krzywej sta"lego parametru) na
+p"lacie.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct \{ \\
+\ind{4}float t; \\
+\ind{4}char \ sign1, sign2; \\
+\ind{2}\} signpoint1f;}
+Struktura typu \texttt{signpoint1f} s"lu"ry do opisania punktu przeci"ecia
+prostej z~brzegiem p"lata obci"etego. Prosta jest dana w~postaci
+parametrycznej i~dzieli p"laszczyzn"e (w~kt"orej le"ry dziedzina) na dwie
+p"o"lp"laszczyzny. Pole~\texttt{t} struktury s"lu"ry do przechowania
+warto"sci parametru prostej odpowiadaj"acego punktowi przeci"ecia
+z~brzegiem, za"s pola \texttt{sign1} i~\texttt{sign2} opisuj"a spos"ob,
+w~jaki brzeg przecina si"e z~prost"a. Mo"rliwe warto"sci tych p"ol to $0$,
+$-1$ i~$+1$, kt"ore odpowiadaj"a przypadkom, gdy punkt pocz"atkowy
+(\texttt{sign1}) albo ko"ncowy (\texttt{sign2}) przecinaj"acego si"e
+z~prost"a ma"lego fragmentu brzegu le"ry na tej prostej albo we wn"etrzu
+jednej z~dw"och p"o"lp"laszczyzn.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_FindBoundLineIntersectionsf ( const void *bound, \\
+\ind{39}const point2f *p0, float t0, \\
+\ind{39}const point2f* p1, float t1, \\
+\ind{39}signpoint1f *inters, \\
+\ind{39}int *ninters );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_FindBoundLineIntersectionsf} oblicza punkty
+prze\-ci"e\-cia pros\-tej przechodz"acej przez punkty \texttt{p0} i~\texttt{p1}
+z~brzegiem dziedziny p"lata obci"etego, reprezentowanego przez kod w~tablicy
+\texttt{bound} (otrzymany za pomoc"a procedury
+\texttt{mbs\_CompileTrimPatchBoundf}). Znaleziome punkty przeci"ecia s"a
+wstawiane do tablicy \texttt{inters}. Je"sli brzeg ma z~prost"a wsp"olny
+odcinek, to~w~tablicy \texttt{inters} jest on reprezentowany przez dwa elementy,
+odpowiadaj"ace pocz"atkowi i~ko"ncowi tego odcinka, przy czym w~takim
+przypadku pola \texttt{sign1} i~\texttt{sign2} tych element"ow maj"a
+warto"s"c~$0$.
+\end{sloppypar}
+
+Liczby \texttt{t0} i~\texttt{t1} s"a parametrami prostej przyporz"adkowanymi
+odpowiednio punktom \texttt{p0} i~\texttt{p1}, przy czym zar"owno punkty te,
+jak i~odpowiadaj"ace im parametry musz"a by"c r"o"rne.
+
+Pocz"atkowa warto"s"c parametru \texttt{*ninters} okre"sla d"lugo"s"c
+(pojemno"s"c) tablicy \texttt{inters}, czyli maksymaln"a liczb"e punkt"ow
+przeci"ecia, jak"a program spodziewa si"e znale"z"c. Na~wyj"sciu parametr
+ten otrzymuje warto"s"c r"own"a liczbie znalezionych przeci"e"c. Je"sli
+wyst"api"l b"l"ad (np.\ w~kodzie), albo przepe"lnienie
+tablicy~\texttt{inters}, to parametr \texttt{inters} na wyj"sciu z~procedury
+ma warto"s"c ujemn"a.
+
+Tablica \texttt{inters} po znalezieniu wszystkich przeci"e"c jest sortowana
+w~kolejno"sci rosn"acych warto"sci p"ol~\texttt{t}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_DrawTrimBSPatchDomf ( int degu, int lastuknot, \\
+\ind{20}const float *uknots, \\
+\ind{20}int degv, int lastvknot, \\
+\ind{20}const float *vknots, \\
+\ind{20}int nelem, const polycurvef *bound, \\
+\ind{20}int nu, float au, float bu, \\
+\ind{20}int nv, float av, float bv, \\
+\ind{20}int maxinters, \\
+\ind{20}void (*NotifyLine)(char,int,point2f*,point2f*), \\
+\ind{20}void (*DrawLine)(point2f*,point2f*,int), \\
+\ind{20}void (*DrawCurve)(int,int,const float*) );}
+Procedura \texttt{mbs\_DrawTrimBSPatchDomf} mo"re by"c u"ryta do utworzenia
+obrazu kreskowego dziedziny obci"etego p"lata B-sklejanego, albo samego
+p"lata. Celem procedury jest wyznaczenie odcink"ow le"r"acych w~dziedzinie
+takiego p"lata i~wywo"lanie dla ka"rdego takiego odcinka procedury
+wyj"sciowej, kt"ora wykonuje rysowanie. Ca"lo"s"c wiedzy o~sposobie dalszego
+przetwarzania, w~tym rysowania odcinka (np.\ na ekranie lub w~pliku
+postscriptowym) jest odizolowana od procedury
+\texttt{mbs\_DrawTrimBSPatchDomf}.
+
+Pierwsze $8$ parametr"ow procedury sk"lada si"e na opis brzegu dziedziny
+obci"etego p"lata B-sklejanego. S"a to kolejno: stopie"n~$n$ p"lata ze
+wzgl"edu na parametr~$u$ (\texttt{degu}), indeks~$N$ ostatniego w"ez"la
+w~ci"agu $u_0,\ldots,u_N$ (\texttt{lastuknot}), tablica z~tymi w"ez"lami
+(\texttt{uknots}), stopie"n~$m$ p"lata ze wzgl"edu na parametr~$v$
+(\texttt{degv}), indeks~$M$ ostatniego elementu ci"agu w"ez"l"ow
+$v_0,\ldots,v_M$, tablica z~tymi w"ez"lami (\texttt{vknots}), liczba
+element"ow brzegu (\texttt{nelem}) i~tablica \texttt{bound}, kt"orej
+elementy reprezentuj"a brzeg dziedziny p"lata zgodnie z~opisem
+w~p.~\ref{ssect:trimpatch:bound}.
+
+Nast"epne $6$ parametr"ow procedury okre"sla siatk"e prostych, kt"orych
+przeci"ecia z~dziedzin"a p"lata maj"a by"c wyznaczone. Siatka sk"lada si"e
+z~prostych ,,pionowych'' (linii sta"lego parametru~$u$) i~,,poziomych''
+(linii sta"lego parametru~$v$).
+
+Linie ,,pionowe'' odpowiadaj"a w"ez"lom $u_n,\ldots,u_{N-n}$
+(a~zatem maj"a niepuste przeci"ecia z~dziedzin"a p"lata nieobci"etego)
+i~dodatkowo liczbom dziel"acym ka"rdy z~przedzia"l"ow $[u_i,u_{i+1}]$,
+$i=n,\ldots,N-n-1$, na podprzedzia"ly o~r"ownych d"lugo"sciach.
+Domy"slna liczba tych podprzedzia"l"ow jest r"owna warto"sci parametru
+\texttt{nu}, ale jest ona dobierana tak, aby d"lugo"s"c podprzedzia"l"ow
+by"la nie mniejsza ni"r warto"s"c parametru \texttt{au} i~nie wi"eksza ni"r
+warto"s"c parametru \texttt{bu}.
+
+W~podobny spos"ob parametry \texttt{nv}, \texttt{av} i~\texttt{bv}
+okre"slaj"a zbi"or prostych ,,poziomych'' (tj.\ linii sta"lego
+parametru~$v$) generowany przez procedur"e.
+
+Parametr \texttt{maxinters} okre"sla maksymaln"a spodziewan"a liczb"e
+przeci"e"c prostej z~brzegiem dziedziny p"lata obci"etego. Stosownie do
+warto"sci tego parametru procedura rezerwuje tablic"e na przeci"ecia
+i~w~razie jej przepe"lnienia mo"re zawie"s"c.
+
+Ostatnie trzy parametry to procedury wyj"sciowe. Ka"rdy z~nich mo"re mie"c
+warto"s"c \texttt{NULL}, co oznacza, "re odpowiednie wyniki nie b"ed"a przez
+procedur"e wyprowadzane.
+
+Pierwsza z~procedur, \texttt{NotifyLine}, jest wywo"lywana dla ka"rdej nowej
+prostej ,,pionowej'' lub ,,poziomej'' z~wygenerowanej przez procedur"e
+siatki. Pierwszy parametr (typu \texttt{char}) tej procedury ma
+warto"s"c~$1$ je"sli prosta jest pionowa, albo~$2$ je"sli pozioma.
+Drugi parametr okre"sla numer odpowiedniego przedzia"lu mi"edzy w"ez\-"la\-mi,
+a~kolejne dwa parametry to punkty ko"ncowe odcinka b"ed"acego przeci"eciem
+prostej z~dziedzin"a p"lata nieobci"etego. Na~przyk"lad je"sli pierwszy
+parametr ma warto"s"c~$1$, a~drugi~$k$, to prosta jest ,,pionowa'', tj.\
+jest lini"a sta"lego parametru~$u$, kt"ory jest liczb"a z~przedzia"lu
+$[u_k,u_{k+1})$. Liczba ta jest te"r warto"sci"a wsp"o"lrz"ednej~$x$
+punkt"ow przekazanych jako trzeci i~czwarty parametr.
+
+Procedura wyj"sciowa \texttt{DrawLine} jest wywo"lywana po znalezieniu
+przeci"e"c brzegu dziedziny p"lata obci"etego z~prost"a, dla \emph{ka"rdej}
+pary kolejnych punkt"ow przeci"ecia. Punkty te s"a przekazywane jako
+pierwsze dwa parametry. Trzeci parametr ma warto"s"c, kt"ora jest indeksem
+punkt"ow wewn"atrz odcinka (zobacz p.~\ref{ssect:trimpatch:bound}). Je"sli
+brzeg jest zorientowany w~ten spos"ob, "re podczas jego obchodzenia mamy
+wn"etrze dziedziny po lewej stronie, to indeks ten zawsze b"edzie mia"l
+warto"s"c~$1$ (co~oznacza, "re odcinek le"ry w dziedzinie) albo~$0$ (co
+oznacza, "re odcinek le"ry poza dziedzin"a). W~og"olno"sci orientacja
+poszczeg"olnych krzywych zamkni"etych, z~kt"orych sk"lada si"e brzeg, mo"re
+by"c inna (tak jest np.\ w~przyk"ladzie w~p.~\ref{ssect:trimpatch:bound}).
+Okre"slenie kt"ore odcinki le"r"a w~dziedzinie zale"ry od procedury
+\texttt{DrawLine} (mo"re ona np.\ by"c oparta o~regu"l"e parzysto"sci:
+w~dziedzinie le"r"a te odcinki, kt"orych punkty maj"a indeks nieparzysty).
+
+Procedura \texttt{DrawCurve} jest wywo"lywana w~celu narysowania element"ow
+brzegu dziedziny p"lata obci"etego. Pierwszy jej parametr ma warto"s"c~$d=2$
+albo~$3$, co oznacza odpowiednio, "re p"laska krzywa B\'{e}ziera jest
+wielomianowa albo wymierna (w~reprezentacji jednorodnej). Drugi parametr
+okre"sla stopie"n $n$ krzywej (je"sli ma warto"s"c $1$, to krzywa jest
+odcinkiem, co mo"rna wykorzysta"c). Trzeci parametr jest tablic"a punkt"ow
+kontrolnych, czyli $(n+1)d$ liczb zmiennopozycyjnych, kt"ore s"a
+wsp"o"lrz"ednymi tych punkt"ow.
+
+
+\subsection*{Przyk"lad --- procedury wyj"sciowe dla obrazk"ow kreskowych}
+
+Poni"rej s"a opisane procedury przyk"ladowe, kt"orych zadaniem jest
+wykonanie obraz"ow na rys.~\ref{fig:trimpatch} w~j"ezyku PostScript.
+
+Obrazek z~lewej strony przedstawia dziedzin"e p"lata B-sklejanego,
+tj.\ przeci"ecia \mbox{linii} sta"lego parametru odpowiadaj"acych w"ez"lom
+p"lata
+z~dziedzin"a oraz jej brzeg. Odcinki linii sta"lego parametru s"a rysowane
+przez podan"a ni"rej procedur"e \texttt{DrawLine1}, kt"ora u"rywa procedury
+\texttt{MapPoint} do odpowiedniego odwzorowania (przeskalowania
+i~przesuni"ecia) ko"nc"ow odcink"ow.
+
+\vspace{\medskipamount}
+\noindent{\ttfamily
+void DrawLine1 ( point2f *p0, point2f *p1, int index ) \\
+\{ \\
+\ind{2}point2f q0, q1; \\
+\ind{2}if ( index == 1 ) \{ \\
+\ind{4}ps\_Set\_Line\_Width ( 2.0 ); \\
+\ind{4}MapPoint ( frame, p0, \&q0 ); \\
+\ind{4}MapPoint ( frame, p1, \&q1 ); \\
+\ind{4}ps\_Draw\_Line ( q0.x, q0.y, q1.x, q1.y ); \\
+\ind{2}\} \\
+\} /*DrawLine1*/
+}\vspace{\medskipamount}
+
+Brzeg dziedziny zosta"l narysowany przez procedur"e
+\texttt{DrawCurve1}, kt"orej skr"ocona wersja jest taka (pe"lna wersja jest
+w~pliku \texttt{trimpatch.c}):
+
+\vspace{\medskipamount}
+\noindent{\ttfamily
+void DrawCurve1 ( int dim, int degree, const float *cp ) \\
+\{ \\
+\#define DENS 50 \\
+\ind{2}int i, size; \\
+\ind{2}float t; \\
+\ind{2}point2f *c, p; \\
+\ind{2}ps\_Set\_Line\_Width ( 6.0 ); \\
+\ind{2}if ( degree == 1 ) \{ \\
+\ind{4}/* Krzywa B\'{e}ziera stopnia $1$ jest odcinkiem, wi"ec ten */ \\
+\ind{4}/* przypadek jest traktowany osobno.\ Tablica cp zawiera 4 */ \\
+\ind{4}/* lub 6 liczb, tj.\ wsp"o"lrz"edne kartezjanskie lub jednorodne */ \\
+\ind{4}/* (zale"rnie od warto"sci parametru dim) ko"nc"ow odcinka.\ */ \\
+\ind{4}... \\
+\ind{2}\} \\
+\ind{2}else /* degree > 1, rysujemy "laman"a */ \{ \\
+\ind{4}if ( c = pkv\_GetScratchMem ( size=(DENS+1)*sizeof(point2f) ) ) \{ \\
+\ind{6}if ( dim == 2 ) \{ \\
+\ind{8}for ( i = 0; i <= DENS; i++ ) \{ \\
+\ind{10}t = (float)i/(float)DENS; \\
+\ind{10}mbs\_BCHornerC2f ( degree, cp, t, \&p ); \\
+\ind{10}MapPoint ( frame, \&p, \&c[i] ); \\
+\ind{8}\} \\
+\ind{6}\} \\
+\ind{6}else if ( dim == 3 ) \{ \\
+\ind{8}for ( i = 0; i <= DENS; i++ ) \{ \\
+\ind{10}t = (float)i/(float)DENS; \\
+\ind{10}mbs\_BCHornerC2Rf ( degree, (point3f*)cp, t, \&p ); \\
+\ind{10}MapPoint ( frame, \&p, \&c[i] ); \\
+\ind{8}\} \\
+\ind{6}\} \\
+\ind{6}else goto out; \\
+\ind{6}ps\_Draw\_Polyline ( c, DENS ); \\
+out: \\
+\ind{6}pkv\_FreeScratchMem ( size ); \\
+\ind{4}\} \\
+\ind{2}\} \\
+\#undef DENS \\
+\} /*DrawCurve1*/
+}\vspace{\medskipamount}
+
+Wywo"lanie procedury \texttt{mbs\_DrawTrimBSPatchDomf}, kt"ore spowodowa"lo
+powstanie tego rysunku, ma posta"c
+
+\vspace{\medskipamount}
+\noindent{\ttfamily
+\ind{2}mbs\_DrawTrimBSPatchDomf ( n1, NN1, u1, m1, MM1, v1, 8, boundary1, \\
+\ind{28}1, 2.0, 2.0, 1, 2.0, 2.0, \\
+\ind{28}20, NULL, DrawLine1, DrawCurve1 );
+}\vspace{\medskipamount}
+
+Pierwsze $6$ parametr"ow opisuje stopie"n i~w"ez"ly, czyli w~szczeg"olno"sci
+dziedzin"e p"lata nieobci"etego, zgodnie z~wcze"sniejszym opisem.
+Dziedzina ta jest prostok"atem $[0,4]\times[0,4]$, a~d"lugo"sci
+przedzia"l"ow mi"edzy w"ez"lami s"a mi"edzy $1$ i~$1.5$.
+Dlatego warto"sci parametr"ow \texttt{nu}, \texttt{au}, \texttt{bu},
+\texttt{nv}, \texttt{av}, \texttt{bv} zapewniaj"a rysowanie tylko linii
+sta"lego parametru odpowiadaj"ace w"ez"lom p"lata.
+
+Wykonanie takiego obrazka p"lata obci"etego jak na rys.~\ref{fig:trimpatch}
+z~prawej strony wymaga odwzorowania odpowiednich linii w~dziedzinie na
+p"lat, a~nast"epnie ich zrzutowanie. Procedura \texttt{DrawLine2}, kt"ora
+zosta"la u"ryta w~tym przypadku, ma posta"c
+
+\vspace{\medskipamount}
+\noindent{\ttfamily
+void DrawLine2 ( point2f *p0, point2f *p1, int index ) \\
+\{ \\
+\#define LGT 0.05 \\
+\ind{2}void     *sp; \\
+\ind{2}int      i, k; \\
+\ind{2}float    t, d; \\
+\ind{2}vector2f v; \\
+\ind{2}point2f  q, *c; \\
+\ind{2}point3f  p, r; \\
+\ind{2}if ( index == 1 ) \{ \\
+\ind{4}ps\_Set\_Line\_Width ( 2.0 ); \\
+\ind{4}SubtractPoints2f ( p1, p0, \&v ); \\
+\ind{4}d = sqrt ( DotProduct2f(\&v,\&v) ); \\
+\ind{4}k = (int)(d/LGT+0.5); \\
+\ind{4}sp = pkv\_GetScratchMemTop (); \\
+\ind{4}c = (point2f*)pkv\_GetScratchMem ( (k+1)*sizeof(point2f) ); \\
+\ind{4}for ( i = 0; i <= k; i++ ) \{ \\
+\ind{6}t = (float)i/(float)k; \\
+\ind{6}InterPoint2f ( p0, p1, t, \&q ); \\
+\ind{6}mbs\_deBoorP3f ( n1, NN1, u1, m1, MM1, v1, 3*(MM1-m1), \\
+\ind{22}\&cp1[0][0], q.x, q.y, \&p ); \\
+\ind{6}PhotoPointUDf ( \&CPos, \&p, \&r ); \\
+\ind{6}c[i].x = r.x;  c[i].y = r.y; \\
+\ind{4}\} \\
+\ind{4}ps\_Draw\_Polyline ( c, k ); \\
+\ind{4}pkv\_SetScratchMemTop ( sp ); \\
+\ind{2}\} \\
+\#undef LGT \\
+\} /*DrawLine2*/
+}\vspace{\medskipamount}
+ 
+Kilka s"l"ow wyja"snienia: zamiast krzywej procedura rysuje "laman"a. Liczba
+jej odcink"ow jest zale"rna od d"lugo"sci odcinka w~dziedzinie p"lata,
+kt"orego obraz na p"lacie jest rysowany (mo"rna by te"r wzi"a"c pod uwag"e
+kszta"lt p"lata, ale tak jest najpro"sciej). Procedura \texttt{DrawLine2} ma
+dost"ep do reprezentacji p"lata (tj.\ w"ez"l"ow i~punkt"ow kontrolnych)
+poprzez zmienne globalne. Punkty p"lata s"a obliczane za pomoc"a algorytmu
+de~Boora (przez wywo"lanie \texttt{mbs\_deBoorP3f}). Mo"rna zmniejszy"c
+koszt obliczania tych punkt"ow, podaj"ac jako parametr
+\texttt{NotifyLine} procedur"e, kt"orej zadaniem by"loby wyznaczenie
+reprezentacji B-sklejanej (ewentualnie kawa"lkami B\'{e}ziera) krzywej
+sta"lego parametru $u$ albo $v$. Wywo"lania procedury podanej jako
+parametr \texttt{DrawLine} po wywo"laniu \texttt{NotifyLine} maj"a na celu
+narysowanie "luk"ow tej krzywej sta"lego parametru.
+

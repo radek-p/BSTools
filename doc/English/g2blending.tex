@@ -1,0 +1,990 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{\label{chap:g2blending}The \texttt{libg2blending} library}
+
+The \texttt{libg2blending} library is made of procedures whose purpose is
+to optimise the shape of spline surfaces of class~$G^2$. If the surface
+is represented by a~parameterization~$\bm{p}$, whose domain is~$\varOmega$,
+then the simplest quality measure (i.e.\ badness measure, which grows with
+the surface undulations) is described by the following functional:
+\newcommand{\nabDel}{\nabla\!\Delta}
+\begin{align}
+\label{eq:g2bl:T}
+  T(\bm{p}) = \int_{\varOmega}\|\nabDel\bm{p}\|_F^2\,\mathrm{d}\varOmega.
+\end{align}
+The Euler-Lagrange equation for this functional is the homogeneous
+triharmonic equation
+\begin{align}
+\label{eq:g2bl:triharm}
+  -\Delta^3\bm{p}=\bm{0},
+\end{align}
+and the minimal surface of the functional~$T$ is found by solving this
+equation with the Dirichlet boundary condition
+\begin{align}
+\label{eq:g2mbl:bound:cond}
+  \left\{\begin{array}{r@{\;}c@{\;}l}
+    \displaystyle
+    \bm{p}|_{\partial\varOmega} &=&
+    \displaystyle
+    \bm{q}|_{\partial\varOmega}, \\[4pt]
+    \displaystyle
+    \frac{\partial\bm{p}}{\partial\bm{n}}\Big|_{\partial\varOmega} &=&
+    \displaystyle
+    \frac{\partial\bm{q}}{\partial\bm{n}}\Big|_{\partial\varOmega}, \\[8pt]
+    \displaystyle
+    \frac{\partial^2\bm{p}}{\partial\bm{n}^2}\Big|_{\partial\varOmega} &=&
+    \displaystyle
+    \frac{\partial^2\bm{q}}{\partial\bm{n}^2}\Big|_{\partial\varOmega},
+  \end{array}\right.
+\end{align}
+where $\bm{n}$ is the unit normal vector of the boundary $\partial\varOmega$
+of the domain~$\varOmega$, and~$\bm{q}$ is some fixed parameterization.
+
+The functional~$T$ is actually a~badness measure for a~parameterization, and
+a~good surface shape, if obtained by minimization of~$T$, is only a~side
+effect. On the other hand, the triharmonic equation is a~linear differential
+equation, which is reduced by the finite element method (FEM) to a~system of
+linear algebraic equations. The procedures of the \texttt{libg2blending}
+library allow one to use this criterion for bicubic B-spline patches with
+uniform knots. As only a~direct numerical method of solving a~system of
+linear equations (Cholesky's decomposition) is used, the number of control
+points of the patches must be limited.
+These procedures of finding triharmonic patches are described in
+Section~\ref{sect:g2bl:triharmonic}.
+
+The second criterion explicitly depends on the surface shape:
+\newcommand{\nablaM}{\nabla_{\!\cal M}}
+\begin{align}
+\label{eq:g2mbl:S}
+  S(\bm{p}) = \int_{\cal M}\|\nablaM H\|_2^2\,\mathrm{d}M.
+\end{align}
+Finding a~minimum of this functional is a~nonlinear problem. There is an
+additional trouble, as any~surface may be represented using various
+parameterizations, which leads to ill-posed numerical problems. This
+difficulty is solved in two ways. The optimization criterion is modified by
+adding a~regularization term, and a~minimum of the following functional is
+searched
+\begin{align}
+\label{eq:g2mbl:opt:F}
+  F(\bm{p}) = S(\bm{p})+cQ(\bm{p}).
+\end{align}
+The presence of the term $cQ(\bm{p})$, where $c$ is a~positive constant,
+\begin{align}
+\label{eq:g2mbl:Q}
+  Q(\bm{p}) = \int_{\varOmega}\|P\nabDel\bm{p}\|_F^2\,\mathrm{d}\bm{u},
+\end{align}
+and~$P$ is the orthogonal projection of~$\R^3$ onto the tangent plane of the
+surface~$\cal M$ at the point $\bm{p}(\bm{u})$, where $\bm{u}\in\varOmega$,
+discriminates parameterizations. The term $cQ(\bm{p})$ is a~penalty imposed
+on undulations of curves of constant parameters of the
+parameterization~$\bm{p}$. Minimization of the functional~$F$ is often
+a~well-posed problem (that depends on the boundary conditions).
+
+The presence of the regularization term affects the result (the
+projection~$P$ was introduced in order to decrease as much as possible
+that effect). It is possible to get rid of this term, by restricting the
+space in which the minimum is searched. This approach has been implemented
+for surfaces represented by meshes. The optimization procedures for the
+meshes are described in Section~\ref{sect:g2bl:mesh:nl}.
+
+The algorithms, whose implementations are the procedures of this library,
+are described in the following publications:
+\begin{description}
+  \item[][1] Kiciak P.: Bicubic B-spline blending patches with optimized shape,
+    \emph{Computer-Aided Design} 43 (2011), p.~133--144,
+  \item[][2] Kiciak P.: Shape optimization of smooth surfaces of arbitrary
+    topology, \emph{IMProVE~2011 Conference Proceedings}, Venice, Italy,
+    June~15--17, 2011,
+  \item[][3] Kiciak P.: Spline surfaces of arbitrary topology with continuous
+    curvature and optimized shape, \emph{CAD-D-11-00233}, a~paper submitted
+    to \emph{Computer-Aided Design}.
+\end{description}
+
+
+\section{\label{sect:g2bl:triharmonic}Triharmonic tensor product B-spline patches}
+
+Minimization of the functional~$T$ is done by solving linear equations,
+obtained by applying the finite element method approach to the triharmonic
+equation. Currently only rather small size problems may be solved in this
+way, as the method of solving linear equations, which may be used along with
+the procedures described below is the Cholesky's decomposition.
+
+\begin{listingC}
+boolean g2bl_SetupTriharmAMatrixd ( int lastknotu, int lastknotv,
+                 int *n, int **prof, double **Amat, double ***arow );
+boolean g2bl_SetupTriharmRHSd ( int lastknotu, int lastknotv,
+                 int spdimen, int pitch, const double *cpoints,
+                 double *rhs );
+\end{listingC}
+The procedures \texttt{g2bl\_SetupTriharmAMatrixd} and
+\texttt{g2bl\_SetupTriharmRHSd} set up respectively the matrix~$A$ and the
+right-hand side vector~$\bm{b}$ of the system of equations, which is
+a~discterized (with FEM) triharmonic equation for a~tensor product bicubic
+B-spline patch with uniform knots.
+
+Parameters: \texttt{lastknotu} and \texttt{lastknotv} are the numbers $N$
+and~$M$, which determine the sequences $0,\ldots,N$ and $0,\ldots,M$ of
+equidistant knots, being parts of the patch representation. The
+domain~$\varOmega$ of the patch is the rectangle $[3,N-3]\times[3,M-3]$.
+The numbers $N$ and~$M$ must be greater than~$9$.
+
+The parameter~\texttt{n} points to a~variable, to which the number of
+equations is assigned; it is $(N-9)(M-9)$.
+
+.....................
+
+
+\begin{listingC}
+boolean g2bl_SetupClosedTriharmAMatrixd (
+                 int lastknotu, int lastknotv,
+                 int *n, int **prof, double **Amat, double ***arow );
+boolean g2bl_SetupClosedTriharmRHSd ( int lastknotu, int lastknotv,
+                 int spdimen, int pitch, const double *cpoints,
+                 double *rhs );
+\end{listingC}
+
+
+\newpage
+\section{\label{sect:g2bl:tensor:nl}Tensor product patches optimized using \\
+a~shape-dependent functional}
+
+
+\subsection{Main procedures}
+
+\begin{listingC}
+boolean g2bl_InitBlSurfaceOptLMTd ( int lastknotu, int lastknotv,
+                        int pitch, point3d *cp,
+                        double C, double dO, double dM,
+                        int nkn1, int nkn2,
+                        void **data );
+boolean g2bl_IterBlSurfaceOptLMTd ( void *data, boolean *finished );
+void g2bl_OptLMTDeallocated ( void **data );
+boolean g2bl_FindBlSurfaceLMTd ( int lastknotu, int lastknotv,
+                        int pitch, point3d *cp,
+                        double C, double dO, double dM,
+                        int maxit, int nkn1, int nkn2 );
+\end{listingC}
+
+\medskip
+\begin{listingC}
+boolean g2bl_InitBlSurfaceConstrOptLMTd (
+                       int lastknotu, int lastknotv, int pitch,
+                       point3d *cp,
+                       int nconstr, double *constrmat,
+                       double *constrrhs,
+                       double C, double dO, double dM,
+                       int nkn1, int nkn2,
+                       void **data );
+boolean g2bl_IterBlSurfaceConstrOptLMTd ( void *data,
+                       boolean *finished );
+void g2bl_ConstrOptLMTDeallocated ( void **data );
+boolean g2bl_FindBlSurfaceConstrLMTd (
+                       int lastknotu, int lastknotv, int pitch,
+                       point3d *cp,
+                       int nconstr, double *constrmat,
+                       double *constrrhs,
+                       double C, double dO, double dM,
+                       int maxit, int nkn1, int nkn2 );
+\end{listingC}
+
+\medskip
+\begin{listingC}
+boolean g2bl_ClosedInitBlSurfaceOptLMTd (
+                       int lastknotu, int lastknotv, int pitch,
+                       point3d *cp,
+                       double C, double dO, double dM,
+                       int nkn1, int nkn2,
+                       void **data );
+boolean g2bl_ClosedIterBlSurfaceOptLMTd ( void *data,
+                       boolean *finished );
+void g2bl_ClosedOptLMTDeallocated ( void **data );
+boolean g2bl_ClosedFindBlSurfaceLMTd (
+                       int lastknotu, int lastknotv, int pitch,
+                       point3d *cp,
+                       double C, double dO, double dM,
+                       int maxit, int nkn1, int nkn2 );
+\end{listingC}
+
+\medskip
+\begin{listingC}
+boolean g2bl_ClosedInitBlSurfaceConstrOptLMTd (
+                 int lastknotu, int lastknotv, int pitch, point3d *cp,
+                 int nconstr, double *constrmat, double *constrrhs,   
+                 double C, double dO, double dM, int nkn1, int nkn2,  
+                 void **data );
+boolean g2bl_ClosedIterBlSurfaceConstrOptLMTd ( void *data,
+                 boolean *finished );
+void g2bl_ClosedConstrOptLMTDeallocated ( void **data );
+boolean g2bl_ClosedFindBlSurfaceConstrLMTd (
+                 int lastknotu, int lastknotv, int pitch, point3d *cp,
+                 int nconstr, double *constrmat, double *constrrhs,   
+                 double C, double dO, double dM,
+                 int maxit, int nkn1, int nkn2 );
+\end{listingC}
+
+
+\subsection{Auxiliary procedures}
+
+\begin{listingC}
+int g2bl_NiSize ( int nkn );
+int g2bl_NijSize ( int nkn );
+int g2bl_MijSize ( int nkn );
+\end{listingC}
+The procedures above return the sizes of arrays necessary to hold the values
+of the expressions
+\begin{align*}
+  N_{\bm{\alpha}}^{\bm{i}} &{}=
+   \frac{\mathrm{d}^{\alpha_1}}{\mathrm{d}u^{\alpha_1}}N^3_{i_1}(u)
+   \frac{\mathrm{d}^{\alpha_2}}{\mathrm{d}v^{\alpha_2}}N^3_{i_2}(v),\\
+  N_{\bm{\alpha\beta}}^{\bm{ij}} &{}=
+    N^{\bm{i}}_{\bm{\alpha}}N^{\bm{j}}_{\bm{\beta}} +
+    N^{\bm{j}}_{\bm{\alpha}}N^{\bm{i}}_{\bm{\beta}},\\
+  M_{\bm{\alpha\beta}}^{\bm{ij}} &{}= 
+    N^{\bm{i}}_{\bm{\alpha}}N^{\bm{j}}_{\bm{\beta}} -
+    N^{\bm{j}}_{\bm{\alpha}}N^{\bm{i}}_{\bm{\beta}},
+\end{align*}
+where $\bm{\alpha}=(\alpha_1,\alpha_2)$, $\bm{\beta}$ and~$\bm{\gamma}$ are
+biindices and the functions~$N^3_i$ are cubic B-spline functions with
+uniform knots being consecutive integers, at the $n^2$ quadrature knots,
+where $n$ is the value of the parameter~\texttt{nkn}. These expressions
+are evaluated and stored in the arrays to accelerate the computations
+during the actual optimization.
+
+\medskip
+\begin{listingC}
+int _g2bl_SetupHessian1Profile ( int lastknotu, int lastknotv,
+                                 int *prof );
+\end{listingC}
+
+\medskip
+\begin{listingC}
+double g2bl_UFuncd ( int nkn, const double *qcoeff, double *Nitab,
+                 int lastknotu, int lastknotv, int pitch, point3d *cp,
+                 char *dirty,
+                 double tC, double *ftab );
+void g2bl_UFuncGradd ( int nkn, const double *qcoeff, double *Nitab,
+                       int lastknotu, int lastknotv,
+                       int pitch, point3d *cp, char *dirty,
+                       double tC, double *ftab, double *gtab,
+                       double *func, double *grad );
+void g2bl_UFuncGradHessiand (
+                  int nkn, const double *qcoeff, double *Nitab,
+                  double *Nijtab, double *Mijtab,
+                  int lastknotu, int lastknotv,  
+                  int pitch, point3d *cp, char *dirty,
+                  double tC, double *ftab, double *gtab, double *htab,
+                  double *func, double *grad,
+                  int hsize, const int *prof, double **hrows );
+void g2bl_ClosedUFuncGradd (
+                  int nkn, const double *qcoeff, double *Nitab, 
+                  int lastknotu, int lastknotv,
+                  int pitch, point3d *cp, char *dirty,
+                  double tC, double *ftab, double *gtab,
+                  double *func, double *grad );
+void g2bl_ClosedUFuncGradHessiand (
+                  int nkn, const double *qcoeff, double *Nitab,
+                  double *Nijtab, double *Mijtab,
+                  int lastknotu, int lastknotv,  
+                  int pitch, point3d *cp, char *dirty,
+                  double tC, double *ftab, double *gtab, double *htab,
+                  double *func, double *grad,
+                  int hsize, const int *prof, double **hrows );
+\end{listingC}
+
+\medskip
+\begin{listingC}
+double g2bl_SurfNetDiameterSqd ( int lastknotu, int lastknotv,
+                                 int pitch, const point3d *cp );
+double g2bl_ClosedSurfNetDiameterSqd ( int lastknotu, int lastknotv,
+                                       int pitch, const point3d *cp );
+\end{listingC}
+
+\medskip
+\begin{listingC}
+boolean g2bl_SetupULConstraintsd (
+                   int lastknotu, int lastknotv, int spdimen,
+                   int ppitch, double *cp,
+                   int nucurv, double *ucknots,
+                   int cpitch, double *uccp,   
+                   int *nconstr, double *cmat, double *crhs );
+boolean g2bl_SetupUNLConstraintsd ( int lastknotu, int lastknotv,
+                   int ppitch, point3d *cp,
+                   int nucurv, double *ucknots,
+                   int cpitch, point3d *uccp,  
+                   int *nconstr, double *cmat, double *crhs );
+\end{listingC}
+
+\medskip
+\begin{listingC}
+boolean g2bl_SetupClosedULConstraintsd (
+                   int lastknotu, int lastknotv, int spdimen,
+                   int ppitch, double *cp,
+                   int nucurv, double *ucknots,
+                   int cpitch, double *uccp,   
+                   int *nconstr, double *cmat, double *crhs );
+boolean g2bl_SetupClosedUNLConstraintsd (
+                   int lastknotu, int lastknotv,
+                   int ppitch, point3d *cp,
+                   int nucurv, double *ucknots,
+                   int cpitch, point3d *uccp,  
+                   int *nconstr, double *cmat, double *crhs );
+\end{listingC}
+
+\medskip
+\begin{listingC}
+boolean g2bl_FuncTSQFd ( int nkn,
+                 int lastknotu, int lastknotv, int pitch, point3d *cp,
+                 double tC,
+                 double *fT, double *fS, double *fQ, double *fF );
+\end{listingC}
+
+
+\newpage
+\section[Optimization of surfaces represented by irregular meshes]%
+{\label{sect:g2bl:mesh:nl}Optimization of surfaces \\
+represented by irregular meshes}
+
+\subsection{Overview}
+
+The optimization of a~surface represented by a~mesh is done as follows:
+an application prepares the mesh, and then it calls an optimization
+procedure. The mesh is represented as described in
+Section~\ref{sect:bsmesh:representation}. The mesh must have a~boundary,
+made of one or more closed polylines; the surface represented by such a~mesh
+has a~boundary made of the same number of closed curves. The boundary of the
+surface is fixed, by fixing all vertices, whose distance from the mesh
+boundary (measured by the number of edges from the closest boundary vertex)
+is less than~$3$. These vertices also determine the tangent plane and
+curvature at each point of the surface boundary. The optimization procedures
+will not modify these vertices.
+
+Apart from the mesh, the application may pass an array of bytes---one byte
+for each vertex. A~nonzero value in this array marks the corresponding
+vertex as fixed in addition to the vertices, which determine the boundary
+conditions for the surface. In this way one can impose \texttt{constraints}.
+The other vertices, whose positions may be modified by the optimization
+procedures, are called non-fixed in the following text.
+
+Instead of calling a~single procedure, which does the entire job, the
+application may call a~preparation procedure, which creates
+an auxiliary data structure holding all necessary data, and then, in
+a~loop, call the procedure, which makes a~single iteration of the numerical
+optimization algorithm. In this way the application has access to the
+positions of mesh vertices after each iteration. As the computations with
+fine meshes, having thousands of vertices take much time, it makes sense
+to display the mesh after each iteration, and allow the user to have an
+insight of the computations. When the optimization is complete, the
+application should call a~procedure of deallocation of the data structure;
+it consists of a~number of arrays, which take a~considerable amount of
+memory, and not doing that would cause a~massive memory leakage.
+
+The following sets of procedures are available now:
+\begin{itemize}
+\item \texttt{g2mbl\_InitBlSurfaceOptLMTd}---preparation, \\
+  \texttt{g2mbl\_IterBlSurfaceOptLMTd}---one iteration, \\
+  \texttt{g2mbl\_OptLMTDeallocated}---deallocation of the auxiliary data
+    structure, \\
+  \texttt{g2mbl\_FindBlSurfaceLMTd}---full optimization procedure,
+    calling the former three procedures.
+
+  These procedures optimize the shape of surfaces by finding minima of
+  the functional~$F$ given by Formula~(\ref{eq:g2mbl:opt:F}).
+
+  The algorithm implemented by these procedures is appropriate for meshes
+  with a~rather small number of non-fixed vertices---up to~$5000$. The
+  optimization is done using the Newton method, accompanied by minimization
+  along the Levenberg-Marquardt trajectories, and all systems of linear
+  equations are solved using the Cholesky's decomposition, which is
+  inefficient beyond that limit.
+\item \texttt{g2mbl\_InitBlSurfaceOptAltBLMTd}---preparation, \\
+  \texttt{g2mbl\_IterBlSurfaceOptAltBLMTd}---one iteration, \\
+  \texttt{g2mbl\_OptLMTDeallocated}--- deallocation of the auxiliary data
+    structure, \\
+  \texttt{g2mbl\_FindBlSurfaceAltBLMTd}---full optimization procedure,
+    calling the former three procedures.
+
+  These procedures optimize the shape of surfaces by finding minima of
+  the functional~$F$ given by Formula~(\ref{eq:g2mbl:opt:F}).
+
+  The algorithm implemented by these procedures is appropriate for finer
+  meshes, whose numbers of non-fixed vertices are between $3500$ and
+  $20000$. The algorithm uses blocks, which are overlapping subsets covering
+  the set of non-fixed vertices of the mesh. The number of blocks, specified
+  by the caller, must be between~$2$ and the maximal number of blocks, which
+  is the constant hidden beyond the symbolic name \texttt{G2MBL\_MAX\_BLOCKS}
+  (currently~$32$, it may change in future). It is best to specify the
+  number of blocks so as to obtain blocks having about $3000$~vertices
+  (the blocks may consist of different numbers of vertices).
+\item \texttt{g2mbl\_InitBlCMPSurfaceOptd}---preparation, \\
+  \texttt{g2mbl\_IterBlSurfaceOptAltBLMTd}---one iteration, \\
+  \texttt{g2mbl\_OptLMTDeallocated}---deallocation of the auxiliary data
+    structure.
+
+  Two of the above procedures are the same as in the previous set of
+  optimization procedures. A~minimum of the functional~$F$ given by
+  Formula~\ref{eq:g2mbl:opt:F} is searched.
+
+  The algorithm implemented by these procedures is appropriate for meshes
+  having between $3500$ and~$30000$~vertices; the algorithm uses blocks.
+  The difference is using another preconditioner, constructed with
+  a~refinement matrix. This preconditioner is used in the final stage of
+  optimization, when the Newton method is applied to the entire system of
+  nonlinear equations, whose solution is the minimal point of the
+  functional~$F$; the Newton method steps use the conjugate gradient method
+  to solve systems of linear equations (the procedure \texttt{pkn\_PCGd}
+  procedure is used, see Section~\ref{sect:pknum:PCG}). This preconditioner
+  may be used if the mesh to optimise has been obtained from a~coarse mesh
+  by one or more refinement steps (and optional repositioning of vertices),
+  and the matrix, which describes this operation (the refinement or the
+  composition of the refinement steps) is available. If the number of blocks
+  is $4$ or greater, then the convergence of the conjugate gradient method
+  may be considerably faster.
+
+  The procedure \texttt{bsm\_RefineBSMeshd} may be used to obtain the
+  refinement matrix \texttt{bsm\_RefineBSMeshd} (see
+  Section~\ref{sect:bsmesh:refinement}). The composition of subsequent
+  refinements is represented by the product of the appropriate matrices,
+  which may be computed using the procedure \texttt{pkn\_SPMmultMMCd}
+  (see Section~\ref{ssect:pknum:sparse:mult}).
+  \item \texttt{g2mbl\_MLOptInitd}---preparation, \\
+    \texttt{g2mbl\_MLOptIterd}---one iteration, \\
+    \texttt{g2mbl\_MLOptDeallocated}---deallocation of the auxiliary data
+      structure.
+
+    These procedures use the multilevel algorithm to find a~minimum of the
+    functional~$F$. The set of non-fixed vertices is recursicely divided
+    into overlapping subsets, called blocks, which form a~balanced binary
+    tree. For large blocks the conjugate gradient method is used
+    to solve the systems of linear equations in the Newton method
+    iterations. The preconditioner is constructed using small blocks.
+
+    In particular, if the height of the block tree is~$1$, the algorithm
+    implemented by these procedures is the non-block one; the number of
+    non-fixed vertices should be rather small (up to~$5000$, but preferably
+    not greater than~$3500$). For very fine meshes the height of the tree
+    should be chosen so as to obtain the smallest blocks having no more than
+    $3500$~vertices. The height of the block tree (which determines the number
+    of blocks) may be taken as suggested by the proceure
+    \texttt{g2mbl\_MLSuggestNLevels}.
+  \item \texttt{g2mbl\_MLCMPOptInitD}---preparation, \\
+    \texttt{g2mbl\_MLOptIterd}---one iteration, \\
+    \texttt{g2mbl\_MLOptDeallocated}---deallocation of the auxiliary data
+      structure.
+
+    These procedures use the multilevel algorithm to find a~minimum of the
+    functional~$F$. For large blocks the conjugate gradient method is used
+    to solve the systems of linear equations in the Newton method
+    iterations. The preconditioner is constructed using small blocks and
+    a~refinement matrix, which must be available to use this possibility.
+
+    The procedure \texttt{g2mbl\_MLCPSuggestNLevels} may be used to suggest
+    the height of the block tree (the block overlaps in this case are
+    smaller, which may result in a~lower tree than that suggested by
+    \texttt{g2mbl\_MLSuggestNLevels}).
+
+    In one of experiments these procedures found a~minimum of a~function of
+    $216027$~variables (coordinates of $72009$~non-fixed vertices of
+    a~mesh), which took about~$6$~hours and $20$~minutes.
+  \item \texttt{g2mbl\_MLSOptInitd}---preparation, \\
+    \texttt{g2mbl\_MLSOptIterd}---one iteration, \\
+    \texttt{g2mbl\_MLOptDeallocated}---deallocation of the auxiliary data
+      structure.
+
+    These procedures use the multilevel algorithm to find a~minimum of the
+    function~$S$ in a~restricted space. It is recommended that the starting
+    point for the minimisation be a~mesh, which is a~minimal point of teh
+    functional~$F$, found using one of the sets of procedures described
+    above.
+
+    If the tree height is~$1$, the
+    algorithm is just the non-block algorithm, which solves a~global system
+    of equations in each iteration. The number of non-fixed vertices in this
+    case should not exceed~$15000$, but it better be not greater
+    than~$10000$. If there are large blocks, such that the linear equations
+    have to be solved using the conjugater gradient method, a~preconditioner
+    constructed with small blocks is used.
+
+    The procedure \texttt{g2mbl\_MLSSuggestNLevels} may be used to establish
+    the height of the block tree.
+  \item \texttt{g2mbl\_MLSCMPOptInitD}---preparation, \\
+    \texttt{g2mbl\_MLSOptIterd}---one iteration, \\
+    \texttt{g2mbl\_MLOptDeallocated}---deallocation of the auxiliary data
+      structure.
+
+    These procedures use the multilevel algorithm to find a~minimum of the
+    function~$S$ in a~restricted space. It is recommended that the starting
+    point (i.e.\ initial mesh vertices) be a~minimal point of the
+    function~$F$, found by one of the sets of procedures described above.
+
+    The preconditioner used by the conjugate gradient method for large
+    blocks is constructed using the small blocks and the refinement matrix,
+    which must be available, if this set of optimisation procedures is to be
+    used.
+\end{itemize}
+
+A~simple example showing how to use the optimization procedures mentioned
+above is the program \texttt{optblmesh}, which is briefly described in
+Section~\ref{ssect:g2mbl:example}; its source code (see the file
+\texttt{test/optblmesh/optblmesh.c}) is a~recommended lecture accompanying
+the documentation below.
+
+
+\subsection{\label{ssect:g2mbl:nonblock}Nonblock algorithm}
+
+\begin{listingC}
+boolean g2mbl_InitBlSurfaceOptLMTd (
+                    int nv, BSMvertex *mv, int *mvhei,
+                    point3d *mvcp, int nhe, BSMhalfedge *mhe,
+                    int nfac, BSMfacet *mfac, int *mfhei,
+                    byte *mkcp,
+                    double C, double dO, double dM,
+                    int nkn1, int nkn2, void **data );
+boolean g2mbl_IterBlSurfaceOptLMTd ( void *data, boolean *finished );  
+void g2mbl_OptLMTDeallocated ( void **data );
+boolean g2mbl_FindBlSurfaceLMTd ( int nv, BSMvertex *mv, int *mvhei,   
+                          point3d *mvcp, int nhe, BSMhalfedge *mhe,
+                          int nfac, BSMfacet *mfac, int *mfhei,
+                          byte *mkcp,
+                          double C, double dO, double dM,
+                          int maxit, int nkn1, int nkn2 );
+\end{listingC}
+The procedures above may be used to find a~minimum of~$F$ using the simplest
+(nonblock) algorithm, which is appropriate for meshes with a~rather small
+number of non-fixed vertices (up to~$3500$). The procedure
+\texttt{g2mbl\_FindBlSurfaceLMTd} calls the other three, which may also be
+called directly by an application.
+
+Parameters: \texttt{nv}, \texttt{nhe}, \texttt{nfac}---numbers
+$n_{\mathrm{v}}$, $n_{\mathrm{h}}$ and $n_{\mathrm{f}}$ of vertices,
+halfedges and facets, respectively, \texttt{mv}---array of vertices,
+\texttt{mvhei}---array of indices of halfedges having origins at subsequent
+vertices, \texttt{mhe}---array of halfedges, \texttt{mfac}---array of
+facets, \texttt{mfhei}---array of indoces of halfedges forming the facets.
+
+The parameter \texttt{mkcp} may be \texttt{NULL} or it may point to an array
+of length~$n_{\mathrm{v}}$, which marks (by nonzero values) vertices fixed
+in addition to the ones, which determine boundary conditions.
+
+The parameters~\texttt{C}, \texttt{dO} and~\texttt{dM} are used to compute
+the constant~$c$ in Formula~(\ref{eq:g2mbl:opt:F}). Their values are the
+numbers $C$, $D_{\varOmega}$ and~$D_{\cal M}$ respectively. The number~$C$
+is a~user-specified positive constant; in many experiments good results were
+obtained with~$C=0$. The number~$D_{\varOmega}$ should be the diameter of
+the domain~$\varOmega$ of a~parameterization of the surface, and $D_{\cal M}$
+should be the diameter of the surface. If these two parameters are less than
+or equal to~$0$, the procedure will compute approximations of these diameters,
+which is preferable.
+
+The parameter \texttt{maxit} specifies the limit of number of iterations
+made by the \texttt{g2mbl\_FindBlSurfaceLMTd} proceure.
+
+The parameters \texttt{nkn1} and \texttt{nkn2} determine the orders of
+quadratures used to evaluate the function~$F$ and its gradient and Hessian.
+Their values, $n_1$ and~$n_2$ must be between~$4$ and~$10$, and there should be
+$n_1\leq n_2$. The quadratures are tensor product Gauss-Legendre
+quadratures with $n_1^2$ and $n_2^2$ knots in each domain square---the
+domain~$\varOmega$ of a~parameterization of the surface represented by the
+mesh is a~manifold made of these squares. Greater values of these parameters
+mean greater accuracy and longer computation times. The quadrature with
+$n_1^2$~knots is used to compute the Hessian coefficients, and also to
+compute the function value and its gradient in the beginning of search of
+the minimum. In the final phase, the quadrature  with ~$n_2^2$ knots in each
+domain square is used to get a~better accuracy.
+
+\begin{sloppypar}
+The parameter \texttt{data} of the procedures
+\texttt{g2mbl\_InitBlSurfaceOptLMTd} and \texttt{g2mbl\_OptLMTDeallocated}
+points to a~pointer to the auxiliary data structure, created by the first
+and destroyed by the second of the two procedures. The pointer to this data
+structure is the parameter \texttt{data} of the procedure
+\texttt{g2mbl\_IterBlSurfaceOptLMTd}, which makes a~single iteration.%
+\end{sloppypar}
+
+The variable pointed by the parameter \texttt{finished} is assigned
+\texttt{true} when the stop criterion of the procedure is satisfied. One
+should not continue iterations after that event.
+
+The non-\texttt{void} procedures return \texttt{true} in case of success, or
+\texttt{false} in case of failure of their missions.
+
+
+\newpage
+\subsection{Two-level block algorithm}
+
+\medskip
+\begin{listingC}
+boolean g2mbl_InitBlSurfaceOptAltBLMTd (
+                    int nv, BSMvertex *mv, int *mvhei,
+                    point3d *mvcp, int nhe, BSMhalfedge *mhe,
+                    int nfac, BSMfacet *mfac, int *mfhei,
+                    byte *mkcp,
+                    double C, double dO, double dM,
+                    int nkn1, int nkn2, int nbl,   
+                    void **data );
+boolean g2mbl_InitBlCMPSurfaceOptd (
+                int fnv, BSMvertex *fmv, int *fmvhei, point3d *fmvcp,
+                int fnhe, BSMhalfedge *fmhe,
+                int fnfac, BSMfacet *fmfac, int *fmfhei,
+                byte *fmkcp,
+                int cnv,
+                int rmnnz, index2 *rmnzi, double *rmnzc,
+                double C, double dO, double dM,
+                int nkn1, int nkn2, int nbl,   
+                void **data );
+boolean g2mbl_IterBlSurfaceOptAltBLMTd ( void *data,
+                                         boolean *finished );
+boolean g2mbl_FindBlSurfaceAltBLMTd (
+                    int nv, BSMvertex *mv, int *mvhei,
+                    point3d *mvcp, int nhe, BSMhalfedge *mhe,
+                    int nfac, BSMfacet *mfac, int *mfhei,
+                    byte *mkcp,
+                    double C, double dO, double dM,
+                    int maxit, int nkn1, int nkn2, int nbl );
+\end{listingC}
+The auxiliary data structure for the two-level block algorithm may be
+created in two alternative ways: by calling the procedure
+\texttt{g2mbl\_InitBlSurfaceOptAltBLMTd} or
+\texttt{g2mbl\_InitBlCMPSurfaceOptd}. In the former case the preconditioner
+used by the conjugate gradient method is made of solvers of systems of linear
+equations of small blocks. In the latter case the preconditioner has a~term
+defined with a~refinement matrix. For meshes with many non-fixed vertices
+this preconditioner is more efficient.
+
+The procedure \texttt{g2mbl\_IterBlSurfaceOptAltBLMTd} should be called in
+a~loop, after creating the auxiliary data structure, until it
+assigns \texttt{true} to the variable pointed by the parameter
+\texttt{finished}. Then the non-fixed mesh vertices are moved to the
+positions, which correspond to the minimal point of the functional~$F$.
+The auxiliary data structure must be destroyed by calling
+\texttt{g2mbl\_OptLMTDeallocated}.
+
+Parameters: \texttt{nv}, \texttt{mv}, \texttt{mvhei}, \texttt{mvcp},
+\texttt{nhe}, \texttt{mhe}, \texttt{nfac}, \texttt{mfac},
+\texttt{mfhei}---representation of the mesh, \texttt{mkcp}---if not
+\texttt{NULL}, then is is an array which specifies the vertices fixed in
+addition to the ones describing boundary conditions, \texttt{C},
+\texttt{dO}, \texttt{dM}---three numbers used to calculate the constant~$c$
+in Formula~(\ref{eq:g2mbl:opt:F}), \texttt{maxit}---limit of number of
+iterations, \texttt{nkn1}, \texttt{nkn2}---specify the quadratures.
+More details about these parameters are in
+Section~\ref{ssect:g2mbl:nonblock}.
+
+The parameter \texttt{nbl} specifies the number of small blocks used by the
+algorithm. This number must be between~$2$ and \texttt{G2MBL\_MAX\_BLOCKS}.
+It should be chosen in such a~way that the blocks have about
+$3500$~vertices; in this algorithm small blocks differ in size. Perhaps
+a~good choice of the number of blocks is $\lceil n_{\mathrm{nfv}}/2500\rceil$,
+where $n_{\mathrm{nfv}}$ is the number of non-fixed vertices of the mesh.
+
+The parameters \texttt{fnv}, \texttt{fmv}, \texttt{fmvhei}, \texttt{fmvcp},
+\texttt{fnhe}, \texttt{fmhe}, \texttt{fnfac}, \texttt{fmfac},
+\texttt{fmfhei} of the procedure \texttt{g2mbl\_InitBlCMPSurfaceOptd}
+describe the fine mesh to be optimised. The parameter \texttt{cnv} is the
+number of vertices of a~coarse mesh such that the fine mesh topology was
+obtained by one or more refinement operations. The coarse mesh itself is
+unnecessary, all that is needed is the refinement matrix (represented as
+a~sparse matrix with nonzero coefficients distributed irregularly, see
+Section~\ref{ssect:pknum:sparse:mult}). The procedure
+\texttt{g2mbl\_InitBlCMPSurfaceOptd} prepares a~preconditioner for the
+conjugate gradient method with a~term defined with the refinement matrix,
+which is much more efficient than the preconditioner without this term,
+especially when the number of small blocks is big (say, greater than four).
+
+The return value of each of the above procedures is \texttt{true} in case of
+success, or \texttt{false} after a~failure.
+
+The procedure \texttt{g2mbl\_FindBlSurfaceAltBLMTd} calls \\
+\texttt{g2mbl\_InitBlSurfaceOptAltBLMTd} to create the auxiliary data
+structure, then it calls \texttt{g2mbl\_IterBlSurfaceOptAltBLMTd} in a~loop,
+and then it calls \\
+\texttt{g2mbl\_OptLMTDeallocated} to clean up.
+
+
+\subsection{Multilevel algorithm}
+
+\subsubsection{Main procedures}
+
+\begin{listingC}
+boolean g2mbl_MLOptInitd (
+                    int nv, BSMvertex *mv, int *mvhei, point3d *mvcp,
+                    int nhe, BSMhalfedge *mhe,
+                    int nfac, BSMfacet *mfac, int *mfhei,
+                    byte *mkcp,
+                    double C, double dO, double dM,
+                    int nkn1, int nkn2, short nlevels, void **data );
+boolean g2mbl_MLCMPOptInitd (
+                int fnv, BSMvertex *fmv, int *fmvhei, point3d *fmvcp,
+                int fnhe, BSMhalfedge *fmhe,
+                int fnfac, BSMfacet *fmfac, int *fmfhei,
+                byte *fmkcp,
+                int cnv,
+                int rmnnz, index2 *rmnzi, double *rmnzc,
+                double C, double dO, double dM,
+                int nkn1, int nkn2, short nlevels,
+                void **data );
+boolean g2mbl_MLOptIterd ( void *data, boolean *finished );
+void g2mbl_MLOptDeallocated ( void **data );
+\end{listingC}
+The procedures above implement the multilevel algorithm of finding a~minimum
+of the functional~$F$. The first two, \texttt{g2mbl\_MLOptInitd} and
+\texttt{g2mbl\_MLCMPOptInitd}, create the auxiliary data structure, which
+must eventually be destroyed by \\
+\texttt{g2mbl\_MLOptDeallocated}. The
+difference between the two procedures is the preparation of a~preconditioner
+for the conjugate gradient method, with a~term usnig the refinement matrix.
+
+The procedure \texttt{g2mbl\_MLOptIterd} makes one iteration of the
+algorithm. If the stop condition is satisfied, then the variable pointed by
+the parameter \texttt{finished} is assigned \texttt{true}, which ought to
+terminate the computations.
+
+The parameters, which describe the mesh and the other data are the same as
+for the procedures described in the preceding sections. A~new parameter is
+\texttt{nlevels}, which is the height of the binary tree of blocks used by
+the algorithm. If this parameter is~$1$, the procedures work as a~nonblock
+algorithm. To choose the height of the block tree one may call the procedure
+\texttt{g2mbl\_MLSuggestNLevels} or \texttt{g2mbl\_MLCPSuggetsNLevels},
+described below.
+
+The procedure \texttt{g2mbl\_MLCMPOptInitd} should be used if the height of
+the block tree is at least~$3$.
+
+The procedures return \texttt{true} to signal a~success, or \texttt{false}
+to signal a~failure.
+
+
+\begin{listingC}
+boolean g2mbl_MLSOptInitd (
+                    int nv, BSMvertex *mv, int *mvhei, point3d *mvcp,
+                    int nhe, BSMhalfedge *mhe,
+                    int nfac, BSMfacet *mfac, int *mfhei,
+                    byte *mkcp,
+                    int nkn1, int nkn2, short nlevels, void **data );
+boolean g2mbl_MLSCMPOptInitd (
+              int fnv, BSMvertex *fmv, int *fmvhei, point3d *fmvcp,
+              int fnhe, BSMhalfedge *fmhe,
+              int fnfac, BSMfacet *fmfac, int *fmfhei,
+              byte *fmkcp,
+              int cnv,
+              int rmnnz, index2 *rmnzi, double *rmnzc,
+              int nkn1, int nkn2, short nlevels,  
+              void **data );
+boolean g2mbl_MLSOptIterd ( void *data, boolean *finished );
+\end{listingC}
+The procedures above implement the multilevel algorithm of finding a~minimum
+of the functional~$S$. The first two, \texttt{g2mbl\_MLSOptInitd} and
+\texttt{g2mbl\_MLSCMPOptInitd}, create the auxiliary data structure, which
+must eventually be destroyed by \\
+\texttt{g2mbl\_MLOptDeallocated}. The
+difference between the two procedures is the preparation of a~preconditioner
+for the conjugate gradient method, with a~term usnig the refinement matrix.
+
+The procedure \texttt{g2mbl\_MLSOptIterd} makes one iteration of the
+algorithm. If the stop condition is satisfied, then the variable pointed by
+the parameter \texttt{finished} is assigned \texttt{true}, which ought to
+terminate the computations.
+
+The parameters, which describe the mesh and the other data are the same as
+for the procedures described in the preceding sections. Note that there are
+no parameters \texttt{C}, \texttt{dO} and \texttt{dM}, which are not
+necessary to define the functional~$S$.
+The parameter \texttt{nlevels} is the height of the binary tree of blocks used by
+the algorithm. If this parameter is~$1$, the procedures work as a~nonblock
+algorithm. To choose the height of the block tree one may call the procedure
+\texttt{g2mbl\_MLSSuggestNLevels} or \texttt{g2mbl\_MLCPSSuggetsNLevels},
+described below.
+
+
+
+\subsubsection{Auxiliary procedures}
+
+\begin{listingC}
+boolean g2mbl_MLSuggestNLevels ( int nv, BSMvertex *mv, int *mvhei,
+                                 int nhe, BSMhalfedge *mhe,
+                                 int nfac, BSMfacet *mfac, int *mfhei,
+                                 byte *mkcp,
+                                 int *minlev, int *maxlev );
+boolean g2mbl_MLCPSuggestNLevels ( int nv, BSMvertex *mv, int *mvhei,
+                                   int nhe, BSMhalfedge *mhe,
+                                   int nfac, BSMfacet *mfac, int *mfhei,
+                                   byte *mkcp,
+                                   int *minlev, int *maxlev );
+\end{listingC}
+The two procedures above count the number of non-fixed vertices in a~mesh
+and then they compute the numbers, which seem to define a~good range for the
+height of the block tree for the multilevel block algorithm of finding
+a~minimum of the function~$F$. These numbers are assigned to the variables
+pointed by the parameters \texttt{minlev} and \texttt{maxlev}. It seems
+better to choose the lower bound of this range for the tree height.
+
+The first of the two procedures is appropriate if no refinement matrix is to
+be used by the preconditioner for the conjugate gradient method. The second
+procedure is supposed to be appropriate if such a~matrix is available and
+intended to use. As the block overlaps necessary in that case are smaller,
+the block tree in some cases may be lower.
+
+The value returned is \texttt{true} to indicate a~success, and \texttt{false}
+in case of failure.
+
+
+\medskip
+\begin{listingC}
+boolean g2mbl_MLSSuggestNLevels (
+                          int nv, BSMvertex *mv, int *mvhei,
+                          int nhe, BSMhalfedge *mhe,
+                          int nfac, BSMfacet *mfac, int *mfhei,
+                          byte *mkcp,
+                          int *minlev, int *maxlev );
+boolean g2mbl_MLCPSSuggestNLevels (
+                          int nv, BSMvertex *mv, int *mvhei,
+                          int nhe, BSMhalfedge *mhe,
+                          int nfac, BSMfacet *mfac, int *mfhei,
+                          byte *mkcp,
+                          int *minlev, int *maxlev );
+\end{listingC}
+The two procedures above count the number of non-fixed vertices in a~mesh
+and then they compute the numbers, which seem to define a~good range for the
+height of the block tree for the multilevel block algorithm of finding
+a~minimum of the function~$S$. These numbers are assigned to the variables
+pointed by the parameters \texttt{minlev} and \texttt{maxlev}. It seems
+better to choose the lower bound of this range for the tree height.
+
+The first of the two procedures is appropriate if no refinement matrix is to
+be used by the preconditioner for the conjugate gradient method. The second
+procedure is supposed to be appropriate if such a~matrix is available and
+intended to use. As the block overlaps necessary in that case are smaller,
+the block tree in some cases may be lower.
+
+The value returned is \texttt{true} to indicate a~success, and \texttt{false}
+in case of failure.
+
+\medskip
+\begin{listingC}
+int g2mbl_MLGetLastBlockd ( void *data );
+\end{listingC}
+The multilevel algorithm solves the local optimization problem for each
+block, from the last one to the first, which is the global system of
+equations for all non-fixed vertices. Each time one iteration is made, and
+then a~decision is taken, whether to advance to the next block, or not. The
+value returned is the number of the block, which was processed in the last
+recent iteration. This information may be used by the application to monitor
+the state of the computation.
+
+\medskip
+\begin{listingC}
+void g2mbl_MLSetNextBlock ( void *data, int nbl );
+\end{listingC}
+Normally the multilevel algorithm begins the computation from the last small
+block. This procedure may be used to override it, by explicitly setting the
+block number, from which to start the next iteration.
+
+\medskip
+\begin{listingC}
+boolean g2mbl_MLGetBlockVCPNumbersd ( void *data, int bl,
+                                int *nvcp, int **vncpi, int *seed );
+\end{listingC}
+After creating the auxiliary data structure for the multilevel algorithm,
+this procedure may be used to obtain the information about blocks created
+for the multilevel algorithm. The first parameter points to the auxiliary
+data structure, the second is the block number, the parameter \texttt{nvcp}
+points to the variable, which is assigned the number of vertices of the
+block, the parameter \texttt{vncpi} points to the variable, which will be
+set to an array with indices of the vertices of the block (the application
+may read this array, but it must not alter its contents), and the parameter
+\texttt{seed} points to the variable, which is assigned the number of the
+vertex chosen for the seed of the discrete Voronoi diagram used to choose
+the vertices for this block.
+
+
+\medskip
+\begin{listingC}
+void g2mbl_MLGetTimes ( void *data,
+                float *time_prep, float *time_h, float *time_cg );
+\end{listingC}
+After the optimization using the multilevel algorithm is complete, but
+before destroying the auxiliary data structure, this procedure may be called
+to obtain the total times (in seconds), spent for the preparation (creating
+blocks etc.), computing the Hessian coefficients, and solving the linear
+equations using the conjugate gradient method. These times are assigned to
+the variables pointed by the parameters.
+
+
+\subsection{Additional procedures}
+
+\begin{listingC}
+extern GHoleDomaind *g2mbl_domaind[GH_MAX_K-3];
+extern double *g2mbl_patchmatrixd[GH_MAX_K-3]; 
+
+boolean g2mbl_SetupHolePatchMatrixd ( int k );
+void g2mbl_CleanupHoleDomainsd ( void );
+\end{listingC}
+The construction of the function space for representation of the surface
+involves constructing binonic polynomials filling $k$-sided holes in the
+piecewise bicubic surface represented by the mesh (where $k$ may be any
+number from $3$ to~$16$, except~$4$). This is done using
+procedures of the \texttt{libeghole} library. For each type of special
+element present in the mesh, an auxiliary data structure defined in the
+\texttt{libeghole} library is created (these types correspond to different
+numbers~$k$). After the optimization these data structures remain allocated,
+and they may be reused to optimise a~next mesh.
+
+The procedure \texttt{g2mbl\_SetupHolePatchMatrixd} may be called to demand
+creating the data structure for filling the $k$-sided hole by the
+appropriate procedure from the \texttt{libeghole} library.
+The value \texttt{true} returned denotes a~success.
+
+The procedure \texttt{g2mbl\_CleanupHoleDimaonsd} destroys all data
+structures for filling $k$-sided holes in order to free the memory they
+occupy. If a~mesh is optimised after that, the data structures must be
+created again, which takes some time, though insignificant, when compared
+with the times of optimization of the meshes.
+
+\medskip
+\begin{listingC}
+int g2mbl_GetNvcp ( int nv, BSMvertex *mv, int *mvhei,
+                    int nhe, BSMhalfedge *mhe,
+                    int nfac, BSMfacet *mfac, int *mfhei,
+                    byte *mkcp );
+\end{listingC}
+This procedure returns the number of non-fixed vertices in a~mesh. It may be
+useful to choose the number of blocks for the two-level optimization block
+algorithm.
+
+
+\medskip
+\begin{listingC}
+extern void (*g2mbl_outputnzdistr)( int nbl, int blnum,
+                                    boolean final,
+                                    int nvcp, int n, byte *nzdistr ); 
+\end{listingC}
+This pointer is \texttt{NULL} by default. An application may set it to point
+a~procedure, which will be called during the preparation of the auxiliary
+data structure for optimization, to pass to the application the distribution
+of nonzero coefficients in the Hessian matrices for small blocks.
+This possibility was helpful for writing and debugging of the procedures of
+creating blocks.
+
+
+\subsection{\label{ssect:g2mbl:example}Example of using the optimization procedures}
+
+An example of using the mesh optimization procedures is the program
+\texttt{optblmesh}, whose source file is
+\texttt{test/optblmesh/optblmesh.c}. The program works in batch mode; it
+reads the file specified by the command line, performs the optimization
+and writes the result to a~file. It does not make any pictures, but the
+files may be read in by the demonstration program \texttt{pozwalaj}, which
+allows one to examine the surfaces at will, edit them and interactively
+create meshes, which may be optimized (see Section~\ref{sect:demo:pozwalaj}).
+
+The program \texttt{pozwalaj} also has the optimization procedures built in,
+but the source code of \texttt{optblmesh} is much shorter (about 650~lines)
+and easier to explore. It is intended to serve as an example, how to prepare
+data and to call properly the optimization procedures. There are not too
+many comments, but most of the program are instructions of calling
+library procedures, which usually have significant names. The parameters
+and jobs of these procedures are described in this documentation.
+ 

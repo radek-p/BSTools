@@ -1,0 +1,502 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{The \texttt{libpkgeom} library}
+
+The \texttt{libpkgeom} library consists of procedures, which implement basic
+operations on points and vectors in two-, three- and four-dimensional
+spaces. The operations are: addition, subtraction, multiplication,
+interpolation and affine transformations. In addition, there is a~procedure
+of computing the convex hull of a~set of points in the plane. Other
+procedures of computational geometry will also be placed in this library.
+
+All names of data types and procedures end with the letter \texttt{f} or
+\texttt{d}, which indicates the representation of coordinates --- of single
+(\texttt{float}) or double (\texttt{double}) precision.
+
+\section{Point and vector operations}
+
+\cprog{%
+typedef struct point2f \{ \\
+\ind{2}float x, y; \\
+\} point2f vector2f; \\
+\mbox{} \\
+typedef struct point3f \{ \\
+\ind{2}float x, y, z; \\
+\} point3f vector3f; \\
+\mbox{} \\
+typedef struct point4f \{ \\
+\ind{2}float X, Y, Z, W; \\
+\} point4f vector4f;}
+\hspace*{\parindent}%
+Points and vectors are represented with pairs, triples and quadruples
+of numbers. An essential property of these representations is the absence
+of any additional data. Due to that, for example an array of $n$~points
+in a~plane may be passed to a~procedure, which processes an array
+of $2n$ numbers. Therefore these structures should not be converted to
+C++ classes, and in particular no classes with additional attributes
+may be defined.
+
+A~structure of type \texttt{point3f} may represent a~point in the $3$D space
+or a~point of a~plane. In the latter case the fields
+\texttt{x}, \texttt{y}, \texttt{z} describe homogeneous coordinates
+of this point --- its cartesian coordinates are equal to \texttt{x/z}
+and~\texttt{y/z}. Analoguously, a~structure of type \texttt{point4f}
+consists of fields, whose values are homogeneous coordinates of a~point in the
+three-dimensional space.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+typedef struct ray3f \{ \\
+\ind{2}point3f p; \\
+\ind{2}vector3f v; \\
+\} ray3f;}
+Structures of type \texttt{ray3f} represent rays, i.e.\ halflines in~$\R^3$,
+with the origin at the point~\texttt{p} and with the direction described by the
+vector~\texttt{v}.
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef union trans2f \{ \\
+\ind{2}struct \{ \\
+\ind{4}float a11, a12, a13; \\
+\ind{4}float a21, a22, a23; \\
+\ind{2}\} U0; \\
+\ind{2}struct \{ \\
+\ind{4}float a[2][3]; \\
+\ind{4}short detsgn; \\
+\ind{2}\} U1; \\
+\} trans2f; \\
+\mbox{} \\
+typedef union trans3f \{ \\
+\ind{2}struct \{ \\
+\ind{4}float a11, a12, a13, a14; \\
+\ind{4}float a21, a22, a23, a24; \\
+\ind{4}float a31, a32, a33, a34; \\
+\ind{2}\} U0; \\
+\ind{2}struct \{ \\
+\ind{4}float a[3][4]; \\
+\ind{4}short detsgn; \\
+\ind{2}\} U1; \\
+\} trans3f;}
+Structures of type \texttt{trans2f} and~\texttt{trans3f} represent affine
+transformations of the two- and three-dimensional spaces. The representation
+consists of a~matrix $3\times 3$ or $4\times 4$, whose last row is either
+$[0,0,1]$ or $[0,0,0,1]$. Therefore this row is not stored. The field
+\texttt{detsgn} describes the sign of the determinant of this matrix.
+
+\vspace{\bigskipamount}
+\cprog{%
+void SetPoint2f ( point2f *p, float x, float y ); \\
+\#define SetVector2f(v,x,y) SetPoint2f ( v, x, y ) \\
+void SetPoint3f ( point3f *p, float x, float y, float z ); \\
+\#define SetVector3f(v,x,y,z) SetPoint3f ( v, x, y, z ) \\
+void SetPoint4f ( point4f *p, float X, float Y, float Z, float W ); \\
+\#define SetVector4f(v,X,Y,Z,W) SetPoint4f ( v, X, Y, Z, W )}
+The above procedures and macros initialize point and vector
+representations.
+
+\vspace{\bigskipamount}
+\cprog{%
+void TransPoint2f ( const trans2f *tr, const point2f *p, \\
+\ind{20}point2f *q ); \\
+void TransPoint3f ( const trans3f *tr, const point3f *p, \\
+\ind{20}point3f *q );}
+The above procedures compute the image $\bm{q}$ of a~point~$\bm{p}$
+in an affine transformation of the two- or three-dimensional space.
+
+\vspace{\bigskipamount}
+\cprog{%
+void TransVector2f ( const trans2f *tr, const vector2f *v, \\
+\ind{21}vector2f *w ); \\
+void TransVector3f ( const trans3f *tr, const vector3f *v, \\
+\ind{21}vector3f *w );}
+The above procedures compute the image~$\bm{w}$ of the vector~$\bm{v}$
+in a~linear transformation, which is the linear part of the affine
+transformation represented by the variable \texttt{*tr}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void TransContra3f ( const trans3f *tri, const vector3f *v, \\
+\ind{21}vector3f *w );}
+The procedure \texttt{TransContra3f} computes the image~$\bm{w}$ of the
+vector~$\bm{v}$ in a~linear transformation, whose matrix is the transposition
+of the matrix of the linear part of the affine transformation represented by
+the parameter~\texttt{*tri}. If the vector~$\bm{v}$ is the normal vector
+of some plane~$\pi$, and the transformation represented by~\texttt{*tri}
+is the \emph{inverse} of some transformation~$A$, then the computed
+vector~$\bm{w}$ is the normal vector of the plane~$A(\pi)$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void Trans3Point2f ( const trans3f *tr, const point2f *p, \\
+\ind{21}point2f *q );}
+The procedure \texttt{Trans3Point2f} applies the affine transformation
+\texttt{*tr} to the point $\bm{p}\in\R^3$, whose first two coordinates are
+the values of the fields \texttt{x}~and~\texttt{y} of the parameter~\texttt{*p},
+and the third coordinate is~$0$.
+The coordinates $x$~and~$y$ of the image are assigned to the appropriate fields
+of the parameter~\texttt{*q}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void Trans2Point3f ( const trans2f *tr, const point3f *p, \\
+\ind{21}point3f *q );}
+The procedure \texttt{Trans2Point3f} computes the image of
+a~point~$\bm{p}\in\R^2$, represented by homogeneous coordinates,
+in an affine transformation.
+
+\vspace{\bigskipamount}
+\cprog{%
+void Trans3Point4f ( const trans3f *tr, const point4f *p, \\
+\ind{21}point4f *q );}
+The procedure \texttt{Trans3Point4f} applies the affine transformation
+\texttt{*tr} to the point~$\bm{p}\in\R^3$, whose four homogeneous coordinates
+are the values of the fields of the parameter~\texttt{*p}.
+
+The homogeneous coordinates of the image (such that the weight
+coordinates of the point and its image are the same) are assigned to
+the appropriate fields of the parameter~\texttt{*q}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void IdentTrans2f ( trans2f *tr ); \\
+void IdentTrans3f ( trans3f *tr );}
+The procedures \texttt{IdentTrans2f} and~\texttt{IdentTrans3f} initialize
+the structures \texttt{*tr} to the values representing the identity mappings
+of the two- and three-dimensional spaces respectively.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CompTrans2f ( trans2f *s, trans2f *t, trans2f *u ); \\
+void CompTrans3f ( trans3f *s, trans3f *t, trans3f *u );}
+The procedures \texttt{CompTrans2f} and~\texttt{CompTrans3f} compute
+the composition of the affine transformations represented by the
+parameters~\texttt{*t} and~\texttt{*u}, and assign it to the
+parameter~\texttt{*s}. This composition is equivalent to the transformation
+\texttt{*u} \emph{followed by}~\texttt{*t}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void GeneralAffineTrans3f ( trans3f *tr, \\
+\ind{24}vector3f *v1, vector3f *v2, vector3f *v3 );}
+The procedure \texttt{GeneralAffineTrans3f} computes the composition
+of the transformation represented by the parameter~\texttt{*tr}
+with the transformation, whose linear part is represented by the matrix
+$[\bm{v}_1,\bm{v}_2,\bm{v}_3]$ (and the translation vector is~$\bm{0}$).
+The composition is assigned to the parameter \texttt{*tr}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ShiftTrans2f ( trans2f *tr, float tx, float ty ); \\
+void ShiftTrans3f ( trans3f *tr, float tx, float ty, float tz );}
+The procedures \texttt{ShiftTrans2f} and~\texttt{ShiftTrans3f} compute
+the composition of the transformation represented by the
+parameter~\texttt{*tr} and the translation by the vector
+$[t_x,t_y]^T$ or $[t_x,t_y,t_z]^T$.
+The composition is assigned to the parameter \texttt{*tr}.
+ 
+\vspace{\bigskipamount}
+\cprog{%
+void RotTrans2f ( trans2f *tr, float angle );}
+The procedure \texttt{RotTrans2f} computes the composition of the affine
+transformation represented by~\texttt{*tr} with the rotation
+around the point $[0,0]^T$ by the angle \texttt{angle}.
+The composition is assigned to the parameter \texttt{*tr}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void Rot3f ( trans3f *tr, byte j, byte k, float angle );}
+The procedure \texttt{Rot3f} computes the composition of the transformation
+represented by the parameter \texttt{*tr} with the rotation around one of
+the axes of the system of coordinates. The axis is specified by the parameters
+\texttt{j}~and~\texttt{k}, which must be different numbers from the set
+$\{1,2,3\}$. For example the rotation in the plane $xy$ (around the $z$ axis)
+corresponds to \texttt{j}${}=1$, \texttt{k}${}=2$. The rotation angle is equal to
+\texttt{angle}.
+The composition is assigned to the parameter \texttt{*tr}.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+\#define RotXTrans3f(tr,angle) Rot3f ( tr, 2, 3, angle ) \\
+\#define RotYTrans3f(tr,angle) Rot3f ( tr, 3, 1, angle ) \\
+\#define RotZTrans3f(tr,angle) Rot3f ( tr, 1, 2, angle )}
+The above macros call the procedure \texttt{Rot3f} in order to compute the
+composition of the affine transformation represented by the parameter
+\texttt{*tr} with a~rotation around the $x$, $y$, $z$ axes, i.e.\ in
+the planes $yz$, $zx$ and~$xy$ respectively.
+
+\vspace{\bigskipamount}
+\cprog{%
+void RotVTrans3f ( trans3f *tr, vector3f *v, float angle );}
+\begin{sloppypar}
+The procedure \texttt{RotVTrans3f} computes the composition of the
+affine transformation represented by the parameter
+\texttt{*tr} with the rotation around the line, which passes through
+the point $[0,0,0]^T$ and has the direction of the \emph{unit}
+vector~$\bm{v}$, by the angle \texttt{angle}.
+The composition is assigned to the parameter \texttt{*tr}.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+void FindRotVEulerf ( const vector3f *v, float angle, \\
+\ind{22}float *psi, float *theta, float *phi );}
+The procedure \texttt{FindRotVEulerf} computes the Euler angles (precession
+\texttt{*psi}, nutation \texttt{*theta} and revolution \texttt{*phi}),
+representing the rotation around the line, whose direction is specified by
+the \emph{unit} vector~$\bm{v}$ by the angle \texttt{angle}.
+
+\vspace{\bigskipamount}
+\cprog{%
+float TrimAnglef ( float angle );}
+\begin{sloppypar}
+The procedure \texttt{TrimAnglef} returns the number~$\alpha$, which is an
+element of the interval $[-\pi,\pi]$, and which differs from the parameter
+\texttt{angle} by an integer multiplicity of~$2\pi$ plus the rounding error.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+void CompEulerRotf ( float psi1, float theta1, float phi1, \\
+\ind{21}float psi2, float theta2, float phi2, \\
+\ind{21}float *psi, float *theta, float *phi );}
+The procedure \texttt{CompEulerRotf} computes the Euler angles $\psi$, $\theta$,
+$\varphi$ of the rotation, which is the composition of two rotations
+represented by the Euler angles $\psi_1$, $\theta_1$, $\varphi_1$ and
+$\psi_2$, $\theta_2$, $\varphi_2$ respectively.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CompRotV3f ( const vector3f *v1, float a1, \\
+\ind{18}const vector3f *v2, float a2, \\
+\ind{18}vector3f *v, float *a );}
+The procedure \texttt{CompRotV3f} computes the composition of two rotations
+in~$\R^3$, given by unit vectors of their axes, $\bm{v}_1$, $\bm{v}_2$
+and the angles $\alpha_1$, $\alpha_2$. The procedure computes the vector~$\bm{v}$
+of the composition axis and the angle~$\alpha$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void EulerRotTrans3f ( trans3f *tr, \\
+\ind{23}float psi, float theta, float phi );}
+The procedure \texttt{EulerRotTrans3f} computes the composition of the
+affine transformation represented by the initial value of the parameter
+\texttt{*tr} with the rotation represented by the Euler angles
+$\psi$, $\theta$, $\varphi$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ScaleTrans2f ( trans2f *t, float sx, float sy ); \\
+void ScaleTrans3f ( trans3f *tr, float sx, float sy, float sz );}
+The procedures \texttt{ScaleTrans2f} and~\texttt{ScaleTrans3f} compute
+the composition of the affine transformation represented by the initial
+value of the parameter \texttt{*tr} with the scaling, whose coefficients are
+$s_x$ and~$s_y$ or $s_x$, $s_y$ and~$s_z$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void MirrorTrans3f ( trans3f *tr, vector3f *n );}
+The procedure \texttt{MirrorTrans3f} computes the composition of the affine
+transformation represented by the initial value of the parameter
+\texttt{*tr} with the symmetric reflection with respect to the plane, which
+contains the origin of the coordinate system and whose normal vector
+is~$\bm{n}$.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean InvertTrans2f ( trans2f *tr ); \\
+boolean InvertTrans3f ( trans3f *tr );}
+The procedures \texttt{InvertTrans2f} and~\texttt{InvertTrans3f} compute
+the inversion of the affine transformation represented by the initial value
+of the parameter \texttt{*tr}, if it exists. In this case the procedure
+returns \texttt{true}, otherwise it returns \texttt{false}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void MultVector2f ( double a, const vector2f *v, vector2f *w ); \\
+void MultVector3f ( double a, const vector3f *v, vector3f *w ); \\
+void MultVector4f ( double a, const vector4f *v, vector4f *w );}
+The above procedures compute the vector $\bm{w}=a\bm{v}$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void AddVector2f ( const point2f *p, const vector2f *v, \\
+\ind{19}point2f *q ); \\
+void AddVector3f ( const point3f *p, const vector3f *v, \\
+\ind{19}point3f *q );}
+The above procedures compute the point $\bm{q}=\bm{p}+\bm{v}$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void AddVector2Mf ( const point2f *p, const vector2f *v, double t, \\
+\ind{20}point2f *q ); \\
+void AddVector3Mf ( const point3f *p, const vector3f *v, double t, \\
+\ind{20}point3f *q );}
+The above procedures compute the point $\bm{q}=\bm{p}+t\bm{v}$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void SubtractPoints2f ( const point2f *p1, const point2f *p2, \\
+\ind{24}vector2f *v ); \\
+void SubtractPoints3f ( const point3f *p1, const point3f *p2, \\
+\ind{24}vector3f *v ); \\
+void SubtractPoints4f ( const point4f *p1, const point4f *p2, \\
+\ind{24}vector4f *v );}
+The above procedures compute the vector $\bm{v}=\bm{p}_1-\bm{p}_2$.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+void InterPoint2f ( const point2f *p1, const point2f *p2, double t, \\
+\ind{20}point2f *q ); \\
+void InterPoint3f ( const point3f *p1, const point3f *p2, double t, \\
+\ind{20}point3f *q ); \\
+void InterPoint4f ( const point4f *p1, const point4f *p2, double t, \\
+\ind{20}point4f *q );}
+The above procedures compute the point $\bm{q}=\bm{p}_1+t(\bm{p}_2-\bm{p}_1)$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void MidPoint2f ( const point2f *p1, const point2f *p2, \\
+\ind{18}point2f *q ); \\
+void MidPoint3f ( const point3f *p1, const point3f *p2, \\
+\ind{18}point3f *q ); \\
+void MidPoint4f ( const point4f *p1, const point4f *p2, \\
+\ind{18}point4f *q );}
+The above procedures compute the point $\bm{q}=\frac{1}{2}(\bm{p}_1+\bm{p}_2)$.
+
+\cprog{%
+void Interp3Vectors2f ( const vector2f *p0, const vector2f *p1, \\
+\ind{24}const vector2f *p2, \\
+\ind{24}const float *coeff, vector2f *p ); \\
+void Interp3Vectors3f ( const vector3f *p0, const vector3f *p1, \\
+\ind{24}const vector3f *p2, \\
+\ind{24}const float *coeff, vector3f *p ); \\
+void Interp3Vectors4f ( const vector4f *p0, const vector4f *p1, \\
+\ind{24}const vector4f *p2, \\
+\ind{24}const float *coeff, vector4f *p );}
+The above procedures compute the linear combination of three vectors given as
+parameters; the coefficients of the combination are given in the array
+\texttt{coeff}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void NormalizeVector2f ( vector2f *v ); \\
+void NormalizeVector3f ( vector3f *v );}
+The above procedures compute \texttt{*v\,:=\,}$\frac{1}{\|\bm{v}\|_2}\bm{v}$.
+
+\vspace{\bigskipamount}
+\cprog{%
+double DotProduct2f ( const vector2f *v1, const vector2f *v2 ); \\
+double DotProduct3f ( const vector3f *v1, const vector3f *v2 ); \\
+double DotProduct4f ( const vector4f *v0, const vector4f *v1 );}
+The above procedures compute the appropriate scalar products.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+double det2f ( const vector2f *v1, const vector2f *v2 ); \\
+double det3f ( const vector3f *v1, const vector3f *v2, \\
+\ind{15}const vector3f *v3 ); \\
+double det4f ( const vector4f *v0, const vector4f *v1, \\
+\ind{15}const vector4f *v2, const vector4f *v3 );}
+The above procedures compute the determinants of the matrices
+$2\times2$, $3\times3$ and~$4\times4$ respectively, whose columns are
+given as the parameters.
+
+\vspace{\bigskipamount}
+\cprog{%
+void Point3to2f ( const point3f *P, point2f *p ); \\
+void Point4to3f ( const point4f *P, point3f *p );}
+The above procedures compute the cartesian coordinates of a~point~$\bm{p}$
+based on its homogeneous coordinates.
+
+\vspace{\bigskipamount}
+\cprog{%
+void Point2to3f ( const point2f *p, float w, point3f *P ); \\
+void Point3to4f ( const point3f *p, float w, point4f *P );}
+The above procedures compute the homogeneous coordinates of a~point~$\bm{p}$
+with the weight coordinate~$w$, based on the cartesian coordinates.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CrossProduct3f ( const vector3f *v1, const vector3f *v2, \\
+\ind{22}vector3f *v );}
+The procedure \texttt{CrossProduct3f} computes the vector product of the
+vectors
+$\bm{v}_1$ and~$\bm{v}_2$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void OrtVector2f ( const vector2f *v1, const vector2f *v2, \\
+\ind{19}vector2f *v ); \\
+void OrtVector3f ( const vector3f *v1, const vector3f *v2, \\
+\ind{19}vector3f *v );}
+The procedures \texttt{OrtVector2f} and~\texttt{OrtVector3f} compute the vector
+$\bm{v}=\bm{v}_2-\frac{\scp{\bm{v}_1}{\bm{v}_2}}{\scp{\bm{v}_1}{\bm{v}_1}}\bm{v}_1$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void CrossProduct4P3f ( const vector4f *v0, const vector4f *v1, \\
+\ind{24}const vector4f *v2, vector3f *v );}
+The procedure \texttt{CrossProduct4P3f} computes the first three coordinates
+of the vector in~$\R^4$, which is the vector product of three vectors
+$\bm{v}_1$, $\bm{v}_2$ and~$\bm{v}_3$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void OutProduct4P3f ( const vector4f *v0, const vector4f *v1, \\
+\ind{22}vector3f *v );}
+The procedure \texttt{OutProduct4P3f} computes the vector
+\begin{align*}
+  \bm{v} = \left[\begin{array}{c}
+     X_0W_1-W_0X_1 \\ Y_0W_1-W_0Y_1 \\ Z_0W_1-W_0Z_1
+  \end{array}\right].
+\end{align*}
+
+
+\newpage
+\section{Boxes}
+
+Rectangles and rectangular parallelpipeds are useful in various applications,
+especially for estimating the locations of more complicated geometrical
+figures. The types defined below describe such boxes. In the future
+basic procedures of processing such boxes will be developed as a~part
+of the \texttt{libpkgeom} library.
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct Box2f \{ \\
+\mbox{} \ \ \ float x0, x1, y0, y1; \\
+\mbox{} \ \} Box2f; \\
+\mbox{} \\
+typedef struct Box3f \{ \\
+\mbox{} \ \ \ float x0, x1, y0, y1, z0, z1; \\
+\mbox{} \ \} Box3f;}
+
+
+\section{Finding the convex hull}
+
+The headers of the procedures of finding the convex hull
+(for both versions: of the single and double precision)
+are in the file \texttt{convh.h}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void FindConvexHull2f ( int *n, point2f *p );}
+The procedure \texttt{FindConvexHull2f} finds the convex hull of a~set of
+$n$ points of the plane.
+These points are given in the array~\texttt{p}. The initial value of
+the parameter \texttt{*n} is the number of the points.
+The final contents of the array consists of some of the points,
+namely the subsequent vertices of the polygon being the convex hull
+of the points. The number of vertices of the hull is the final value
+of the parameter~\texttt{*n}.
+
+

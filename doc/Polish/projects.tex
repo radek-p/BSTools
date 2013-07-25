@@ -1,0 +1,175 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{Projekty}
+
+Ten rozdzia"l dokumentacji jest po"swi"econy procedurom ,,wysokopoziomowym''
+rozwi"azuj"acym r"o"rne, raczej skomplikowane zadania, zrealizowanym przy
+u"ryciu bibliotek opisanych wcze"sniej. Obecnie w~pakiecie jest jedna
+taka procedura, konstruuj"aca powierzchnie g"ladko wype"lniaj"ace
+wielok"atne otwory w~powierzchniach z"lo"ronych z~p"lat"ow prostok"atnych.
+
+
+\section{Wype"lnianie wielok"atnych otwor"ow}
+
+W~programie demonstracyjnym \texttt{polep} jest procedura wype"lniania
+wielok"atnego otworu w~uog"olnionej powierzchni B-sklejanej trzeciego
+stopnia, p"latami B\'{e}ziera stopnia $(5,5)$, z~zachowaniem
+ci"ag"lo"sci~$G^1$ po"l"acze"n tych p"lat"ow mi"edzy sob"a i~z~p"latami
+otaczaj"acymi otw"or. Dok"ladny opis teoretyczny tej procedury znajduje
+si"e w~ksi"a"rce \emph{Podstawy modelowania krzywych i~powierzchni}.
+Konstrukcja realizowana przez t"e procedur"e jest znacznie prostsza
+i~mniej og"olna ni"r konstrukcje realizowane za pomoc"a procedur
+znajduj"acych si"e w~bibliotekach \texttt{libg1hole} i~\texttt{libg2hole};
+by"la ona opracowana znacznie wcze"sniej i~zebrane przy tej okazji
+do"swiadczenia pomog"ly przy opracowaniu konstrukcji zaimplementowanych
+w~tych bibliotekach.
+
+W~tym miejscu jest opis sposobu reprezentowania danych dla tej procedury
+i~jej parametr"ow.
+
+Kod "zr"od"lowy procedury w~wersji pojedynczej precyzji jest w~pliku
+\texttt{g1holef.c}, a~odpowiedni plik nag"l"owkowy to \texttt{g1holef.h}.
+Odpowiednie pliki dla podw"ojnej precyzji maj"a nazwy odpowiednio
+\texttt{g1holed.c} i~\texttt{g1holed.h}.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean FillG1Holef ( int hole\_k, point3f*(*GetBezp)(int i, int j), \\
+\ind{22}float beta1, float beta2, \\
+\ind{22}point3f *hpcp );}
+Procedura \texttt{FillG1Holef} konstruuje powierzchni"e wype"lniaj"ac"a
+$k$-k"atny otw"or w~powierzchni. Parametry tej procedury s"a nast"epuj"ace:
+
+Parametr \texttt{hole\_k} okre"sla liczb"e $k$ wierzcho"lk"ow otworu.
+Powinna to by"c liczba~$3$, $5$, $6$, $7$ lub~$8$.
+
+Parametr \texttt{GetBezp} jest wska"znikiem procedury kt"or"a
+\texttt{FillG1Holef} wywo"luje w~celu otrzymania punkt"ow kontrolnych
+p"lat"ow B\'{e}ziera stopnia $(3,3)$ otaczaj"acych otw"or. Procedura ta ma
+zwr"oci"c (jako warto"s"c) wska"znik tablicy, w~kt"orej znajduj"a si"e
+punkty kontrolne tych p"lat"ow.
+
+P"laty otaczaj"ace otw"or s"a okre"slane przez pary liczb $(i,j)$ zgodnie ze
+schematem na rysunku~\ref{fig:g1:patch:num:1}; zmienna~$i$
+(parametr~\texttt{i}) przyjmuje warto"sci od $0$ do $k-1$, zmienna~$j$
+(parametr~\texttt{j}) warto"sci $1$ lub $2$.
+Na rysunku tym jest pokazana r"ownie"r kolejno"s"c, w~jakiej nale"ry
+umie"sci"c punkty kontrolne tych p"lat"ow w~tablicy.
+Dla ka"rdego p"lata wystarczy poda"c w~tablicy tylko~$8$ punkt"ow,
+kt"orych numery s"a widoczne na rysunku.
+\begin{figure}[ht]
+  \centerline{\epsfig{file=g1patches1.ps}}
+  \caption{\label{fig:g1:patch:num:1}Schemat numeracji p"lat"ow
+    otaczaj"acych otw"or}
+  \centerline{i kolejno"s"c punkt"ow kontrolnych w tablicach}
+\end{figure}
+
+P"laty otaczaj"ace otw"or musz"a spe"lnia"c podane ni"rej warunki
+zgodno"sci naro"rnik"ow, pochodnych cz"astkowych i~pochodnych mieszanych.
+$m$-ty punkt kontrolny p"lata $(i,j)$ jest oznaczony symbolem
+$\bm{p}^{(i,j)}_m$. Dodatkowo $l=i+1\bmod k$.
+\begin{itemize}
+  \item Warunki zgodno"sci naro"rnik"ow:
+    \begin{align*}
+      &{}\bm{p}^{(i,1)}_0=\bm{p}^{(i,2)}_3 \quad\mbox{oraz}\quad
+      \bm{p}^{(i,2)}_0=\bm{p}^{(l,1)}_3.
+    \end{align*}
+  \item Warunki zgodno"sci pochodnych cz"astkowych:
+    \begin{align*}
+      &{}\bm{p}^{(i,1)}_0-\bm{p}^{(i,1)}_1=\bm{p}^{(i,2)}_2-\bm{p}^{(i,2)}_3, \\
+      &{}\bm{p}^{(i,2)}_0-\bm{p}^{(i,2)}_1=\bm{p}^{(l,1)}_7-\bm{p}^{(l,1)}_3, \\
+      &{}\bm{p}^{(i,2)}_0-\bm{p}^{(i,2)}_4=\bm{p}^{(l,1)}_2-\bm{p}^{(l,1)}_3.
+    \end{align*}
+  \item Warunki zgodno"sci pochodnych mieszanych:
+    \begin{align*}
+      &{}\bm{p}^{(i,1)}_4-\bm{p}^{(i,1)}_5=\bm{p}^{(i,2)}_6-\bm{p}^{(i,2)}_7, \\
+      &{}\bm{p}^{(i,2)}_0-\bm{p}^{(i,2)}_1-\bm{p}^{(i,2)}_4+\bm{p}^{(i,2)}_5=
+      \bm{p}^{(l,1)}_6-\bm{p}^{(l,1)}_7-\bm{p}^{(l,1)}_2+\bm{p}^{(l,1)}_3.
+    \end{align*}
+\end{itemize}
+
+Parametry \texttt{beta1} i~\texttt{beta2} s"a czynnikami, przez kt"ore
+procedura \texttt{FillG1Holef} mno"ry pewne wektory konstruowane w~trakcie
+oblicze"n. W~zasadzie ich warto"s"c powinna by"c r"owna~$1$, ale mo"rna
+poda"c inn"a w~celu skorygowania kszta"ltu (je"sli warto"s"c $1$ daje
+nieodpowiedni efekt).
+
+Parametr \texttt{hpcp} jest wska"znikiem tablicy, do kt"orej procedura
+wstawia punkty kontrolne p"lat"ow B\'{e}ziera stopnia $(5,5)$, z~kt"orych
+sk"lada si"e powierzchnia wype"lniaj"aca otw"or.
+
+Warto"sci"a procedury jest \texttt{true} je"sli konstrukcja powierzchni
+wype"lniaj"acej zako"nczy"la si"e sukcesem, albo \texttt{false} w~przeciwnym
+razie.
+
+\vspace{\bigskipamount}
+\cprog{%
+extern void (*G1OutCentralPointf)( point3f *p ); \\
+extern void (*G1OutAuxCurvesf)( int ncurves, int degree, \\
+\ind{32}const point3f *accp, float t ); \\
+extern void (*G1OutStarCurvesf)( int ncurves, int degree, \\
+\ind{33}const point3f *sccp ); \\
+extern void (*G1OutAuxPatchesf)( int npatches, int degu, int degv, \\
+\ind{33}const point3f *apcp );}
+\begin{sloppypar}
+Powy"rsze zmienne umo"rliwiaj"a ,,podczepienie'' procedur wyprowadzaj"acych
+cz"e"s\-cio\-we wyniki konstrukcji powierzchni wype"lniaj"acej. Ich warto"s"c
+pocz"atkowa jest r"owna \texttt{NULL}. Przypisanie dowolnej z~tych zmiennych
+odpowiedniej procedury przed wywo"laniem \texttt{FillG1Hole} powoduje
+wywo"lanie tej procedury; mo"re ona wyprowadzi"c dane lub narysowa"c na ich
+podstawie obrazek.
+\end{sloppypar}
+
+Procedura wskazywana przez zmienn"a \texttt{G1OutCentralPointf} otrzymuje
+jako parametr wska"znik punktu ,,"srodkowego'' (tj.\ wsp"olnego naro"rnika
+$k$~p"lat"ow wype"lniaj"acych otw"or). Procedura ta ma prawo zmieni"c ten
+punkt (tj.\ przypisa"c mu nowe wsp"o"lrz"edne), poniewa"r taka ingerencja
+w~konstrukcj"e jest dopuszczalna i~w~pewnych sytuacjach potrzebna.
+
+Pozosta"le procedury nie mog"a zmienia"c warto"sci zmiennych wskazywanych
+przez parametry, z~kt"orymi zosta"ly wywo"lane. Procedura wskazywana przez
+zmienn"a \texttt{G1OutAuxCurvesf} jest wywo"lywana z~parametrami opisuj"acymi
+tzw.\ krzywe pomocnicze w~konstrukcji --- krzywe B\'{e}ziera stopnia
+\texttt{degree} (w~tej implementacji krzywe te s"a stopnia~$3$). W~ka"rdym
+wywo"laniu jest podawana jedna krzywa.
+
+\begin{sloppypar}
+Procedura wskazywana przez zmienn"a \texttt{G1OutStarCurvesf} jest
+wywo"lywana z~parametrami opisuj"acymi krzywe brzegowe p"lat"ow
+wype"lniaj"acych otw"or (konstrukcja tych krzywych jest jednym z~pierwszych
+etap"ow konstrukcji). Parametry procedury opisuj"a reprezentacj"e
+B\'{e}ziera stopnia~$3$ tych krzywych. W~ka"rdym wywo"laniu jest podawana
+jedna krzywa.
+\end{sloppypar}
+
+\begin{sloppypar}
+Procedura wskazywana przez zmienn"a \texttt{G1OutAuxPatchesf} jest
+wywo"lywana z~parametrami opisuj"acymi tzw.\ p"laty pomocnicze, kt"ore
+okre"slaj"a p"laszczyzny styczne do konstruowanej powierzchni we wszystkich
+punktach krzywej brzegowej. P"laty te maj"a stopie"n $(3,1)$
+(parametry \texttt{ndegu} i~\texttt{ndegv} maj"a takie warto"sci).
+Parametr \texttt{apcp} wskazuje tablic"e punkt"ow kontrolnych. W~ka"rdym
+wywo"laniu przekazywana jest reprezentacja jednego p"lata pomocniczego.
+\end{sloppypar}%
+\begin{figure}[ht]
+  \centerline{\epsfig{file=g1patches2.ps}}
+  \caption{\label{fig:g1:patch:num:2}Powierzchnia z~otworem wype"lnionym
+    przez procedur"e \texttt{FillG1Holef}}
+\end{figure}
+
+\vspace{\medskipamount}
+\noindent\textbf{Uwaga:}
+Obecna wersja procedury nie zawiera obs"lugi sytuacji wyj"atkowych, kt"ore
+umo"rliwiaj"a ,,bezpieczny powr"ot'' w~razie niepowodzenia konstrukcji.
+Opracowanie takiej obs"lugi jest konieczne przed wbudowaniem procedury do
+systemu ,,produkcyjnego'', tj.\ nadaj"acego si"e do u"rycia w~celu
+projektowania przemys"lowego. Co wi"ecej, wi"ekszo"s"c procedur
+w~bibliotekach opisanych wcze"sniej nie ma obs"lugi b"l"ed"ow (w~razie
+wyst"apienia b"l"edu jest wywo"lywana procedura \texttt{exit}), a~zatem
+obecnie ca"ly pakiet nadaje si"e tylko do cel"ow eksperymentalnych
+(i~zreszt"a po to go zacz"a"lem pisa"c).
+

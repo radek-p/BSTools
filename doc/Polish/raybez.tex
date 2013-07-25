@@ -1,0 +1,328 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{Biblioteka \texttt{libraybez}}
+
+Biblioteka \texttt{libraybez} zawiera procedury, kt"orych podstawowym
+(ale nie jedynym) zadaniem jest wspomaganie "sledzenia promieni, a~dok"ladniej
+wyznaczanie przeci"e"c promieni z~p"latami B\'{e}ziera. W~tym celu tworzone
+jest drzewo rekurencyjnego binarnego podzia"lu p"lata, kt"ore ma na celu
+przyspieszenie (przez wyeliminowanie wielokrotnego wykonywania tej samej
+pracy) rozwi"azywania r"owna"n opisuj"acych przeci"ecia.
+
+Ewentualne rozszerzenia tej biblioteki powinny obejmowa"c konstrukcj"e drzew
+dla p"lat"ow B-sklejanych, tak"re obci"etych, oraz obs"lug"e drzew
+z~dodatkowymi atrybutami, w~celu umo"rliwienia rozwi"azywania zada"n takich
+jak wyznaczanie przeci"e"c powierzchni.
+
+\section{Deklaracje i procedury wsp"olne}
+
+\cprog{%
+typedef struct \{ \\
+\ind{2}float xmin, xmax, ymin, ymax, zmin, zmax; \\
+\} Box3f;}
+\hspace*{\parindent} Struktura typu \texttt{Box3f} reprezentuje prostopad"lo"scian.
+W~reprezentacji fragmentu p"lata w~drzewie podzia"lu jest ona stosowana
+do lokalizacji tego fragmentu w~przestrzeni (fragment le"ry wewn"atrz
+odpowiedniego prostopad"lo"scianu).
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct \{ \\
+\ind{2}point3f\ind{2}p; \\
+\ind{2}vector3f nv; \\
+\ind{2}float\ind{4}u, v, t; \\
+\} RayObjectIntersf, *RayObjectIntersfp;}
+\begin{sloppypar}
+Struktura typu \texttt{RayObjecIntersf} reprezentuje punkt przeci"ecia
+promienia z~p"latem. Struktura ta sk"lada si"e z~nast"epuj"acych p"ol:
+\texttt{p} --- punkt wsp"olny p"lata i~promienia, \texttt{nv} --- wektor
+normalny p"lata w~tym punkcie, \texttt{u}, \texttt{v}, \texttt{t} ---
+parametry p"lata i~promienia odpowiadaj"ace punktowi przeci"ecia.
+\end{sloppypar}
+
+
+\section{Drzewa binarne dla wielomianowych p"lat"ow Beziera}
+
+\cprog{%
+typedef struct \_BezPatchTreeVertexf \{ \\
+\ind{2}struct \_BezPatchTreeVertexf \\
+\ind{12}*left, *right, *up; \\
+\ind{2}point3f\ind{3}*ctlpoints; \\
+\ind{2}float\ind{5}u0, u1, v0, v1; \\
+\ind{2}Box3f\ind{5}bbox; \\
+\ind{2}point3f\ind{3}pcent; \\
+\ind{2}float\ind{5}maxder; \\
+\ind{2}short int level; \\
+\ind{2}char\ind{6}divdir; \\
+\ind{2}char\ind{6}pad; \\
+\} BezPatchTreeVertexf, *BezPatchTreeVertexfp;}
+\hspace*{\parindent} Struktura typu \texttt{\_BezPatchTreeVertexf} reprezentuje
+wierzcho"lek drzewa binarnego podzia"lu wielomianowego p"lata B\'{e}ziera $\bm{p}$.
+
+\begin{sloppypar}
+Pola tej struktury s"lu"r"a do przechowania nast"epuj"acych informacji:
+\texttt{left}, \texttt{right}, \texttt{up} --- wska"zniki odpowiednio lewego
+i~prawego poddrzewa oraz wska"znik ,,do g"ory'', tj.\ do wierzcho"lka,
+kt"orego lewe lub prawe poddrzewo reprezentuje dany wierzcho"lek,
+\texttt{ctlpoints} --- wska"znik tablicy punkt"ow kontrolnych 
+fragmentu p"lata odpowiadaj"acego danemu wierzcho"lkowi,
+\texttt{u0}, \texttt{u1}, \texttt{v0}, \texttt{v1}
+--- liczby okre"slaj"ace dziedzin"e $[u_0,u_1]\times[v_0,v_1]$ fragmentu
+p"lata, \texttt{bbox} --- prostopad"lo"scian zawieraj"acy fragment p"lata,
+\texttt{pcent} --- punkt
+$\bm{p}((u_0\nolinebreak +\nolinebreak u_1)/2,
+(v_0\nolinebreak +\nolinebreak v_1)/2)$, \texttt{maxder}
+--- g"orne oszacowanie d"lugo"sci wektora pochodnych cz"astkowych
+fragmentu p"lata ze wzgl"edu na lokalne parametry, \texttt{level} --- poziom
+wierzcho"lka w~drzewie, \texttt{divdir} --- wska"znik kierunku podzia"lu
+fragmentu p"lata, \texttt{pad} --- pole nieu"rywane (wyr"ownuj"ace
+wielko"s"c struktury do liczby parzystej).
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct \{ \\
+\ind{2}unsigned char\ind{9}n, m; \\
+\ind{2}unsigned int\ind{10}cpsize; \\
+\ind{2}BezPatchTreeVertexfp root; \\
+\} BezPatchTreef, *BezPatchTreefp;}
+Struktura typu \texttt{BezPatchTreef} reprezentuje drzewo binarnego
+podzia"lu wielomianowego p"lata B\'{e}ziera. Pola tej struktury s"a nast"epuj"ace:
+\texttt{n}, \texttt{m} --- stopie"n p"lata ze wzgl"edu na zmienne $u$~i~$v$,
+\texttt{cpsize} --- ilo"s"c miejsca potrzebnego do przechowywania punkt"ow
+kontrolnych, \texttt{root} --- wska"znik korzenia drzewa.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+BezPatchTreefp \\
+\ind{2}rbez\_NewBezPatchTreef ( unsigned char n, unsigned char m, \\
+\ind{24}float u0, float u1, float v0, float v1, \\
+\ind{24}point3f *ctlpoints );}
+Procedura \texttt{rbez\_NewBezPatchTreef} tworzy drzewo binarnego podzia"lu
+wielomianowego p"lata B\'{e}ziera i~zwraca wska"znik struktury, kt"ora
+reprezentuje to drzewo. Drzewo pocz"atkowo sk"lada si"e tylko z~korzenia,
+kt"ory reprezentuje ca"ly p"lat.
+
+Parametry \texttt{n}~i~\texttt{m} okre"slaj"a stopie"n p"lata odpowiednio ze
+wzgl"edu na zmienne $u$~i~$v$. Parametry \texttt{u0}, \texttt{u1},
+\texttt{v0} i~\texttt{v1} okre"slaj"a dziedzin"e p"lata, tj.~prostok"at
+$[u_0,u_1]\times[v_0,v_1]$ (je"sli p"lat powsta"l z~podzia"lu p"lata
+B-sklejanego, to liczby te powinny by"c odpowiednimi w"ez"lami).
+
+Parametr \texttt{ctlpoints} jest tablic"a punkt"ow kontrolnych p"lata.
+
+Warto"sci"a procedury jest wska"znik do struktury opisuj"acej drzewo.
+Obszar pami"eci na t"e struktur"e i~na struktury opisuj"ace wszystkie
+wierzcho"lki drzewa jest rezerwowany za pomoc"a funkcji \texttt{malloc}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void rbez\_DestroyBezPatchTreef ( BezPatchTreefp tree );}
+Procedura \texttt{rbez\_DestroyBezPatchTreef} zwalnia pami"e"c zajmowan"a przez
+drze\-wo binarnego podzia"lu p"lata. Parametr \texttt{tree} jest wska"znikiem
+struktury re\-pre\-zen\-tu\-j"a\-cej drzewo.
+
+\vspace{\bigskipamount}
+\cprog{%
+BezPatchTreeVertexp \\
+\ind{2}rbez\_GetBezLeftVertexf ( BezPatchTreefp tree, \\
+\ind{24}BezPatchTreeVertexfp vertex ); \\
+BezPatchTreeVertexfp \\
+\ind{2}rbez\_GetBezRightVertexf ( BezPatchTreefp tree, \\
+\ind{25}BezPatchTreeVertexfp vertex );}
+\begin{sloppypar}
+Procedury \texttt{rbez\_GetBezLeftVertexf} i~\texttt{rbez\_GetBezRightVertexf}
+zwracaj"a wska"zniki odpowiednio lewego lub prawego poddrzewa danego
+wierzcho"lka drzewa binarnego podzia"lu p"lata.%
+\end{sloppypar}
+
+Parametry: \texttt{tree} --- wska"znik struktury opisuj"acej drzewo,
+\texttt{vertex} --- wska"znik jednego z~wierzcho"lk"ow tego drzewa.
+
+Warto"sci"a procedury jest wska"znik do korzenia odpowiedniego (lewego albo
+prawego) poddrzewa. Je"sli wierzcho"lek ten nie istnieje, to procedura
+dokonuje podzia"lu fragmentu p"lata reprezentowanego przez wierzcho"lek
+\texttt{*vertex} i~tworzy lewy i~prawy wierzcho"lek (dla ka"rdego
+wierzcho"lka oba poddrzewa istniej"a albo oba nie istniej"a), a~nast"epnie
+zwraca odpowiedni wska"znik.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+int rbez\_FindRayBezPatchIntersf ( BezPatchTreef *tree, \\
+\ind{26}ray3f *ray, \\
+\ind{26}int maxlevel, int maxinters, \\
+\ind{26}int *ninters, RayObjectIntersf *inters );}
+\begin{sloppypar}
+Procedura \texttt{FindRayBezPatchIntersf} oblicza punkty przeci"ecia
+promienia (p"o"lprostej) z~wielomianowym p"latem B\'{e}ziera w~$\R^3$.
+\end{sloppypar}
+
+Parametry: \texttt{tree} --- wska"znik drzewa binarnego podzia"lu p"lata;
+\texttt{ray} --- wska"znik promienia (struktura \texttt{ray3f} jest
+zdefiniowana w~pliku \texttt{geomf.h}; \texttt{maxlevel} --- ograniczenie
+wysoko"sci drzewa binarnego podzia"lu (procedura nie b"edzie tworzy"c
+wierzcho"lk"ow drzewa na wy"rszym poziomie); \texttt{maxinters} ---
+d"lugo"s"c tablicy \texttt{inters}, w~kt"orej procedura ma umie"sci"c
+wyniki. Tablica ta musi mie"c co najmniej tak"a d"lugo"s"c, procedura
+zako"nczy dzia"lanie po znalezieniu najwy"rej tylu przeci"e"c. Warto"s"c
+parametru \texttt{*ninters} na wyj"sciu jest liczb"a znalezionych
+przeci"e"c.
+
+Warto"sci"a procedury jest liczba znalezionych punkt"ow przeci"ecia.
+
+
+\section{Drzewa binarne dla wymiernych p"lat"ow B\'{e}ziera}
+
+Drzewa binarnego podzia"lu wymiernych p"lat"ow B\'{e}ziera s"a oprogramowane
+w~prawie identyczny spos"ob jak drzewa binarnego podzia"lu p"lat"ow
+wielomianowych. Wszystkie struktury danych i~procedury opisane w~poprzednim
+punkcie maj"a tu swoje odpowiedniki.
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct \_RBezPatchTreeVertexf \{ \\
+\ind{2}struct \_RBezPatchTreeVertexf \\
+\ind{12}*left, *right, *up; \\
+\ind{2}point4f\ind{3}*ctlpoints; \\
+\ind{2}float\ind{5}u0, u1, v0, v1; \\
+\ind{2}Box3f\ind{5}bbox; \\
+\ind{2}point3f\ind{3}pcent; \\
+\ind{2}float\ind{5}maxder; \\
+\ind{2}short int level; \\
+\ind{2}char\ind{6}divdir; \\
+\ind{2}char\ind{6}pad; \\
+\} RBezPatchTreeVertexf, *RBezPatchTreeVertexfp;}
+\indent Struktura typu \texttt{\_RBezPatchTreeVertexf} reprezentuje wierzcho"lek
+drzewa binarnego podzia"lu wymiernego p"lata B\'{e}ziera $\bm{p}$.
+
+\begin{sloppypar}
+Pola tej struktury s"lu"r"a do przechowania nast"epuj"acych informacji:
+\texttt{left}, \texttt{right}, \texttt{up} --- wska"zniki odpowiednio lewego
+i~prawego poddrzewa oraz wska"znik ,,do g"ory'', tj.\ do wierzcho"lka,
+kt"orego lewe lub prawe poddrzewo reprezentuje dany wierzcho"lek,
+\texttt{ctlpoints} --- wska"znik tablicy punkt"ow kontrolnych jednorodnego
+p"lata B\'{e}ziera reprezentuj"acego fragment p"lata odpowiadaj"acego
+danemu wierzcho"lkowi, \texttt{u0}, \texttt{u1}, \texttt{v0}, \texttt{v1}
+--- liczby okre"slaj"ace dziedzin"e $[u_0,u_1]\times[v_0,v_1]$ fragmentu
+p"lata, \texttt{bbox} --- prostopad"lo"scian zawieraj"acy fragment p"lata,
+\texttt{pcent} --- punkt
+$\bm{p}((u_0\nolinebreak +\nolinebreak u_1)/2,
+(v_0\nolinebreak +\nolinebreak v_1)/2)$, \texttt{maxder}
+--- g"orne oszacowanie d"lugo"sci wektora pochodnych cz"astkowych
+fragmentu p"lata ze wzgl"edu na lokalne parametry, \texttt{level} --- poziom
+wierzcho"lka w~drzewie, \texttt{divdir} --- wska"znik kierunku podzia"lu
+fragmentu p"lata, \texttt{pad} --- pole nieu"rywane (wyr"ownuj"ace
+wielko"s"c struktury do liczby pa\-rzystej).
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct \{ \\
+\ind{2}unsigned char\ind{9}n, m; \\
+\ind{2}unsigned int\ind{10}cpsize; \\
+\ind{2}RBezPatchTreeVertexfp root; \\
+\} RBezPatchTreef, *RBezPatchTreefp;}
+Struktura typu \texttt{RBezPatchTreef} reprezentuje drzewo binarnego
+podzia"lu p"lata B\'{e}ziera. Pola tej struktury s"a nast"epuj"ace:
+\texttt{n}, \texttt{m} --- stopie"n p"lata ze wzgl"edu na zmienne $u$~i~$v$,
+\texttt{cpsize} --- ilo"s"c miejsca potrzebnego do przechowywania punkt"ow
+kontrolnych, \texttt{root} --- wska"znik korzenia drzewa.
+
+\vspace{\bigskipamount}
+\cprog{%
+RBezPatchTreefp \\
+\ind{2}rbez\_NewRBezPatchTreef ( unsigned char n, unsigned char m, \\
+\ind{24}float u0, float u1, float v0, float v1, \\
+\ind{24}point4f *ctlpoints );}
+Procedura \texttt{rbez\_NewRBezPatchTreef} tworzy drzewo binarnego podzia"lu
+wymiernego p"lata B\'{e}ziera i~zwraca wska"znik struktury, kt"ora
+reprezentuje to drzewo. Drzewo pocz"atkowo sk"lada si"e tylko z~korzenia,
+kt"ory reprezentuje ca"ly p"lat.
+
+Parametry \texttt{n}~i~\texttt{m} okre"slaj"a stopie"n p"lata odpowiednio ze
+wzgl"edu na zmienne $u$~i~$v$. Parametry \texttt{u0}, \texttt{u1},
+\texttt{v0} i~\texttt{v1} okre"slaj"a dziedzin"e p"lata, tj.~prostok"at
+$[u_0,u_1]\times[v_0,v_1]$ (je"sli p"lat powsta"l z~podzia"lu p"lata
+B-sklejanego, to liczby te powinny by"c odpowiednimi w"ez"lami).
+
+Parametr \texttt{ctlpoints} jest tablic"a punkt"ow kontrolnych p"lata
+jednorodnego.
+
+Warto"sci"a procedury jest wska"znik do struktury opisuj"acej drzewo.
+Obszar pami"eci na t"e struktur"e i~na struktury opisuj"ace wszystkie
+wierzcho"lki drzewa jest rezerwowany za pomoc"a funkcji \texttt{malloc}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void rbez\_DestroyRBezPatchTreef ( RBezPatchTreefp tree );}
+\begin{sloppypar}
+Procedura \texttt{rbez\_DestroyRBezPatchTreef} zwalnia pami"e"c zajmowan"a przez
+drze\-wo binarnego podzia"lu p"lata. Parametr \texttt{tree} jest wska"znikiem
+struktury reprezentuj"acej drzewo.%
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+RBezPatchTreeVertexp \\
+\ind{2}rbez\_GetRBezLeftVertexf ( RBezPatchTreefp tree, \\
+\ind{24}RBezPatchTreeVertexfp vertex ); \\
+RBezPatchTreeVertexfp \\
+\ind{2}rbez\_GetRBezRightVertexf ( RBezPatchTreefp tree, \\
+\ind{25}RBezPatchTreeVertexfp vertex );}
+Procedury \texttt{rbez\_GetRBezLeftVertexf} i~\texttt{rbez\_GetRBezRightVertexf}
+zwracaj"a wska"zniki odpowiednio lewego lub prawego poddrzewa danego
+wierzcho"lka drzewa binarnego podzia"lu p"lata.
+
+Parametry: \texttt{tree} --- wska"znik struktury opisuj"acej drzewo,
+\texttt{vertex} --- wska"znik jednego z~wierzcho"lk"ow tego drzewa.
+
+Warto"sci"a procedury jest wska"znik do korzenia odpowiedniego (lewego albo
+prawego) poddrzewa. Je"sli wierzcho"lek ten nie istnieje, to procedura
+dokonuje podzia"lu fragmentu p"lata reprezentowanego przez wierzcho"lek
+\texttt{*vertex} i~tworzy lewy i~prawy wierzcho"lek (dla ka"rdego
+wierzcho"lka oba poddrzewa istniej"a albo oba nie istniej"a), a~nast"epnie
+zwraca odpowiedni wska"znik.
+
+\vspace{\bigskipamount}
+\cprog{%
+int rbez\_FindRayRBezPatchIntersf ( RBezPatchTreef *tree, \\
+\ind{26}ray3f *ray, \\
+\ind{26}int maxlevel, int maxinters, \\
+\ind{26}int *ninters, RayObjectIntersf *inters );}
+\begin{sloppypar}
+Procedura \texttt{FindRayRBezPatchIntersf} oblicza punkty przeci"ecia
+promienia (p"o"lprostej) z~wymiernym p"latem B\'{e}ziera w~$\R^3$.
+\end{sloppypar}
+
+Parametry: \texttt{tree} --- wska"znik drzewa binarnego podzia"lu p"lata;
+\texttt{ray} --- wska"znik promienia (struktura \texttt{ray3f} jest
+zdefiniowana w~pliku \texttt{geomf.h}; \texttt{maxlevel} --- ograniczenie
+wysoko"sci drzewa binarnego podzia"lu (procedura nie b"edzie tworzy"c
+wierzcho"lk"ow drzewa na wy"rszym poziomie); \texttt{maxinters} ---
+d"lugo"s"c tablicy \texttt{inters}, w~kt"orej procedura ma umie"sci"c
+wyniki. Tablica ta musi mie"c co najmniej tak"a d"lugo"s"c, procedura
+zako"nczy dzia"lanie po znalezieniu najwy"rej tylu przeci"e"c. Warto"s"c
+parametru \texttt{*ninters} na wyj"sciu jest liczb"a znalezionych
+przeci"e"c.
+
+Warto"sci"a procedury jest liczba znalezionych punkt"ow przeci"ecia.
+
+\begin{figure}[ht]
+  \centerline{\epsfig{file=raybezp.ps}}
+  \caption{\label{fig:raybezp}Obraz p"lata wykonany metod"a "sledzenia
+    promieni za pomoc"a}
+  \centerline{procedury \texttt{rbez\_FindRayRBezPatchIntersf}. Obok podzia"l}
+  \centerline{dziedziny p"lata dokonany przez procedury obs"lugi drzewa
+    podzia"lu}
+\end{figure}
+Rysunek~\ref{fig:raybezp} przedstawia obrazek wymiernego p"lata B\'{e}ziera
+stopnia $(5,5)$ wykonany przy u"ryciu tej procedury. Pe"lny kod programu,
+kt"ory utworzy"l ten obrazek jest w~pliku \texttt{../cpict/raybez.c}.
+
+

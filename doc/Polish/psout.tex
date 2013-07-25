@@ -1,0 +1,664 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{Biblioteka \texttt{libpsout}}
+
+Biblioteka \texttt{libpsout} zawiera procedury generuj"ace plik
+w~j"ezyku PostScript\raisebox{3pt}{\tiny(TM)}. Plik ten opisuje
+obrazek, okre"slony przez kolejno wywo"lane procedury rysowania linii itd.
+
+Procedury biblioteczne dziel"a si"e na podstawowe, kt"ore generuj"a
+odpowiedni kod postscriptowy i~pomocnicze, kt"orych zadaniem jest u"latwienie
+rysowania odpowiednio opisanych odcink"ow --- mo"rna rysowa"c pododcinki
+o~r"o"rnej grubo"sci i~zaznacza"c pewne punkty odcinka przy u"ryciu
+marker"ow, strza"lek itd.
+
+
+\section{Procedury podstawowe}
+
+Sformu"lowanie ,,procedura rysuje odcinek'' lub cokolwiek nale"ry
+interpretowa"c w~ten spos"ob, "re procedura na podstawie podanych
+parametr"ow wypisuje do pliku postscriptowego tekst, kt"ory podczas
+interpretowania go (np.\ w~procesie drukowania) spowoduje pojawienie si"e na
+obrazie odcinka, czy innej figury.
+
+\vspace{\bigskipamount}
+\cprog{%
+extern short ps\_dec\_digits;}
+Zmienna \texttt{ps\_dec\_digits} okre"sla liczb"e cyfr
+dziesi"etnych wsp"o"lrz"ednych punkt"ow wypisywanych do pliku
+PostScriptowego. Domy"slna warto"s"c jest r"owna~$3$ i~je"sli plik jest
+tworzony w~rozdzielczo"sci $600$DPI i~nie zawiera du"rych powi"eksze"n, to
+to~wystarczy.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_WriteBBox ( float x1, float y1, float x2, float y2 );}
+Procedura \texttt{ps\_WriteBBox} wywo"lana \emph{przed} utworzeniem pliku
+postscriptowego okre"sla boks otaczaj"acy obrazek, tj.\ prostok"at,
+w~kt"orym obrazek powinien (ale nie musi) si"e mie"sci"c i~kt"ory jest
+podstaw"a do umieszczenia obrazka w~tek"scie przez system sk"ladu tekstu
+(np.\ przez \TeX-a). Pierwsze dwa parametry to wsp"o"lrz"edne dolnego
+lewego rogu obrazka, a nast"epne dwa --- prawego g"ornego. Parametry te s"a
+podawane w ,,du"rych punktach'' ($1$ du"ry punkt (\texttt{1bp} w~\TeX-u) to
+$1/72$ cala).
+
+Odpowiednie liczby mo"rna znale"z"c za pomoc"a programu
+\texttt{GhostView}, a~nast"epnie dopisa"c wywo"lanie tej procedury do
+programu i~wykona"c go ponownie.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_OpenFile ( const char *filename, unsigned int dpi ); \\
+void ps\_CloseFile ( void );}
+Procedura \texttt{ps\_OpenFile} tworzy plik, kt"orego nazwa jest okre"slona
+przez parametr \texttt{filename} (ewentualnie kasuje istniej"acy plik o~takiej
+nazwie) i~wypisuje do niego nag"l"owek. Nag"l"owek ten zawiera opis boksu
+otaczaj"acego rysunek (je"sli wcze"sniej zosta"la wywo"lana procedura
+\texttt{ps\_WriteBBox}) i~skalowanie, kt"ore ustala d"lugo"s"c jednostki,
+w~kt"orej podawane s"a wsp"o"lrz"edne punkt"ow. Jednostka ta jest okre"slona
+przez parametr \texttt{dpi}, je"sli np.\ parametr ten ma warto"s"c $600$, to
+d"lugo"s"c jednostki jest r"owna $1/600$ cala. Niekt"ore procedury s"a
+napisane tak, "re generowane przez nie symbole (np.\ strza"lki) wygl"adaj"a
+dobrze dla w"la"snie takiej jednostki.
+
+Procedura \texttt{ps\_CloseFile} zamyka plik postscriptowy. Powinna by"c
+wywo"lana po utworzeniu obrazka.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Write\_Command ( char *command );}
+Procedura \texttt{ps\_Write\_Command} s"lu"ry do wyprowadzania do pliku
+postscriptowego dowolnych napis"ow. Dzi"eki niej nawet nie maj"ac
+,,gotowej'' procedury w~opisanej tu bibliotece, mo"rna otrzyma"c dowolny
+efekt na obrazku.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Set\_Gray ( float gray );}
+Procedura \texttt{ps\_Set\_Gray} ustawia w~bie"r"acym stanie grafiki
+poziom szaro"sci rysowania, okre"slony przez parametr \texttt{gray}, kt"ory
+powinien mie"c warto"s"c z~przedzia"lu $[0,1]$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Set\_RGB ( float red, float green, float blue );}
+Procedura \texttt{ps\_Set\_RGB} ustawia w~bie"r"acym stanie grafiki
+kolor o~sk"ladowych czerwonej, zielonej i~niebieskiej okre"slonych przez
+parametry \texttt{red}, \texttt{green} i~\texttt{blue}.
+Powinny one mie"c warto"sci z~przedzia"lu $[0,1]$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Set\_Line\_Width ( float w );}
+Procedura \texttt{ps\_Set\_Line\_Width} ustawia w~bie"r"acym stanie
+grafiki szeroko"s"c linii, okre"slon"a przez parametr~\texttt{w}, kt"ory
+ma mie"c warto"s"c dodatni"a.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Draw\_Line ( float x1, float y1, float x2, float y2 );}
+Procedura \texttt{ps\_Draw\_Line} rysuje odcinek, kt"orego ko"nce maj"a
+wsp"o"lrz"edne \texttt{x1}, \texttt{y1} oraz \texttt{x2}, \texttt{y2}.
+Grubo"s"c, kolor i~inne w"lasno"sci narysowanej linii s"a okre"slone przez
+ustawiony w~danej chwili stan grafiki.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Set\_Clip\_Rect ( float w, float h, float x, float y );}
+Procedura \texttt{ps\_Set\_Clip\_Rect} ustawia obcinanie do prostok"ata
+o~wymiarach \texttt{w} (szeroko"s"c) i~\texttt{h} (wysoko"s"c), kt"orego
+dolny lewy wierzcho"lek ma wsp"o"lrz"edne \texttt{x}, \texttt{y}.
+
+Obcinanie nast"epuje w~dodatku do obcinania ustawionego wcze"sniej.
+,,Odwo"lanie'' obcinania mo"re by"c przeprowadzone tylko tak, "re najpierw
+zachowujemy stan grafiki wywo"luj"ac \texttt{ps\_GSave~();},
+nast"epnie ustawiamy obcinanie i~rysujemy, a potem wywo"lujemy
+\texttt{ps\_GRestore~();} w~celu przywr"ocenia pocz"atkowego stanu grafiki.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Draw\_Rect ( float w, float h, float x, float y );}
+Procedura \texttt{ps\_Draw\_Rect} rysuje brzeg prostok"ata o~wymiarach
+\texttt{w} (szeroko"s"c) i~\texttt{h} (wysoko"s"c), kt"orego dolny lewy
+wierzcho"lek ma wsp"o"lrz"edne \texttt{x}, \texttt{y}. Grubo"s"c i~kolor
+narysowanych linii jest okre"slona przez bie"r"acy stan grafiki.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Fill\_Rect ( float w, float h, float x, float y );}
+Procedura \texttt{ps\_Fill\_Rect} wype"lnia prostok"at o~wymiarach
+\texttt{w} (szeroko"s"c) i~\texttt{h} (wysoko"s"c), kt"orego dolny lewy
+wierzcho"lek ma wsp"o"lrz"edne \texttt{x}, \texttt{y}. Kolor
+prostok"ata jest okre"slony przez bie"r"acy stan grafiki.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Hatch\_Rect ( float w, float h, float x, float y, \\
+\ind{21}float ang, float d );}
+Procedura \texttt{ps\_Hatch\_Rect} zakreskowuje (rysuj"ac linie uko"sne)
+prostok"at o~wymiarach
+\texttt{w} (szeroko"s"c) i~\texttt{h} (wysoko"s"c), kt"orego dolny lewy
+wierzcho"lek ma wsp"o"lrz"edne \texttt{x}, \texttt{y}. K"at nachylenia linii
+jest okre"slony przez parametr \texttt{ang} (w~radianach), a~ich odst"ep
+jest okre"slony przez parametr \texttt{d}. Kolor i~grubo"s"c linii
+jest okre"slona przez bie"r"acy stan grafiki.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Draw\_Polyline2f ( int n, const point2f *p ); \\
+void ps\_Draw\_Polyline2d ( int n, const point2d *p );}
+Procedury \texttt{ps\_Draw\_Polyline2f} i~\texttt{ps\_Draw\_Polyline2d}
+rysuj"a "laman"a (otwar\-t"a) z"lo"ron"a
+z~\texttt{n-1}~odcink"ow, kt"orej wierzcho"lki ($n$ punkt"ow, tj.\ $2n$
+liczb zmiennopozycyjnych) s"a podane w~tablicy \texttt{p}. Kolor i~grubo"s"c
+narysowanych odcink"ow jest okre"slona przez bie"r"acy stan grafiki.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Draw\_Polyline2Rf ( int n, const point3f *p ); \\
+void ps\_Draw\_Polyline2Rd ( int n, const point3d *p );}
+Procedury \texttt{ps\_Draw\_Polyline2Rf} i~\texttt{ps\_Draw\_Polyline2Rd}
+rysuj"a "laman"a z"lo"ron"a z~\texttt{n-1}~odcink"ow, kt"orej wierzcho"lki
+($n$ punkt"ow, tj.\ $3n$ liczb zmiennopozycyjnych, b"ed"acych wsp"o"lrz"ednymi
+jednorodnymi) s"a podane w~tablicy \texttt{p}. Kolor i~grubo"s"c
+narysowanych odcink"ow jest okre"slona przez bie"r"acy stan grafiki.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Set\_Clip\_Polygon2f ( int n, const point2f *p ); \\
+void ps\_Set\_Clip\_Polygon2d ( int n, const point2d *p );}
+Procedury \texttt{ps\_Set\_Clip\_Polygon2f}
+i~\texttt{ps\_Set\_Clip\_Polygon2d} ustawiaj"a "scie"r\-k"e obcinania do
+wielok"ata o $n$ wierzcho"lkach danych w~tablicy \texttt{p}.
+Interpreter PostScriptu obcina do wszystkich "scie"rek ustawionych
+wcze"sniej (z~wyj"atkiem "scie"rek ustawionych po zapami"etaniu i~przed
+przywr"oceniem bie"r"acego stanu grafiki).
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Set\_Clip\_Polygon2Rf ( int n, const point3f *p ); \\
+void ps\_Set\_Clip\_Polygon2Rd ( int n, const point3d *p );}
+\begin{sloppypar}
+Procedury \texttt{ps\_Set\_Clip\_Polygon2Rf}
+i~\texttt{ps\_Set\_Clip\_Polygon2Rd} ustawiaj"a "scie"r\-k"e obcinania do
+wielok"ata o $n$ wierzcho"lkach danych w~tablicy \texttt{p}, za pomoc"a
+wsp"o"lrz"ednych jednorodnych.%
+\end{sloppypar}
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+void ps\_Fill\_Polygon2f ( int n, const point2f *p ); \\
+void ps\_Fill\_Polygon2d ( int n, const point2d *p );}
+Procedury \texttt{ps\_Fill\_Polygon2f} i~\texttt{ps\_Fill\_Polygon2d}
+wype"lniaj"a wielok"at o~$n$ wierzcho"lkach podanych w~tablicy \texttt{p}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Fill\_Polygon2Rf ( int n, const point3f *p ); \\
+void ps\_Fill\_Polygon2Rd ( int n, const point3d *p );}
+Procedury \texttt{ps\_Fill\_Polygon2f} i~\texttt{ps\_Fill\_Polygon2d}
+wype"lniaj"a wielok"at o~$n$ wierzcho"lkach podanych w~tablicy \texttt{p},
+za pomoc"a wsp"o"lrz"ednych jednorodnych.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Draw\_BezierCf ( const point2f *p, int n ); \\
+void ps\_Draw\_BezierCd ( const point2d *p, int n );}
+Procedury \texttt{ps\_Draw\_BezierCf} i~\texttt{ps\_Draw\_BezierCd}
+rysuj"a krzyw"a B\'{e}ziera stopnia~$n$,
+kt"orej $n+1$ punkt"ow kontrolnych jest podane w~tablicy \texttt{p}. Dla
+$n>1$ jest w~rzeczywisto"sci rysowana "lamana z"lo"rona z~$50$ odcink"ow.
+
+Obliczanie punkt"ow krzywej odbywa si"e bez u"rywania procedur z~biblioteki
+\texttt{libmultibs}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Draw\_Circle ( float x, float y, float r );}
+Procedura \texttt{ps\_Draw\_Circle} rysuje okr"ag o promieniu \texttt{r}
+i~"srodku w~punkcie \texttt{(x,y)}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Fill\_Circle ( float x, float y, float r );}
+Procedura \texttt{ps\_Draw\_Circle} rysuje ko"lo o promieniu \texttt{r}
+i~"srodku w~punkcie \texttt{(x,y)}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Draw\_Arc ( float x, float y, float r, float a0, float a1 );}
+Procedura \texttt{ps\_Draw\_Arc} rysuje "luk okr"egu o~"srodku w~punkcie
+\texttt{(x,y)}, o~promieniu \texttt{r} i~k"atach pocz"atku i~ko"nca
+\texttt{a0} i~\texttt{a1}. Znaczenie wszystkich parametr"ow jest takie, jak
+w~postscriptowym operatorze \texttt{arc}, z~tym wyj"atkiem, "re k"aty podaje
+si"e w~radianach (a~nie w~stopniach).
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Mark\_Circle ( float x, float y );}
+Procedura \texttt{ps\_Mark\_Circle} rysuje znaczek (ma"le k"o"lko z~bia"l"a
+kropk"a) w~punkcie \texttt{(x,y)}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Init\_Bitmap ( int w, int h, int x, int y, byte b ); \\
+void ps\_Out\_Line ( byte *data );}
+Procedura \texttt{ps\_Init\_Bitmap} przygotowuje wyprowadzanie do pliku
+postscriptowego jednobarwnego (czarny--szary--bia"ly) obrazka rastrowego.
+Obrazek ten ma szeroko"s"c \texttt{w}
+pikseli, wysoko"s"c \texttt{h} pikseli (wymiary piksela s"a $1\times 1$
+w~jednostkach okre"slonych przez bie"r"acy uk"lad wsp"o"lrz"ednych),
+a~lewy dolny r"og jest w~punkcie \texttt{(x,y)}. Parametr \texttt{b}
+okre"sla liczb"e bit"ow na piksel, kt"ora musi by"c r"owna $1$, $2$, $4$
+lub~$8$.
+
+Po wywo"laniu procedury \texttt{ps\_Init\_Bitmap} nale"ry \texttt{h} razy
+wywo"la"c procedur"e \texttt{ps\_Out\_Line}, kt"orej parametr jest tablic"a
+$\lceil w/b\rceil$ bajt"ow, z~kt"orych ka"rdy zawiera $8/b$ upakowanych
+pikseli. Ka"rde wywo"lanie tej procedury ma na celu wypisanie do pliku
+postscriptowego jednego wiersza pikseli, zaczynaj"ac od g"ory.
+
+Dane s"a wyprowadzane w~postaci szesnastkowej, bez kompresji, a~zatem
+wielko"s"c pliku postscriptowego zawieraj"acego obrazek wyprowadzony w~ten
+spos"ob mo"re by"c znaczna.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Init\_BitmapP ( int w, int h, int x, int y ); \\
+void ps\_Out\_LineP ( byte *data );}
+Procedury \texttt{ps\_InitBitmapP} i~\texttt{ps\_Out\_LineP} s"lu"r"a do
+wyprowadzenia do pliku postscriptowego jednobarwnego (czarny--szary--bia"ly)
+obrazka rastrowego. Obrazek ten ma wymiary i~po"lo"renie okre"slone tak
+samo, jak obrazek wyprowadzany przez procedury \texttt{ps\_Init\_Bitmap}
+i~\texttt{ps\_Out\_Line}. Liczba bit"ow na piksel jest r"owna~$8$.
+
+Kolejne wiersze pikseli (wyprowadzane przez procedur"e
+\texttt{ps\_Out\_LineP}) s"a kompresowane (w~do"s"c prymitywny spos"ob),
+dzi"eki czemu obj"eto"s"c pliku postscriptowego z~obrazkiem wyprowadzonym
+przy u"ryciu tych procedur mo"re by"c mniejsza.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Init\_BitmapRGB ( int w, int h, int x, int y ); \\
+void ps\_Out\_LineRGB ( byte *data );}
+\begin{sloppypar}
+Procedury \texttt{ps\_InitBitmapRGB} i~\texttt{ps\_Out\_LineRGB} s"lu"r"a do
+wyprowadzenia do pliku postscriptowego kolorowego
+obrazka rastrowego. Obrazek ten ma wymiary i~po"lo"renie okre"slone tak
+samo, jak obrazek wyprowadzany przez procedury \texttt{ps\_Init\_Bitmap}
+i~\texttt{ps\_Out\_Line}. Liczba bit"ow na piksel jest r"owna~$24$, tj.\
+ka"rdy piksel jest reprezentowany przez $3$ bajty opisuj"ace sk"ladowe
+czerwon"a, zielon"a i~niebiesk"a.
+\end{sloppypar}
+
+Kolejne wiersze pikseli (wyprowadzane przez procedur"e
+\texttt{ps\_Out\_LineRGB}, kt"orej parametrem jest tablica o~d"lugo"sci $3w$
+bajt"ow) nie s"a kompresowane, przez co plik z~tak wyprowadzonym obrazkiem
+mo"re by"c do"s"c du"ry.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Init\_BitmapRGBP ( int w, int h, int x, int y ); \\
+void ps\_Out\_LineRGBP ( byte *data );}
+\begin{sloppypar}
+Procedury \texttt{ps\_InitBitmapRGBP} i~\texttt{ps\_Out\_LineRGBP} s"lu"r"a do
+wyprowadzenia do pliku postscriptowego kolorowego obrazka rastrowego
+w~postaci skompresowanej. Obrazek ten ma wymiary i~po"lo"renie okre"slone tak
+samo, jak obrazek wyprowadzany przez procedury \texttt{ps\_Init\_Bitmap}
+i~\texttt{ps\_Out\_Line}. Liczba bit"ow na piksel jest r"owna~$24$, tj.\
+ka"rdy piksel jest reprezentowany przez $3$ bajty opisuj"ace sk"ladowe
+czerwon"a, zielon"a i~niebiesk"a.
+\end{sloppypar}
+
+Kolejne wiersze pikseli (wyprowadzane przez procedur"e
+\texttt{ps\_Out\_LineRGB}, kt"orej parametrem jest tablica o~d"lugo"sci $3w$
+bajt"ow) s"a kompresowane za pomoc"a pewnej odmiany algorytmu
+\textsl{run-length encoding}. Procedura dekompresji jest zrealizowana
+w~PostScripcie, przez co nie jest to algorytm szczeg"olnie szybki, ale
+w~moich dotychczasowych zastosowaniach by"l wystarczaj"acy. Kiedy"s warto
+b"edzie zrealizowa"c lepszy algorytm kompresji.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_Newpath ( void );}
+Procedura \texttt{ps\_Newpath} powoduje wypisanie do pliku postscriptowego
+komendy \texttt{newpath}, kt"ora inicjalizuje "scie"rk"e. "Scie"rk"e t"e
+mo"rna dalej rozbudowywa"c za pomoc"a procedur \texttt{ps\_MoveTo}
+i~\texttt{ps\_LineTo}, a~nast"epnie okre"sli"c spos"ob jej przetwarzania
+przez interpreter PsotScriptu za~pomoc"a procedury
+\texttt{ps\_Write\_Command} (np.\ mo"rna poda"c komend"e \texttt{stroke}).
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_MoveTo ( float x, float y ); \\
+void ps\_LineTo ( float x, float y );}
+Procedury \texttt{ps\_MoveTo} i~\texttt{ps\_LineTo} generuj"a postscriptowe
+komendy konstrukcji "scie"rki \texttt{moveto} i~\texttt{lineto}
+z~odpowiednimi parametrami. Mo"rna ich u"ry"c do skonstruowania "scie"rki,
+kt"ora nast"epnie b"edzie przetwarzana w~dowolny spos"ob.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_ShCone ( float x, float y, float x1, float y1, \\
+\ind{17}float x2, float y2 );}
+Procedura \texttt{ps\_ShCone} s"lu"ry do narysowania pocieniowanego
+(szarego) tr"ojk"ata o~wierzcho"lkach \texttt{(x,y)}, \texttt{(x+x1,y+y1)}
+i~\texttt{(x+x2,y+y2)}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_GSave ( void ); \\
+void ps\_GRestore ( void );}
+Procedura \texttt{ps\_GSave} powoduje wypisanie do pliku postscriptowego
+komendy \texttt{gsave} zapami"etuj"acej (na odpowiednim stosie interpretera
+PostScriptu) bie"r"acy stan grafiki.
+
+Procedura \texttt{ps\_GRestore} powoduje wypisanie do pliku postscriptowego
+komenty \texttt{grestore} przywracaj"acej stan grafiki uprzednio zapami"etany
+przez interpreter.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_BeginDict ( int n ); \\
+void ps\_EndDict ( void );}
+Procedura \texttt{ps\_BeginDict} wypisuje do pliku postscriptowego tekst \\
+\texttt{$n$ dict begin}, gdzie $n$ jest ci"agiem cyfr reprezentuj"acych
+warto"s"c parametru~$n$. Dla interpretera PostScriptu jest to polecenie
+utworzenia nowego s"lownika o~pojemno"sci $n$ symboli i~umieszczenie go na
+stosie s"lownik"ow.
+
+Procedura \texttt{ps\_EndDict} wypisuje do pliku postscriptowego napis
+\texttt{end}, kt"ory jest poleceniem usuni"ecia ze stosu s"lownika. Procedur
+\texttt{ps\_BeginDict} i~\texttt{ps\_EndDict} nale"ry u"rywa"c w~parach.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+void ps\_DenseScreen ( void );}
+Procedura \texttt{ps\_DenseScreen} powoduje zmian"e maski rastra na dwa razy
+g"estsz"a. Dzi"eki temu cienkie szare linie wydrukowane na papierze s"a
+g"ladsze, ale odwzorowanie szaro"sci jest mniej dok"ladne.
+
+\vspace{\bigskipamount}
+\cprog{%
+void ps\_GetSize ( float *x1, float *y1, float *x2, float *y2 );}
+Procedura \texttt{ps\_GetSize} umo"rliwia orientacyjne okre"slenie wymiar"ow
+prostok"ata, w~kt"orym mie"sci si"e obrazek (tj.\ jego elementy narysowane
+przed wywo"laniem tej procedury). Procedura ta jednak nie
+uwzgl"ednia "radnych skutk"ow interpretowania komend wyprowadzonych przy
+u"ryciu procedury \texttt{ps\_Write\_Command} (np.\ takich jak
+\texttt{scale}, \texttt{translate} lub komendy rysuj"ace), a~tak"re nie
+uwzgl"ednia ewentualnego obcinania. Dlatego procedura ta jest raczej ma"lo
+u"ryteczna.
+
+Parametry na wyj"sciu otrzymuj"a warto"sci wsp"o"lrz"ednych prostok"ata,
+w~kt"orym biblioteka my"sli, "re mie"sci si"e obrazek, w~jednostkach
+okre"slonych przez rozdzielczo"s"c podan"a przy otwieraniu pliku. Zamiast
+u"rywa"c t"e procedur"e, lepiej jest obrazek obejrze"c przy u"ryciu programu
+\texttt{Ghostview}, kt"ory wy"swietla wsp"o"lrz"edne punkt"ow wskazanych
+przez kursor. Odczytane odpowiednie liczby mo"rna nast"epnie dopisa"c jako
+parametry procedury \texttt{ps\_WriteBBox} wywo"lywanej \emph{bezpo"srednio
+przed} procedur"a \texttt{ps\_OpenFile}.
+
+
+\section{Biblioteka dodatkowa}
+
+Procedury dodatkowe maj"a na celu u"latwienie rysowania odcink"ow, kt"orych
+pod\-od\-cin\-ki mog"a mie"c r"o"rne grubo"sci i~kolory, a~ponadto mog"a mie"c
+pewne punkty pooznaczane symbolami takimi jak strza"lki, kreski itp.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define tickl  10.0 \\
+\#define tickw   2.0 \\
+\#define tickd   6.0 \\
+\#define dotr   12.0 \\
+\#define arrowl 71.0 \\
+\#define arroww 12.5}
+\begin{sloppypar}
+Powy"rsze sta"le symboliczne okre"slaj"a po"low"e d"lugo"sci (\texttt{tickl})
+i~szeroko"s"c (\texttt{tickw}) kreski poprzecznej do rysowanej linii,
+szeroko"s"c t"la takiej kreski, promie"n kropki oraz d"lugo"s"c i~po"low"e
+szeroko"sci strza"lki.
+\end{sloppypar}
+
+Wymiary te s"a dobrane tak, aby wspomniane symbole dobrze
+wygl"ada"ly, je"sli jednostka d"lugo"sci (okre"slona przez parametr
+procedury \texttt{ps\_OpenFile}) by"la r"owna $1/600$~cala.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+void psl\_SetLine ( float x1, float y1, float x2, float y2, \\
+\ind{19}float t1, float t2 );}
+Procedura \texttt{psl\_SetLine} okre"sla prost"a, kt"orej odcinki i~punkty
+b"ed"a rysowane i~oznaczane. Prosta przechodzi przez punkty \texttt{(x1,y1)}
+i~\texttt{(x2,y2)}, kt"ore musz"a by"c r"o"rne. Punktom tym odpowiadaj"a
+warto"sci parametru \texttt{t1} i~\texttt{t2}, kt"ore musz"a by"c r"o"rne.
+
+Okre"slenie bie"r"acej prostej powoduje ustalenie jej jednostkowego wektora
+kierunkowego~$\bm{v}$, za pomoc"a kt"orego r"o"rne procedury dokonuj"a
+rozmaitych konstrukcji.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_GetPointf ( float t, float *x, float *y );}
+Procedura \texttt{psl\_GetPointf} oblicza punkt prostej okre"slonej przez
+ostatnie wywo"lanie procedury \texttt{psl\_SetLine}, odpowiadaj"acy
+warto"sci parametru \texttt{t}. Jego wsp"o"lrz"edne s"a przypisywane
+parametrom \texttt{*x} i~\texttt{*y} procedury.
+
+\vspace{\bigskipamount}
+\cprog{%
+float psl\_GetDParam ( float dl );}
+Procedura \texttt{psl\_GetDParam} oblicza przyrost parametru prostej
+odpowiadaj"acy przesuni"eciu o~wektor o~d"lugo"sci \texttt{dl}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_GoAlong ( float s, float *x, float *y );}
+Procedura \texttt{psl\_GoAlong} otrzymuje na wej"sciu punkt
+$\bm{p}=$\texttt{(*x,*y)}. Na wyj"sciu parametry \texttt{*x} i~\texttt{*y}
+maj"a warto"sci wsp"o"lrz"ednych punktu otrzymanego przez przesuni"ecie
+punktu $\bm{p}$ w~kierunku ustalonej prostej na odleg"lo"s"c \texttt{s}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_GoPerp ( float s, float *x, float *y );}
+Procedura \texttt{psl\_GoPerp} otrzymuje na wej"sciu punkt
+$\bm{p}=$\texttt{(*x,*y)}. Na wyj"sciu parametry \texttt{*x} i~\texttt{*y}
+maj"a warto"sci wsp"o"lrz"ednych punktu otrzymanego przez przesuni"ecie
+punktu $\bm{p}$ w~kierunku prostopad"lym do
+ustalonej prostej na odleg"lo"s"c \texttt{s}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_Tick ( float t );}
+Procedura \texttt{psl\_Tick} zaznacza na ustalonej prostej punkt
+odpowiadaj"acy parametrowi \texttt{t}, za pomoc"a kreski prostopad"lej do
+tej prostej.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_BTick ( float t );}
+Procedura \texttt{psl\_BTick} zaznacza na ustalonej prostej punkt
+odpowiadaj"acy parametrowi \texttt{t}, za pomoc"a kreski prostopad"lej do
+tej prostej. Kreska ta jest grubsza i~d"lu"rsza ni"r kreska rysowana przez
+procedur"e \texttt{psl\_Tick}. Pomy"slane jest to w~ten spos"ob, aby przed
+narysowaniem obrazka prostej z~zaznaczonymi punktami narysowa"c ten obrazek
+grubszymi liniami i~w~kolorze t"la (np.\ bia"lym).
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_HTick ( float t, boolean left );}
+Procedura \texttt{psl\_HTick} rysuje oznaczenie punktu na bie"r"acej prostej
+odpowiadaj"acego parametrowi~$t$ w~postaci kreski prostopad"lej do
+bie"r"acej prostej, przy czym jeden koniec kreski jest oznaczanym punktem,
+a~d"lugo"s"c kreski jest r"owna \texttt{tickl}. Parametr \texttt{left}
+okre"sla stron"e prostej, po~kt"orej znajduje si"e drugi koniec kreski.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_Dot ( float t );}
+Procedura \texttt{psl\_Dot} rysuje oznaczenie punktu na bie"r"acej prostej
+odpowiadaj"acego parametrowi $t$. Oznaczenie to jest k"o"lkiem o~promieniu
+\texttt{dotr}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_HDot ( float t );}
+Procedura \texttt{psl\_HDot} rysuje oznaczenie punktu na bie"r"acej prostej
+odpowiadaj"acego parametrowi $t$. Oznaczenie to jest k"o"lkiem o~promieniu
+nieco wi"ekszym ni"r \texttt{dotr}. Przeznaczeniem tej procedury jest
+narysowanie t"la (np.\ bia"lego) dla (czarnej) kropki rysowanej p"o"zniej
+przez procedur"e \texttt{psl\_Dot}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_TrMark ( float x, float y );}
+Procedura \texttt{psl\_TrMark} rysuje oznaczenie punktu \texttt{(x,y)} (nie
+zwi"azanego z~bie"r"ac"a prost"a) w~postaci bia"lego tr"ojk"acika
+r"ownoramiennego o~czarnych kraw"edziach,
+kt"orego podstawa jest pozioma, a~najwy"rszy wierzcho"lek to oznaczany
+punkt.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_BlackTrMark ( float x, float y );}
+Procedura \texttt{psl\_BlackTrMark} rysuje oznaczenie punktu \texttt{(x,y)}
+(nie zwi"azanego z~bie"r"ac"a prost"a) w~postaci czarnego tr"ojk"acika
+r"ownoramiennego, kt"orego podstawa jest pozioma, a~najwy"rszy wierzcho"lek
+to oznaczany punkt.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_HighTrMark ( float x, float y );}
+Procedura \texttt{psl\_HighTrMark} rysuje oznaczenie punktu \texttt{(x,y)}
+(nie zwi"azanego z~bie"r"ac"a prost"a) w~postaci bia"lego tr"ojk"acika
+r"ownoramiennego o~czarnych kraw"edziach,
+kt"orego podstawa jest pozioma, a~najwy"rszy wierzcho"lek to oznaczany
+punkt. Wysoko"s"c tego tr"ojk"acika jest wi"eksza ni"r wysoko"s"c
+tr"ojk"acika rysowanego przez procedur"e \texttt{psl\_TrMark}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_BlackHighTrMark ( float x, float y );}
+Procedura \texttt{psl\_BlackHighTrMark} rysuje oznaczenie punktu
+\texttt{(x,y)} (nie zwi"azanego z~bie"r"ac"a prost"a) w~postaci czarnego
+tr"ojk"acika r"ownoramiennego kt"orego podstawa jest pozioma, a~najwy"rszy
+wierzcho"lek to oznaczany punkt. Wysoko"s"c tego tr"ojk"acika jest wi"eksza
+ni"r wysoko"s"c tr"ojk"acika rysowanego przez procedur"e
+\texttt{psl\_BlackTrMark}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_LTrMark ( float t ); \\
+void psl\_BlackLTrMark ( float t ); \\
+void psl\_HighLTrMark ( float t ); \\
+void psl\_BlackHighLTrMark ( float t );}
+\begin{sloppypar}
+Powy"rsze procedury rysuj"a oznaczenia punktu bie"r"acej prostej, kt"ory
+od\-po\-wia\-da parametrowi~$t$, za pomoc"a procedur \texttt{psl\_TrMark},
+\texttt{psl\_BlackTrMark}, \texttt{psl\_HighTrMark}
+i~\texttt{psl\_BlackHighTrMark}. W~zasadzie nadaj"a si"e one tylko
+do oznaczania punkt"ow na prostych poziomych.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_Arrow ( float t, boolean sgn );}
+Procedura \texttt{psl\_Arrow} oznacza punkt bie"r"acej prostej
+odpowiadaj"acy parametrowi $t$ za pomoc"a strza"lki (a~dok"ladniej
+tr"ojk"acika stanowi"acego ,,grot'' strza"lki) o~kierunku bie"r"acej prostej.
+Parametr \texttt{sgn} okre"sla zwrot strza"lki.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_BkArrow ( float t, boolean sgn );}
+Procedura \texttt{psl\_BkArrow} rysuje t"lo (np.\ bia"le) dla strza"lki,
+kt"or"a mo"rna nast"epnie narysowa"c za~pomoc"a procedury
+\texttt{psl\_Arrow}.
+Parametry tej procedury maj"a identyczne znaczenie jak parametry procedury
+\texttt{psl\_Arrow}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_Draw ( float ta, float tb, float w );}
+Procedura \texttt{psl\_Draw} rysuje odcinek bie"r"acej prostej, kt"orego
+ko"nce s"a okre"slone przez parametry \texttt{ta} i~\texttt{tb}. Parametr
+\texttt{w} okre"sla grubo"s"c rysowanej kreski.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_ADraw ( float ta, float tb, float ea, float eb, float w );}
+Procedura \texttt{psl\_ADraw} rysuje odcinek bie"r"acej prostej, kt"orego
+ko"nce s"a okre"slone nast"epuj"aco: najpierw wyznaczany jest punkt
+$\bm{p}_a$ odpowiadaj"acy parametrowi \texttt{ta}, a~nast"epnie punkt
+otrzymany przez dodanie do $\bm{p}_a$ iloczynu jednostkowego wektora
+kierunkowego bie"r"acej prostej (zobacz opis procedury \texttt{psl\_SetLine})
+i~warto"sci parametru \texttt{ea}. Drugi koniec odcinka jest
+wyznaczany podobnie, za pomoc"a parametr"ow \texttt{tb} i~\texttt{eb}.
+Parametr ~\texttt{w} okre"sla grubo"s"c rysowanej kreski.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_MapsTo ( float t );}
+Procedura \texttt{psl\_MapsTo} rysuje w~punkcie $t$ bie"r"acej prostej
+strza"lk"e innego rodzaju, bardziej odpowiedni"a do rysowania np.\
+diagram"ow przemiennych.
+
+\vspace{\bigskipamount}
+\cprog{%
+void psl\_DrawEye ( float t, byte cc, float mag, float ang );}
+Procedura \texttt{psl\_DrawEye} rysuje symbol oczka. Na r"o"rnych rysunkach
+schematycznych symbol ten mo"re si"e przyda"c do zaznaczania po"lo"renia
+obserwatora.
+
+Parametr \texttt{t} okre"sla punkt bie"r"acej linii, kt"ory ma by"c
+oznaczony symbolem oczka. Parametr \texttt{cc} powinien mie"c warto"s"c od
+$0$ do $3$, kt"ora okre"sla orientacj"e oczka. Parametr \texttt{mag}
+okre"sla wielko"s"c oczka, za"s parametr \texttt{ang} okre"sla dodatkowy
+k"at (w~radianach), o~kt"ory oczko powinno zosta"c obr"ocone w~celu
+otrzymania poprawnego efektu.
+
+
+\newpage
+%\vspace{\bigskipamount}
+\noindent
+\textbf{Przyk"lad:} Poni"rszy program generuje obrazek pokazany
+na rys.~\ref{fig:psout}.
+
+\vspace{\medskipamount}
+\noindent{\ttfamily
+\#include <string.h> \\
+\#include "psout.h" \\
+int main ( void ) \\
+\{ \\
+\ind{2}ps\_WriteBBox ( 12, 13, 264, 80 ); \\
+\ind{2}ps\_OpenFile ( "psout.ps", 600 ); \\
+\ind{2}psl\_SetLine ( 200, 600, 2200, 100, 0.0, 4.0 ); \\
+\ind{2}psl\_Draw ( 0.5, 1.5, 2.0 ); \\
+\ind{2}psl\_Draw ( 2.0, 3.0, 6.0 ); \\
+\ind{2}psl\_ADraw ( 3.5, 4.0, 0.0, -arrowl, 1.0 ); \\
+\ind{2}psl\_DrawEye ( 0.0, 1, 1.2, 0.15 ); \\
+\ind{2}psl\_HTick ( 1.0, false ); \\
+\ind{2}psl\_HTick ( 1.5, true ); \\
+\ind{2}psl\_Tick ( 2.0 ); \\
+\ind{2}psl\_BlackHighLTrMark ( 2.5 ); \\
+\ind{2}psl\_LTrMark ( 3.0 ); \\
+\ind{2}psl\_Dot ( 3.5 ); \\
+\ind{2}psl\_Arrow ( 4.0, true ); \\
+\ind{2}ps\_CloseFile (); \\
+\ind{2}exit ( 0 ); \\
+\} /*main*/}
+\begin{figure}[t]
+  \centerline{\epsfig{file=psout.ps}}
+  \caption{\label{fig:psout}Linia z~pozaznaczanymi punktami}
+\end{figure}
+
+

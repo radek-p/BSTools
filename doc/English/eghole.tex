@@ -1,0 +1,1689 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{The \texttt{libeghole} library}
+
+The \texttt{libeghole} library contains procedures of filling polygonal
+holes in a~piecewise bicubic spline surfaces. The theory and
+the algorithm are described in the book \emph{Konstrukcje powierzchni
+g{\l}adko wype{\l}niaj{\k a}cych wielok{\k a}tne otwory}.
+
+
+\section{\label{sect:G2:data}Data preparation}
+
+The data for hole filling procedures consists of four elements:
+\begin{itemize}
+  \item The number of hole sides, $k$,
+  \item $k$ eleven-element sequences of knots,
+  \item $12k+1$ domain control points,
+  \item $12k+1$ surface control points.
+\end{itemize}
+In addition to the data mentioned above, one can specify \textbf{constraints},
+i.e.\ linear equations to be satisfied by the filleting surface. Their
+representation is described in Section~\ref{ssect:g2h:constraints}.
+
+The integer number $k$ must not be less than~$3$ and not greater than~$16$.
+The surface constsis of $3k$ bicubic polynomial patches, which surround
+a~$k$-sided hole.
+
+The \textbf{knot sequences} $u^{(n)}_0,\ldots,u^{(n)}_{10}$, for $n=0,\ldots,k-1$,
+must satisfy the conditions
+\begin{align*}
+  u^{(n)}_0\leq u^{(n)}_1<\cdots<u^{(n)}_9\leq u^{(n)}_{10},
+\end{align*}
+and
+\begin{align*}
+  u^{(n)}_i-u^{(n)}_1 = u^{(m)}_0-u^{(m)}_{10-i},
+\end{align*}
+for $m=(n+2)\bmod k$ and $i=4,\ldots,9$.
+The sequences should be given in a~one-dimensional array of length $11k$;
+the subsequent elements of the sequences must be stored without gaps.
+
+The \textbf{domain control points}, $\bm{c}_0,\ldots,c_{12k}$ are points of a~plane;
+they are vertices of the
+domain control net. A~scheme of such a~net and the method of numbering them
+is shown in~Figure~\ref{fig:domain:cnet}. This net contains $k$~control nets
+of planar bicubic B-spline patches, which have common polynomial pieces.%
+\begin{figure}[ht]
+  \centerline{\epsfig{file=g2hdomain.ps}}
+  \caption{\label{fig:domain:cnet}Representation of a~domain of
+    a~surface filling a~hole}
+\end{figure}
+
+For $n=0,\ldots,k-1$ the $n$-th B-spline patch is represented by the
+knot sequences $u^{(n)}_0,\ldots,u^{(n)}_{10}$ and $u^{(m)}_0,\ldots,u^{(m)}_7$,
+where $m=(n+1)\bmod k$, and the control points $\bm{c}^{(n)}_{ij}$, $i=0,\ldots,6$,
+$j=0,\ldots,3$, such that:
+\begin{itemize}
+  \item $\bm{c}^{(n)}_{ij}=\bm{c}_{12(n+1)-3j-i}$ for $i=0,\ldots,2$, $j=0,\ldots,3$
+  \item $\bm{c}^{(n)}_{ij}=\bm{c}_{12m-3i-j}$ for $i=3,\ldots,6$, $j=0,\ldots,2$,   
+    where $m=(n+1)\bmod k$,
+  \item $\bm{c}^{(n)}_{3,3}=\bm{c}_0$,
+  \item $\bm{c}^{(n)}_{ij}=\bm{c}_{12m+i-3}$ for $i=4,\ldots,6$, $j=3$,
+    where $m=(n+2)\bmod k$. 
+\end{itemize}
+The B-spline patches represented by these knots and control points must be 
+regular and apart from the common pieces determined by the representation
+they must be disjoint.
+
+The set of points of the B-spline patches represented by the knots and
+control points described above is the domain of some parameterization
+of the surface with the hole, and the area~$\varOmega$ surrounded by
+these patches, which is a~curvilinear $k$-sided polygon, is the domain of
+a~parameterization of the filleting surface to be constructed. For such
+a~parameterization a~functional~$F$ is defined; its value measures
+the quality (or rather \emph{badness}) of the surface (the minimum will be
+searched). By changing the control points~$\bm{c}_i$ one changes this
+functional, which affects the construction result.
+
+The \textbf{surface control points}, $\bm{b}_0,\ldots,\bm{b}_{12k}$, are located
+in the space of dimension~$d$ (usually in practice it will be $d=3$ for polynomial
+surfaces, or $d=4$, if the hole to be filled is in a~homogeneous surface
+representing a~piecewise rational surface). The surface control net is
+bulit in a~similar way to the domain control net, i.e.\ one can distinguish
+in it $k$~control nets of B-spline patches of degree~$(3,3)$.
+For $n=0,\ldots,k-1$ the $n$-th patch is represented by the knots
+$u^{(n)}_0,\ldots,u^{(n)}_{10}$ and $u^{(m)}_0,\ldots,u^{(m)}_7$, where
+$m=(n+1)\bmod k$, and by the control points $\bm{b}^{(n)}_{ij}$,
+$i=0,\ldots,6$, $j=0,\ldots,3$, being the points $\bm{b}_l$ with the subscripts
+$l$ defined in the same way as the indexes of the control points
+$\bm{c}^{(n)}_{ij}$ of the B-spline patches surrounding the domain.
+
+The array with the control points of the surface, which is to be passed to
+the procedures filling the hole, consists of $(12k+1)d$ floating point numbers
+--- consecutive $d$~numbers are the coordinates of one control point
+$\bm{b}_l$. The points $\bm{c}^{(n)}_{ij}$ and $\bm{b}^{(n)}_{ij}$
+for $i\in\{0,6\}$ and for $j=0$ have no influence on the construction result
+(i.e.\ on the filleting surface), as well as the knots $u^{(n)}_0$ and
+$u^{(n)}_{10}$, but they must be specified. In Figure~\ref{fig:domain:cnet}
+the points, which are relevant, are marked with black dots.
+
+
+\section{Theoretical background}
+
+A~detailed description of theory underlying the constructions done by the
+procedures of the \texttt{libeghole} library may be found in the paper
+\emph{Konstrukcje powierzchni g\l adko wype\l niaj\k{a}cych wielok\k{a}tne otwory}
+(\emph{Constructions of surfaces filling smoothly polygonal holes}, in
+Polish). Below only the information necessary for correct preparation of
+data for the procedures are given.
+
+\subsection{Bases used in the constructions}
+
+\begin{sloppypar}
+To construct a~surface filling a~hole, the library procedures
+construct a~basis $\phi_0,\ldots,\phi_{n+m}$ of some linear vector space,
+whose elements are scalar functions of class~$C^1$ or~$C^2$,
+which describe the coordinates of the hole filling surface.
+The surface may be described by the formula
+\begin{align}\label{eq:G2:surface}
+  \bm{p} =
+  \sum_{i=0}^{n-1}\bm{a}_i\phi_i+\sum_{i=0}^{m-1}\bm{b}_i\phi_{n+i}.
+\end{align}
+The vectors $\bm{b}_i\in\R^d$ are given control points of the surface
+with the hole. The control net of this surface is a~graph isomorphic with
+the control net of the domain shown in Figure~\ref{fig:domain:cnet}
+and its vertices are numbered analoguously.
+The vertices are passed to the construction procedures (in that order) in an
+array given as a~parameter. The array contains $12k+1$ control points, of
+which $m=6k+1$ influence the surface filling the hole.%
+\end{sloppypar}
+
+\begin{sloppypar}
+The purpose of the surface construction procedures is to compute the vectors
+$\bm{a}_0,\ldots,\bm{a}_{n-1}\in\R^d$, which minimise some functionals,
+taken as measures of ,,badness'' of the surface.
+The basis functions $\phi_0,\ldots,\phi_{n+m-1}$ are defined in the area
+$\varOmega\in\R^2$, which is the hole in the planar surface
+represented by the domain control net, described in the previous section.
+The area~$\varOmega$ is divided into $k$~curvilinear quadrangles
+$\varOmega_0,\ldots,\varOmega_{k-1}$, which are images of the unit square
+under the mappings~$\bm{d}_0,\ldots,\bm{d}_{k-1}$, called
+\textbf{domain patches}. The function~$\phi_i$ is defined by the formula
+\begin{align*}
+  \phi_i(\bm{x}) = p_{li}(\bm{d}_l^{-1}(\bm{x}))\qquad
+  \mbox{for $\bm{x}\in\varOmega_i$,}
+\end{align*}
+with use of the domain patches and the functions
+$p_{i0},\ldots,p_{i,k-1}$, called \textbf{basis function patches}. The
+surface filling the hole consists of $k$~polynomial or spline patches
+$\bm{p}_0,\ldots,\bm{p}_{k-1}$, given by
+\begin{align*}
+  \bm{p}_l =
+  \sum_{i=0}^{n-1}\bm{a}_ip_{li}+\sum_{i=0}^{m-1}\bm{b}_ip_{l,i+n}.
+\end{align*}
+The B\'{e}zier or B-spline representation of these patches is the final
+result of the constructions.%
+\end{sloppypar}
+
+The basis functions $\phi_0,\ldots,\phi_{n+m-1}$ may be divided into two
+subsets. The functions $\phi_0,\ldots,\phi_n$ satisfy the homogeneous
+boundary condition, i.e.\ their values and partial derivatives of order $1$
+(or $1$ and~$2$) at the boundary of~$\varOmega$ are~$0$. The functions
+$\phi_n,\ldots,\phi_{n+m-1}$ satisfy the boundary conditions chosen in such
+a~way, that for arbitrary vectors $\bm{a}_0,\ldots,\bm{a}_{n-1}$ the surface
+given by Formula~(\ref{eq:G2:surface}) was joined with the given surface
+with tangent plane or curvature continuity. The functions
+$\phi_n,\ldots,\phi_{n+m-1}$ and
+their derivatives of order $1$ and~$2$ (or $1,\ldots,4$) at the
+\textbf{central point}, i.e.\
+the comon point of all areas $\varOmega_l$ are equal to~$0$.
+
+The halflines tangent to the common curves of the areas
+$\varOmega_0,\ldots,\varOmega_{k-1}$ are inclined at the angles
+$\alpha_0,\ldots,\alpha_{k-1}$, where
+$\alpha_0<\alpha_1<\cdots<\alpha_{k-1}<\alpha_0+2\pi$. The set
+$\varDelta=\{\alpha_0,\ldots,\alpha_{k-1}\}$ is called the \textbf{partition
+of the full angle}. Let $h$ denote the number of pairs
+$\{\alpha_i,\alpha_i+\pi\}\subset\varDelta$. For the case of construction
+of surfaces of class $G^1$ or $G^1Q^2$, let
+\begin{align*}
+  n' = 3+\max\{k,h+3\}.
+\end{align*}
+The number $n'$ is the number of elements of the \textbf{basic basis},
+whose all elements have basis function patches being bicubic Coons patches,
+described by polynomials of degree~$5$ (thus they are polynomials of
+degree~$(5,5)$).
+
+One can take $n=n'$ or $n=n'+4k$; in the former case we have so called
+\textbf{extended basis} of the correspondingly wider space
+$V_0=\mathord{\mathrm{lin}}\{\phi_0,\ldots,\phi_{n-1}\}\subset V$.
+The basis function patches of the additional basis functions are tensor
+products of the Bernstein polynomials $B^5_2$ and~$B^5_3$. Just like in the
+case of using the basic basis, the result of the construction consists of
+$k$~B\'{e}zier patches of degree~$(5,5)$.
+
+There is also a~possibility of filling the hole with B-spline patches
+of degree~$(5,5)$. The basis of the appropriate space~$V_0$, apart from the
+elements of the basic basis contains two subsets of functions:
+the functions of first subset have basis function patches being tensor products
+of the B-spline functions $N^5_i$ and~$N^5_j$ for $i,j\in\{2,\ldots,3+n_km_2\}$.
+There must be $1\leq m_2\leq 4$. The basis function patches of the functions
+from the second subset are bicubic Coons patches, determined by
+quintic spline functions and having $n_km_1$ knots, where
+$1\leq m_1\leq 2$. The dimension of the space~$V_0$ is then equal to
+$n'+k\LP(2+n_km_2)^2+2n_km_1\RP$. The result of the construction consists
+of $k$~B-spline patches of degree~$(5,5)$.
+
+For the constructions of surfaces of class~$G^2$, let
+\begin{align*}
+  n' = 6+\max\{k,h+4\}+\max\{2k,2h+5\}.
+\end{align*}
+If $n=n'$, then we have the basic basis, whose all elements have basis function
+patches being biquintic Coons patches of degree~$(9,9)$.
+
+The extended basis has additional $16k$ functions, whose basis function
+patches are tensor products of the Bernstein polynomials $B^9_3,\ldots,B^^9_6$.
+In both cases the result of the construction consists of $k$~polynomial patches
+of degree~$(9,9)$, represented in B\'{e}zier form.
+
+One can use also a~spline basis, defined with three parameters,
+$n_k$, $m_1$ i~$m_2$; in this case the space~$V_0$ has the dimension
+\begin{align*}
+  n' + k\LP(4+n_km_2)^2+3n_km_1\RP,
+\end{align*}
+and the result of the construction consists of~$k$~B-spline patches
+of degree~$(9,9)$. There must be $1\leq m_1\leq 3$, $1\leq m_2\leq 7$.
+
+
+\subsection{Optimisation criteria for surfaces of class~$G^1$}
+
+The filling surfaces of class~$G^1$ have degree~$(5,5)$.
+There are obtained by minimisation of the folowing functionals
+\begin{align*}
+  F_a(\bm{p}) &{}\stackrel{\mathrm{def}}{=}
+  \int_{\varOmega}\|\Delta\bm{p}\|_2^2\,\mathrm{d}\varOmega, \\
+  F_b(\bm{p}) &{}\stackrel{\mathrm{def}}{=}
+  \int_{\varOmega}H^2\sqrt{\det G}\,\mathrm{d}\varOmega,
+\end{align*}
+where $G$~denotes the matrix of the first fundamental form and~$H$ denotes
+the mean curvature. The functional~$F_a$ is a~quadratic form,
+with a~unique minimum (also for arbitrary consistent constraints).
+The functional~$F_b$ is nonlinear, and its value depends only on
+the shape of the surface. The minimisation of~$F_b$ is more troublesome
+and time consuming. It may fail for some surfaces.
+
+
+\subsection{Optimisation criteria for surfaces of class~$G^2$}
+
+The vectors $\bm{a}_0,\ldots,\bm{a}_{n-1}$ are chosen so as to minimise one
+of the following functionals:
+\begin{align*}
+  F_c(\bm{p}) ={}& \int_{\varOmega}\|\nabla\!\Delta\bm{p}\|_F^2\,\mathrm{d}\varOmega, \\
+  F_d(\bm{p}) ={}& \int_{\varOmega}\|\nabla_{\!\cal M}H\|_2^2\sqrt{\det G}\,\mathrm{d}\varOmega.
+\end{align*}
+Subsequent rows of the matrix $\nabla\!\Delta\bm{p}$ are gradients of Laplacians
+of the $d$~scalar functions, which describe the parameterisation~$\bm{p}$; the
+symbol $\|\cdot\|_F$ denotes the Frobenius norm, i.e.\ square root of the sum
+of squares of all coefficients of the matrix.
+
+The functional~$F_c$ is defined for surfaces in $d$-dimensional spaces for
+any~$d$, while in case of $F_d$ there must be $d=3$.
+The symbol~$H$ denotes the mean curvature of the surface,
+$\nabla_{\!\cal M}H$ denotes the mean curvature gradient \emph{on the surface},
+and~$G$ denotes the matrix of the first fundamental form.
+
+The functional~$F_c$ is a~quadratic form, whose minimum may be found by solving
+a~system of linear equations
+\begin{align}\label{eq:g2h:Ritz:eq}
+  A\bm{a}=-B\bm{b},
+\end{align}
+with the matrices $A=[a_{ij}]_{i,j}$ and $B=[b_{ij}]_{i,j}$,
+having dimensions $n\times n$ and $n\times m$, whose coefficients
+\begin{align*}
+  a_{ij} = a(\phi_i,\phi_j), \qquad
+  b_{ij} = a(\phi_i,\phi_{j+n}),
+\end{align*}
+are the values of the bilinear form
+\begin{align*}
+  a(f,g) = \int_{\varOmega}\scp{\nabla\!\Delta f}%
+  {\nabla\!\Delta g}\,\mathrm{d}\varOmega.
+\end{align*}
+The matrix $\bm{b}$, $m\times d$ consists of the control points
+of the given surface, the matrix~$\bm{a}$, $n\times d$ consists of the
+unknown vectors $\bm{a}_0,\ldots,\bm{a}_{n-1}$. The number~$d$ is
+the dimension of the space, in which the surface is located,
+e.g.~$3$ (but it may also be~$4$ if a~piecewise polynomial surface,
+being a~homogeneous representation of a~rational surface, is constructed).
+
+The value of the functional~$F_d$ does not depend on the parameterisation
+of the surface (which must be in~$\R^3$),
+it depends only on the shape. Finding its minimum is more difficult, more
+time consuming and not always possible (this depends on the given surface
+with the hole). To do it, the following nonlinear system of equations is solved
+\begin{align}
+  \nabla F(a_0,\ldots,a_{n-1}) = \bm{0},
+\end{align}
+where the function~$F$ is given by
+\begin{align*}
+  F(a_0,\ldots,a_{n-1}) = F_d(\bm{p}),
+\end{align*}
+for a~parameterisation~$\bm{p}$ defined as
+\begin{align*}
+  \bm{p}(u,v) &{}= \left[\begin{array}{c} u \\ v \\ p(u,v) \end{array}\right],
+\qquad
+  p(u,v) = \sum_{i=0}^{n-1}a_i\phi_i+\sum_{i=0}^{m-1}b_i\phi_{n+i}.
+\end{align*}
+The surface with the hole is transformed to such a~coordinate system
+$uvw$, that it is the graph of a~scalar function,
+$w=q(u,v)$. The domain $\varOmega$ is obtained by projecting the surface
+onto the plane~$uv$. The numbers $b_0,\ldots,b_{m-1}$ are the
+coordinates~$w$ of the control points of the given surface.
+
+
+\subsection{Optimisation criteria for surfaces of class~$G^1Q^2$}
+
+
+\subsection{Constraint equations}
+
+\begin{sloppypar}
+The constructions make it possible to impose constraints described by linear
+equations, e.g.\ interpolation conditions. The minimua of the functional~$F_c$
+or~$F_d$ may be searched in the set of surfaces, whose coefficients satisfy
+the system of equations
+\begin{align}\label{eq:constraints}
+  C\bm{a} = \bm{d}.
+\end{align}
+The $w\times n$ matrix~$C$ must have linearly indeopendent rows.
+The matrix~$\bm{d}$, whose dimensions are $\bm{w}\times d$, describes the
+right hand side of the constraint equations system, where $w$ is the number
+of constraints and $d$ is the dimension of the space containing the surface;
+for the functional~$F_d$ there must be $d=3$.%
+\end{sloppypar}
+
+The subsequent rows of the unknown matrix~$\bm{a}$ are the vectors
+$\bm{a}_0,\ldots,\bm{a}_{n-1}$, which appear in Formula~(\ref{eq:G2:surface}).
+If the $i$-th constraint has the form
+$\bm{p}(\bm{x})=\bm{p}_0$ (this is an interpolation condition, which fixes
+the point of the surface corresponding to some point~$\bm{x}\in\varOmega$),
+then the coefficients of the $i$-th row of the matrix~$C$ are
+$\phi_0(\bm{x}),\ldots,\phi_{n-1}(\bm{x})$, and the $i$-th row
+of the matrix~$\bm{d}$ must be
+$\bm{p}_0-\sum_{i=0}^{m-1}\bm{b}_i\phi_{n+i}(\bm{x})$. Similarly, fixing
+the value $\bm{v}$ of the partial derivative with respect to e.g.~$u$
+at the point~$\bm{x}$ is done by the constraint equation with the row of~$C$
+consisting of the numbers
+$\frac{\partial}{\partial u}\phi_0(\bm{x}),\ldots,%
+\frac{\partial}{\partial u}\phi_{n-1}(\bm{x})$, and the right hand side
+(i.e.\ the row of~$\bm{d}$) is $\bm{v}-\sum_{i=0}^{m-1}\bm{b}_i%
+\frac{\partial}{\partial u}\phi_{n+i}(\bm{x})$.
+
+For the functional $F_d$, if the extended basis is used,
+it is possible only to impose constraints in the form of interpolation
+conditions at the central point of the domain (i.e.\ at the common
+point of all the areas~$\varOmega_i$).
+The library is equipped with the procedures of computing the basis functions
+and their partial derivatives at this point. There are also procedures
+giving access to the full representation of the basis functions,
+which make it possible to evaluate any linear functional for all the basis
+functions. These values may then be used as the coefficients in the
+constraint equations.
+
+\vspace{\medskipamount}
+The method described above imposes constraints of the same kind
+simultaneously and independently on all the coordinates of the surface
+filling the hole. An alternative form of the constraint equations
+is the following:
+\begin{align}\label{eq:alt:constraints}
+  C_0\bm{a}_0+\cdots+C_{d-1}\bm{a}_{d-1} = \bm{d}.
+\end{align}
+The matrices $C_0,\ldots,C_{d-1}$ have dimensions $w\times n$,
+the matrix~$C=[C_0,\ldots,C_{d-1}]$ ($w\times nd$) must have linearly
+independent rows. This form of constraints is more general and it allows one
+to fix the value of an arbitrary linear functional for
+the parameterisation~$\bm{p}$. One can e.g.\ fix only the value of
+the first coordinate of the point~$\bm{p}(\bm{x})$, by taking the $i$-th row
+of the matrix~$C_0$ made of the coefficients
+$\phi_0(\bm{x}),\ldots,\phi_{n-1}(\bm{x})$,
+and putting zeroes in the $i$-th row of $C_1,\ldots,C_{d-1}$.
+
+
+\subsection{Table of procedures of surface construction}
+
+The available procedures of surface construction are gathered in the
+following table:
+
+\vspace{\bigskipamount}
+\centerline{%
+\begin{picture}(2800,950)
+\put(50,480){%
+\begin{tabular}{@{}c@{\:}|@{\:}c@{\:}|@{\:}c@{\:}|@{\:}c@{\:}|@{\:}c@{\:}|@{\:}c@{\:}|@{\:}c@{\:}|@{\:}c@{\:}|@{\:}c@{\:}|@{\:}c@{\:}}
+      & Coons & B\'{e}zier & B-spline & Coons & B\'{e}zier & B-spline & Coons & B\'{e}zier & B-spline \\ \hline
+$G^1$ &   1.  &     2.     &    3.    &   4.  &     5.     &          &   7.  &     8.     &          \\ \hline
+$G^2$ &  10.  &    11.     &   12.    &  13.  &    14.     &          &  16.  &    17.     &          \\ \hline
+$G^1Q^2$ & 19.&    20.     &   21.    &  22.  &    23.     &          &  25.  &    26.     &          \\ \hline
+$G^1$ &  28.  &    29.     &   30.    &  31.  &    32.     &          &  34.  &    35.     &          \\ \hline
+$G^2$ &  37.  &    38.     &   39.    &  40.  &    41.     &          &  43.  &    44.     &          \\ \hline
+$G^1Q^2$ & 46.&    47.     &   48.    &       &            &          &       &            &
+\end{tabular}}%
+\put(-70,594){L$\left\{\makebox[0pt][l]{\rule{0pt}{20pt}}\right.$}
+\put(-70,258){\makebox[0pt][r]{N}L$\left\{\makebox[0pt][l]{\rule{0pt}{20pt}}\right.$}
+\put(300,100){$\underbrace{\makebox[100pt][c]{}}_{\mbox{without constraints}}$}
+\put(1163,100){$\underbrace{\makebox[100pt][c]{}}_{\mbox{constraints~(\ref{eq:constraints})}}$}
+\put(2027,100){$\underbrace{\makebox[100pt][c]{}}_{\mbox{constraints~(\ref{eq:alt:constraints})}}$}
+\end{picture}}
+
+\vspace{\bigskipamount}
+The procedures indicated in the first three rows construct the minimal
+surfaces of quadratic forms (by solving systems of linear equations).
+
+The procedures in next three rows solve nonlinear equations in order to
+minimise the functionals independent of the parameterisation.
+
+The procedures in the first three columns construct surfaces without
+constraints. The following three columns contain the procedures of constructions
+with constraints of the form~(\ref{eq:constraints}), and the last three columns
+with the constraints~(\ref{eq:alt:constraints}).
+
+At the top of each column there is the form of the basis used in the constructions.
+The procedure names are the following:
+
+\begin{enumerate}
+\item \texttt{g1h\_FillHolef}.
+\item \texttt{g1h\_ExtFillHolef}.
+\item \texttt{g1h\_SplFillHolef}.
+\item \texttt{g1h\_FillHoleConstrf}.
+\item \texttt{g1h\_ExtFillHoleConstrf}.
+\addtocounter{enumi}{1}
+\item \texttt{g1h\_FillHoleAltConstrf}.
+\item \texttt{g1h\_ExtFillHoleAltConstrf}.
+\addtocounter{enumi}{1}
+\item \texttt{g2h\_FillHolef}.
+\item \texttt{g2h\_ExtFillHolef}.
+\item \texttt{g2h\_SplFillHolef}.
+\item \texttt{g2h\_FillHoleConstrf}.
+\item \texttt{g2h\_ExtFillHoleConstrf}.
+\addtocounter{enumi}{1}
+\item \texttt{g2h\_FillHoleAltConstrf}.
+\item \texttt{g2h\_ExtFillHoleAltConstrf}.
+\addtocounter{enumi}{1}
+\item \texttt{g1h\_Q2FillHolef}.
+\item \texttt{g1h\_Q2ExtFillHolef}.
+\item \texttt{g1h\_Q2SplFillHolef}.
+\item \texttt{g1h\_Q2FillHoleConstrf}.
+\item \texttt{g1h\_Q2ExtFillHoleConstrf}.
+\addtocounter{enumi}{1}
+\item \texttt{g1h\_Q2FillHoleAltConstrf}.
+\item \texttt{g1h\_Q2ExtFillHoleAltConstrf}.
+\addtocounter{enumi}{1}
+\item \texttt{g1h\_NLFillHolef}.
+\item \texttt{g1h\_NLExtFillHolef}.
+\item \texttt{g1h\_NLSplFillHolef}.
+\item \texttt{g1h\_NLFillHoleConstrf}.
+\item \texttt{g1h\_NLExtFillHoleConstrf}.
+\addtocounter{enumi}{1}
+\item \texttt{g1h\_NLFillHoleAltConstrf}.
+\item \texttt{g1h\_NLExtFillHoleAltConstrf}.
+\addtocounter{enumi}{1}
+\item \texttt{g2h\_NLFillHolef}.
+\item \texttt{g2h\_NLExtFillHolef}.
+\item \texttt{g2h\_NLSplFillHolef}.
+\item \texttt{g2h\_NLFillHoleConstrf}.
+\item \texttt{g2h\_NLExtFillHoleConstrf}.
+\addtocounter{enumi}{1}
+\item \texttt{g2h\_NLFillHoleAltConstrf}.
+\item \texttt{g2h\_NLExtFillHoleAltConstrf}.
+\addtocounter{enumi}{1}
+\item \texttt{g1h\_Q2NLFillHolef}.
+\item \texttt{g1h\_Q2NLExtFillHolef}.
+\item \texttt{g1h\_Q2NLSplFillHolef}.
+\end{enumerate}
+
+
+
+\newpage
+\section{Using the procedures}
+
+\subsection{The basic construction}
+
+The construction of a~filleting surface consists of two main parts.
+The first part is the construction of a~basis of a~linear space~$V$, whose
+elements are functions, which describe a~parameterization of the surface
+(i.e.\ each of its coordinates), and the computation of the matrices,
+which appear in the systems of linear equations solved in the second
+part. This computation is rather time-consuming, but the only data
+needed in this part represent the domain.
+
+In the second part, based on the surface control points and perhaps constraints
+(in case they have been imposed), the right-hand side of the system of equation
+is computed. The system is then solved and the solution is used to obtain
+$k$~B\'{e}zier patches of degree~$(9,9)$, which fill the hole in the surface.
+The second part takes much less time and in practice it may be repeated
+many times while the user of an interactive program manipulates with
+the surface control points or with the constraints (however, a~modification
+of knots causes the necessity of repeating the first part of the construction).
+
+The first part of the construction will be done by executing the following
+instructions:
+
+\vspace{\medskipamount}
+\noindent{\ttfamily%
+GHoleDomainf *domain; \\
+\ldots \\
+if ( !(domain = gh\_CreateDomainf ( k, knots, domain\_cp )) ) \\
+\mbox{} \ exit ( 1 ); \\
+if ( !g2h\_ComputeBasisf ( domain ) ) \\
+\mbox{} \ exit ( 1 ); \\
+if ( !g2h\_DecomposeMatrixf ( domain ) ) \\
+\mbox{} \ exit ( 1 );}
+
+\vspace{\medskipamount}
+\begin{sloppypar}
+The parameter \texttt{k} specifies the number of sides of the hole, and the
+arrays \texttt{knots} and \texttt{domain\_cp} contain respectively the knot
+sequences and the domain control points. The procedure \texttt{gh\_CreateDomainf}
+allocates a~data structure, used to store the representation of the
+domain~$\varOmega$ of the filleting surface parameterization,  the way
+of decomposing it into parts ($k$~curvilinear quadrangles) and the
+basis of the space~$V$. This data structure is called the \textbf{domain record}.%
+\end{sloppypar}
+
+After creating the domain record (before calling \texttt{g2h\_ComputeBasisf}),
+the program may call the procedure \texttt{g2h\_SetOptionProcf} in order to use
+construction options other than default. The procedure \texttt{g2h\_ComputeBasisf}
+computes representations of functions being elements of the space~$V$ (the options
+affect the result of this computation), and this computation takes a~moderate
+amount of time.
+
+The procedure \texttt{g2h\_DecomposeMatrixf} computes the coefficients of the
+matrices $A$ and~$B$, which appear in the system of equations~(\ref{eq:g2h:Ritz:eq}).
+These coefficients are values of the bilinear form in the space~$V$ for
+pairs of the basis functions. The vector~$\bm{b}$ consists of the surface
+control points (which will be introduced in the second part of the construction),
+and the unknown vector~$\bm{a}$ consists of the other parameters of the
+filleting surface representation used in the construction. The matrix~$A$,
+which is symmetric and positive-definite, is then decomposed (with the Cholesky
+method) into the triangular factors: $A=LL^T$. These factors will be used
+to solve the system. Computing the coefficients of the matrices $A$ and $B$
+is the most time-consuming step of the construction --- for $k=8$ a~Pentium~IV
+processor with a~$1.8$GHz clock may spend on it about~$0.15$s.
+
+\vspace{\medskipamount}
+The second part of the construction is done by executing the code
+
+\vspace{\medskipamount}
+\noindent{\ttfamily%   
+if ( !g2h\_FillHolef ( domain, d, surf\_cp, acoeff, output ) ) \\
+\mbox{} \ exit ( 1 );}
+
+\vspace{\medskipamount}
+The parameter \texttt{domain} points to the domain record, for which the first
+part of the construction has been (successfully) completed. The
+parameter~\texttt{d} specifies the dimension of the space, in which the
+surface is located, the array \texttt{surf\_cp} contains the control points
+of the surface and the parameter \texttt{output} is a~pointer to the
+procedure, which will be called $k$~times. Each call is made with the
+parameters, which describe one B\'{e}zier patch, being part of the
+surface filling the hole.
+
+The parameter \texttt{acoeff} is an array, in which the soultion of the
+system~(\ref{eq:g2h:Ritz:eq}) should be stored. This solution is
+necessary, if someone is interested in the value of the functional~$F$
+for the constructed surface (actually, in the sum of values of the
+functional for the functions, which describe the surface coordinates).
+This parameter may be \texttt{NULL} and then it is ignored.
+
+
+\subsection{The nonlinear construction}
+
+To obtain the filling surface, being the minimal point of the functional~$F_d$,
+one should create the domain representation, construct the basis and compute
+the coefficients of the matrices~$A$ and~$B$, and then call the procedure
+\texttt{g2h\_NLFillHolef} instead of \texttt{g2h\_FillHolef}.
+
+The computations done by this procedure are much more time consuming,
+moreover the feasibility of this construction depends on the given
+surface with the hole. If this surface is not flat enough or it has
+singularities, the construction may fail.
+
+
+\subsection{Extending the space}
+
+The patches filling the hole, obtained in the way described above, are
+defined as biquintic Coons patches, whose boundary curves and cross derivatives
+have degree up to~$9$. The Coons representation used internally is
+eventually converted to the B\'{e}zier form. As the dimension of the space
+of bivariate polynomials of degree~$(9,9)$ is~$100$ and the polynomials
+representable in the biquintic Coons form form a~subspace of degree~$84$,
+it is possible to extend the space used to represent the filleting surfaces
+so that its dimension is increased by~$16k$. The surfaces obtained by
+minimization of the functional~$F$ in the extended space may have
+(and often they have indeed) a~better shape.
+
+\begin{sloppypar}
+To use this possibility, after creating the domain record with use of the
+procedure \texttt{gh\_CreateDomainf} and perhaps after registering
+the options entering procedure, it is necessary to construct the
+basic space basis, by calling \texttt{g2h\_ComputeBasisf} as before
+(the construction of additional functions, which are elements of a~basis
+of the extended space does not involve any computations). Then,
+\emph{instead} of \texttt{g2h\_DecomposeMatrixf}, the program has to call
+the procedure \texttt{g2h\_DecomposeExtMatrixf}, which computes the matrices
+$A$ and~$B$ of the appropriately enlarged system of
+equations~(\ref{eq:g2h:Ritz:eq}) and decomposes the matrix~$A$ into
+triangular factors.%
+\end{sloppypar}
+
+The second part of the construction using the extended space is done
+by the procedure \texttt{g2h\_ExtFillHolef}, which should be called
+\emph{instead} of \texttt{g2h\_FillHolef}. These procedures
+have identical parameter lists.
+
+The data used in both constructions are computed and stored in the
+domain record independently, therefore one can compute and decompose the
+matrices for both constructions, and then complete them
+(in any order) and compare the results. The computation time for the
+extended space is longer, though the difference is hard to notice.
+However, the computations for the extended space require more memory ---
+for the results (matrix coefficients, stored in memory blocks allocated by
+\texttt{malloc}) and the workspace (in the scratch memory pool, managed
+by the procedures described in Section~\ref{sect:scratch:mem}).
+The double precision version for $k=8$ may need about $2$MB of workspace.
+
+To construct the minimal surface of the functional~$F_d$ using the extended
+space, one should call the procedure \texttt{g2h\_NLExtFillHolef}. The scratch
+memory needed for this construction may be up to $8$MB.
+
+
+\subsection{\label{ssect:g2h:constraints}Imposing constraints}
+
+To construct a~surface with constraints it is necessary to create the domain
+representation (using \texttt{gh\_CreateDomainf}), construct the basis and
+then to enter the matrix~$C$ of the system of constraint equations, and then
+call the procedure of construction with constraints.
+
+\begin{sloppypar}
+For the \textbf{basic space} the matrix~$C$ of the system~(\ref{eq:constraints})
+is entered by the procedure \texttt{g2h\_SetConstraintMatrixf}. The minimal surface
+of the functional~$F_c$ with constraints is constructed by the procedure
+\texttt{g2h\_FillHoleConstrf}. The minimal surface of the functional~$F_d$
+with constraints is constructed by the procedure \texttt{g2h\_NLFillHoleConstrf}.%
+\end{sloppypar}
+
+\begin{sloppypar}
+To enter the matrix of the system of constraint equations having the
+form~(\ref{eq:alt:constraints}) one should use the procedure
+\texttt{g2h\_SetAltConstraintMatrixf}. The minimal surface of the functional~$F_c$
+with such constraints is obtained by the procedure
+\texttt{g2h\_FillHoleAltConstrf}, and the minimal surface of the
+functional~$F_d$ is constructed by the procedure
+\texttt{g2h\_NLFillHoleAltConstrf}.%
+\end{sloppypar}
+
+For the \textbf{extended space}, to enter the matrix of the
+system~(\ref{eq:constraints}) use the procedure
+\texttt{g2h\_SetExtConstraintMatrixf}. The minimal surface of the functional~$F_c$
+is constructed by the procedure \texttt{g2h\_ExtFillHoleConstrf},
+and the minimal surface of the functional~$F_d$
+is constructed by the procedure \texttt{g2h\_NLExtFillHoleConstrf}.
+
+The matrix of the system~(\ref{eq:alt:constraints}) for the extended space
+is entered by the procedure \texttt{g2h\_SetExtAltConstraintMatrixf}.
+The minimal surface of the functionals $F_c$ and~$F_d$ are constructed by the
+procedures \texttt{g2h\_ExtFillHoleAltConstrf} and
+\texttt{g2h\_NLExtFillHoleAltConstrf} respectively.
+
+The matrix of each of the four konds of constraints
+(i.e.\ of the form~(\ref{eq:constraints}) and~(\ref{eq:alt:constraints}) for
+the basic and the extended spaces) may be entered independently of each other.
+To change the matrix of the system of constraints, one can call the
+appropriate procedure (one of the above) again.
+
+
+\section{Main procedures}
+
+\cprog{%
+\#define G2H\_FINALDEG  9 \\
+\#define GH\_MAX\_K  16}
+\hspace*{\parindent}
+The two symbolic constants above specify the degree of the final patches
+filling the hole and the maximal number of sides of this hole.
+
+The above constants cannot simply be modified --- the degree~$9$ results from
+the implemented interpolation scheme. The library procedures may use
+also a~scheme, which produces patches of degree~$10$. To use this possibility,
+one should remove the definition of the symbol
+\texttt{G2H\_FINALDEG9} from the header file and recompile the procedures.
+
+The domain of the parameterization of a~surface filling a~polygonal hole
+is divided into $k$~parts. Sets of those parts are represented with
+short integers, i.e.\ $16$-bit variables. To fill holes having more than
+$16$~sides one has to modify the appropriate part of the procedures,
+so that e.g.\ $32$-bit words are used, which would make it possible
+to fill up to thirty two-sided holes.
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct GHoleDomainf \{ \\
+\ind{4}int     hole\_k; \\
+\ind{4}float   *hole\_knots; \\
+\ind{4}point2f *domain\_cp; \\ 
+\ind{4}boolean basisG1, basisG2; \\
+\ind{4}void    *privateG; \\
+\ind{4}void    *privateG1; \\
+\ind{4}void    *SprivateG1; \\
+\ind{4}void    *privateG2; \\ 
+\ind{4}void    *SprivateG2; \\
+\ind{4}int     error\_code; \\
+\ind{2}\} GHoleDomainf;}
+The structure type \texttt{GHoleDomainf} describes the domain record,
+i.e.\ an object with all data necessary to fill holes. An application
+should declare only pointer variables for such structures, as the
+responsability for creation and consistency of data stored in such an
+object belongs to the library procedures.
+
+The attribute \texttt{hole\_k} specifies the number of sides of the hole
+(from $3$ to $16$).
+
+The attribute \texttt{hole\_knots} points to the array with $11k$ numbers,
+being knots of the surface representation.
+
+The attribute \texttt{domain\_cp} points to the array with $12k+1$ control
+points of the domain representation.
+
+The attributes \texttt{privateG}, \texttt{privateG1}, \texttt{SprivateG1},
+\texttt{privateG2}, \texttt{SprivateG2} point to records (whose structure and
+contents is invisible for applications) with all other data necesary to fill
+the hole.
+
+The attribute \texttt{error\_code} is used to store the information about
+the success or the reason of failure of the computation.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+GHoleDomainf* gh\_CreateDomainf ( int     hole\_k, \\
+\ind{33}float   *hole\_knots, \\
+\ind{33}point2f *domain\_cp ); \\
+void gh\_DestroyDomainf ( GHoleDomainf *domain );}
+The procedure \texttt{gh\_CreateDomainf} creates an object of
+type~\texttt{GHoleDomainf}, which represents the domain of a~surface
+filling a~polygonal hole, and returns its address. The memory blocks
+for this object and for all data pointed by the pointers in it are allocated
+by the procedure \texttt{malloc}.
+
+The parameter \texttt{hole\_k} specifies the number~$k$ of sides of the hole
+(must be from $3$ to~$16$).
+
+The parameter \texttt{hole\_knots} is an array with $11k$ floating point
+numbers --- knots of the surface and domain representation.
+
+The parameter \texttt{domain\_cp} is an array with $12k+1$ control points
+of the domain representation. The contents of the two arrays are copied
+to the arrays allocated by the procedure \texttt{gh\_CreateDomainf}.
+
+If a~sufficient memory cannot be allocated, or a~data error has been detected,
+the procedure returns \texttt{NULL}.
+
+The object just after the creation is not ready to use --- the procedure
+does not construct the basis necessary to obtain the filleting surfaces.
+These computations take some time, and it may be convenient to separate
+them from the creation of this object in an application.
+
+\vspace{\medskipamount}
+The procedure \texttt{gh\_DestroyDomainf} deallocates (using the procedure
+\texttt{free}) the memory occupied by the domain representation (which
+includes all memory blocks allocated while this representation was processed).
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_SetOptionProcf ( GHoleDomainf *domain, \\
+\ind{4}int (*OptionProc)( GHoleDomainf *domain, int query, int qn, \\
+\ind{23}int *ndata, int **idata, float **fdata ) );}
+The procedure \texttt{g2h\_SetOptionProcf} registers the application-supplied
+procedure, which selects options for the construction and transfers the
+necessary data. If this procedure is not called after creating the domain
+representation, the default procedure (which gives the default answer
+to all option queries) is used.
+
+This method of introducing options was chosen in order to fix the parameter
+lists of the library procedures, while the construction method was under
+development. The advantage is that an application not using nonstandard options
+does not have to call the library procedures with the parameters having no
+significance for that application.
+
+The principles of specifying options are described
+in~Section~\ref{ssect:g2h:options}.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_ComputeBasisf ( GHoleDomainf *domain );}
+The procedure \texttt{g2h\_ComputeBasisf} constructs the basis functions,
+which will be used to obtain surfaces filling polygonal holes in surfaces.
+The parameter points to the object created by \texttt{gh\_CreateDomainf}.
+The value \texttt{true} of the procedure indicates a~success, while
+\texttt{false} is returned in case of failure.
+
+If for the object passed as the parameter an option procedure has been
+registered, that procedure will be called a~number of times. The responses
+of this procedure affect the result of the computation (i.e.\ the form of
+the basis functions), which influences the surfaces filing the holes,
+constructed with use of this basis.
+
+The procedure \texttt{g2h\_ComputeBasisf} ought to be called only once for
+the domain reprezentation created by \texttt{gh\_CreateDomainf}.
+If it is necessary to construct bases for the same domain more than once
+(e.g.\ using various options), then the domain representation must be
+deallocated each time (by \texttt{gh\_DestroyDomainf}) and created again.
+
+The computations in this procedure take a~moderate amount of time, therefore
+they might be done as a~part of processing a~single message from the system
+in an interactive program. The delay involved should be unnoticeable for
+the user.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_ComputeFormMatrixf ( GHoleDomainf *domain ); \\
+boolean g2h\_DecomposeMatrixf ( GHoleDomainf *domain );}
+\begin{sloppypar}
+The procedure \texttt{g2h\_ComputeFormMatrixf} computes the coefficients
+of the matrices of the system of equations solved in order to construct
+the filleting surface \textbf{using the basic space}. The parameter
+of the procedure is the domain representation created by
+\texttt{gh\_CreateDomainf}, for which the procedure \texttt{g2h\_ComputeBasisf}
+has successfully constructed the representation of the basis functions.%
+\end{sloppypar}
+
+\vspace{\medskipamount}
+\begin{sloppypar}
+The procedure \texttt{g2h\_DecomposeMatrixf} decomposes (with use of the Cholesky
+method) the matrix computed by \texttt{g2h\_ComputeFormMatrixf}. If this
+matrix has not been computed yet, the procedure \texttt{g2h\_DecomposeMatrixf}
+begins with computing them, by calling \texttt{g2h\_ComputeFormMatrixf}.%
+\end{sloppypar}
+
+\vspace{\medskipamount}
+Both these procedures return \texttt{true} to indicate the success and
+\texttt{false} to indicate a~failure.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_FillHolef ( GHoleDomainf *domain, \\
+\ind{14}int spdimen, const float *hole\_cp, float *acoeff, \\
+\ind{14}void (*outpatch) ( int n, int m, const float *cp ) );}
+\begin{sloppypar}
+The procedure \texttt{g2h\_FillHolef} constructs a~surface filling the polygonal
+hole, \textbf{using the basic space}.%
+\end{sloppypar}
+
+\begin{sloppypar}
+The parameter \texttt{domain} points to a~domain representation created
+by the procedure \texttt{gh\_CreateDomainf}, for which the procedure
+\texttt{g2h\_ComputeBasisf} has constructed (successfully) the representation
+of the basis functions. The number~$k$ of the hole sides and the knot sequences,
+which are part of the surface representation, have been specified during
+the call to \texttt{gh\_CreateDomainf}.%
+\end{sloppypar}
+
+The parameter \texttt{spdimen} specifies the dimension~$d$ of the space,
+in which the surface resides. For a~polynomial surface in~$\R^3$, this
+parameter will have the value~$3$. For a~polynomial surface in~$\R^4$,
+being a~homogeneous representation of a~rational surface in~$\R^3$,
+this parameter will be~$4$.
+
+The parameter \texttt{hole\_cp} is an array with $(12k+1)d$ floating point
+numbers, being the coordinates of $12k+1$ control points of the surface.
+
+The parameter \texttt{acoeff} may be \texttt{NULL} (and then it is ignored),
+or it may point an array, in which the procedure will store the solution
+of the system of equations~(\ref{eq:g2h:Ritz:eq}). This array must have
+length at least $nd$, where $d$~is the space, in which the surface resides
+(i.e.\ the value of the parameter \texttt{spdimen}), and $n$~is
+the dimension of the basic space --- it may be obtained by calling the
+procedure \texttt{g2h\_V0SpaceDimf}.
+
+The parameter \texttt{outpatch} is a~pointer to the procedure (supplied
+by the application), which will be called $k$~times in order to output
+the control points of $k$~B\'{e}zier patches of degree~$(9,9)$, filling the
+hole.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_ComputeExtFormMatrixf ( GHoleDomainf *domain ); \\
+boolean g2h\_DecomposeExtMatrixf ( GHoleDomainf *domain );}
+\begin{sloppypar}
+The procedure \texttt{g2h\_ComputeExtFormMatrixf} computes the coefficients
+of the matrices of the system of equations solved in order to construct
+the filleting surface \textbf{using the extended space}. The parameter
+of the procedure is the domain representation created by
+\texttt{gh\_CreateDomainf}, for which the procedure \texttt{g2h\_ComputeBasisf}
+has successfully constructed the representation of the basis functions.%
+\end{sloppypar}
+
+\vspace{\medskipamount}
+\begin{sloppypar}
+The procedure \texttt{g2h\_DecomposeMatrixf} decomposes (with use of the Cholesky
+method) the matrix computed by \texttt{g2h\_ComputeExtFormMatrixf}. If this
+matrix has not been computed yet, the procedure \texttt{g2h\_DecomposeExtMatrixf}
+begins with computing them, by calling \texttt{g2h\_ComputeExtFormMatrixf}.%
+\end{sloppypar}
+
+\vspace{\medskipamount}
+Both these procedures return \texttt{true} to indicate the success and
+\texttt{false} to indicate a~failure.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_ExtFillHolef ( GHoleDomainf *domain, \\
+\ind{14}int spdimen, const float *hole\_cp, float *acoeff, \\
+\ind{14}void (*outpatch) ( int n, int m, const float *cp ) );}
+\begin{sloppypar}
+The procedure \texttt{g2h\_ExtFillHolef} constructs a~surface filling the
+polygonal hole, \textbf{using the extended space}.%
+\end{sloppypar}
+
+\begin{sloppypar}
+The parameter \texttt{domain} points to a~domain representation created
+by the procedure \texttt{gh\_CreateDomainf}, for which the procedure
+\texttt{g2h\_ComputeBasisf} has constructed (successfully) the representation
+of the basis functions. The number~$k$ of the hole sides and the knot sequences,
+which are part of the surface representation, have been specified during
+the call to \texttt{gh\_CreateDomainf}.%
+\end{sloppypar}
+
+The parameter \texttt{spdimen} specifies the dimension~$d$ of the space,
+in which the surface resides. For a~polynomial surface in~$\R^3$, this
+parameter will have the value~$3$. For a~polynomial surface in~$\R^4$,
+being a~homogeneous representation of a~rational surface in~$\R^3$,
+this parameter will be~$4$.
+
+The parameter \texttt{hole\_cp} is an array with $(12k+1)d$ floating point
+numbers, being the coordinates of $12k+1$ control points of the surface.
+
+The parameter \texttt{acoeff} may be \texttt{NULL} (and then it is ignored),
+or it may point an array, in which the procedure will store the solution  
+of the system of equations~(\ref{eq:g2h:Ritz:eq}). This array must have   
+length at least $nd$, where $d$~is the space, in which the surface resides
+(i.e.\ the value of the parameter \texttt{spdimen}), and $n$~is
+the dimension of the extended space --- it may be obtained by calling the
+procedure \texttt{g2h\_ExtV0SpaceDimf}.
+
+The parameter \texttt{outpatch} is a~pointer to the procedure (supplied
+by the application), which will be called $k$~times in order to output
+the control points of $k$~B\'{e}zier patches of degree~$(9,9)$, filling the
+hole.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+int g2h\_GetErrorCodef ( GHoleDomainf *domain, \\
+\ind{24}char **ErrorString );}
+The procedure \texttt{g2h\_GetErrorCodef} may be called in case of failure
+of some step of the construction, in order to find out what was the reason.
+The value returned is the error code. If the parameter \texttt{ErrorString}
+is not \texttt{NULL}, the variable \texttt{*ErrorString} after return
+points to a~character string, which is an error description.
+
+
+\section{\label{ssect:g2h:options}Entering options}
+
+The procedure \texttt{g2h\_SetOptionProcf} described in the previous section
+may register a~procedure (supplied by the application), which will ,,answer
+the queries'' about construction options to be used. This procedure has to
+have the following header
+(the names of the procedure and of the parameters may be different):
+
+\vspace{\medskipamount}
+\noindent{\ttfamily%
+int SetOptionf ( GHoleDomainf *domain, int query, int qn, \\
+\ind{17}int *ndata, int **idata, float **fdata );}
+
+\vspace{\medskipamount}
+During the construction of the basis this procedure will be called a~number
+of times. Its first parameter will point to the representation of domain
+of the surface being constructed. The second parameter (\texttt{query})
+is the number of option to be specified by the procedure. The parameter
+\texttt{qn} is an additional number, which will perhaps be necessary with
+options introduced in future versions of the library, and now it may be
+ignored.
+
+The value returned is interpreted as the answer to the query about the option
+to be used. Possible numbers of options (i.e.\ the values of the parameter
+\texttt{query}) and answers are symbolic constants, whose names begin
+respectively with \texttt{G2HQUERY\_} and \texttt{G2H\_}).
+They are listed below. The list may change in future versions
+of the library \texttt{libeghole}.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define G2H\_DEFAULT                    0 \\
+\mbox{} \\
+\#define G2HQUERY\_CENTRAL\_POINT         1 \\
+\#define G2H\_CENTRAL\_POINT\_GIVEN        1 \\
+\mbox{} \\
+\#define G2HQUERY\_CENTRAL\_DERIVATIVES1  2 \\
+\#define G2H\_CENRTAL\_DERIVATIVES1\_ALT   1 \\
+\#define G2H\_CENTRAL\_DERIVATIVES1\_GIVEN 2 \\
+\mbox{} \\
+\#define G2HQUERY\_DOMAIN\_CURVES         3 \\
+\#define G2H\_DOMAIN\_CURVES\_DEG4         1 \\
+\mbox{} \\
+\#define G2HQUERY\_BASIS                 4 \\
+\#define G2H\_USE\_RESTRICTED\_BASIS       1}
+After each call, the option procedure may return the value
+\texttt{G2H\_DEFAULT}. In particular, this is the value, which must be returned
+for each option (indicated by the parameter \texttt{query}) not recognized
+by the procedure. This will give the application a~chance of working
+correctly after recompilation with future versions of the library.
+
+If the parameter \texttt{query} is equal to \texttt{G2HQUERY\_CENTRAL\_POINT},
+then the answer (i.e.\ the value returned) \texttt{G2H\_DEFAULT} will cause
+taking the central point of the domain (i.e.\ the common corner of the
+areas, to which the domain will be divided) at the gravity centre of the
+domain edge midpoints (this is the construction described in the papers).
+If the value returned is \texttt{G2H\_CENTRAL\_POINT\_GIVEN}, then
+the variable \texttt{*ndata} must be assigned the value~$2$, and
+the variable \texttt{*fdata} must point to the array with two floating point
+numbers, being the coordinates of the central point given by the application.
+
+If the value of the parameter \texttt{query} is
+\texttt{G2HQUERY\_CENTRAL\_DERIVATIVES1} and the procedure returns the value
+\texttt{G2H\_DEFAULT}, then the first order derivative vectors of the domain
+division curves and the cross derivative vectors of the auxiliary domain
+patches will be constructed as described in the articles.
+Returning \texttt{G2H\_CENTRAL\_DERIVATIVES\_ALT} will cause taking
+the curve derivatives as before, and the cross derivative vectors will be
+orthogonal to the curve derivatives. Returning
+\texttt{G2H\_CENTRAL\_DERIVATIVES\_GIVEN} means that the application
+produced the curve derivatives at the central point. The variable
+\texttt{*ndata} must then have the value $2k$ (for a~$k$-sided hole), and
+the table pointed by the variable \texttt{*fdata} must consist of $2k$
+floating point numbers. The consecutive pairs are the coordinates of the
+first order derivative vectors of the consecutive curves.
+
+The parameter \texttt{query} equal to \texttt{G2HQUERY\_DOMAIN\_CURVES} denotes
+the query for the method of constructing derivatives of domain division curves
+of order higher than~$1$. In response to this query \texttt{G2H\_DEFAULT}
+should be returned, which will cause taking zero derivatives of order
+$2$, $3$ and~$4$. Other options for this step of construction are still
+under development and need not work correctly.
+
+If the value of the parameter \texttt{query} is equal to
+\texttt{G2HQUERY\_BASIS}, then returning \texttt{G2H\_DEFAULT} enables all
+degrees of freedom of choice of partial derivatives of the patches filling
+the hole at their common point (their number is the dimension of the basic
+space). Depending on the number of hole sides and the division of the domain,
+their number may range from $16$ to $30$ (for holes with three to eight sides).
+Returning \texttt{G2H\_USE\_RESTRICTED\_BASIS} causes restricting the number
+of degrees of freedom to~$15$ (i.e.\ to the dimension of the space of
+bivariate polynomials of degree up to~$4$).
+
+
+\section{\label{sect:g2h:constraints}Imposing constraints}
+
+\cprog{%
+int g2h\_V0SpaceDimf ( GHoleDomainf *domain ); \\
+int g2h\_ExtV0SpaceDimf ( GHoleDomainf *domain );}
+\hspace*{\parindent}The procedures \texttt{g2h\_V0SpaceDimf}
+and~\texttt{g1h\_ExtV0SpaceDimf}
+compute respectively the dimensions of the basic and extended space, used
+in the constructions of surfaces filling the hole.
+The parametr \texttt{domain} must point to the domain record, for which the
+basis of the basic space has successfully been constructed.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_GetBPDerivativesf ( GHoleDomainf *domain, \\
+\ind{32}int cno, float *val );}
+The procedure \texttt{g1h\_GetBPDerivativesf} evaluates the basis functions
+(of the basic space) at the central point and the derivatives of order
+$1,\ldots,4$ of the boundary curves of the basis function patches.
+The number of the curve is specified by the parameter~\texttt{cno}
+(it must be from~$0$ to~$k-1$).
+The values computed are stored in the array \texttt{val}, of length~$5n$,
+where $n$ id the dimension of the basic space. Subsequent five-tuples of numbers
+stored in this array correspond to the subsequent basis functions.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_GetBFuncPatchf ( GHoleDomainf *domain, \\
+\ind{29}int fn, int pn, float *bp );}
+The procedure \texttt{g1h\_GetBFuncPatchf} evaluates and stores in the
+array~\texttt{bp} the coefficients
+of the $j$-th patch of the $i$-th basis function. The parameter~\texttt{fn}
+specifies the number~$i\in\{0,\ldots,n-1\}$ of the basis function,
+and~\texttt{pn} specifies the number~$j\in\{0,\ldots,k-1\}$ of its patch.
+This procedure may be useful, when the constraints imposed on the surface
+are not interpolation conditions at the central point of the surface.
+
+The basis function patches are bivariate polynomials of degree
+\texttt{G2H\_FINALDEG} with respect to each variable. Their coefficients
+represent the patches in the tensor product Bernstein basis.
+
+%\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_SetConstraintMatrixf ( GHoleDomainf *domain, \\
+\ind{34}int nconstr, const float *cmat );}
+The procedure \texttt{g2h\_SetConstraintMatrixf} associates with the domain
+of the surface a~matrix of the system of equations, which describe constraints
+imposed on the surface. The parameter \texttt{nconstr} is the number of
+constraints (i.e.\ equations), which is the number of rows of the matrix.
+The number of columns is the dimension of the basic space.
+Subsequent rows must be given in the array \texttt{cmat}. They have to be
+linearly independent.
+
+The procedure returns \texttt{true} in case of success, and \texttt{false}
+if the matrix is not rowwise-regular.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_FillHoleConstrf ( GHoleDomainf *domain, \\
+\ind{14}int spdimen, const float *hole\_cp, \\
+\ind{14}int nconstr, const float *constr, \\  
+\ind{14}float *acoeff, \\
+\ind{14}void (*outpatch) ( int n, int m, const float *cp ) );}
+The procedure \texttt{g1h\_FillHoleConstrf} constructs a~surface filling the
+hole, which satisfies the constraints imposed on it, with use of the
+basic space. Before calling it, the matrix of the constraint equations
+must be speficied (this fixes also the number of constraints).
+The parameters \texttt{domain}, \texttt{spdimen},
+\texttt{hole\_cp}, \texttt{acoeff} and~\texttt{outpatch} have the same meaning as
+for the procedure \texttt{g2h\_FillHolef}. The patameter \texttt{nconstrf}
+specifies the number of constraints (it must match with the number given
+at the call of \texttt{g2h\_SetConstraintMatrixf}. The array \texttt{constr}
+contains the right-hand side matrix of the constraint equations
+--- \texttt{nconstr} rows, each with \texttt{spdimen} numbers.
+
+The change of constraints (both the left-~and the right-hand side
+may be done without reconstructing the domain record. To modify the constraints,
+it suffices to call again \texttt{g2h\_SetConstraintMatrixf}
+and~\texttt{g1h\_FillHoleConstrf}.
+
+\vspace{\bigskipamount}
+\cprog{% 
+boolean g2h\_SetAltConstraintMatrixf ( GHoleDomainf *domain, \\
+\ind{20}int spdimen, \\
+\ind{20}int nconstr, const float *cmat );}
+\begin{sloppypar}
+The procedure \texttt{g2h\_SetAltConstraintMatrixf} enters the matrix~$C$
+of the system of constraint equations~(\ref{eq:alt:constraints})
+for the construction with the basic space. The matrix has dimensions $nd\times w$,
+where~$n$ is the space dimension (it may be obtained by calling the procedure
+\texttt{g2h\_V0SpaceDimf}), $d$~is the dimension of the space, in which
+the surface is located (e.g.~$3$), and $w$~is the number of constraints.%
+\end{sloppypar}
+
+The parameter \texttt{spdimen} specifies the dimension~$d$, the parameter
+\texttt{nconstr} specifies the number of knots. The coefficients of the matrix~$C$
+are given it the array~\texttt{cmat}. The pitch of this array is
+equal to the length of its row, i.e.~$nd$. The matrix~$C$ must be
+rowwise regular.
+
+The return value \texttt{true} of the procedure
+\texttt{g2h\_SetAltConstraintMatrixf} signalls the rowwise regularity of the
+matrix. The value \texttt{false} means that the matrix is not regular
+(i.e.\ the numerical procedure classified the matrix as one with linearly dependent
+rows) and it is not suitable for the construction.
+
+\vspace{\bigskipamount}
+\cprog{% 
+boolean g2h\_FillHoleAltConstrf ( GHoleDomainf *domain, \\                 
+\ind{10}int spdimen, const float *hole\_cp, \\                             
+\ind{10}int naconstr, const float *constr, \\          
+\ind{10}float *acoeff, \\
+\ind{10}void (*outpatch) ( int n, int m, const float *cp ) );}
+\begin{sloppypar}
+The procedure \texttt{g2h\_FillHoleAltConstrf} constructs thhe filling surface
+being the minimal point of the functional~$F_c$ in the set of surfaces
+representable with use of the basic space and satisfying the constraint
+equations~(\ref{eq:alt:constraints}).  
+The matrix~$C$ of this system of equations must be entered before the call to this
+procedure.%
+\end{sloppypar}
+
+The parameter \texttt{spdimen} specifies the dimension~$d$ of the space, in
+which the surface is located. The array \texttt{hole\_cp} contains the control
+points of this surface. The parameter \texttt{naconstr} specifies the number
+of constraints~$w$. In the array \texttt{constr} one has to supply the
+coefficients of the right hand side vector of the system of constraint equations
+($w$~numbers). The numbers~$d$ and~$w$ must agree with the values of the appropriate
+parameters of the preceding call to \texttt{g2h\_SetAltConstraintMatrixf}.
+
+If the parameter \texttt{acoeff} is not~\texttt{NULL}, then it has to point
+to an array, in which the procedure will store the vectors
+$\bm{a}_0,\ldots,\bm{a}_{n-1}$ obtained by the optimisation.
+The procedure pointed by the parameter \texttt{output} will be called
+$k$~times in order to output the result of the construction, i.e.\ the
+B\'{e}zier patches filling the hole.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_SetExtConstraintMatrixf ( GHoleDomainf *domain, \\
+\ind{34}int nconstr, const float *cmat );}
+The procedure \texttt{g2h\_SetExtConstraintMatrixf} associates with the domain   
+of the surface a~matrix of the system of equations, which describe constraints
+imposed on the surface. The parameter \texttt{nconstr} is the number of  
+constraints (i.e.\ equations), which is the number of rows of the matrix.
+The number of columns is the dimension of the extended space.
+Subsequent rows must be given in the array \texttt{cmat}. They have to be
+linearly independent.
+
+The procedure returns \texttt{true} in case of success, and \texttt{false}
+if the matrix is not rowwise-regular.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_ExtFillHoleConstrf ( GHoleDomainf *domain, \\
+\ind{14}int spdimen, const float *hole\_cp, \\
+\ind{14}int nconstr, const float *constr, \\  
+\ind{14}float *acoeff, \\
+\ind{14}void (*outpatch) ( int n, int m, const float *cp ) );}
+The procedure \texttt{g1h\_ExtFillHoleConstrf} constructs a~surface filling the
+hole, which satisfies the constraints imposed on it, with use of the  
+extended space. Before calling it, the matrix of the constraint equations
+must be speficied (this fixes also the number of constraints).
+The parameters \texttt{domain}, \texttt{spdimen},
+\texttt{hole\_cp}, \texttt{acoeff} and~\texttt{outpatch} have the same meaning as
+for the procedure \texttt{g2h\_ExtFillHolef}. The patameter \texttt{nconstrf}
+specifies the number of constraints (it must match with the number given
+at the call of \texttt{g2h\_SetExtConstraintMatrixf}. The array \texttt{constr}
+contains the right-hand side matrix of the constraint equations
+--- \texttt{nconstr} rows, each with \texttt{spdimen} numbers.
+
+The change of constraints (both the left-~and the right-hand side
+may be done without reconstructing the domain record. To modify the constraints,
+it suffices to call again \texttt{g2h\_SetExtConstraintMatrixf}
+and~\texttt{g1h\_ExtFillHoleConstrf}.
+
+The constraints for the basic and extended space are specified independently.
+
+\vspace{\bigskipamount}
+\cprog{% 
+boolean g2h\_SetExtAltConstraintMatrixf ( GHoleDomainf *domain, \\
+\ind{20}int spdimen, \\
+\ind{20}int nconstr, const float *cmat );}
+\begin{sloppypar}
+The purpose of the procedure \texttt{g2h\_SetExtAltConstraintMatrixf} is
+to enter the matrix~$C$ of the system of constraint
+equations~(\ref{eq:alt:constraints}) for the constructions of the filling
+surface represented with use of the extended space. The dimensions of
+this matrix are~$nd\times w$, where $n$ is the dimension of the extended
+space, $d$~is the dimension of the space in which the surface is located
+(e.g.~$3$), and the number of rows~$w$ is the number of constraints.%
+\end{sloppypar}
+
+Parameters: \texttt{spdimen} --- dimension~$d$, \texttt{naconstr} --- number
+of constraints~$w$, \texttt{acmat} --- array of coefficients of the matrix~$C$.
+This matrix has the pitch equal to the row length, i.e.~$nd$.
+
+The matrix~$C$ may be divided into blocks $C_0,\ldots,C_{d-1}$, whose dimensions
+are $w\times d$. If the constraints are imposed on a~surface, which minimises
+the functional~$F_d$, then it must be $d=3$. In each row of the each block
+the first $16k$~coefficients must be zeros, and the rows of the matrix~$C$
+must be linearly independent. This limitation is a~consequence of
+a~numerical method used in the construction.
+
+The return vaalue \texttt{true} signalls the acceptance of the matrix,
+and  \texttt{false} means that by the numerical computation the rows of
+the matrix are considered linearly dependent.
+
+\vspace{\bigskipamount}
+\cprog{% 
+boolean g2h\_ExtFillHoleAltConstrf ( GHoleDomainf *domain, \\
+\ind{10}int spdimen, const float *hole\_cp, \\             
+\ind{10}int naconstr, const float *constr, \\              
+\ind{10}float *acoeff, \\
+\ind{10}void (*outpatch) ( int n, int m, const float *cp ) );}
+The procedure \texttt{g2h\_ExtFillHoleAltConstrf} constructs the surface
+filling the hole, which is the minimal point of the functional~$F_c$ in the set
+of surfaces satisfying the constraint equations having the
+form~(\ref{eq:alt:constraints}).
+The matrix of this system must be entered by a~preceding call to the procedure
+\texttt{g2h\_SetExtAltConstraintsf}.
+
+The parameters \texttt{spdimen} and~\texttt{naconstr} specify the dimension~$d$
+of the space containing the surface and the number of constraints~$w$.
+These numbers must match the values of parameters of the preceding call to
+\texttt{g2h\_SetExtAltConstraintsf}. In the array \texttt{hole\_cp} one has
+to specify the coordinates of the control points of the surface.
+In the array \texttt{constr} there must be the coefficients of the right hand side
+of the system~(\ref{eq:alt:constraints}). If the parameter \texttt{acoeff} is
+not~\texttt{NULL}, then it must point to an array, in which the vectors
+$\bm{a}_0,\ldots,\bm{a}_{n-1}$ will be stored.
+The parameter \texttt{outpatch} points to a~procedure called in order to
+output the construction result in the form of B\'{e}zier patches.
+
+The return value \texttt{true} indicates the success of the construction,
+while~\texttt{false} signalls failure.
+
+\vspace{\bigskipamount}
+\cprog{%
+float g2h\_FunctionalValuef ( GHoleDomainf *domain, int spdimen, \\
+\ind{23}const float *hole\_cp, const float *acoeff ); \\
+float g2h\_ExtFunctionalValuef ( GHoleDomainf *domain, int spdimen, \\
+\ind{23}const float *hole\_cp, const float *acoeff );}
+The procedures \texttt{g2h\_FunctionalValuef} and \texttt{g2h\_ExtFunctionalValuef}
+compute the values of the functional~$F_c$ for a~filling surface
+given by the control points given in the array \texttt{hole\_cp}
+and the vectors $\bm{a}_0,\ldots,\bm{a}_{n-1}$ given in the array~\texttt{acoeff},
+being respectively the coefficients of the representation
+using the basic and the extended space.
+
+After constructing the surface with any of the procedures described here or in
+the next section, one may call one of the above procedures. To do this, it is
+necessary to allocate an array long enough to accomodate $dn$ \texttt{float}
+numbers, where $d$~id the dimension of the space with the surface
+and~$n$ is the dimension of the space~$V_0$, pass this array as the
+parameter \texttt{acoeff} to the construction procedure, and then
+pass it to the procedure computing the functional value.
+
+
+\subsection{Filling holes with B-spline patches}
+
+\cprog{%
+\#define G2H\_S\_MAX\_NK  4 \\
+\#define G2H\_S\_MAX\_M1  3 \\
+\#define G2H\_S\_MAX\_M2  7}  
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_ComputeSplBasisf ( GHoleDomainf *domain, \\
+\ind{31}int nk, int m1, int m2 );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_ComputeSplFormMatrixf ( GHoleDomainf *domain ); \\
+boolean g2h\_DecomposeSplMatrixf ( GHoleDomainf *domain );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_SplFillHolef ( GHoleDomainf *domain, \\
+\ind{11}int spdimen, const float *hole\_cp, \\
+\ind{11}float *acoeff, \\
+\ind{11}void (*outpatch) ( int n, int lknu, const float *knu, \\
+\ind{30}int m, int lknv, const float *knv, \\
+\ind{30}const float *cp ) );}
+
+\vspace{\bigskipamount}
+
+
+\section{Nonlinear constructions procedures}
+
+The procedures described in this section construct the filling surface
+by minimisation of the functional~$F_d$. The feasibility of those constructions
+depends on the given surface with the hole. The constructions are
+also more time consuming. The surface must be located in~$\R^3$ (therefore
+it cannot be e.g.\ a~homogeneous representation of a~rational surface).
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_ComputeNLNormalf ( GHoleDomainf *domain, \\
+\ind{31}const point3f *hole\_cp, \\
+\ind{31}vector3f *anv );}
+The procedure \texttt{g2h\_ComputeNLNormalf} constructs the unit vector
+of one of the axes of the coordinate system, in which the surface
+will be represented during the construction; the given surface and the
+filling surface are supposed to form a~graph od a~scalar function
+of two variables in this system. The input parameters are \texttt{domain} ---
+pointer to the domain representation and \texttt{hole\_cp} --- array
+of control points of the surface.
+The parameter \texttt{anv} points to the variable, in which the result is
+stored.
+
+The return value \texttt{true} indicates success, and~\texttt{false} ---
+lack of success (if the surface determined by the given control points is
+not flat enough). The procedure \texttt{g2h\_ComputeNLNormalf} in principle is
+not intended to be called from applications.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_NLFillHolef ( GHoleDomainf *domain, \\
+\ind{12}const point3f *hole\_cp, float *acoeff, \\
+\ind{12}void (*outpatch) ( int n, int m, const point3f *cp ) );}
+The procedure~\texttt{g2h\_NLFillHolef} constructs the filling surface,
+being the minimal point of the functional~$F_d$ in the basic space, without
+constraints. This procedure corresponds to \texttt{g2h\_FillHolef}
+and it has the same parameters except for \texttt{spdimen}.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_NLFillHoleConstrf ( GHoleDomainf *domain, \\
+\ind{12}const point3f *hole\_cp, \\
+\ind{12}int nconstr, const vector3f *constr, \\
+\ind{12}float *acoeff, \\
+\ind{12}void (*outpatch) ( int n, int m, const point3f *cp ) );}
+\begin{sloppypar}
+The procedure\texttt{g2h\_NLFillHoleConstrf} constructs the filling surface,
+which minimises the functional~$F_d$ in the basic space, with constraints
+described by the systemw~przestrzeni~(\ref{eq:constraints}). This procedure
+corresponds to \texttt{g2h\_FillHoleConstrf}.%
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_NLFillHoleAltConstrf ( GHoleDomainf *domain, \\
+\ind{12}const point3f *hole\_cp, \\
+\ind{12}int nconstr, const float *constr, \\
+\ind{12}float *acoeff, \\
+\ind{12}void (*outpatch) ( int n, int m, const point3f *cp ) );}
+The procedure \texttt{g2h\_NLFillHoleAltConstrf} constructs the filling surface,
+which minimises the functional~$F_d$ in the basic space with constraints
+described by the system~(\ref{eq:alt:constraints}). It corresponds to
+\texttt{g2h\_FillHoleAltConstrf}.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_NLExtFillHolef ( GHoleDomainf *domain, \\
+\ind{12}const point3f *hole\_cp, \\
+\ind{12}float *acoeff, \\
+\ind{12}void (*outpatch) ( int n, int m, const point3f *cp ) );}
+The procedure~\texttt{g2h\_NLExtFillHolef} constructs the filling surface,
+being the minimal point of the functional~$F_d$ in the extended space, without
+constraints. This procedure corresponds to \texttt{g2h\_ExtFillHolef}
+and it has the same parameters except for \texttt{spdimen}.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_NLExtFillHoleConstrf ( GHoleDomainf *domain, \\
+\ind{12}const point3f *hole\_cp, \\
+\ind{12}int nconstr, const vector3f *constr, \\
+\ind{12}float *acoeff, \\
+\ind{12}void (*outpatch) ( int n, int m, const point3f *cp ) );}
+\begin{sloppypar}
+The procedure \texttt{g2h\_NLExtFillHoleConstrf} constructs the filling surface,
+which minimises the functional~$F_d$ in the extended space, with constraints
+described by the system~(\ref{eq:constraints}). This procedure
+corresponds to \texttt{g2h\_ExtFillHoleConstrf}.%
+\end{sloppypar}
+
+The matrix~$C$ (entered by \texttt{g2h\_SetExtConstraintMatrixf})
+allowed for the construction done by this procedure
+must have the first $16k$ coefficients of each row equal to~$0$.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_NLExtFillHoleAltConstrf ( GHoleDomainf *domain, \\
+\ind{12}const point3f *hole\_cp, \\
+\ind{12}int naconstr, const float *constr, \\
+\ind{12}float *acoeff, \\
+\ind{12}void (*outpatch) ( int n, int m, const point3f *cp ) );}
+The procedure \texttt{g2h\_NLExtFillHoleAltConstrf} constructs the filling
+surface, which minimises the functional~$F_d$ in the extended space with
+constraints described by the system~(\ref{eq:alt:constraints}). It corresponds
+to \texttt{g2h\_ExtFillHoleAltConstrf}.
+
+The blocks~$C_0,C_1,C_2$ of the matrix~$C=[C_0,C_1,C_2]$ allowed for the
+construction done by this procedure (entered by
+\texttt{g2h\_SetExtAltConstraintMatrixf}) must have the first $16k$ coefficients
+of each row equal to~$0$.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_NLFunctionalValuef ( GHoleDomainf *domain, \\
+\ind{33}const point3f *hole\_cp, \\
+\ind{33}const vector3f *acoeff, \\
+\ind{33}float *funcval );}
+The procedure \texttt{g2h\_NLFunctionalValuef} computes the value of
+the functional $F_d$ for a~surface represented by
+the control points goven in the array~\texttt{hole\_cp} and the vectors
+$\bm{a}_0,\ldots,\bm{a}_{n-1}$ (coefficients in the basic space basis).
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_NLExtFunctionalValuef ( GHoleDomainf *domain, \\
+\ind{30}const point3f *hole\_cp, \\
+\ind{30}const vector3f *acoeff, \\
+\ind{30}float *funcval );}
+The procedure \texttt{g2h\_NLExtFunctionalValuef} computes the value of
+the functional~$F_d$ for a~surface represented by
+the control points goven in the array~\texttt{hole\_cp} and the vectors
+$\bm{a}_0,\ldots,\bm{a}_{n-1}$ (coefficients in the extended space basis).
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_NLSplFillHolef ( GHoleDomainf *domain, \\
+\ind{10}const point3f *hole\_cp, \\
+\ind{10}float *acoeff, \\
+\ind{10}void (*outpatch) ( int n, int lknu, const float *knu, \\
+\ind{29}int m, int lknv, const float *knv, \\
+\ind{29}const point3f *cp ) );}
+
+\vspace{\bigskipamount}
+
+\section{Visualisation procedures}
+
+The name ``visualisation procedures'' concerns the procedures, which extract
+various data from the domain record. These data may be used to get insight
+into the construction, by showing them on various pictures.
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_DrawDomSurrndPatchesf ( GHoleDomainf *domain, \\
+\ind{10}void (*drawpatch) ( int n, int m, const point2f *cp ) );}
+The procedure \texttt{g2h\_DrawDomSurrndPatchesf} extracts the B\'{e}zier
+representations of bicubic patches surrounding the domain, i.e.\ the
+polynomial pieces of the B-spline patches represented by the knots
+and domain control points specified when the domain record has been
+created.
+
+The parameter \texttt{domain} points to the domain record, the parameter
+\texttt{drawpatch} is a~pointer to the procedure, which for a~$k$-sided hole
+will be called $3k$~times, with the parameters representing consecutive
+domain surrounding patches.
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_DrawDomAuxPatchesf ( GHoleDomainf *domain, \\
+\ind{10}void (*drawpatch) ( int n, int m, const point2f *cp ) );}
+The procedure \texttt{g2h\_DrawDomAuxPatchesf} extracts the B\'{e}zier
+representations of the domain auxiliary patches. The parameter \texttt{domain}
+points to the domain record, and the parameter \texttt{drawpatch} points
+to the procedure to be called $k$~times in order to output the
+subsequent patches.
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_DrawBasAuxPatchesf ( GHoleDomainf *domain, int fn, \\
+\ind{10}void (*drawpatch) ( int n, int m, const float *cp ) );}
+The procedure \texttt{g2h\_DrawBasAuxPatchesf} extracts the B\'{e}ziera
+reprezentations of the basis function auxiliary patches. These are
+bivariate polynomials, for each basis function of the basic space
+there are $k$ such polynomials. The dimension~$n$ of this space
+may be obtained by calling the procedure \texttt{g2h\_V0SpaceDimf}.
+
+The parameter \texttt{domain} points to the domain record, the parameter
+\texttt{fn} is the number of the basis function (its value must be from~$0$
+to~$n-1$), the parameter \texttt{drawpatch} points to the procedure, which
+will be called $k$~times in order to output the subsequent auxiliary patches
+of the basis function, whose number is~\texttt{fn}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_DrawJFunctionf ( GHoleDomainf *domain, int i, int l, \\
+\ind{10}void (*drawpoly) ( int deg, const float *f ) );}
+The procedure \texttt{g2h\_DrawJFunctionf} extracts the coefficients
+(in the Bernstein basis of the appropriate degree) of a~junction function
+used to construct the basis functions. For each subarea~$\varOmega_i$
+of the domain there are~$16$ such polynomials.
+
+The parameter \texttt{domain} points to the domain record. The parameter~\texttt{i}
+is the number of the subarea (it must be from~$0$ to~$k-1$), the
+parameter~\texttt{l} identifies the junction function to be output
+by the procedure pointed by the parameter~\texttt{drawpoly}.
+
+The value of the parameter~\texttt{l} from~$0$ to~$15$ selects one of the
+sixteen junction functions, and from~$16$ to~$27$ the product of appropriate
+functions, used in the construction. For the information about numbering
+the junction functions, refer to the procedure source code.
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_DrawDiPatchesf ( GHoleDomainf *domain, \\
+\ind{10}void (*drawpatch) ( int n, int m, const point2f *cp ) );}
+\begin{sloppypar}
+The procedure \texttt{g2h\_DrawDiPatchesf} extracts the B\'{e}zier
+representations of degree~$(9,9)$ of the domain patches. The parameter
+\texttt{domain} points to the domain record, and the parameter
+\texttt{drawpatch} points to the procedure to be called $k$~times,
+in order to output the subsequent patches.%
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_ExtractPartitionf ( GHoleDomainf *domain, \\
+\ind{10}int *hole\_k, int *hole\_m, \\
+\ind{10}float *partition, float *part\_delta, float *spart\_alpha, \\
+\ind{10}float *spart\_malpha, float *spart\_salpha, \\
+\ind{10}float *spart\_knot, float *alpha0, \\
+\ind{10}boolean *spart\_sgn, boolean *spart\_both );}
+The procedure \texttt{g2h\_ExtractPartitionf} extracts the information
+about the the partition of the full angle at the central point of the
+domain~$\varOmega$, divided into subareas~$\varOmega_i$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_ExtractCentralPointf ( GHoleDomainf *domain, \\
+\ind{26}point2f *centp, vector2f *centder );}
+The procedure \texttt{g2h\_ExtractCentralPointf} extracts the central point
+of the domain and the first order derivatives of the domain division curves
+at the central point.
+
+The parameter \texttt{domain} points to the domain record, the parameter
+\texttt{centp} points to the variable, to which the central point is to be
+assigned, and the parameter \texttt{centder} is an array of length~$k$,
+in which the derivative vectors will be stored.
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_DrawBasAFunctionf ( GHoleDomainf *domain, int fn, \\
+\ind{10}void (*drawpatch) ( int n, int m, const point3f *cp ) );}
+The procedure \texttt{g2h\_DrawBasAFunctionf} may be used to obtain the
+information about the basis function, whose number is
+\texttt{fn}$\in\{0,\ldots,n'-1\}$. The procedure
+\texttt{*drawpatch} is called $k$~times, each time its parameters describe
+one of the domain patches (the coordinates $x$, $y$ of the points in the
+array~\texttt{cp}) and the corresponding basis function patch
+(the $z$ coordinate). The parameters of this procedure describe the degree
+and the B\'{e}zier control ppoints in the array~\texttt{cp}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_DrawBasBFunctionf ( GHoleDomainf *domain, int fn, \\
+\ind{10}void (*drawpatch) ( int n, int m, const point3f *cp ) );}
+The procedure \texttt{g2h\_DrawBasBFunctionf} may be used to obtain the
+information about the basis function, whose number is
+\texttt{fn}$\in\{n,\ldots,n+m-1\}$.
+The procedure \texttt{*drawpatch}, called to pass this information, is called
+in the same way as the procedure passed to \texttt{g2h\_DrawBasAFunctionf} 
+(and it may be just the same procedure).
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_DrawBasCNetf ( GHoleDomainf *domain, int fn, \\
+\ind{10}void (*drawnet) ( int n, int m, const point3f *cp ) );}
+The procedure \texttt{g2h\_DrawBasCNetf} may be used to obtain the B-spline
+control nets representing the functions $\varphi_i$ for $i=$\texttt{fn}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_DrawMatricesf ( GHoleDomainf *domain, \\
+\ind{10}void (*drawmatrix)(int nfa, int nfb, \\
+\ind{29}float *amat, float *bmat) );}
+The procedure \texttt{g2h\_DrawMatricesf} extracts the matrices $A$
+and $B$ of the system of equations~(\ref{eq:g2h:Ritz:eq}),
+for the basic space basis. As the matrix~$A$ is symmetric,
+its representation is packed, as described in
+Section~\ref{sect:packed:sym:array}.
+
+The parameter~\texttt{drawmatrix} points to a~procedure to be called
+with the parameters describing the matrices; \texttt{nfa} is the number
+of rows of both matrices and the number of columns of~$A$.
+The parameter~\texttt{nfb} id the number of columns of the matrix~$B$.
+The parameters \texttt{amat} and \texttt{bmat}
+are arrays with the coefficients.
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_DrawExtMatricesf ( GHoleDomainf *domain, \\
+\ind{11}void (*drawmatrix)(int k, int r, int s, \\
+\ind{30}float *Aii, float *Aki, float *Akk, \\
+\ind{30}float *Bi, float *Bk) );}
+The procedure \texttt{g2h\_DrawMatricesf} may be used to obtain the matrices
+$A$ and $B$ of the system of equations~(\ref{eq:g2h:Ritz:eq}),
+for the basis of the extended space. The matrix~$A$ is symmetric, it has
+the block structure, which may be (and is) represented as described
+in Section~\ref{sect:block:sym:array}. The matrix~$B$ is full, it is represented
+in a~block form.
+
+The parameter~\texttt{drawmatrix} points to a~procedure, which will be called
+with the parameters describing the matrices; its parameters
+\texttt{k}, \texttt{r} and~\texttt{s} describe the number ans sizes of
+the blocks of the matrix~$A$. In the arrays \texttt{Aii}, \texttt{Aki} and
+\texttt{Akk} there are coefficients of~$A$, and the coefficients of~$B$
+are given in the arrays \texttt{Bi} and~\texttt{Bk}.
+
+\vspace{\bigskipamount}
+\cprog{%
+int g2h\_DrawBFcpnf ( int hole\_k, unsigned char *bfcpn );}
+The procedure \texttt{g2h\_DrawBFcpnf} stores in the array~\texttt{bfcpn}
+the indexes of these control points of the surface (and domain), which are
+relevant for the shape of the domain and the hole in the surface,
+and the tangent planes and curvatures at the hole boundary.
+The total number of the control points for a~$k$-sided hole is
+$12k+1$, and there are $6k+1$ relevant ones; they are marked by black
+dots in Figure~\ref{fig:domain:cnet}. The ordering of the numbers
+corresponds to the ordering of the basis functions
+$\phi_n,\ldots,\phi_{n+m-1}$.
+
+The return value is $6k+1$.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_GetFinalPatchCurvesf ( GHoleDomainf *domain, \\
+\ind{10}int spdimen, const float *hole\_cp, float *acoeff, \\                            
+\ind{10}void (*outcurve) ( int n, const float *cp ) ); \\                                
+boolean g2h\_GetExtFinalPatchCurvesf ( GHoleDomainf *domain, \\
+\ind{10}int spdimen, const float *hole\_cp, float *acoeff, \\                            
+\ind{10}void (*outcurve) ( int n, const float *cp ) ); \\                                
+boolean g2h\_GetSplFinalPatchCurvesf ( GHoleDomainf *domain, \\
+\ind{10}int spdimen, const float *hole\_cp, float *acoeff, \\                            
+\ind{10}void (*outcurve) ( int n, int lkn, \\                                      
+\ind{20}const float *kn, const float *cp ) );}                                           
+

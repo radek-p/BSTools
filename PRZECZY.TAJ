@@ -1,0 +1,33 @@
+
+1. Procedury w C zawarte w bibliotekach
+
+   libbsfile
+   libpkvaria
+   libpknum
+   libpkgeom
+   libcamera
+   libmultibs
+   libbsmesh
+   libg1blending
+   libg2blending
+   libraybez
+   libpsout
+   libeghole
+   libxgedit
+
+   moga byc wykorzystywane w programach graficznych i innych.
+   Mozna w nich dokonywac zmian i rozpowszechniac je dalej,
+   na zasadach Mniejszej Licencji GNU, tj. z pelnym kodem zrodlowym
+   (szczegoly w pliku COPYING.LIB).
+
+   Programy testowe i demonstracyjne podlegaja pelnej Licencji GNU
+   (plik COPYING).
+
+2. Obecna wersja bibliotek jest wstepna i wiele jeszcze sie w nich
+   zmieni. Osoby, ktore chcialyby dolozyc swoja cegielke proszone
+   sa o kontakt ze mna; po zbadaniu i zaakceptowaniu otrzymanego kodu
+   podejme kroki zwiazane z dolaczeniem go do bibliotek
+   i udostepnieniem nowej wersji.
+
+   Przemyslaw Kiciak,
+   przemek@mimuw.edu.pl

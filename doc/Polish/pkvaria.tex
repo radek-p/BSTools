@@ -1,0 +1,887 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{Biblioteka \texttt{libpkvaria}}
+
+Nag"l"owki procedur z~biblioteki \texttt{libpkvaria} s"a opisane w~pliku
+\texttt{pkvaria.h}.
+
+\section{R"o"rne drobiazgi}
+
+\cprog{%
+\#define false\ind{2}0 \\
+\#define true\ind{3}1 \\
+\#define EXP1\ind{3}2.7182818284590452353 \\
+\#define PI\ind{5}3.1415926535897932384 \\
+\#define SQRT2\ind{2}1.4142135623730950488 \\
+\#define SQRT3\ind{2}1.7320508075688772935 \\
+\mbox{} \\
+typedef unsigned char boolean; \\
+typedef unsigned char byte;}
+\hspace*{\parindent}
+Je"sli jaka"s dana jest boolowska, to lepiej jest to zaznaczy"c u"rywaj"ac
+nazwy \texttt{boolean} ni"r \texttt{unsigned char} dla jej typu i pisa"c
+\texttt{true} i \texttt{false} zamiast \texttt{0} i \texttt{1}. Spos"ob
+potraktowania tej regu"ly w bibliotekach pozostawia niestety wiele do
+"ryczenia.
+
+Warto jest ustali"c pewne konwencje dotyczace miar stosowanych w programie.
+Wiadomo, "re jak co"s mo"rna zrobi"c na kilka sposob"ow, to ka"rdy zrobi to
+inaczej. W~ten spos"ob w jednym programie pisanym przez zesp"o"l
+wyst"epuj"a procedury, kt"ore otrzymuj"a parametry --- d"lugo"sci w metrach
+i~centymetrach albo calach. 
+Wiadomo, "re dla ludzi wygodniejsze s"a stopnie, a w kodzie programu ---
+radiany. Ja wymy"sli"lem, "re b"ed"e przestrzega"l w"la"snie tej konwencji,
+ale np.\ w~PostScripcie i~w~OpenGL-u jest inna.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define min(a,b) ((a)<(b) ?\ (a) :\ (b)) \\
+\#define max(a,b) ((a)>(b) ?\ (a) :\ (b))}
+Dwa bardzo u"ryteczne makra.
+
+\vspace{\bigskipamount}
+\cprog{%
+double pkv\_rpower ( double x, int e );}
+Procedura \texttt{pkv\_rpower} oblicza $x^e$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_HexByte ( byte b, char *s );}
+Procedura \texttt{pkv\_HexByte} wyznacza reprezentacj"e warto"sci
+parametru~\texttt{b} w~postaci szesnastkowej. Cyfry szesnastkowe
+s"a umieszczane w~tablicy~\texttt{s}, kt"ora musi mie"c d"lugo"s"c
+co najmniej~$3$.
+
+
+\section{Boksy}
+
+\cprog{%
+typedef struct Box2i \{ \\
+\mbox{} \ \ \ int  x0, x1, y0, y1; \\ 
+\mbox{} \ \} Box2i; \\
+\mbox{} \\
+typedef struct Box2s \{ \\
+\mbox{} \ \ \ short x0, x1, y0, y1; \\
+\mbox{} \ \} Box2s;}
+
+\mbox{}
+
+\section{\label{sect:scratch:mem}Obs"luga pami"eci pomocnizej}
+
+Wiele procedur w opisanych tu bibliotekach
+u"rywa pami"eci pomocniczej do przechowywania danych, przy czym
+bloki tej pami"eci s"a zwalniane w kolejno"sci odwrotnej do
+kolejno"sci rezerwowania. Dlatego gospodarka t"a pami"eci"a jest
+zaimplementowana za pomoc"a stosu, co dzia"la bardzo szybko.
+
+Pami"eci pomocniczej obs"lugiwanej przez procedury opisane ni"rej mog"a
+u"rywa"c te"r inne procedury --- jedyne warunki to zarezerwowanie na
+pocz"atku dzia"lania programu dostatecznie du"rej puli oraz u"rywanie tej
+pami"eci w "sci"sle ,,stosowy'' spos"ob.
+
+\vspace{\bigskipamount}
+\cprog{%
+char pkv\_InitScratchMem ( int size );}
+Procedura \texttt{pkv\_InitScratchMem} rezerwuje (za pomoc"a procedury
+\texttt{malloc}) blok pami"eci pomocniczej o~wielko"sci \texttt{size}
+bajt"ow i przygotowuje gospodark"e pami"eci"a w~tym bloku. Warto"s"c
+procedury~\texttt{0} oznacza brak pami"eci, za"s \texttt{1} wskazuje
+sukces.
+
+Procedura ta musi by"c wywo"lana przed u"ryciem wszelkich procedur,
+kt"ore korzystaj"a z puli pami"eci pomocniczej (tj.\
+wywo"luj"a procedury \texttt{pkv\_GetScratchMem} lub
+\texttt{pkv\_GetScratchMemTop}
+i~\texttt{pkv\_FreeScratchMem} lub \texttt{pkv\_SetScratchMemTop}).
+
+Obecnie nie ma powi"ekszania puli pami"eci pomocniczej, je"sli podczas
+wywo"lania procedury \texttt{pkv\_GetScratchMem} oka"re si"e, "re tej pami"eci
+zabrak"lo. Nak"lada to na programist"e obowi"azek dobrego oszacowania
+wielko"sci tego bloku wystarczaj"acej do przeprowadzenia oblicze"n.
+Pewn"a pomoc"a mo"re by"c u"rycie w eksperymentach funkcji
+\texttt{pkv\_MaxScratchTaken}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_DestroyScratchMem ( void );}
+Procedura \texttt{pkv\_DestroyScratchMem} zwalnia (przez wywo"lanie
+procedury \texttt{free}) blok pami"eci pomocniczej zarezerwowany przez
+\texttt{pkv\_InitScratchMem}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void *pkv\_GetScratchMem ( int size );}
+\begin{sloppypar}
+Procedura \texttt{mbs\_GetScratchMem} rezerwuje obszar o wielko"sci
+\texttt{size} bajt"ow w~blo\-ku pami"eci pomocniczej i zwraca wska"znik do
+tego bloku. Je"sli nie ma tyle pami"eci, to warto"sci"a procedury jest
+wska"znik pusty (\texttt{NULL}).
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_FreeScratchMem ( int size );}
+Procedura \texttt{pkv\_FreeScratchMem} zwalnia ostatnie \texttt{size}
+bajt"ow zarezerwowanych przez wcze"sniejsze wywo"lania procedury 
+\texttt{pkv\_GetScratchMem}.
+
+Kolejno rezerwowane bloki musz"a by"c zwalniane w odwrotnej kolejno"sci,
+przy czym mo"rna po zarezerwowaniu kilku blok"ow zwolni"c je wszystkie naraz,
+podaj"ac parametr \texttt{size} o warto"sci r"ownej sumie d"lugo"sci
+(w~bajtach) tych blok"ow.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define pkv\_GetScratchMemi(size) \bsl \\
+\ind{2}(int*)pkv\_GetScratchMem ( (size)*sizeof(int) ) \\
+\#define pkv\_FreeScratchMemi(size) \bsl \\
+\ind{2}pkv\_FreeScratchMem ( (size)*sizeof(int) ) \\
+\#define pkv\_ScratchMemAvaili() \bsl \\
+\ind{2}(pkv\_ScratchMemAvail()/sizeof(int)) \\
+\mbox{} \\
+\#define pkv\_GetScratchMemf(size) \bsl \\
+\ind{2}(float*)pkv\_GetScratchMem ( (size)*sizeof(float) ) \\
+\#define pkv\_FreeScratchMemf(size) \bsl \\
+\ind{2}pkv\_FreeScratchMem ( (size)*sizeof(float) ) \\
+\#define pkv\_ScratchMemAvailf() \bsl \\
+\ind{2}(pkv\_ScratchMemAvail()/sizeof(float)) \\
+\mbox{} \\
+\#define pkv\_GetScratchMemd(size) \bsl \\
+\ind{2}(double*)pkv\_GetScratchMem ( (size)*sizeof(double) ) \\
+\#define pkv\_FreeScratchMemd(size) \bsl \\
+\ind{2}pkv\_FreeScratchMem ( (size)*sizeof(double) ) \\
+\#define pkv\_ScratchMemAvaild() \bsl \\
+\ind{2}(pkv\_ScratchMemAvail()/sizeof(double))}
+Powy"rsze makra maj"a na celu wygodne wywo"lywanie procedur rezerwowania
+i~zwalniania pami"eci na potrzeby tablic liczb zmiennopozycyjnych. Dzi"eki
+ich zastosowaniu mo"rna skr"oci"c i uczytelni"c kod programu.
+
+\vspace{\bigskipamount}
+\cprog{%
+void *pkv\_GetScratchMemTop ( void ); \\
+void pkv\_SetScratchMemTop ( void *p );}
+Alternatyw"a dla zapami"etania liczby zarezerwowanych bajt"ow (kt"ore mo"rna
+zwolni"c wywo"luj"ac \texttt{pkv\_FreeScratchMem}) jest zapami"etanie
+wska"znika ko"nca zaj"etego obszaru pami"eci pomocniczej przez wywo"lanie
+funkcji \texttt{pkv\_GetScratchMemTop}. Nast"epnie mo"rna zarezerwowa"c
+pami"e"c (za pomoc"a jednego lub wi"ecej wywo"la"n
+\texttt{pkv\_GetScratchMem}), a po zako"nczeniu oblicze"n mo"rna przypisa"c
+zapami"etan"a warto"s"c wska"znika za pomoc"a
+\texttt{pkv\_SetScratchMemTop}.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+int pkv\_ScratchMemAvail ( void );}
+Warto"sci"a funkcji \texttt{pkv\_ScratchMemAvail} jest aktualna liczba
+wolnych bajt"ow w~puli. Pr"oba zarezerwowania wi"ekszego bloku nie uda si"e
+(\texttt{pkv\_GetScratchMem} zwr"oci wska"znik \texttt{NULL}).
+
+\vspace{\bigskipamount}
+\cprog{%
+int pkv\_MaxScratchTaken ( void );}
+Warto"sci"a funkcji \texttt{pkv\_MaxScratchTaken} jest maksymalna liczba
+zarezerwowanych jednocze"snie bajt"ow od utworzenia puli (za pomoc"a
+\texttt{pkv\_InitScratchMem}) do chwili wywo"lania tej funkcji.
+
+
+\section{Kwadratowa miara k"ata}
+
+\cprog{%
+double pkv\_SqAngle ( double x, double y );}\mbox{}
+\indent
+Funkcja \texttt{pkv\_SqAngle} oblicza pewn"a miar"e k"ata mi"edzy wektorem $[x,y]$
+a~osi"a $Ox$. Miara ta jest obliczana za pomoc"a paru dzia"la"n
+arytmetycznych, a zatem szybciej ni"r funkcje cyklometryczne. Funkcja
+przyjmuje warto"s"c z przedzia"lu $[0,4)$.
+
+W"lasno"sci tej miary: je"sli dwa wektory tworz"a k"at prosty, to r"o"rnica
+warto"sci funkcji \texttt{pkv\_SqAngle} jest r"owna $\pm 1$. Podobnie, dla k"ata
+p"o"lpe"lnego to jest $\pm 2$. Miara k"ata pe"lnego jest r"owna $4$.
+
+
+\section{Zamiana danych}
+
+\cprog{%
+void pkv\_Exchange ( void *x, void *y, int size );}
+\hspace*{\parindent}
+Procedura \texttt{pkv\_Exchange} przestawia zawarto"sci obszar"ow pami"eci
+o~d"lugo"sci \texttt{size} wskazywanych przez parametry \texttt{x}
+i~\texttt{y}. Obszary te musz"a by"c roz"l"aczne.
+
+Procedura korzysta z bufora o~d"lugo"sci co najwy"rej $1$KB, rezerwowanego za
+pomoc"a procedury \texttt{pkv\_GetScratchMem}, a~zatem aby z~niej
+skorzysta"c nale"ry utworzy"c odpowiednio du"r"a pul"e pami"eci pomocniczej
+(wywo"luj"ac \texttt{pkv\_InitScratchMem} na pocz"atku programu).
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_Sort2f ( float *a, float *b ); \\
+void pkv\_Sort2d ( double *a, double *b );}
+Procedury \texttt{pkv\_Sort2f} i~\texttt{pkv\_Sort2d} wymieniaj"a
+warto"sciami zmienne \texttt{*a} i~\texttt{*b}, je"sli pierwsza z~nich jest
+wi"eksza od drugiej.
+
+
+\newpage
+\section{Sortowanie}
+
+\subsection{Algorytm CountSort}
+
+Procedury opisane ni"rej s"lu"r"a do sortowania tablic zawieraj"acych
+rekordy z danymi liczbowymi (kluczami) ca"lkowitymi lub zmiennopozycyjnymi.
+Metoda sortowania jest zale"rna od liczby rekord"ow (d"lugo"sci tablicy).
+Dla ma"lej liczby rekord"ow jest u"rywany algorytm sortowania przez
+wstawianie, a dla du"rej (co najmniej kilkadziesi"at) --- sortowanie
+licznikowe.
+
+Metoda sortowania jest stabilna, tj.\ nie zamienia kolejno"sci rekord"ow,
+kt"ore zawieraj"a klucz o tej samej warto"sci, z wyj"atkiem przestawiania
+liczby zmiennopozycyjnej $+0.0$ za $-0.0$.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define ID\_SHORT\ind{2}0 \\
+\#define ID\_USHORT 1 \\
+\#define ID\_INT\ind{4}2 \\
+\#define ID\_UINT\ind{3}3 \\
+\#define ID\_FLOAT\ind{2}4 \\
+\#define ID\_DOUBLE 5}
+Powy"rej s"a wyliczone identyfikatory dopuszczalnych typ"ow kluczy. Typy
+\texttt{short} i \texttt{unsigned short} to liczby ca"lkowite
+szesnastobitowe. Typy \texttt{int} i
+\texttt{unsigned int} to liczby ca"lkowite trzydziestodwubitowe. Typy
+\texttt{float} i \texttt{double} to liczby zmiennopozycyjne trzydziestodwu-
+i sze"s"cdziesi"ecioczterobitowe, zdefiniowane w standardzie IEEE-754.
+Procedury sortowania s"a oparte na za"lo"reniu, "re kolejno"s"c bajt"ow jest
+\emph{little-endian} (czyli tak jak w procesorach Intela).
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define SORT\_OK\ind{8}1 \\
+\#define SORT\_NO\_MEMORY 0 \\
+\#define SORT\_BAD\_DATA\ind{2}2}
+Zdefiniowane wy"rej sta"le s"a mo"rliwymi warto"sciami procedur sortuj"acych
+opisanych ni"rej. Je"sli podczas wykonania nie nast"api"l b"l"ad, to
+procedura zwraca warto"s"c \texttt{SORT\_OK}. Inne mo"rliwe
+warto"sci procedury wskazuj"a na brak pami"eci pomocniczej lub na
+niepoprawne dane.
+
+\vspace{\bigskipamount}
+\cprog{%
+char pkv\_SortKernel ( void *ndata, int item\_length, int num\_offset, \\
+\ind{22}int num\_type, int num\_data, int *permut );}
+Procedura \texttt{pkv\_SortKernel} znajduje w"la"sciw"a kolejno"s"c
+element"ow w tablicy \texttt{ndata}, tj.\ permutacj"e, zgodnie z kt"or"a
+nale"ry poprzestawia"c elementy, aby je posortowa"c. Tablica \texttt{ndata}
+sk"lada si"e z rekord"ow o d"lugo"sci \texttt{item\_length} bajt"ow. Klucz,
+tj.\ liczba ca"lkowita lub zmiennopozycyjna (typ jest okre"slony przez
+parametr \texttt{num\_type}), wzgl"edem kt"orej nale"ry uporz"adkowa"c
+rekordy, znajduje si"e w~ka"rdym rekordzie \texttt{num\_offset} bajt"ow od
+pocz"atku rekordu. Liczba $n$ rekord"ow (tj.\ d"lugo"s"c tablicy
+\texttt{ndata}) jest okre"slona przez parametr \texttt{num\_data}.
+
+Tablica \texttt{permut} zawiera liczby od $0$ do $n-1$. Po wyj"sciu
+z~procedury (je"sli nie wyst"api"l b"l"ad), tablica \texttt{permut} zawiera
+te same liczby, kt"ore reprezentuj"a w"la"sciw"a permutacj"e.
+Pocz"atkowa kolejno"s"c liczb w tablicy permut jest
+istotna wtedy, gdy dane maj"a by"c posortowane kolejno wzgl"edem kilku kluczy.
+Je"sli np.\ rekordy sk"ladaj"a si"e z~dw"och p"ol liczbowych, np.\ \texttt{x}
+i~\texttt{y}, i~maj"a by"c posortowane wzgl"edem warto"sci pola~\texttt{x},
+a~w~przypadku, gdy pola~\texttt{x} s"a r"owne, to wzgl"edem \texttt{y}, to
+nale"ry wpisa"c do tablicy \texttt{permut} liczby od $0$ do $n-1$ w~dowolnej
+kolejno"sci, nast"epnie wywo"la"c procedur"e \texttt{pkv\_SortKernel}
+dwukrotnie: najpierw w~celu posortowania tablicy wzgl"edem warto"sci p"ol
+\texttt{y}, a~nast"epnie wzgl"edem \texttt{x}. Potem mo"rna wywo"la"c
+procedur"e \texttt{pkv\_SortPermute} w~celu odpowiedniego poprzestawiania
+rekord"ow w tablicy.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_SortPermute ( void *ndata, int item\_length, int num\_data, \\
+\ind{23}int *permut );}
+Procedura \texttt{pkv\_SortPermute} przestawia rekordy w~tablicy
+\texttt{ndata} zgodnie z zawarto"sci"a tablicy \texttt{permut}, kt"ora musi
+zawiera"c liczby ca"lkowite od $0$ do $n-1$. Liczba rekord"ow $n$ jest
+warto"sci"a parametru \texttt{num\_data}, d"lugo"s"c rekordu w~bajtach jest
+okre"slona przez parametr \texttt{item\_length}.
+
+\vspace{\bigskipamount}
+\cprog{%
+char pkv\_SortFast ( void *ndata, int item\_length, int num\_offset, \\
+\ind{20}int num\_type, int num\_data );}
+Procedura \texttt{pkv\_SortFast} sortuje tablic"e \texttt{ndata}, kt"ora
+zawiera \texttt{num\_data} rekord"ow o d"lugo"sci \texttt{item\_length},
+z~kt"orych ka"rdy zawiera klucz liczbowy typu okre"slonego przez parametr
+\texttt{num\_type}, w~odleg"lo"sci \texttt{num\_offset} bajt"ow od pocz"atku
+rekordu.
+
+
+\subsection{Algorytm QuickSort}
+
+Opisana ni"rej procedura sortuje elementy danego ci"agu za pomoc"a por"owna"n.
+Jest ona implementacj"a algorytmu QuickSort, kt"ora dwie podstawowe operacje
+--- por"ownywanie i~przestawianie --- wykonuje za pomoc"a procedur
+(w~aplikacji) podanych przy u"ryciu parametr"ow. Algorytm QuickSort
+nie jest stabilny, tj.\ w~ci"agu nier"ornowarto"sciowym elementy
+takie same (ze wzgl"edu na porz"adek) mog"a po posortowaniu mie"c
+zamienion"a kolejno"s"c.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_QuickSort ( int n, boolean (*less)(int,int), \\
+\ind{21}void (*swap)(int,int) );}
+Parametr \texttt{n} okre"sla d"lugo"s"c ci"agu do posortowania;
+jego elementy maj"a indeksy od~$0$ do $n-1$.
+Parametr \texttt{less} jest wska"znikiem procedury, kt"orej warto"s"c
+\texttt{true} oznacza, "re element $i$-ty ci"agu jest mniejszy ni"r
+element $j$-ty (gdzie liczby $i$ i~$j$ s"a warto"sciami parametr"ow tej
+procedury). Parametr \texttt{swap} jest wska"znikiem procedury, kt"orej
+zadaniem jest przestawienie element"ow ci"agu o~numerach b"ed"acych
+warto"sciami parametr"ow.
+
+
+\newpage
+\subsection{Kopiec z~kolejk"a priorytetow"a}
+
+Kolejka priorytetowa zaimplementowana przy u"ryciu procedur opisanych w~tym
+punkcie jest tablic"a wska"znik"ow do dowolnych obiekt"ow; zar"owno wstawienie
+obiek\-tu do kolejki, jak i~jego usuni"ecie, polega na dopisaniu lub usuni"eciu
+wska"znika w~tablicy. Priorytety s"a okre"slone przez aplikacj"e, kt"ora
+dostarcza procedur"e \texttt{cmp}, z~dwoma parametrami wska"znikowymi.
+Procedura zwraca warto"s"c true wtedy, gdy priorytet obiektu wskazywanego
+przez pierwszy parametr jest wi"ekszy.
+
+\vspace{\bigskipamount}
+\cprog{%
+int pkv\_UpHeap ( void *a[], int l, boolean (*cmp)(void*,void*) ); \\
+int pkv\_DownHeap ( void *a[], int l, int f, \\
+\ind{19}boolean (*cmp)(void*,void*) ); \\
+int pkv\_HeapInsert ( void *a[], int *l, void *newelem, \\
+\ind{21}boolean (*cmp)(void*,void*) ); \\
+void pkv\_HeapRemove ( void *a[], int *l, int el, \\
+\ind{22}boolean (*cmp)(void*,void*) ); \\
+void pkv\_HeapOrder ( void *a[], int n, \\
+\ind{21}boolean (*cmp)(void*,void*) ); \\
+void pkv\_HeapSort ( void *a[], int n, \\
+\ind{20}boolean (*cmp)(void*,void*) );}
+
+
+\newpage
+\section{Obs"luga tablic wielowymiarowych}
+
+Procedury przetwarzania krzywych i powierzchni zawarte w bibliotece
+\texttt{libmultibs} przetwarzaj"a punkty kontrolne
+pobieraj"ac je i wstawiaj"ac do jednowymiarowych tablic liczb
+zmiennopozycyjnych. Taka tablica mo"re by"c zadeklarowana jako tablica np.\
+$n$ punkt"ow w przestrzeni tr"ojwymiarowej, ale obszar pami"eci komputera
+zaj"ety przez t"e tablic"e zawiera $3n$ upakowanych obok siebie liczb.
+
+Tablice dwuwymiarowe punkt"ow maj"a podobn"a zawarto"s"c i zwykle s"lu"r"a
+do przechowywania prostok"atnych siatek kontrolnych p"lat"ow. W takiej
+tablicy znajduj"a si"e kolejno wsp"o"lrz"edne punkt"ow w pierwszej kolumnie
+siatki, nast"epnie w~drugiej itd. Podstawowym parametrem umo"rliwiaj"acym
+procedurom dost"ep do odpowiednich miejsc w takiej tablicy jest jej
+\emph{podzia"lka} (ang.~\textsl{pitch}), czyli odleg"lo"s"c (kt"orej
+jednostk"a jest d"lugo"s"c reprezentacji jednej liczby)
+mi"edzy pierwsz"a wsp"o"lrz"edn"a pierwszego punktu w dowolnej kolumnie
+siatki i~pierwsz"a wsp"o"lrz"edn"a pierwszego punktu w kolumnie nast"epnej.
+Oczywi"scie, podzia"lka nie ma znaczenia dla tablic jednowymiarowych.
+
+Z punktu widzenia procedur przetwarzania tablic lepiej jest interpretowa"c
+je jako tablice dwuwymiarowe (bez wnikania w to, ile jest punkt"ow i jaki
+jest wymiar przestrzeni, kt"orej to s"a punkty). W tablicy s"a przechowywane
+\emph{wiersze} o ustalonej d"lugo"sci (nie wi"ekszej ni"r podzia"lka). Po
+ka"rdym wierszu (z~wyj"atkiem by"c mo"re ostatniego) znajduje si"e obszar
+nieu"rywany, kt"orego d"lugo"s"c dodana do d"lugo"sci wiersza jest r"owna
+podzia"lce. Procedury i~makra opisane ni"rej s"lu"r"a do zmieniania
+podzia"lki (tj.\ ,,rozsuwania'' lub ,,dosuwania'' wierszy po"l"aczonego ze
+zmian"a d"lugo"sci obszar"ow nieu"rywanych), przepisywania danych z~jednej
+tablicy do drugiej (o innej podzia"lce) oraz ,,przesuwania'' wierszy
+w~tablicy (bez zmiany podzia"lki).
+
+Dla cel"ow specjalnych mo"re by"c potrzebne przetwarzanie w~taki spos"ob
+tablic bajt"ow (czyli najmniejszych bezpo"srednio adresowanych przez procesor
+kom"orek pami"eci). Dlatego procedury w~C s"a zrealizowane dla tablic
+element"ow typu \texttt{char}. Tablice liczb typu \texttt{float}
+i~\texttt{double} mog"a by"c przetwarzane za pomoc"a makr, kt"ore mno"r"a
+d"lugo"sci wierszy i~podzia"lki przez odpowiednie liczby bajt"ow
+reprezentacji typu \texttt{float} lub \texttt{double}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_Rearrangec ( int nrows, int rowlen, \\
+\ind{22}int inpitch, int outpitch, \\
+\ind{22}char *data );}
+Procedura \texttt{pkv\_Rearrangec} przestawia dane w tablicy w celu
+zmienienia podzia"lki. W tablicy jest \texttt{nrows} wierszy. Ka"rdy z nich
+zawiera \texttt{rowlen} bajt"ow. Parametr \texttt{inpitch}
+okre"sla pocz"atkow"a podzia"lk"e (odleg"lo"s"c pocz"atk"ow wierszy).
+Parametr \texttt{outpitch} to podzia"lka docelowa. Obie podzia"lki nie mog"a
+by"c mniejsze ni"r d"lugo"s"c wiersza.
+\begin{figure}[ht]
+  \centerline{\epsfig{file=memory.ps}}
+  \caption{\label{fig:memory:1}Dzia"lanie procedur \texttt{pkv\_Rearrangec}
+    i~\texttt{pkv\_Selectc}}
+\end{figure}
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_Selectc ( int nrows, int rowlen, \\
+\ind{19}int inpitch, int outpitch, \\
+\ind{19}const char *indata, char *outdata );}
+Procedura \texttt{pkv\_Selectc} przepisuje dane z tablicy \texttt{indata}
+do tablicy \texttt{outdata}. Dane s"a umieszczone w \texttt{nrows} wierszach
+o~d"lugo"sci \texttt{rowlen}. Podzia"lka tablicy \texttt{indata} jest
+okre"slona przez parametr \texttt{inpitch}, a podzia"lka tablicy
+\texttt{outdata} przez \texttt{outpitch}. Tablice te musz"a zajmowa"c
+roz"l"aczne obszary pami"eci.
+
+Dzia"lanie procedury \texttt{pkv\_Selectc} mo"rna zilustrowa"c tym samym
+rysunkiem (rys.~\ref{fig:memory:1}) co dzia"lanie procedury
+\texttt{pkv\_Rearrangec}, pami"etaj"ac, "re
+dane s"a w tym przypadku przenoszone do \emph{innej} tablicy.
+
+\begin{figure}[ht]
+  \centerline{\epsfig{file=memshift.ps}}
+  \caption{\label{fig:memory:2}Dzia"lanie procedury \texttt{pkv\_Movec}}
+\end{figure}
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_Movec ( int nrows, int rowlen, \\
+\ind{17}int pitch, int shift, char *data );}
+Procedura \texttt{pkv\_Movec} dokonuje ,,przesuni"ecia'' danych w tablicy
+o~\texttt{shift} miejsc. Parametr \texttt{nrows} okre"sla
+liczb"e wierszy, \texttt{rowlen} --- d"lugo"s"c ka"rdego wiersza,
+\texttt{pitch} --- podzia"lk"e (kt"ora nie zostaje zmieniona). Parametr
+\texttt{data} jest wska"znikiem pocz"atku pierwszego wiersza przed
+przesuwaniem. Warto"s"c parametru \texttt{shift} mo"re by"c dodatnia lub
+ujemna.
+
+Dane w tablicy mi"edzy wierszami, o ile nie s"a nadpisywane przez dane,
+kt"ore procedura \texttt{pkv\_Movec} ,,przesuwa'' na ich miejsce, pozostaj"a
+niezmienione. Umo"rliwia to w szczeg"olno"sci ,,rozszerzenie'' wszystkich
+wierszy (kosztem obszar"ow nieu"rywanych) w celu zrobienia w nich miejsca
+na dodatkowe elementy, lub ,,usuni"ecie'' z~ka"rdego wiersza pewnych
+element"ow (po"l"aczone z wyd"lu"reniem obszaru nieu"rywanego po ka"rdym
+wierszu).
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_ZeroMatc ( int nrows, int rowlen, int pitch, char *data );}
+Procedura \texttt{pkv\_ZeroMatc} inicjalizuje macierz bajtow"a,
+przypisuj"ac warto"s"c~$0$ wszystkim elementom. Zawarto"s"c obszar"ow
+nieu"rywanych w~tablicy przechowuj"acej wiersze macierzy nie jest zmieniana.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_ReverseMatc ( int nrows, int rowlen, \\
+\ind{23}int pitch, char *data );}
+Procedura \texttt{pkv\_ReverseMatc} przestawia wiersze macierzy bajtowej
+w~odwrotnej kolejno"sci. Parametry \texttt{nrows} i~\texttt{rowlen}
+okre"slaj"a wymiary tej macierzy. Parametr \texttt{pitch} opisuje
+podzia"lk"e tablicy \texttt{data} z danymi.
+
+\vspace{\bigskipamount}
+\ucprog{%
+\#define pkv\_Rearrangef(nrows,rowlen,inpitch,outpitch,data) \bsl \\
+\ind{2}pkv\_Rearrangec(nrows,(rowlen)*sizeof(float), \bsl \\
+\ind{4}(inpitch)*sizeof(float),(outpitch)*sizeof(float),(char*)data) \\
+\#define pkv\_Selectf(nrows,rowlen,inpitch,outpitch,indata,outdata) \bsl \\
+\ind{2}pkv\_Selectc(nrows,(rowlen)*sizeof(float), \bsl \\
+\ind{4}(inpitch)*sizeof(float),(outpitch)*sizeof(float), \bsl \\
+\ind{4}(char*)indata,(char*)outdata) \\
+\#define pkv\_Movef(nrows,rowlen,pitch,shift,data) \bsl \\
+\ind{2}pkv\_Movec(nrows,(rowlen)*sizeof(float),(pitch)*sizeof(float), \bsl \\
+\ind{4}(shift)*sizeof(float),(char*)data) \\
+\#define pkv\_ZeroMatf(nrows,rowlen,pitch,data) \bsl \\
+\ind{2}pkv\_ZeroMatc(nrows,(rowlen)*sizeof(float), \bsl \\
+\ind{4}(pitch)*sizeof(float),(char*)data) \\
+\#define pkv\_ReverseMatf(nrows,rowlen,pitch,data) \bsl \\
+\ind{2}pkv\_ReverseMatc ( nrows, (rowlen)*sizeof(float), \\
+\ind{4}(pitch)*sizeof(float), (char*)data ) \\
+\mbox{} \\
+\#define pkv\_Rearranged(nrows,rowlen,inpitch,outpitch,data) \bsl \\
+\ind{2}pkv\_Rearrangec(nrows,(rowlen)*sizeof(double), \bsl \\
+\ind{4}(inpitch)*sizeof(double),(outpitch)*sizeof(double),(char*)data) \\
+\#define pkv\_Selectd(nrows,rowlen,inpitch,outpitch,indata,outdata) \bsl \\
+\ind{2}pkv\_Selectc(nrows,(rowlen)*sizeof(double), \bsl \\
+\ind{4}(inpitch)*sizeof(double),(outpitch)*sizeof(double), \bsl \\
+\ind{4}(char*)indata,(char*)outdata)}
+
+\dcprog{%
+\#define pkv\_ZeroMatd(nrows,rowlen,pitch,data) \bsl \\
+\ind{2}pkv\_ZeroMatc(nrows,(rowlen)*sizeof(double), \bsl \\
+\ind{4}(pitch)*sizeof(double),(char*)data) \\
+\#define pkv\_Moved(nrows,rowlen,pitch,shift,data) \bsl \\
+\ind{2}pkv\_Movec(nrows,(rowlen)*sizeof(double),(pitch)*sizeof(double), \bsl \\
+\ind{4}(shift)*sizeof(double),(char*)data) \\
+\#define pkv\_ReverseMatd(nrows,rowlen,pitch,data) \bsl \\
+\ind{2}pkv\_ReverseMatc ( nrows, (rowlen)*sizeof(double), \\
+\ind{4}(pitch)*sizeof(double), (char*)data )}
+Powy"rsze makra s"lu"r"a do przetwarzania tablic liczb typu \texttt{float}
+i~\texttt{double} w~spos"ob opisany wcze"sniej.
+
+Makra \texttt{pkv\_Rearrangef} i~\texttt{pkv\_Rearranged} zmieniaj"a
+podzia"lk"e tablic.
+
+Makra \texttt{pkv\_Selectf} i~\texttt{pkv\_Selectd} przepisuj"a dane
+mi"edzy tab\-li\-ca\-mi o~r"o"rnych podzia"lkach.
+
+Makra \texttt{pkv\_Movef} i~\texttt{pkv\_Moved} przesuwaj"a wiersze
+w~tablicy.
+
+Makra \texttt{pkv\_ZeroMatf} i~\texttt{pkv\_ZeroMatd} inicjalizuj"a
+zawarto"s"c tablicy przypisuj"ac wszystkim elementom warto"s"c~$0$
+(zmiennopozycyjne --- to jest trik oparty na fakcie, "re wszystkie
+bity reprezentacji zera zmiennopozycyjnego s"a r"owne~$0$).
+
+Makra \texttt{pkv\_ReverseMatf} i~\texttt{pkv\_ReverseMatd} odwracaj"a
+kolejno"s"c wierszy macierzy zmiennopozycyjnych.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_Selectfd ( int nrows, int rowlen, \\
+\ind{20}int inpitch, int outpitch, \\
+\ind{20}const float *indata, double *outdata ); \\
+void pkv\_Selectdf ( int nrows, int rowlen, \\
+\ind{20}int inpitch, int outpitch, \\
+\ind{20}const double *indata, float *outdata );}
+Powy"rsze procedury przepisuj"a dane (liczby zmiennopozycyjne) z~jednej
+tablicy do drugiej, podobnie jak procedura \texttt{pkv\_Selectf}. R"o"rnica
+polega na konwersji; tablica z~danymi jest typu \texttt{float} albo
+\texttt{double}, za"s tablica, do kt"orej dane s"a przepisywane, jest
+typu \texttt{double} albo \texttt{float}.
+
+Jednostki podzia"lek tablic (tj.\ odleg"lo"sci pocz"atk"ow kolejnych
+wierszy) s"a odpowiednio d"lugo"sciami reprezentacji liczb przechowywanych
+w~danej tablicy.
+
+Procedura \texttt{pkv\_Selectfd} powinna dzia"la"c dobrze dla dowolnych
+danych, kt"ore reprezentuj"a liczby. W~drugiej z~procedur mo"re wyst"api"c
+nadmiar lub niedomiar zmiennopozycyjny, a~ponadto na og"o"l wyst"api"a
+b"l"edy zaokr"agle"n, co wynika st"ad, "re zbi"or liczb
+zmiennopozycyjnych typu \texttt{float} jest podzbiorem zbioru liczb typu
+\texttt{double}.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+void pkv\_TransposeMatrixc ( int nrows, int ncols, int elemsize, \\
+\ind{28}int inpitch, const char *indata, \\
+\ind{28}int outpitch, char *outdata );}
+Procedura \texttt{pkv\_TransposeMatrixc} dokonuje transpozycji macierzy
+$m\times n$. Parametry \texttt{nrows} i~\texttt{ncols} okre"slaj"a liczby
+$m$~i~$n$. Wielko"s"c (w~bajtach) elementu macierzy jest warto"sci"a
+parametru \texttt{elemsize}. Kolejne wiersze macierzy wej"sciowej
+(z~elementami upakowanymi bez przerw) s"a podane w~tablicy \texttt{indata}
+o~podzia"lce (mierzonej w~bajtach) \texttt{inpitch}. Procedura wpisuje
+kolejne wiersze macierzy transponowanej do tablicy \texttt{outdata}
+o~podzia"lce \texttt{outpitch}.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define pkv\_TransposeMatrixf(nrows,ncols,inpitch,indata, \bsl \\
+\ind{4}outpitch,outdata) \bsl \\
+\ind{2}pkv\_TransposeMatrixc ( nrows, ncols, sizeof(float), \bsl \\
+\ind{4}(inpitch)*sizeof(float), (char*)indata, \bsl \\
+\ind{4}(outpitch)*sizeof(float), (char*)outdata ) \\
+\#define pkv\_TransposeMatrixd(nrows,ncols,inpitch,indata, \bsl \\
+\ind{4}outpitch,outdata) \ldots}
+Powy"rsze dwa makra s"lu"r"a do wygodnego transponowania macierzy
+liczbowych, tj.\ z"lo"ronych z~element"ow typu \texttt{float} lub
+\texttt{double}. Parametry tych makr odpowiadaj"a parametrom procedury
+\texttt{pkv\_TransposeMatrixc} (z~wyj"atkiem parametru \texttt{elemsize}).
+Jednostka podzia"lki tablic jest d"lugo"sci"a reprezentacji zmiennych typu
+\texttt{float} albo \texttt{double}. 
+
+
+\newpage
+\section{Rasteryzacja odcink"ow}
+
+Procedura rasteryzacji odcink"ow jest umieszczona w~bibliotece
+\texttt{libpkvaria}, poniewa"r nie by"lo lepszego miejsca. W~przysz"lo"sci
+przyda si"e napisanie procedury rasteryzacji wielok"at"ow i~je"sli to si"e
+rozbuduje, to mo"re warto b"edzie zrobi"c osobn"a bibliotek"e.
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct \{ \\
+\ind{2}short x, y; \\
+\} xpoint;}
+Struktura typu \texttt{xpoint} jest przeznaczona do reprezentowania pikseli;
+ma ona identyczn"a budow"e jak struktura \texttt{Xpoint} zdefiniowana
+w~pliku \texttt{Xlib.h}. Dzi"eki temu piksele obliczone przez procedury
+rasteryzacji odcink"ow (oraz krzywych, z~biblioteki \texttt{libmultibs})
+mo"rna wy"swietla"c w~aplikacji systemu XWindow bez
+dodatkowej konwersji. Z~drugiej strony, dzi"eki powt"orzeniu tej definicji
+nie jest konieczne korzystanie z~pliku \texttt{Xlib.h}, w~zwi"azku z~czym
+mo"rna u"rywa"c ni"rej opisanych procedur w~programach, kt"ore nie s"a
+aplikacjami X-"ow.
+
+\vspace{\bigskipamount}
+\cprog{%
+extern void \ \ (*\_pkv\_OutputPixels)(const xpoint *buf, int n); \\
+extern xpoint *\_pkv\_pixbuf; \\
+extern int \ \ \ \_pkv\_npix;}
+Powy"rsze zmienne s"lu"r"a do rasteryzacji; s"a to kolejno wska"znik
+procedury wyprowadzania pikseli (kt"ora musi by"c cz"e"sci"a aplikacji),
+wska"znik bufora pikseli i~licznik pikseli w~buforze. Aplikacja do tych
+zmiennych nie powinna bezpo"srednio si"e odwo"lywa"c.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define PKV\_BUFSIZE 256 \\
+\#define PKV\_FLUSH ... \\
+\#define PKV\_PIXEL(p,px) ... \\
+\#define PKV\_SETPIXEL(xx,yy) ...}
+Powy"rsze makra definiuj"a pojemno"s"c bufora ($256$ oznacza rezerwacj"e
+$1$KB na ten cel) oraz realizuj"a jego obs"lug"e. S"a one udost"epnione
+w~pliku nag"l"owkowym na potrzeby procedur rasteryzacji krzywych
+w~bibliotece \texttt{libmultibs}.
+
+\vspace{\bigskipamount}                              
+\cprog{%
+void \_pkv\_InitPixelBuffer ( void ); \\
+void \_pkv\_DestroyPixelBuffer ( void );}
+Procedury pomocnicze, z~kt"orych pierwsza tworzy bufor na piksele, a~druga
+go zwalnia. Bufor jest rezerwowany w~pami"eci pomocniczej (przez wywo"lanie
+procedury \texttt{pkv\_GetScratchMem}), a~zatem mi"edzy wywo"laniami tych
+dw"och procedur trzeba zwolni"c tyle pami"eci pomocniczej, ile si"e
+zarezerwowa"lo.
+
+\vspace{\bigskipamount}                              
+\cprog{%
+void \_pkv\_DrawLine ( int x1, int y1, int x2, int y2 ); \\
+void pkv\_DrawLine ( int x1, int y1, int x2, int y2, \\
+\ind{20}void (*output)(const xpoint *buf, int n) );}
+Procedura \texttt{\_pkv\_DrawLine} realizuje algorytm Bresenhama rasteryzacji
+odcinka. Dzia"la ona przy za"lo"reniu, "re bufor na piksele jest utworzony
+(przez wywo"lanie \texttt{\_pkv\_InitPixelBuffer}),
+za"s zmienna \texttt{\_pkv\_OutputPixels} wskazuje odpowiedni"a procedur"e
+wyprowadzaj"ac"a (np.\ na ekran) piksele.
+
+Do wywo"lywania przez aplikacj"e przeznaczona jest procedura
+\texttt{pkv\_DrawLine}, kt"orej parametry: \texttt{x1}, \texttt{y1},
+\texttt{x2}, \texttt{y2} okre"slaj"a wsp"o"lrz"edne ko"nc"ow odcinka, za"s
+parametr \texttt{output} wskazuje procedur"e wyprowadzania pikseli.
+Procedura \texttt{pkv\_DrawLine} tworzy i~inicjalizuje bufor oraz przypisuje
+warto"s"c parametru \texttt{output} zmiennej \texttt{\_pkv\_OutputPixels},
+po czym wywo"luje \texttt{\_pkv\_DrawLine}, opr"o"rnia bufor i~zwalnia go.
+
+Procedura wskazywana przez parametr \texttt{output} jest wywo"lywana
+z~parametrami, z~kt"orych pierwszy wskazuje pocz"atek bufora (tablicy
+z~pikselami), a~drugi okre"sla liczb"e pikseli w~buforze. Procedura ta mo"re
+rezerwowa"c pami"e"c, ale musi j"a zwolni"c co do jednego bajtu.
+
+
+\newpage
+\section{Obs"luga sytuacji wyj"atkowych}
+
+Podczas wykonywania programu wyst"epuj"a sytuacje b"l"edne, z~kt"orymi
+program musi sobie radzi"c. Typowy przyk"lad to brak pami"eci; w~razie
+niemo"rno"sci przydzielenia odpowiednio du"rego bloku pami"eci program musi
+wykona"c co najmniej jedn"a z~nast"epuj"acych czynno"sci:
+\begin{itemize}
+\item Zatrzyma"c si"e (przez wywo"lanie \texttt{exit}); gdyby tego nie
+  zrobi"l, to za chwil"e zosta"lby przerwany przez system operacyjny,
+  z~powodu nieodpowiedniego zachowania si"e, czyli pr"oby dost"epu do
+  pami"eci pod przypadkowym adresem.
+\item Poinformowa"c u"rytkownika przed zatrzymaniem o~przyczynie i~miejscu
+  wyst"apienia sytuacji awaryjnej. W~przeciwnym razie u"rytkownik nie
+  b"edzie wiedzia"l, dlaczego program mu si"e wykrzaczy"l.
+\item Przewra"c obliczenia niewykonalne z~powodu wyst"apienia b"l"edu, ale
+  bez zatrzymywania programu. W~takim przypadku r"ownie"r nale"ry zwykle
+  poinformowa"c u"rytkownika, "re program nie by"l w~stanie wykona"c pewnego
+  obliczenia, ale za to mo"re zrobi"c co"s innego.
+\end{itemize}
+
+W~razie wyst"apienia sytuacji b"l"ednej procedury biblioteczne
+wywo"luj"a procedur"e \texttt{pkv\_SignalError}.
+Jej domy"slne dzia"lanie polega na wypisaniu stosownego komunikatu
+i~zatrzymaniu programu. Aplikacje mog"a (za pomoc"a procedury
+\texttt{pkv\_SetErrorHandler}) instalowa"c w"lasne procedury obs"lugi
+sytuacji wyj"atkowych, kt"ore mog"a powodowa"c wy"swietlanie komunikat"ow
+dla u"rytkownika np.\ w~boksie dialogowym i~kt"ore mog"a doprowadzi"c (przy
+u"ryciu procedur \texttt{setjmp} i~\texttt{longjmp}, przyczytaj opis
+w~poleceniu \texttt{man}) do przerwania oblicze"n, podczas kt"orych wiele
+wywo"lanych procedur nie zako"nczy"lo jeszcze dzia"lania (i~ma to zrobi"c
+teraz).
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define LIB\_PKVARIA 0 \\
+\#define LIB\_PKNUM \ \ 1 \\
+\#define LIB\_GEOM \ \ \ 2 \\
+\#define LIB\_CAMERA \ 3 \\
+\#define LIB\_PSOUT \ \ 4 \\
+\#define LIB\_MULTIBS 5 \\
+\#define LIB\_RAYBEZ \ 6}
+Powy"rsze nazwy symboliczne identyfikuj"a bibliotek"e, do kt"orej nale"ry
+procedura, kt"ora sygnalizuje b"l"ad. Aplikacja mo"re okre"sli"c w"lasne
+identyfikatory, najlepiej r"o"rne od powy"rszych.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_SignalError ( \\
+\ind{8}int module, int errno, const char *errstr );}
+Procedura \texttt{pkv\_SignalError} domy"slnie wypisuje komunikat
+o~b"l"edzie na plik \texttt{stderr} i~zatrzymuje program (wywo"luj"ac
+\texttt{exit~(~1~);}). Komunikat zawiera numer b"l"edu (wewn"etrzny dla
+modu"lu, tj.\ biblioteki) b"ed"acy warto"sci"a parametru \texttt{errno},
+numer modu"lu (parametr \texttt{module}) i~tekst komunikatu (parametr
+\texttt{errstr}).
+
+Je"sli jest zainstalowana (za~pomoc"a \texttt{pkv\_SetErrorHandler})
+procedura obs"lugi sytuacji wyj"atkowej, to procedura
+\texttt{pkv\_SignalError} wywo"la t"e procedur"e, przekazuj"ac jej swoje
+parametry.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkv\_SetErrorHandler ( \\
+\ind{3}void (*ehandler)( int module, int errno, const char *errstr ) );}
+Procedura \texttt{pkv\_SetErrorHandler} instaluje procedur"e obs"lugi
+b"l"edu, kt"ora b"edzie odt"ad wywo"lywana przez \texttt{pkv\_SignalError}.
+Podanie parametru \texttt{ehandler} o~warto"sci \texttt{NULL} powoduje
+,,odinstalowanie'' procedury obs"lugi b"l"edu, tj.\ przywr"ocenie
+domy"slnego dzia"lania procedury \texttt{pkv\_SignalError}.
+
+
+\newpage
+\section{Opakowania procedur \texttt{malloc} i~\texttt{free}}
+
+W~jednym (na razie) programie demonstracyjnym (\texttt{pomnij})
+jest tworzony proces potomny
+(za pomoc"a procedur \texttt{fork} i~\texttt{exec}), kt"orego zadaniem
+jest wykonywanie d"lugotrwa"lych oblicze"n numerycznych, podczas
+gdy interakcja z~programem odbywa si"e normalnie. W~szczeg"olno"sci
+jest mo"rliwo"s"c przerwania oblicze"n przed ich zako"nczeniem,
+w~tym celu do procesu potomnego jest wysy"lany sygna"l \texttt{SIGUSR1},
+kt"ory mo"re pojawi"c si"e w~zupe"lnie dowolnej chwili.
+Przerwanie oblicze"n (i~powr"ot procesu potomnego do stanu
+gotowo"sci przyj"ecia nast"epnych polece"n) jest wykonywane za
+pomoc"a procedur \texttt{setjmp} i~\texttt{longjmp}.
+
+Dynamiczna alokacja pami"eci jest miejscem krytycznym w~obliczeniach;
+nie wolno wykona"c skoku (tj.\ wykona"c instrukcji \texttt{longjmp})
+w~trakcie dzia"lania procedury \texttt{malloc} lub \texttt{free},
+a~tak"re po zako"nczeniu dzia"lania \texttt{malloc}, ale przed przypisaniem
+zwr"oconej warto"sci do zmiennej; mo"re to uszkodzi"c list"e wolnych
+obszar"ow obs"lugiwan"a przez \texttt{malloc} i~\texttt{free},
+a~ponadto spowodowa"c wyciekanie pami"eci. Dodatkowo, je"sli adresy
+alokowanych dynamicznie blok"ow s"a przechowywane tylko w~zmiennych
+lokalnych jakiej"s procedury, to przerwanie dzia"lania tej procedury przez
+\texttt{longjmp} musi wi"aza"c si"e ze zwolnieniem tych blok"ow.
+To samo dotyczy blok"ow wskazywanych przez wska"znikowe zmienne
+globalne.
+
+Zamiast bezpo"srednich wywo"la"n procedur \texttt{malloc} i~\texttt{free},
+nale"ry wywo"lywa"c podane ni"rej makra \texttt{PKV\_MALLOC}
+i~\texttt{PKV\_FREE}; \textbf{Uwaga:} na razie nie wszystkie procedury
+biblioteczne robi"a to. Odpowiednie zmienne globalne zadeklarowane
+w~bibliotece \texttt{libpkvaria} umo"rliwiaj"a do"lo"renie obs"lugi
+zdarze"n zwi"azanych z~obs"lug"a przerwa"n. Je"sli warto"sci tych
+zmiennych maj"a domy"slne warto"sci pocz"atkowe, to makra
+po prostu wywo"luj"a \texttt{malloc} i~\texttt{free}.
+
+\vspace{\bigskipamount}
+\cprog{%
+extern boolean pkv\_critical, pkv\_signal; \\
+extern void (*pkv\_signal\_handler)( void ); \\
+extern void (*pkv\_register\_memblock)( void *ptr, boolean alloc );}
+Zmienna \texttt{pkv\_signal\_handler} ma domy"sln"a warto"s"c \texttt{NULL};
+aplikacja mo"re przypisa"c tej zmiennej adres procedury, kt"ora
+powinna by"c wywo"lana w~celu obs"lu"renia przerwania, ale nie
+w~trakcie dzia"lania \texttt{malloc} i~\texttt{free}.
+
+Procedura obs"lugi sygna"lu programu (rejestrowana za pomoc"a \texttt{signal})
+powinna zacz"a"c dzia"lanie od zbadania warto"sci zmiennej \texttt{pkv\_critical}.
+Je"sli zmienna ta ma warto"s"c \texttt{true}, to nale"ry tylko wykona"c przypisanie
+\texttt{pkv\_signal = true;}. Je"sli warto"sci"a zmiennej \texttt{pkv\_critical}
+jest \texttt{false}, to mo"rna wywo"la"c procedur"e wskazywan"a przez
+\texttt{pkv\_signal\_handler}, kt"ora wykona \texttt{longjmp}.
+Je"sli po wyj"sciu z~obszaru krytycznego zmienna \texttt{pkv\_signal}
+ma warto"s"c \texttt{true}, to makro wywo"luje t"e procedur"e
+(czyli obs"luga przerwania jest odrobin"e op"o"zniona, ale nast"epuje).
+
+Zmienna \texttt{pkv\_register\_memblock}, je"sli nie ma warto"sci \texttt{NULL},
+wskazuje procedur"e, kt"orej przekazywany jest adres ka"rdego bloku
+rezerwowanego lub zwalnianego przez makra \texttt{PKV\_MALLOC}
+i~\texttt{PKV\_FREE} (tylko je"sli \texttt{pkv\_signal\_handler} nie ma warto"sci
+\texttt{NULL}). Umo"rliwia to tworzenie listy zaalokowanych blok"ow
+do zwolnienia w~razie przerwania oblicze"n.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define PKV\_MALLOC(ptr,size) \bsl \\
+\ind{2}\{ \bsl \\
+\ind{4}if ( pkv\_signal\_handler ) \{ \bsl \\
+\ind{6}pkv\_signal = false; \bsl \\
+\ind{6}pkv\_critical = true; \bsl \\
+\ind{6}(ptr) = malloc ( size ); \bsl \\
+\ind{6}if ( pkv\_register\_memblock ) \bsl \\
+\ind{8}pkv\_register\_memblock ( (void*)(ptr), true ); \bsl \\
+\ind{6}pkv\_critical = false; \bsl \\
+\ind{6}if ( pkv\_signal ) \bsl \\
+\ind{8}pkv\_signal\_handler (); \bsl \\
+\ind{4}\} \bsl \\
+\ind{4}else \bsl \\
+\ind{6}(ptr) = malloc ( size ); \bsl \\
+\ind{2}\} \\
+\mbox{} \\
+\#define PKV\_FREE(ptr) \bsl \\
+\ind{2}\{ \bsl \\
+\ind{4}if ( pkv\_signal\_handler ) \{ \bsl \\
+\ind{6}pkv\_signal = false; \bsl \\
+\ind{6}pkv\_critical = true; \bsl \\
+\ind{6}free ( (void*)(ptr) ); \bsl \\
+\ind{6}if ( pkv\_register\_memblock ) \bsl \\
+\ind{8}pkv\_register\_memblock ( (void*)(ptr), false ); \bsl \\
+\ind{6}(ptr) = NULL; \bsl \\
+\ind{6}pkv\_critical = false; \bsl \\
+\ind{6}if ( pkv\_signal ) \bsl \\
+\ind{8}pkv\_signal\_handler (); \bsl \\
+\ind{4}\} \bsl \\
+\ind{4}else \{ \bsl \\
+\ind{6}free ( (void*)(ptr) ); \bsl \\
+\ind{6}(ptr) = NULL; \bsl \\
+\ind{4}\} \bsl \\
+\ind{2}\}}
+Makro \texttt{PKV\_FREE} opr"ocz zwolnienia bloku wskazywanego przez
+parametr makra (za pomoc"a \texttt{free}), przypisuje temu parametrowi
+warto"s"c \texttt{NULL}.
+
+
+\newpage
+\section{Odpluskwianie}
+
+\cprog{%
+void WriteArrayf ( const char *name, int lgt, const float *tab ); \\
+void WriteArrayd ( const char *name, int lgt, const double *tab );}
+\hspace*{\parindent}
+Powy"rsze procedury mog"a by"c u"ryte podczas uruchamiania programu metod"a
+wydruk"ow kontrolnych. Ka"rda z procedur wypisuje na \texttt{stdout}
+napis \texttt{name} oraz \texttt{lgt} liczb zmiennopozycyjnych z tablicy
+\texttt{tab}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void *DMalloc ( size\_t size ); \\
+void DFree ( void *ptr );}
+Powyzsze procedury mo"rna wywo"lywa"c zamiast \texttt{malloc} i~\texttt{free},
+je"sli zachodzi podejrzenie, "re program pisze cos poza obszarami
+zarezerwowanymi. Procedura \texttt{DMalloc} rezerwuje (za pomoc"a
+\texttt{malloc}) blok pamieci wiekszy o $16$~bajt"ow, wype"lnia go zerami,
+wpisuje (w~pierwszych czterech bajtach) rozmiar i~zwraca wska"znik do
+"osmego bajtu za pocz"atkiem zarezerwowanego bloku.
+
+Procedura \texttt{DFree} sprawdza, czy bajty $4,\ldots,7$ oraz ostatnie
+$8$~bajt"ow zwalnianego bloku ma warto"s"c~$0$ i~wypisuje odpowiednie
+ostrze"renie.
+

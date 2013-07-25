@@ -1,0 +1,1508 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\newpage
+\section{Knot sequence processing}
+
+This section describes procedures, which perform various auxiliary
+actions witj knot sequences, like searching, generating and computing
+their length (before generating, which is necessary for the allocation
+of appropriate memory blocks).
+
+\subsection{Searching knot sequences}
+
+Knot sequences $u_0,\ldots,u_N$ pased in arrays to all procedures must be
+nondecreasing and they must satisfy the condition $u_n<u_{N-n}$.
+The responsability for that belongs to the calling procedures,
+as data correctness is not verified each time in order not to
+slow down the computations.
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_KnotMultiplicityf ( int lastknot, const float *knots, \\
+\ind{28}float t );}
+The procedure \texttt{mbs\_KnotMultiplicityf} obtains the array
+\texttt{knots}, with a~nondecreasing sequence of $N+1$ numbers,
+where $N$~is the value of the parameter \texttt{lastknot}.
+The value of the procedure is the number of appearances of the
+number \texttt{t} in this sequence.
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_FindKnotIntervalf ( int degree, \\
+\ind{28}int lastknot, const float *knots, \\
+\ind{28}float t, int *mult );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_FindKnotIntervalf} obtains the array \texttt{knots},
+with a~nondecresaing sequence of $N+1$ numbers (the number $N$ is the value
+of the parameter \texttt{lastknot}). If the parameter \texttt{degree} is equal to
+$-1$, then the procedure returns the index $k$, pointing the position
+such that
+$\mbox{\texttt{knots[$k$]}}\leq\mbox{\texttt{t}}<\mbox{\texttt{knots[$k+1$]}}$.
+It may also return $-1$ if $t<\mbox{\texttt{knots[$0$]}}$ or~$N$
+if $t\geq\mbox{\texttt{knots[$N$]}}$.
+\end{sloppypar}
+
+If the value $n$ of the parameter \texttt{degree} is nonnegative, then
+the smallest value returned by the procedure may be~$n$, and the greatest
+$N-n-1$. It is assumed that the procedure has been called in order to
+find the interval between two consecutive knots, which is the domain
+of a~polynomial or a~polynomial arc, which describes a~spline function
+or a~curve of degree~$n$. After finding this interval it is possible
+to compute the points of the arc (e.g.\ with the de~Boor algorithm).
+In this way, if $t\notin[u_n,u_{N-1})$, then points of the first
+or the last arc of the curve will be computed.
+
+The parameter \texttt{mult} is used to output the multiplicity of the knot~$t$.
+If it is \texttt{NULL}, then it is ignored. Otherwise if $t=u_k$
+(for $k$ equal to the value returned by the procedure) then the variable
+\texttt{*mult} is assigned the number of appearances of the number~$t$
+in the knot sequence.
+
+
+\subsection{Generating knot sequences}
+
+\cprog{%
+int mbs\_NumKnotIntervalsf ( int degree, int lastknot, \\
+\ind{28}const float *knots );}
+\hspace*{\parindent}The procedure \texttt{mbs\_NumKnotIntervalsf} computes
+the number of intervals between the consecutive knots, which form the domain
+of spline functions (or curves) of degree \texttt{degree}, defined with
+the knot sequence of length \texttt{*lastknot+1}, given in the array
+\texttt{knots}.
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_LastknotMaxInsf ( int degree, int lastknot, \\
+\ind{26}const float *knots, \\
+\ind{26}int *numknotintervals );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_LastknotMaxInsf} returns the index of the last knot
+of the representation of the curves, which will be constructed by the
+procedure \texttt{mbs\_MaxKnotInsf}.%
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_NumMaxKnotsf ( int degree, int lastknot, \\
+\ind{23}const float *knots );}
+The procedure \texttt{mbs\_NumMaxKnotsf} computes the length of the
+knot sequence necessary to represent in the local Bernstein bases of
+degree \texttt{degree} spline functions or curves defined with the knot
+sequence of length \texttt{lastknot+1}, given in the array \texttt{knots}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_SetKnotPatternf ( int lastinknot, const float *inknots, \\
+\ind{27}int multipl, \\
+\ind{27}int *lastoutknot, float *outknots );}
+The procedure \texttt{mbs\_SetKnotPatternf} generates the knot sequence,
+which consists of the numbers given in the array \texttt{inknots}
+(of length $\mathord{\mbox{\texttt{lastinknot}}}+1$),
+and such that all knots have the multiplicity \texttt{multipl}.
+
+The knot sequence is stored in the array \texttt{outknots}, and the index of
+its last knot is returned with the parameter \texttt{*lastoutknot}.
+
+
+\newpage
+\subsection{Reparameterization of curves and patches}
+
+%\vspace{\bigskipamount}
+\cprog{%
+void mbs\_TransformAffKnotsf ( int degree, int lastknot, \\
+\ind{30}const float *inknots, \\
+\ind{30}float a, float b, float *outknots );}
+\begin{sloppypar}
+\hspace*{\parindent}The procedure \texttt{mbs\_TransformAffKnotsf} applies
+an affine transformaation of the domain of a~spline curve, i.e.\ it computes
+the knot sequence associated with the new domain, which is equivalent to
+the affine reparameterization of the curve.
+The original domain is the interval $[u_n,u_{N-n}]$, and the new domain
+is the interval $[a,b]$. The parameter \texttt{degree}
+specifies the degree $n$ of the curve, the parameter \texttt{lastknot}
+specifies the index of the last knot, the array \texttt{inknots} contains
+the original knots $u_0,\ldots,u_N$.
+\end{sloppypar}
+
+The parameter \texttt{a}, \texttt{b} specify the interval $[a,b]$,
+and there must be $a<b$ (the procedure does not verify it).
+The new knot sequence is stored in the array \texttt{outknots}.
+
+The parameters \texttt{inknots} and~\texttt{outknots} may point two different
+(disjoint) arrays of length $N+1$, or they may point the same array.
+In the latter case the reparameterization is done ``in situ''.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiReverseBSCurvef ( int degree, int lastknot, \\
+\ind{32}float *knots, \\
+\ind{32}int ncurves, int spdimen, \\
+\ind{32}int pitch, float *ctlpoints );}
+The procedure \texttt{mbs\_multiReverseBSCurvef} reparameterizes B-spline curves
+of degree~$n$, corresponding to substituting the parameter $-t$ instead of~$t$.
+
+The parameter \texttt{degree} specifies the degree~$n$ of the curves. The
+parameters \texttt{lastknot} and~\texttt{knots} specify the knot sequence
+of the curve representation. The parameter \texttt{ncurves} specifies
+the number of curves, and \texttt{spdimen} specifies the dimension of the
+space, in which the curves are located.
+
+If the parameter \texttt{knots} is \texttt{NULL}, then the procedure reverses
+only the order of control points of the curves. Therefore it may be used
+also for ``reversing'' the B\'{e}zier curves or patches. In this case the
+parameter \texttt{lastknot} is ignored (a~curve of degree~$n$ has
+$n+1$ control points).
+
+The parameter \texttt{pitch} specifies the pitch of the array \texttt{ctlpoints},
+which contains the control points of the curves.
+
+The computation is done ``in situ'', and it consists of changing the
+sign and reversing the knot sequence and reversing the sequences of the
+control points of all the curves. No rounding errors appear in this
+computation.
+
+
+\newpage
+\subsection{Knot modifications}
+
+\cprog{%
+int mbs\_SetKnotf ( int lastknot, float *knots, \\
+\ind{19}int knotnum, int mult, float t );}
+The procedure \texttt{mbs\_SetKnotf} modifies a~knot in a~given sequence,
+with the ordering preserved. The parameters:
+\texttt{lastknot} --- number of the last knot in the sequence, \texttt{knots} ---
+pointer to the array with the knots, \texttt{knotnum} --- index of the
+knot modified, \texttt{mult} --- multiplicity (the new value is assigned to the
+entries from \texttt{knotnum-i+1} to \texttt{knotnum}),
+\texttt{t} --- new value of the knot.
+
+After the assignment the sequence is sorted. The return value is
+the new position of the knot in the sequence, i.e.\ the number~$k$,
+such that $t=u_k<u_{k+1}$.
+
+The return value $-1$ denotes invalid parameter \texttt{knotnum};
+its value must be between~$0$ and \texttt{lastknot}.
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_SetKnotClosedf ( int degree, int lastknot, float *knots, \\
+\ind{25}float T, int knotnum, int mult, float t );}  
+The procedure \texttt{mbs\_SetKnotClosedf} modifies a~knot in a~given sequence,
+with the ordering and periodicity required by the closed B-spline curve
+representationpreserved. The parameters: \texttt{degree} --- degree,
+\texttt{lastknot} --- number of the last knot in the sequence, \texttt{knots} ---
+pointer to the array with the knots, \texttt{T} --- length of the curve domain
+(after the change there must be \texttt{T=knots[lastknot-degree]-knots[degree]})
+ \texttt{knotnum} --- index of the
+knot modified, \texttt{mult} --- multiplicity (the new value is assigned to the
+entries from \texttt{knotnum-i+1} to \texttt{knotnum}),
+\texttt{t} --- new value of the knot.
+
+After the assignment the sequence is sorted. The return value is   
+the new position of the knot in the sequence, i.e.\ the number~$k$,
+such that $t=u_k<u_{k+1}$.
+
+The return value $-1$ denotes invalid parameter \texttt{knotnum};
+its value must be between~$0$ and \texttt{lastknot}, or \texttt{lastknot},
+which must be greater than \texttt{3*degree}.
+
+
+\vspace{\bigskipamount}
+
+\subsection{Verifying correctness}
+
+\cprog{%
+boolean mbs\_ClosedKnotsCorrectf ( int degree, int lastknot, \\
+\ind{34}float *knots, \\
+\ind{34}float T, int K, float tol );}
+The procedure \texttt{mbs\_ClosedKnotsCorrectf} verifies the correctness
+of a~sequence of knots intended to represent a~closed B-spline curve.
+A~correct knot sequence must be nondecreasing and satisfy the condition
+$u_{i+K}=u_i+T$ for $i=1,\ldots,n$, where $K=N-2n$, $N>3n$. The knot
+multiplicitiescannot exceed the degree~$n$. The parameter \texttt{tol}
+specifies the tolerance (i.e.\ the maximal difference $u_{i+K}-T-u_i$);
+it must be a~small positive number, not~$0$ because of rounding errors.
+
+
+\newpage
+\section{Evaluating B-spline functions}
+
+The values of B-spline functions may be necessary in interpolation problems.
+The functions are evaluated based on Formulae~(\ref{eq:BS:basis0})
+and~(\ref{eq:BS:basisn}).
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_deBoorBasisf ( int degree, int lastknot, \\
+\ind{24}const float *knots, \\
+\ind{24}float t, int *fnz, int *nnz, float *bfv );}
+
+\begin{sloppypar}
+The procedure \texttt{mbs\_deBoorBasisf} evaluates the B-spline functions
+of degree~$n$ (specified by the parameter \texttt{degree}) at the
+point~\texttt{t}. The functions are defined by specifying a~nondecreasing
+sequence of knots $u_0,\ldots,u_M$ in the array \texttt{knots}.
+The number of knots is \texttt{lastknot+1}.
+The parameter~\texttt{t} must have the value from the interval
+$[u_n,u_{N-n}]$.
+\end{sloppypar}
+
+The computed values of the B-spline functions are stored in the array
+\texttt{bfv}, and the parameter \texttt{*fnz} is assigned the number of
+the first function, whose value is nonzero at~\texttt{t};
+the length of the array \texttt{bfv} must be at least \texttt{degree+1}.
+
+The parameter \texttt{*nnz} is used to pass the information about the number
+of the functions having nonzero values at~$t$. The contents of the array
+\texttt{bfv} starting from the position \texttt{*nnz} is indefinite
+(but the procedure may use $\mbox{\texttt{degree}}+1$ places of this array
+to store some intermediate results of the computations). 
+
+
+\newpage
+\section{Computing points of curves and patches}
+
+\subsection{The de Boor algorithm}
+
+The de~Boor algorithm of computing the point $\bm{s}(t)$ of a~curve~$\bm{s}$
+given by Formula~(\ref{eq:BScurve:def}), for $t\in[u_k,u_{k+1})$,
+$k\in\{n,\ldots,N-n-1\}$, is based on recursive computing the points
+$\bm{d}^{(j)}_i$ for $j=1,\ldots,n-r$ and $i=k-n,\ldots,k-r$,
+using the formula
+\begin{align}
+  \bm{d}^{(j)}_i ={}&
+  (1-\alpha^{(j)}_i)\bm{d}^{(j-1)}_{i-1} + \alpha^{(j)}_i\bm{d}^{(j-1)}_i, \\
+  \mbox{gdzie}\quad \alpha^{(j)}_i ={}& \frac{t-u_i}{u_{i+n+1-j}-u_i}. \nonumber
+\end{align}
+The points $\bm{d}^{(0)}_i=\bm{d}_i$ are the curve control points,
+and the number~$r$ is the number of occurrences (the multiplicity)
+of the number~$t$ in the knot sequence $u_0,\ldots,u_N$.
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_multideBoorf ( int degree, int lastknot, \\
+\ind{23}const float *knots, \\
+\ind{23}int ncurves, int spdimen, \\
+\ind{23}int pitch, const float *ctlpoints, \\
+\ind{23}float t, float *cpoints );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_multideBoorf} is an implementation
+of the de~Boor algorithm of computing points of B-spline curves.
+The input data are \texttt{ncurves} B-spline curves of degree \texttt{degree},
+located in the space of dimension \texttt{spdimen}. Each curve is defined with
+the same nondecreasing sequence of \texttt{lastknot+1} knots,
+given in the array \texttt{knots}.
+\end{sloppypar}
+
+The control polygons are given in the array \texttt{ctlpoints}; each of them is
+described by \texttt{(lastknot-degree)*spdimen} floating point numbers,
+and the beginning of description of the next polyline is
+\texttt{pitch} places after the previous one.
+
+The parameter~\texttt{t} specifies the argument, to which correspond the points
+of the curves to be computed. The procedure stores the coordinates of those
+points in the array \texttt{cpoints}, whose length must be at least
+\texttt{ncurves*spdimen}.
+
+The value returned by the procedure is the number $n-r$, i.e.\ the difference
+of the degree of the curves anf the multiplicity of the number~$t$ in the
+knot sequence. If it is nonnegative then it is the minimal
+class of continuity of the curves in the neighbourhood of the
+point~$t$.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_deBoorC1f(degree,lastknot,knots,coeff,t,value) \bsl \\
+\ind{2}mbs\_multideBoorf(degree,lastknot,knots,1,1,0,coeff,t,value) \\
+\#define mbs\_deBoorC2f(degree,lastknot,knots,coeff,t,value) \bsl \\
+\ind{2}mbs\_multideBoorf(degree,lastknot,knots,1,2,0,coeff,t,value) \\
+\#define mbs\_deBoorC3f(degree,lastknot,knots,coeff,t,value) ... \\
+\#define mbs\_deBoorC4f(degree,lastknot,knots,coeff,t,value) ...}
+The four macros above call the procedure \texttt{mbs\_multideBoorf} in order to
+compute the value of \emph{jednej} spline function or a~B-spline curve located
+in the plane, in the $3$D or $4$D space. The parameters of the macros
+must satisfy the conditions given in the description of the procedure
+\texttt{mbs\_multideBoorf}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_deBoorC2Rf ( int degree, \\
+\ind{22}int lastknot, const float *knots, \\
+\ind{22}const point3f *ctlpoints, float t, \\
+\ind{22}point2f *cpoint );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_deBoorC2Rf} computes the point of a~planar
+rational B-spline (NURBS) curve of degree \texttt{degree}, defined for
+a~nondecreasing sequence of \texttt{lastknot+1} knots given in the array
+\texttt{knots}. The array \texttt{ctlpoints} contains the \emph{homogeneous}
+coordinates the control points (i.e.\ the control points of the homogeneous curve
+located in $\R^3$).
+
+The number $t$ is the value of the parameter \texttt{t}, and it must be
+and element of the interval
+$[\mbox{\texttt{knots[degree]}},\mbox{\texttt{knots[lastknot-degree]}}]$.
+The procedure stores the \emph{cartesian} coordinates of the computed point
+of the curve in the array \texttt{cpoint}.
+\end{sloppypar}
+
+The main computation is done by the procedure \texttt{mbs\_multideBoorf}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_deBoorC3Rf ( int degree, \\
+\ind{22}int lastknot, const float *knots, \\
+\ind{22}const point4f *ctlpoints, float t, \\
+\ind{22}point3f *cpoint );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_deBoorC3Rf} computes the point of a~rational
+B-spline (NURBS) curve of degree \texttt{degree} in a~$3$D space, defined for
+a~nondecreasing sequence of \texttt{lastknot+1} knots given in the array
+\texttt{knots}. The array \texttt{ctlpoints} contains the \emph{homogeneous}
+coordinates the control points (i.e.\ the control points of the homogeneous curve
+located in $\R^4$).
+
+The number $t$ is the value of the parameter \texttt{t}, and it must be
+and element of the interval
+$[\mbox{\texttt{knots[degree]}},\mbox{\texttt{knots[lastknot-degree]}}]$.
+The procedure stores the \emph{cartesian} coordinates of the computed point
+of the curve in the array \texttt{cpoint}.
+\end{sloppypar}
+
+The main computation is done by the procedure \texttt{mbs\_multideBoorf}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_deBoorP3f ( int degreeu, \\
+\ind{21}int lastknotu, const float *knotsu, \\
+\ind{21}int degreev, \\
+\ind{21}int lastknotv, const float *knotsv, \\
+\ind{21}int pitch, \\
+\ind{21}const point3f *ctlpoints, \\
+\ind{21}float u, float v, point3f *ppoint );}
+The procedure \texttt{mbs\_deBoorP3f} computes a~point of a~B-spline patch
+in the $3$D space. The degrees of the patch with respect to the parameters
+$u$~and~$v$ are \texttt{degreeu} and~\texttt{degreev} respectively.
+The ``$u$'' knot sequence, of length \texttt{lastknotu+1} is given in the array
+\texttt{knotsu}, and the ``$v$'' knot sequence, of length
+\texttt{lastknotv+1} is given in the array \texttt{knotsv}.
+
+The control points of the patch are given in the array \texttt{ctlpoints}, in
+the following order: the points of the first column of the control net are
+followed by the points of the second column etc, where each column consists of
+\texttt{lastknotv-degreev} points.
+
+The parameters \texttt{u} and \texttt{v} specify the point of the patch domain,
+whose corresponding patch point is to be computed. The coordinates of the
+computed patch point are storedy by the procedure in the array
+\texttt{ppoint}.
+
+The main computation is done by the procedure \texttt{mbs\_multideBoorf}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_deBoorP3Rf ( int degreeu, \\
+\ind{22}int lastknotu, const float *knotsu, \\
+\ind{22}int degreev, \\
+\ind{22}int lastknotv, const float *knotsv, \\
+\ind{22}int pitch, \\
+\ind{22}const point4f *ctlpoints, \\
+\ind{22}float u, float v, point3f *ppoint );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_deBoorP3Rf} computes the point of a~rational
+B-spline patch (a~NURBS patch) in the $3$D space. The degrees of the patch
+with respect to the parameters $u$~and~$v$ are equal to \texttt{degreeu}
+and~\texttt{degreev} respectively. The ``$u$'' knot sequence of length
+\texttt{lastknotu+1} is given in the array \texttt{knotsu}, and the ``$v$''
+knot sequence of length \texttt{lastknotv+1} is given in the array
+\texttt{knotsv}.
+\end{sloppypar}
+
+The array \texttt{ctlpoints} contains the control points of the
+\emph{homogeneous patch}, in the following order: the cpoints of the first column
+are followed by the points of the second column etc.
+Each column consists of \texttt{lastknotv-degreev} control points.
+
+The parameters \texttt{u} and \texttt{v} specify the point in the patch domain,
+to which corresponds the patch point to be computed. The cartesian coordinates
+of this point are stord by the procedure in the array \texttt{ppoint}.
+
+The main computation is done by the procedure \texttt{mbs\_multideBoorf}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_deBoorP4f ( int degreeu, \\
+\ind{21}int lastknotu, const float *knotsu, \\
+\ind{21}int degreev, \\
+\ind{21}int lastknotv, const float *knotsv, \\
+\ind{21}int pitch, \\
+\ind{21}const point4f *ctlpoints, \\
+\ind{21}float u, float v, point4f *ppoint );}
+The procedure \texttt{mbs\_deBoorP4f} computes a~point of a~B-spline patch
+in the $4$D space. The degrees of the patch with respect to the parameters
+$u$~and~$v$ are equal to \texttt{degreeu} and~\texttt{degreev} respectively.
+The ``$u$'' knot sequence of length \texttt{lastknotu+1} is given in the array
+\texttt{knotsu}, and the ``$v$'' knot sequence of length \texttt{lastknotv+1}
+is given in the array \texttt{knotsv}.
+
+The control points are given in the array \texttt{ctlpoints}; the points
+of the first column come first, followed by the points of the second column etc.
+Each column consists of \texttt{lastknotv-degreev} points.
+
+The parameters \texttt{u} and \texttt{v} specify the point in the patch domain,
+to which corresponds the patch point to be computed. The cartesian coordinates
+of this point are stord by the procedure in the array \texttt{ppoint}.
+
+The main computation is done by the procedure \texttt{mbs\_multideBoorf}.
+
+
+\vspace{\bigskipamount}
+The derivative of a~spline curve~$\bm{s}$ defined with
+Formula~(\ref{eq:BScurve:def}) at the point $t$ is equal to
+\begin{align}
+  \bm{s}'(t) = \frac{n}{u_{k+1}-u_k}(\bm{d}^{(n-r-1)}_{k-r} -
+  \bm{d}^{(n-r-1)}_{k-r-1}),
+\end{align}
+where the points $\bm{d}^{(n-r-1)}_{k-r}$ and~$\bm{d}^{(n-r-1)}_{k-r-1}$
+are the intermediate results of the de~Boor algorithm. The procedures
+described below use this algorithm to compute the point of a~curve
+together with the derivative.
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_multideBoorDerf ( int degree, int lastknot, \\
+\ind{26}const float *knots, \\
+\ind{26}int ncurves, int spdimen, \\
+\ind{26}int pitch, \\
+\ind{26}const float *ctlpoints, \\
+\ind{26}float t, float *cpoints, \\
+\ind{26}float *dervect );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_multideBoorDerf} computes points of
+\texttt{ncurves} B-spline curves of degree \texttt{degree}, located in the space
+of dimension \texttt{spdimen}. Additionally, the procedure computes the
+derivative vectors of the curves at the point~\texttt{t}.
+\end{sloppypar}
+
+The data, which represents the curves is identical as in the case of
+the procedure \texttt{mbs\_multideBoorf}. The computed points of the curves
+are stored by the procedure in the array \texttt{cpoints}. The derivative
+vectors are stored in the array~\texttt{dervect}.
+
+\begin{sloppypar}
+If the value~$t$ of the parameter \texttt{t} is equal to a~knot of multiplicity
+\texttt{degree} or greater, then the procedure computes the right-side
+derivatives at~$t$, except for the case, when $t$ is the end point of the
+curve domain (i.e.\ $t=\mbox{\texttt{knots[lastknot-degree]}}$).
+In this case the procedure computes the left-side derivatives.
+The value returned by the procedure is the difference of the
+degree of the curves and the multiplicity of the number $t$ in the knot sequence.
+This difference indicates the minimal class of continuity of the curves
+in a~neighbourhood of the point~$t$.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_deBoorDerC1f(degree,lastknot,knots,ctlpoints,t,\bsl \\
+\ind{4}cpoint,cder)\bsl \\
+\ind{2}mbs\_multideBoorDerf(degree,lastknot,knots,1,1,0,ctlpoints,t,\bsl\\
+\ind{4}cpoint,cder) \\
+\#define mbs\_deBoorDerC2f(degree,lastknot,knots,ctlpoints,t,\bsl \\
+\ind{4}cpoint,cder)\bsl \\
+\ind{2}mbs\_multideBoorDerf(degree,lastknot,knots,1,2,0,ctlpoints,t,\bsl\\
+\ind{4}cpoint,cder) \\
+\#define mbs\_deBoorDerC3f(degree,lastknot,knots,ctlpoints,t,\bsl \\
+\ind{4}cpoint,cder)\ ... \\
+\#define mbs\_deBoorDerC4f(degree,lastknot,knots,ctlpoints,t,\bsl \\
+\ind{4}cpoint,cder)\ ...}
+\begin{sloppypar}
+The four macros above call the procedure \texttt{mbs\_multideBoorDerf} in order to
+compute the value of \emph{one} spline function or the point of one curve
+together with the derivative at the point \texttt{t}. The parameters must
+satisfy the conditions given in the decription of the procedure
+\texttt{mbs\_multideBoorDerf}.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_multideBoorDer2f ( int degree, \\
+\ind{23}int lastknot, const float *knots, \\
+\ind{23}int ncurves, int spdimen, \\
+\ind{23}int pitch, const float *ctlpoints, \\
+\ind{23}float t, float *p, float *d1, float *d2 );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_multideBoorDer2f} computes the points
+$\bm{s}_i(t)$ and the vectors $\bm{s}'_i(t)$ and~$\bm{s}''_i(t)$
+of B-spline curves $\bm{s}_i$ of degree~$n$ for a~given~$t$.
+\end{sloppypar}
+
+Input parameters: \texttt{degree} --- the degree~$n$,
+\texttt{lastknot} --- the number~$N$ of the last knot,
+\texttt{knots} --- array of knots, \texttt{ncurves}
+--- the number of curves, \texttt{pitch} --- the pitch of the array
+of control points, \texttt{ctlpoints} --- array of control points,
+\texttt{t} --- the number~$t$.
+
+Output parameters: \texttt{p} --- the array, in which the procedure
+stores the points $\bm{s}_i(t)$, \texttt{d1} --- the array, in which the
+procedure stores the vectors $\bm{s}'_i(t)$, \texttt{d2} --- the array
+in which the procedure stores the vectors $\bm{s}''_i(t)$.
+The pitch of all those arrays is equal to the space dimension,
+ \texttt{spdimen}.
+
+The value returned by the procedure is the number $n-r$, where $r$ is the
+multiplicity of the number~$t$ in the knot sequence. This value
+indicates the minimal class of continuity of the curves
+$\bm{s}_i$ in a~neightbourhood of the point~$t$.
+
+If the curve or one of its derivatives is discontinuous at~$t$,
+then the computed point or vector is the left side limit
+(e.g.\ $\lim_{x\searrow t}\bm{s}'(x)$).
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_deBoorDer2C1f(degree,lastknot,knots,coeff,t,p,d1,d2) \bsl \\
+\ind{2}mbs\_multideBoorDer2f(degree,lastknot,knots,1,1,0,coeff,t,p,d1,d2) \\
+\#define mbs\_deBoorDer2C2f(degree,lastknot,knots,ctlpoints,t, \bsl \\
+\ind{4}p,d1,d2) \bsl \\
+\ind{2}mbs\_multideBoorDer2f(degree,lastknot,knots,1,2,0, \bsl \\
+\ind{4}(float*)ctlpoints,t,(float*)p,(float*)d1,(float*)d2) \\
+\#define mbs\_deBoorDer2C3f(degree,lastknot,knots,ctlpoints,t, \bsl \\
+\ind{4}p,d1,d2)\ ... \\
+\#define mbs\_deBoorDer2C4f(degree,lastknot,knots,ctlpoints,t, \bsl \\
+\ind{4}p,d1,d2)\ ...}
+\begin{sloppypar}
+The above macros call the procedure \texttt{mbs\_multideBoorDer2f}
+in order to compute the point and the first two derivatives of
+one B-spline curve located in the space of dimension $1$, $2$, $3$ or $4$.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+int mbs\_multideBoorDer3f ( int degree, \\
+\ind{23}int lastknot, const float *knots, \\
+\ind{23}int ncurves, int spdimen, \\
+\ind{23}int pitch, const float *ctlpoints, float t, \\
+\ind{23}float *p, float *d1, float *d2, float *d3 );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_multideBoorDer3f} computes the points $\bm{s}_i(t)$
+and the vectors $\bm{s}'_i(t)$, $\bm{s}''_i(t)$ and~$\bm{s}'''_i(t)$
+for B-spline curves $\bm{s}_i$ of degree~$n$ for a~given~$t$.
+\end{sloppypar}
+
+Input parameters: \texttt{degree} --- the degree~$n$,
+\texttt{lastknot} --- the number~$N$ of the last knot,
+\texttt{knots} --- array of knots, \texttt{ncurves}
+--- the ni=umber of curves, \texttt{pitch} --- the pitch of the array
+of control points, \texttt{ctlpoints} --- array of control points,
+\texttt{t} --- the number~$t$.
+
+Output parameters: \texttt{p} --- the array in which the procedure stores the
+points $\bm{s}_i(t)$, \texttt{d1} --- the aray in which the procedure
+stores the vectors $\bm{s}'_i(t)$, \texttt{d2} --- the array in which the
+procedure stores the vectors $\bm{s}''_i(t)$, \texttt{d3} --- the array
+in which the procedure stores the vectors $\bm{s}'''_i(t)$. All these arrays
+have the pitch equal to the space dimension,
+\texttt{spdimen}.
+
+The value returned by the procedure is the number $n-r$, where $r$ is the
+multiplicity of the number~$t$ in the knot sequence. This value
+indicates the minimal class of continuity of the curves
+$\bm{s}_i$ in a~neightbourhood of the point~$t$.
+
+If the curve or one of its derivatives is discontinuous at~$t$,
+then the computed point or vector is the left side limit
+(e.g.\ $\lim_{x\searrow t}\bm{s}'(x)$).
+
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_deBoorDer3C1f(degree,lastknot,knots,coeff,t, \bsl \\
+\ind{4}p,d1,d2,d3) \bsl \\
+\ind{2}mbs\_multideBoorDer3f(degree,lastknot,knots,1,1,0,coeff,t, \bsl \\
+\ind{4}p,d1,d2,d3) \\
+\#define mbs\_deBoorDer3C2f(degree,lastknot,knots,ctlpoints,t, \bsl \\
+\ind{4}p,d1,d2,d3) \bsl \\
+\ind{2}mbs\_multideBoorDer3f(degree,lastknot,knots,1,2,0, \bsl \\
+\ind{4}(float*)ctlpoints,t,(float*)p,(float*)d1,(float*)d2,(float*)d3) \\
+\#define mbs\_deBoorDer3C3f(degree,lastknot,knots,ctlpoints,t, \bsl \\
+\ind{4}p,d1,d2,d3)\ ... \\
+\#define mbs\_deBoorDer3C4f(degree,lastknot,knots,ctlpoints,t, \bsl \\
+\ind{4}p,d1,d2,d3)\ ...}
+\begin{sloppypar}
+The above macros call the procedure \texttt{mbs\_multideBoorDer3f} in order
+to compute the point and derivatives up to the order $3$ of \emph{one}
+B-spline curve located in the space of dimension $1$, $2$, $3$ or $4$.
+\end{sloppypar}
+
+\begin{figure}[ht]
+  \centerline{\epsfig{file=bsder123.ps}}
+  \caption{Derivative vectors of order $1$, $2$ and $3$ of a~B-spline curve}
+  \centerline{of degree $5$, computed by the procedures
+    \texttt{mbs\_multideBoorDerf},}
+  \centerline{\texttt{mbs\_multideBoorDer2f} and \texttt{mbs\_multideBoorDer3f}}
+\end{figure}
+
+\vspace{\bigskipamount}
+\cprog{%
+char mbs\_deBoorDerPf ( int degreeu, int lastknotu, \\
+\ind{20}const float *knotsu, \\
+\ind{20}int degreev, int lastknotv, \\
+\ind{20}const float *knotsv, \\
+\ind{20}int spdimen, int pitch, const float *ctlpoints, \\       
+\ind{20}float u, float v, \\
+\ind{20}float *ppoint, \\   
+\ind{20}float *uder, float *vder );}
+The procedure \texttt{mbs\_deBoorDerPf} computes the point
+of a~B-spline patch, together with its first order partial derivatives.
+
+\vspace{\bigskipamount}
+\cprog{%
+char mbs\_deBoorDer2Pf ( int degreeu, int lastknotu, \\
+\ind{20}const float *knotsu, \\
+\ind{20}int degreev, int lastknotv, \\
+\ind{20}const float *knotsv, \\
+\ind{20}int spdimen, int pitch, const float *ctlpoints, \\
+\ind{20}float u, float v, \\
+\ind{20}float *ppoint, \\   
+\ind{20}float *uder, float *vder, \\
+\ind{20}float *uuder, float *uvder, float *vvder );}
+The procedure \texttt{mbs\_deBoorDer2Pf} computes the point
+of a~B-spline patch, together with its first and second order
+partial derivatives.
+
+\vspace{\bigskipamount}
+\cprog{%
+char mbs\_deBoorDer3Pf ( int degreeu, int lastknotu, \\
+\ind{6}const float *knotsu, \\  
+\ind{6}int degreev, int lastknotv, \\  
+\ind{6}const float *knotsv, \\  
+\ind{6}int spdimen, int pitch, const float *ctlpoints, \\  
+\ind{6}float u, float v, \\  
+\ind{6}float *ppoint, \\    
+\ind{6}float *uder, float *vder, \\  
+\ind{6}float *uuder, float *uvder, float *vvder, \\  
+\ind{6}float *uuuder, float *uuvder, float *uvvder, float *vvvder );}   
+The procedure \texttt{mbs\_deBoorDer3Pf} computes the point
+of a~B-spline patch, together with its first, second and third order
+partial derivatives.
+
+
+\subsection{Horner scheme for B\'{e}zier curves and patches}
+
+The Horner scheme is an algorithm of evaluating a~polynomial (or computing
+a~point of a~curve), whose complexity is proportional to the degree
+(the cost of the de~Casteljau and de~Boor algorithms is proportional
+to the square of degree). To use this algorithm for B-spline curves
+(which makes sense if many points are to be computed), it is necessary
+to find a~piecewise B\'{e}zier representation, using
+e.g.\ the \texttt{mbs\_multiMaxKnotInsf} procedure (see e.g.\
+Section.~\ref{ssect:max:knot:ins}).
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBCHornerf ( int degree, int ncurves, \\
+\ind{26}int spdimen, int pitch, \\
+\ind{26}const float *ctlpoints, \\
+\ind{26}float t, float *cpoints );}
+The procedure \texttt{mbs\_multiBCHornerf} computes points of \texttt{ncurves}
+B\'{e}zier curves of degree \texttt{degree} in the space of dimension
+\texttt{spdimen}. The control points of the curves are given in the array
+\texttt{ctlpoints}. The coordinates of the control points of each curve
+are stored in such a~way, that the distance between the beginnings of
+representations of two consecutive curves is the value of the parameter
+\texttt{pitch}.
+The parameter \texttt{t} specifies the parameter of the curves
+to which correspond the points to be computed. The procedure stores these
+points in the array \texttt{cpoints}, whose length must be at least
+\texttt{ncurves*spdimen}.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BCHornerC1f(degree,coeff,t,value) \bsl \\
+\ind{2}mbs\_multiBCHornerf ( degree, 1, 1, 0, coeff, t, value ) \\
+\#define mbs\_BCHornerC2f(degree,coeff,t,value) \bsl \\
+\ind{2}mbs\_multiBCHornerf ( degree, 1, 2, 0, coeff, t, value ) \\
+\#define mbs\_BCHornerC3f(degree,coeff,t,value) ... \\
+\#define mbs\_BCHornerC4f(degree,coeff,t,value) ...}
+The above macros call the procedure \texttt{mbs\_multiBCHornerf} in order to
+evaluate a~polynomial represented by its coefficients in the Bernstein basis,
+or to compute the point of one B\'{e}zier curve in the space of dimension
+$2$, $3$ or $4$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCHornerC2Rf ( int degree, \\
+\ind{24}const point3f *ctlpoints, \\
+\ind{24}float t, point2f *cpoint ); \\
+void mbs\_BCHornerC3Rf ( int degree, \\
+\ind{24}const point4f *ctlpoints, \\
+\ind{24}float t, point3f *cpoint );}
+The above procedures compute a~point of a~planar or a~$3$D rational
+B\'{e}zier curve, using the Horner scheme (applied to the homogeneous
+representation).
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_FindBezPatchDiagFormf ( int degreeu, int degreev, \\
+\ind{33}int spdimen, const float *cpoints, \\
+\ind{33}int k, int l, float u, float v, \\
+\ind{33}float *dfcp );}
+The procedure \texttt{mbs\_FindBezPatchDiagFormf} computes the diagonal
+form of degree $(k,l)$ of a~B\'{e}zier patch~$\bm{p}$ of degree $(n,m)$
+at the point $(u,v)$; it is a~tensor product B\'{e}zier patch of degree
+$(k,l)$, which may be obtained after $n-k$ steps of the de~Casteljau algorithm
+on the rows and $m-l$ steps on the columns of the control net.
+This patch may be used to compute the point of the patch~$\bm{p}$
+and its derivatives of order $1,\ldots,k$ with respect to $u$
+and $1,\ldots,l$ with respect to~$v$. Instead of the de~Casteljau algorithm,
+this procedure uses the faster Horner scheme
+(by calling \texttt{mbs\_multiBCHornerf}).
+
+All procedures of computing points and derivatives (and also curvatures)
+of B\'{e}zier patches described below should call this procedure, though
+currently only the procedure \texttt{mbs\_BCHornerDer3Pf} is written so
+(and it must still be improved).
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCHornerPf ( int degreeu, int degreev, int spdimen, \\
+\ind{22}const float *ctlpoints, \\
+\ind{22}float u, float v, float *ppoint );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_BCHornerPf} computes the point $\bm{p}(u,v)$ of the
+B\'{e}zier patch~$\bm{p}$ of degree $(n,m)$, located in the space of dimension~$d$.
+The parameters \texttt{degreeu} and \texttt{degreev} specify the degrees of
+the patch (their values are $n$ and~$m$). The parameter
+\texttt{spdimen} specifies the dimension~$d$ of the space containing the patch.
+The array \texttt{ctlpoints} contains the control points of the patch
+($(n+1)(m+1)d$ floating point numbers).%
+\end{sloppypar}
+
+The result (the point of the patch) is stored in the array
+\texttt{ppoint}, whose length must be at least \texttt{spdimen}.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BCHornerP1f(degreeu,degreev,coeff,u,v,ppoint) \bsl \\
+\ind{2}mbs\_BCHornerPf ( degreeu, degreev, 1, coeff, u, v, ppoint ) \\
+\#define mbs\_BCHornerP2f(degreeu,degreev,ctlpoints,u,v,ppoint ) \bsl \\
+\ind{2}mbs\_BCHornerPf ( degreeu, degreev, 2, (float*)ctlpoints, \bsl \\
+\ind{4}u, v, (float*)ppoint ) \\
+\#define mbs\_BCHornerP3f(degreeu,degreev,ctlpoints,u,v,ppoint ) \ldots \\
+\#define mbs\_BCHornerP4f(degreeu,degreev,ctlpoints,u,v,ppoint ) \ldots}
+\begin{sloppypar}
+The above macros call \texttt{mbs\_BCHornerPf} in order to compute
+a~point of a~B\'{e}zier patch in the space of dimension
+$1$, $2$, $3$ or~$4$.
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCHornerP3Rf ( int degreeu, int degreev, \\
+\ind{24}const point4f *ctlpoints, float u, float v, \\
+\ind{24}point3f *p );}
+The procedure \texttt{mbs\_BCHornerP3Rf} computes a~point of a~rational
+B\'{e}zier patch in the $3$D space, represented in the homogeneous form.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBCHornerDerf ( int degree, int ncurves, \\
+\ind{29}int spdimen, int pitch, \\
+\ind{29}const float *ctlpoints, \\
+\ind{29}float t, float *p, float *d );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_multiBCHornerDerf} uses the Horner scheme
+to compute the points $\bm{c}_i(t)$ and the vectors $\bm{c}_i'(t)$
+for B\'{e}zier curves $\bm{c}_i$ located in the space of dimension~$d$.
+\end{sloppypar}
+
+The parameters: \texttt{degree} --- degree of the curve, \texttt{ncurves}
+--- number of curves, \texttt{spdimen} --- dimension $d$ of the space,
+\texttt{pitch} --- pitch of the array \texttt{ctlpoints} with the control
+points of the curves. the value of the parameter \texttt{t}
+is the number~$t$.
+
+The coordinates of the points $\bm{c}_i(t)$ and the vectors $\bm{c}_i'(t)$
+are stored in the arrays \texttt{p} and~\texttt{d} respectively.
+Their length must be at least \texttt{ncurves*spdimen}.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BCHornerDerC1f(degree,coeff,t,p,d) \bsl \\
+\ind{2}mbs\_multiBCHornerDerf ( degree, 1, 1, 0, coeff, t, p, d ) \\
+\#define mbs\_BCHornerDerC2f(degree,ctlpoints,t,p,d) \bsl \\
+\ind{2}mbs\_multiBCHornerDerf ( degree, 1, 2, 0, (float*)ctlpoints, t, \bsl \\
+\ind{4}(float*)p, (float*)d ) \\
+\#define mbs\_BCHornerDerC3f(degree,ctlpoints,t,p,d) \ldots \\
+\#define mbs\_BCHornerDerC4f(degree,ctlpoints,t,p,d) \ldots}
+The above macros call \texttt{mbs\_multiBCHornerDerf} in order to
+compute a~point and derivative of a~B\'{e}zier curve in the space
+of dimension $1$, $2$, $3$ or $4$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCHornerDerC2Rf ( int degree, const point3f *ctlpoints, \\
+\ind{27}float t, point2f *p, vector2f *d ); \\
+void mbs\_BCHornerDerC3Rf ( int degree, const point4f *ctlpoints, \\
+\ind{27}float t, point3f *p, vector3f *d );}
+The procedures \texttt{mbs\_BCHornerDerC2Rf} and~\texttt{mbs\_BCHornerDerC3Rf}
+compute the point $\bm{p}(t)$ and the vector $\bm{p}'(t)$ of a~rational B\'{e}zier
+curve~$\bm{p}$ in the $2$D or $3$D space respectively.
+
+The parameters: \texttt{degree} --- degree of the curves, \texttt{ctlpoints} ---
+array of control points, \texttt{t} --- the number~$t$.
+The procedures assign the coordinates of the point $\bm{p}(t)$
+to the parameter~\texttt{p}, and the vector~$\bm{p}'(t)$ to the
+parameter~\texttt{d}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCHornerDerPf ( int degreeu, int degreev, int spdimen, \\
+\ind{25}const float *ctlpoints, \\
+\ind{25}float u, float v, \\
+\ind{25}float *p, float *du, float *dv );}
+The procedure \texttt{mbs\_BCHornerDerPf} computes the point $\bm{p}(u,v)$
+and the partial derivatives $\frac{\partial}{\partial u}\bm{p}(u,v)$
+and~$\frac{\partial}{\partial v}\bm{p}(u,v)$ of a~B\'{e}zier patch~$\bm{p}$
+of degree $(n,m)$, located in the space of dimension~$d$.
+
+The parameters: \texttt{degreeu}, \texttt{degreev} --- specify the degrees
+of the patch (the numbers $n$~and~$m$). The parameter \texttt{spdimen}
+specifies the dimension~$d$ of the space, the array \texttt{ctlpoints}
+contains the coordinates of the control points.
+
+The results (the coordinates of the point and derivatives) are
+stored in the arrays \texttt{p}, \texttt{du} and~\texttt{dv}, whose length
+must be at least \texttt{spdimen}.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BCHornerDerP1f(degreeu,degreev,coeff,u,v,p,du,dv) \bsl \\
+\ind{2}mbs\_BCHornerDerPf ( degreeu, degreev, 1, coeff, u, v, p, du, dv ) \\
+\#define mbs\_BCHornerDerP2f(degreeu,degreev,ctlpoints,u,v,p,du,dv) \bsl \\
+\ind{2}mbs\_BCHornerDerPf ( degreeu,degreev,2,(float*)ctlpoints,u,v, \bsl \\
+\ind{4}(float*)p, (float*)du, (float*)dv ) \\
+\#define mbs\_BCHornerDerP3f(degreeu,degreev,ctlpoints,u,v,p,du,dv) \bsl \\
+\ind{2}\ldots \\
+\#define mbs\_BCHornerDerP4f(degreeu,degreev,ctlpoints,u,v,p,du,dv) \bsl \\
+\ind{2}\ldots }
+The above macros call \texttt{mbs\_BCHornerDerPf} in order to compute
+the points and partial derivatives of B\'{e}zier patches in the space
+of dimension $1$, $2$, $3$ or~$4$ respectively.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCHornerDerP3Rf ( int degreeu, int degreev, \\
+\ind{26}const point4f *ctlpoints, \\
+\ind{26}float u, float v, \\
+\ind{26}point3f *p, vector3f *du, vector3f *dv );}
+The procedure \texttt{mbs\_BCHornerDerP3Rf} computes the point $\bm{p}(u,v)$
+and the partial derivative vectors of a~rational B\'{e}zier patch located
+in the $3$D space.
+
+The parameters: \texttt{degreeu}, \texttt{degreev} --- degrees with respect to
+the parameters $u$~and~$v$, \texttt{ctlpoints} --- array of control points of
+the homogeneous patch, \texttt{u}, \texttt{v} --- the numbers
+$u$~and~$v$, \texttt{*p}, \texttt{*du}, \texttt{*dv} --- variables in
+which the results are stored.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBCHornerDer2f ( int degree, int ncurves, \\
+\ind{30}int spdimen, int pitch, \\
+\ind{30}const float *ctlpoints, float t, \\
+\ind{30}float *p, float *d1, float *d2 );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_multiBCHornerDerf} uses the Horner scheme
+to compute the points $\bm{c}_i(t)$ and the vectors $\bm{c}_i'(t)$ and
+$\bm{c}_i''(t)$ for B\'{e}zier curves $\bm{c}_i$ located in the space of
+dimension~$d$.
+\end{sloppypar}
+
+The parameters: \texttt{degree} --- degree of the curve, \texttt{ncurves}
+--- number of curves, \texttt{spdimen} --- dimension $d$ of the space,
+\texttt{pitch} --- pitch of the array \texttt{ctlpoints} with the control
+points of the curves. the value of the parameter \texttt{t}
+is the number~$t$.
+
+The coordinates of the points $\bm{c}_i(t)$ and the vectors $\bm{c}_i'(t)$
+and $\bm{c}_i''(t)$ are stored in the arrays \texttt{p}, \texttt{d1} and
+\texttt{d2} respectively.
+The length of these arrays must not be less than \texttt{ncurves*spdimen}.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BCHornerDer2C1f(degree,coeff,t,p,d1,d2) \bsl \\
+\ind{2}mbs\_multiBCHornerDer2f ( degree, 1, 1, 0, coeff, t, p, d1, d2 ) \\
+\#define mbs\_BCHornerDer2C2f(degree,ctlpoints,t,p,d1,d2) \bsl \\
+\ind{2}mbs\_multiBCHornerDer2f ( degree, 1, 2, 0, (float*)ctlpoints, \bsl \\
+\ind{4}t, (float*)p, (float*)d1, (float*)d2 ) \\
+\#define mbs\_BCHornerDer2C3f(degree,ctlpoints,t,p,d1,d2) \ldots \\
+\#define mbs\_BCHornerDer2C4f(degree,ctlpoints,t,p,d1,d2) \ldots}
+The above macros call \texttt{mbs\_multiBCHornerDer2f} in order to
+compute a~point and derivatives of order $1$ and $2$ of a~B\'{e}zier
+curve in the space of dimension $1$, $2$, $3$ or $4$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCHornerDer2C2Rf ( int degree, const point3f *ctlpoints, \\
+\ind{17}float t, point2f *p, vector2f *d1, vector2f *d2 ); \\
+void mbs\_BCHornerDer2C3Rf ( int degree, const point4f *ctlpoints, \\
+\ind{17}float t, point3f *p, vector3f *d1, vector3f *d2 );}
+The procedures \texttt{mbs\_BCHornerDer2C2Rf} and~\texttt{mbs\_BCHornerDer2C3Rf}
+compute the point $\bm{p}(t)$ and the vectors $\bm{p}'(t)$ and $\bm{p}''(t)$
+of a~rational B\'{e}zier curve~$\bm{p}$ in the $2$D or $3$D space respectively.
+
+The parameters: \texttt{degree} --- degree of the curves, \texttt{ctlpoints} ---
+array of control points, \texttt{t} --- the number~$t$.
+The procedures assign the coordinates of the point $\bm{p}(t)$
+to the parameter~\texttt{p}, and the vectors~$\bm{p}'(t)$ and $\bm{p}''(t)$
+to the parameters~\texttt{d1} and~\texttt{d2}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCHornerDer2Pf ( int degreeu, int degreev, int spdimen, \\
+\ind{26}const float *ctlpoints, \\
+\ind{26}float u, float v, \\
+\ind{26}float *p, float *du, float *dv, \\
+\ind{26}float *duu, float *duv, float *dvv );}
+The procedure \texttt{mbs\_BCHornerDer2Pf} computes the point $\bm{p}(u,v)$
+and the partial derivatives of order $1$ and $2$ of a~B\'{e}zier patch~$\bm{p}$
+of degree $(n,m)$, located in the space of dimension~$d$.
+
+The parameters: \texttt{degreeu}, \texttt{degreev} --- specify the degrees
+of the patch (the numbers $n$~and~$m$). The parameter \texttt{spdimen}
+specifies the dimension~$d$ of the space, the array \texttt{ctlpoints}
+contains the coordinates of the control points.
+
+The results (the coordinates of the point and derivatives) are
+stored in the arrays \texttt{p}, \texttt{du}, \texttt{dv}, \texttt{duu},
+\texttt{duv} and~\texttt{dvv}, whose length
+must be at least \texttt{spdimen}.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BCHornerDer2P1f(degreeu,degreev,coeff,u,v, \bsl \\
+\ind{4}p,du,dv,duu,duv,dvv) \bsl \\
+\ind{2}mbs\_BCHornerDer2Pf ( degreeu, degreev, 1, coeff, u, v, \bsl \\
+\ind{4}p, du, dv, duu, duv, dvv ) \\
+\#define mbs\_BCHornerDer2P2f(degreeu,degreev,ctlpoints, \bsl \\
+\ind{4}u,v,p,du,dv,duu,duv,dvv) \bsl \\
+\ind{2}mbs\_BCHornerDer2Pf ( degreeu, degreev, 2, (float*)ctlpoints, \bsl \\
+\ind{4}u, v, (float*)p, (float*)du, (float*)dv, \bsl \\
+\ind{4}(float*)duu, (float*)duv, (float*)dvv ) \\
+\#define mbs\_BCHornerDer2P3f(degreeu,degreev,ctlpoints,u,v, \bsl \\
+\ind{4}p,du,dv,duu,duv,dvv) \ldots \\
+\#define mbs\_BCHornerDer2P4f(degreeu,degreev,ctlpoints,u,v, \bsl \\
+\ind{4}p,du,dv,duu,duv,dvv) \ldots}
+The above macros call \texttt{mbs\_BCHornerDerPf} in order to compute
+the points and partial derivatives of order $1$ and $2$ of B\'{e}zier
+patches in the space of dimension $1$, $2$, $3$ or~$4$ respectively.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCHornerDer2P3Rf ( int degreeu, int degreev, \\
+\ind{28}const point4f *ctlpoints, \\
+\ind{28}float u, float v, \\
+\ind{28}point3f *p, vector3f *du, vector3f *dv, \\
+\ind{28}vector3f *duu, vector3f *duv, \\
+\ind{28}vector3f *dvv );}
+The procedure \texttt{mbs\_BCHornerDer2P3Rf} computes the point $\bm{p}(u,v)$
+and the partial derivative vectors of order $1$ and $2$
+of a~rational B\'{e}zier patch located in the $3$D space.
+
+The parameters: \texttt{degreeu}, \texttt{degreev} --- degrees with respect to
+the parameters $u$~and~$v$, \texttt{ctlpoints} --- array of control points of
+the homogeneous patch, \texttt{u}, \texttt{v} --- the numbers
+$u$~and~$v$, \texttt{*p}, \texttt{*du}, \texttt{*dv}, \texttt{*duu}, \texttt{*duv},
+\texttt{*dvv} --- variables in which the results are stored, which are
+the point $\bm{p}(u,v)$, and the vectors $\frac{\partial}{\partial u}\bm{p}(u,v)$,
+$\frac{\partial}{\partial v}\bm{p}(u,v)$,
+$\frac{\partial^2}{\partial u^2}\bm{p}(u,v)$,
+$\frac{\partial^2}{\partial u\partial v}\bm{p}(u,v)$
+and~$\frac{\partial^2}{\partial v^2}\bm{p}(u,v)$ respectively.%
+\begin{figure}[ht]
+  \centerline{\epsfig{file=patchder.ps}}
+  \caption{A~B\'{e}zier patch and its derivative vectors of the
+    first and second order.}
+\end{figure}
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiBCHornerDer3f ( int degree, int ncurves, \\
+\ind{23}int spdimen, int pitch, \\
+\ind{23}const float *ctlpoints, float t, \\
+\ind{23}float *p, float *d1, float *d2, float *d3 );}
+\begin{sloppypar}
+The procedure \texttt{mbs\_multiBCHornerDerf} uses the Horner scheme
+to compute the points $\bm{c}_i(t)$ and the vectors $\bm{c}_i'(t)$,
+$\bm{c}_i''(t)$ and $\bm{c}_i'''(t)$ for B\'{e}zier curves $\bm{c}_i$
+located in the space of dimension~$d$.
+\end{sloppypar}
+
+The parameters: \texttt{degree} --- degree of the curve, \texttt{ncurves}
+--- number of curves, \texttt{spdimen} --- dimension $d$ of the space,
+\texttt{pitch} --- pitch of the array \texttt{ctlpoints} with the control
+points of the curves. the value of the parameter \texttt{t}
+is the number~$t$.
+
+The coordinates of the points $\bm{c}_i(t)$ and the vectors $\bm{c}_i'(t)$
+and $\bm{c}_i''(t)$ are stored in the arrays \texttt{p}, \texttt{d1},
+\texttt{d2} and \texttt{d3} respectively.
+The length of those arrays must be at least \texttt{ncurves*spdimen}.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BCHornerDer3C1f(degree,coeff,t,p,d1,d2,d3) \bsl \\
+\ind{2}mbs\_multiBCHornerDer3f ( degree, 1, 1, 0, coeff, t, \bsl \\
+\ind{4}p, d1, d2, d3 ) \\
+\#define mbs\_BCHornerDer3C2f(degree,ctlpoints,t,p,d1,d2,d3) \bsl \\
+\ind{2}mbs\_multiBCHornerDer3f ( degree, 1, 2, 0, (float*)ctlpoints, \bsl \\
+\ind{4}t, (float*)p, (float*)d1, (float*)d2, (float*)d3 ) \\
+\#define mbs\_BCHornerDer3C3f(degree,ctlpoints,t,p,d1,d2,d3) \ldots \\
+\#define mbs\_BCHornerDer3C4f(degree,ctlpoints,t,p,d1,d2,d3) \ldots}
+The above macros call \texttt{mbs\_multiBCHornerDer3f} in order to
+compute a~point and derivatives of order $1$, $2$ and $3$ of a~B\'{e}zier
+curve in the space of dimension $1$, $2$, $3$ or $4$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCHornerDer3Pf ( int degreeu, int degreev, int spdimen, \\
+\ind{26}const float *ctlpoints, \\
+\ind{26}float u, float v, \\
+\ind{26}float *p, float *pu, float *pv, \\
+\ind{26}float *puu, float *puv, float *pvv, \\
+\ind{26}float *puuu, float *puuv, float *puvv, \\
+\ind{26}float *pvvv );}
+The procedure \texttt{mbs\_BCHornerDer3Pf} computes the point $\bm{p}(u,v)$
+of a~B\'{e}zier patch~$\bm{p}$ located in the space of dimension
+\texttt{spdimen}, and its partial derivatives of order $1,\ldots,3$.
+The current version assumes that the degree of both parameters in
+not less than $3$; the implementation of other cases is still to be done.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_BCHornerDer3P1f(degreeu,degreev,coeff,u,v, \bsl \\
+\ind{4}p,pu,pv,puu,puv,pvv,puuu,puuv,puvv,pvvv) \bsl \\
+\ind{2}mbs\_BCHornerDer3Pf ( degreeu, degreev, 1, coeff, u, v, \bsl \\
+\ind{4}p, pu, pv, puu, puv, pvv, puuu, puuv, puvv, pvvv ) \\
+\#define mbs\_BCHornerDer3P2f(degreeu,degreev,ctlpoints,u,v, \bsl \\
+\ind{4}p,pu,pv,puu,puv,pvv,puuu,puuv,puvv,pvvv) \bsl \\   
+\ind{2}mbs\_BCHornerDer3Pf ( degreeu, degreev, 2, (float*)ctlpoints, \bsl \\
+\ind{4}u, v, (float*)p, (float*)pu, (float*)pv, (float*)puu, \bsl \\
+\ind{4}(float*)puv, (float*)pvv, (float*)puuu, (float*)puuv, \bsl \\
+\ind{4}(float*)puvv, (float*)pvvv ) \\       
+\#define mbs\_BCHornerDer3P3f(degreeu,degreev,ctlpoints,u,v, \bsl \\
+\ind{4}p,pu,pv,puu,puv,pvv,puuu,puuv,puvv,pvvv) \ldots \\
+\#define mbs\_BCHornerDer3P4f(degreeu,degreev,ctlpoints,u,v, \bsl \\
+\ind{4}p,pu,pv,puu,puv,pvv,puuu,puuv,puvv,pvvv) \ldots}
+The above macros call \texttt{mbs\_BCHormerDer3Pf} in order to compute the point
+and the derivatives of B\'{e}zier patches located in the spaces
+of dimensions $1,\ldots,4$ respectively.
+
+
+\newpage
+\subsection{Computing curvatures and the Frenet frames of curves}
+
+Computing curvatures and vectors of the Frenet frame is programmed
+only for B\'{e}zire curves. To compute the curvature of a~B-spline
+curve, one has to do the maximal knot insertion (e.g.\ with the trocedure
+\texttt{mbs\_multiMaxKnotInsf}) to obtain the B\'{e}zier representation of
+its polynomial arcs. The curvature will probably be computed at a~number
+of points, and then it is better to do the conversion once. Therefore there
+are no procedures computing it directly for B-spline curves. The procedures
+described below call \texttt{mbs\_multiBCHornerf}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCFrenetC2f ( int degree, const point2f *ctlpoints, \\
+\ind{23}float t, point2f *cpoint, \\
+\ind{23}vector2f *fframe, float *curvature );}
+The procedure \texttt{mbs\_BCFrenetC2f} computes the curvature, the tangent
+vector~$\bm{t}$ and the normal vector~$\bm{n}$ of the Frenet frame of
+a~planar B\'{e}zier curve of degree \texttt{degree}, whose control points
+are given in the array \texttt{ctlpoints}. The parameter of the curve
+is~\texttt{t}. The array \texttt{fframe} must be long enough for two vectors.
+In addition, the procedure computes the point of the curve, and it
+assigns it to the variable \texttt{*cpoint}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCFrenetC2Rf ( int degree, const point3f *ctlpoints, \\
+\ind{24}float t, point2f *cpoint, \\
+\ind{24}vector2f *fframe, float *curvature );}
+The procedure \texttt{mbs\_BCFrenetC2f} computes the curvature,
+the tangent vector~$\bm{t}$ and the normal vector~$\bm{n}$ of the Frenet frame
+of a~planar rational B\'{e}zier curve of degree \texttt{degree},
+whose (homogeneous) control points are given in the array
+\texttt{ctlpoints}. The parameter of the curve is~\texttt{t}.
+The array \texttt{fframe} must be long enough for two vectors.
+In addition, the procedure computes the point of the curve and it
+assigns it to the variable \texttt{*cpoint}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCFrenetC3f ( int degree, const point3f *ctlpoints, \\
+\ind{23}float t, point3f *cpoint, \\
+\ind{23}vector3f *fframe, float *curvatures );}
+The procedure \texttt{mbs\_BCFrenetC3f} computes the curvature and the torsion
+of a~polynomial B\'{e}zier curve of degree \texttt{degree} and the vectors
+of the Frenet frame: tangent~$\bm{t}$, normal~$\bm{n}$ and binormal~$\bm{b}$
+at the point corresponding to the parameter~\texttt{t}. The array
+\texttt{ctlpoints} contains the control points of the curve.
+The curvature and torsion are stored in the array \texttt{curvatures}, and
+the vectors are stored in the array \texttt{fframe}. In addition the procedure
+computes the point of the curve and it assigns it to the variable
+\texttt{*cpoint}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCFrenetC3Rf ( int degree, const point4f *ctlpoints, \\
+\ind{24}float t, point3f *cpoint, \\
+\ind{24}vector3f *fframe, float *curvatures );}
+The procedure \texttt{mbs\_BCFrenetC3f} computes the curvature and the torsion
+of a~rational B\'{e}zier curve of degree \texttt{degree} and the vectors
+of the Frenet frame: tangent~$\bm{t}$, normal~$\bm{n}$ and binormal~$\bm{b}$
+at the point corresponding to the parameter~\texttt{t}. The array
+\texttt{ctlpoints} contains the control points of the homogeneous curve.
+The curvature and torsion are stored in the array \texttt{curvatures}, and
+the vectors are stored in the array \texttt{fframe}. In addition the procedure
+computes the point of the curve and it assigns it to the variable
+\texttt{*cpoint}.
+
+
+\subsection{Computing the patch normal vector}
+
+\cprog{%
+void mbs\_BCHornerNvP3f ( int degreeu, int degreev, \\
+\ind{25}const point3f *ctlpoints, \\
+\ind{25}float u, float v, \\
+\ind{25}point3f *p, vector3f *nv );}
+\hspace*{\parindent}
+The procedure \texttt{mbs\_BCHornerNvP3f} computes a~point of a~B\'{e}zier
+patch in the $3$D space and its normal vector at this point.
+The normal vector is the vector product of the partial derivatives, and it may be
+zero, if there is a~singularity, even if the tangent plane is defined.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_BCHornerNvP3Rf ( int degreeu, int degreev, \\
+\ind{26}const point4f *ctlpoints, \\
+\ind{26}float u, float v, \\
+\ind{26}point3f *p, vector3f *nv );}
+The procedure \texttt{mbs\_BCHornerNvP3f} computes a~point of a~rational
+B\'{e}zier patch in the $3$D space and its normal vector at this point.
+The coordinates of the normal vector are the first three coordinates
+of the vector $\bm{P}\wedge\bm{P}_u\wedge\bm{P}_v$ (the product of the point
+of the homogeneous patch and its partial derivatives), and it may be
+zero, if there is a~singularity, even if the tangent plane is defined.
+
+
+\subsection{Computing the fundamental forms and curvatures of patches}
+
+Computing the fundamental forms and curvatures is implemented only
+for B\'{e}zier patches (and not for B-spline patches), for the same
+reasons that these concerning the curvatures and the Frenet frames
+of curves.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_FundFormsBP3f ( int degreeu, int degreev, \\
+\ind{25}const point3f *ctlpoints, \\
+\ind{25}float u, float v, \\
+\ind{25}float *firstform, float *secondform );}
+The procedure \texttt{mbs\_FundFormsBP3f} computes the coefficients
+of the matrices of the first and the second fundamental forms of
+a~polynomial B\'{e}zier patch in the $3$D space.
+
+The parameters: \texttt{degreeu}, \texttt{degreev} --- degrees of the patch
+with respect to $u$ and~$v$, \texttt{ctlpoints} --- array of control
+points (packed, i.e.\ without unsed areas between the consecutive
+columns of the control net).
+The parameters \texttt{u} and~\texttt{v} specify the point, for which
+the forms are to be computed.
+
+The parameters \texttt{firstform} and~\texttt{secondform} point the arrays,
+(of length at least~$3$) in which the form coefficients are to be stored,
+$g_{11}=\scp{\bm{p}_u}{\bm{p}_u}$, $g_{12}=g_{21}=\scp{\bm{p}_u}{\bm{p}_v}$,
+$g_{22}=\scp{\bm{p}_v}{\bm{p}_v}$, and
+$b_{11}=\scp{\bm{n}}{\bm{p}_{uu}}$, $b_{12}=b_{21}=\scp{\bm{n}}{\bm{p}_{uv}}$
+$b_{22}=\scp{\bm{n}}{\bm{p}_{vv}}$ respectively ($\bm{n}$ denotes the unit
+normal vector ot the patch at the point $(u,v)$).
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_GMCurvaturesBP3f ( int degreeu, int degreev, \\
+\ind{28}const point3f *ctlpoints, \\
+\ind{28}float u, float v, \\
+\ind{28}float *gaussian, float *mean );}
+The procedure \texttt{mbs\_GMCurvaturesBP3f} computes the curvatures: Gaussian
+and mean of a~polynomial B\'{e}zier patch in~$\R^3$. The parameters
+\texttt{degreeu}, \texttt{degreev}, \texttt{ctlpoints}, \texttt{u}
+and~\texttt{v} are identical as the corresponding parameters of the previous
+procedure.
+
+The parameters \texttt{*gaussian} and~\texttt{*mean} are used to return
+the result; the procedures assigns the curvatures to them.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_PrincipalDirectionsBP3f ( int degreeu, int degreev, \\
+\ind{35}const point3f *ctlpoints, \\
+\ind{35}float u, float v, \\
+\ind{35}float *k1, vector2f *v1, \\
+\ind{35}float *k2, vector2f *v2 );}
+The procedure \texttt{mbs\_PrincipalDirectionsBP3f} computes the principal
+curvatures and directions of a~polynomial B\'{e}zier patch in the $3$D space.
+The parameters \texttt{degreeu}, \texttt{degreev}, \texttt{ctlpoints}, \texttt{u}
+and~\texttt{v} are identical as in the case of two previous procedures.
+
+The parameters \texttt{*k1} and~\texttt{*k2} obtain the values of the principal
+curvatures, and the corresponding directions (in the space tangent to the patch
+domain) are assigned to the parameters \texttt{*v1} and~\texttt{*v2}.
+
+
+\vspace{\bigskipamount}
+\ucprog{%
+void mbs\_FundFormsBP3Rf ( int degreeu, int degreev, \\
+\ind{26}const point4f *ctlpoints, \\
+\ind{26}float u, float v, \\
+\ind{26}float *firstform, float *secondform );}
+\begin{figure}[ht]
+  \centerline{\epsfig{file=patchpdir.ps}}
+  \caption{Vectors corresponding to the principal directions
+    at a~point of a~B\'{e}zier patch.}
+\end{figure}
+
+\dcprog{%
+void mbs\_GMCurvaturesBP3Rf ( int degreeu, int degreev, \\
+\ind{29}const point4f *ctlpoints, \\
+\ind{29}float u, float v, \\
+\ind{29}float *gaussian, float *mean ); \\
+void mbs\_PrincipalDirectionsBP3Rf ( int degreeu, int degreev, \\
+\ind{36}const point4f *ctlpoints, \\
+\ind{36}float u, float v, \\
+\ind{36}float *k1, vector2f *v1, \\
+\ind{36}float *k2, vector2f *v2 );}
+\begin{sloppypar}
+The above procedures respectively compute the coefficients of the
+matrices of the first and second fundamental form, the Gaussian and mean
+curvatures and the principal curvatures and directions for a~rational
+B\'{e}zier patch~$\bm{p}$. The procedures directly correspond to
+the procedures \texttt{mbs\_FundFormsBP3f}, \texttt{mbs\_GMCurvaturesBP3f}
+and~\texttt{mbs\_GMCurvaturesBP3f}, and they have the same parameters,
+except for the array \texttt{ctlpoints}, which has to contain the coordinates
+of the control points of a~\emph{homogeneous} patch in~$\R^4$.
+\end{sloppypar}
+
+
+\newpage
+\section{Evaluating curves at a~number of points}
+
+The procedures described below compute a~sequence of points of
+a~B\'{e}ziera or B-spline curve together with their derivatives of order
+$1$ and~$2$, or~$1$, $2$ and~$3$, for a~sequence of values of the parameter:
+$t_0,\ldots,t_{k-1}$. This is done by calling in a~loop the appropriate
+procedures described before. The main application of these procedures
+is evaluatind Coons patches at a~rectangular net
+by the procedures described in Section~\ref{sect:Coons:patch:procedures}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_TabBezCurveDer2f ( int spdimen, int degree, \\
+\ind{28}const float *cp, \\
+\ind{28}int nkn, const float *kn, \\
+\ind{28}int ppitch, \\
+\ind{28}float *p, float *dp, float *ddp );}
+The procedure \texttt{mbs\_TabBezCurveDer2f} evaluates a~B\'{e}zier curve
+and its derivatives of order $1$ and~$2$ using the procedure
+\texttt{mbs\_multiBCHornerDer2f}.
+
+The parameters: \texttt{spdimen} --- space dimension,
+\texttt{degree} --- degree of the curve, \texttt{cp} --- array of control points,
+\texttt{nkn} --- number~$k$, \texttt{kn} --- array with
+$k$~numbers (values of the curve parameter), \texttt{ppitch} --- pitch
+of the arrays~\texttt{p}, \texttt{dp} and~\texttt{ddp}, in which the
+points and derivative vectors of order $1$ and~$2$ respectively are to be stored.
+The first coordinates of the consecutive points or vectors are stored
+at the positions distant by the value of \texttt{ppitch}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_TabBezCurveDer3f ( int spdimen, int degree, \\
+\ind{20}const float *cp, \\
+\ind{20}int nkn, const float *kn, \\
+\ind{20}int ppitch, \\
+\ind{20}float *p, float *dp, float *ddp, float *dddp );}
+The procedure \texttt{mbs\_TabBezCurveDer3f} evaluates a~B\'{e}zier curve
+and its derivatives of order $1$, $2$ and~$3$ using the procedure
+\texttt{mbs\_multiBCHornerDer3f}.
+
+The parameters: \texttt{spdimen} --- space dimension,
+\texttt{degree} --- degree of the curve, \texttt{cp} --- array of control points,
+\texttt{nkn} --- number~$k$, \texttt{kn} --- array with
+$k$~numbers (values of the curve parameter), \texttt{ppitch} --- pitch
+of the arrays~\texttt{p}, \texttt{dp}, \texttt{ddp}, and~\texttt{dddp}, in which the
+points and derivative vectors of order $1$, $2$ and~$3$ respectively are to be stored.
+The first coordinates of the consecutive points or vectors are stored
+at the positions distant by the value of \texttt{ppitch}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_TabBSCurveDer2f ( int spdimen, int degree, int lastknot, \\
+\ind{27}const float *knots, const float *cp, \\
+\ind{27}int nkn, const float *kn, int ppitch, \\
+\ind{27}float *p, float *dp, float *ddp );}
+The procedure \texttt{mbs\_TabBSCurveDer2f} evaluates a~B-spline curve
+and its derivatives of order $1$ and~$2$ using the procedure
+\texttt{mbs\_multideBoorDer2f}.
+
+The parameters: \texttt{spdimen} --- space dimension,
+\texttt{degree} --- degree of the curve, \texttt{lastknot} --- number
+of the last knot, \texttt{knots} --- array of curve knots, 
+\texttt{cp} --- array of control points,
+\texttt{nkn} --- number~$k$, \texttt{kn} --- array with
+$k$~numbers (values of the curve parameter), \texttt{ppitch} --- pitch
+of the arrays~\texttt{p}, \texttt{dp} and~\texttt{ddp}, in which the
+points and derivative vectors of order $1$ and~$2$ respectively are to be stored.
+The first coordinates of the consecutive points or vectors are stored
+at the positions distant by the value of \texttt{ppitch}.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_TabBSCurveDer3f ( int spdimen, int degree, int lastknot, \\
+\ind{20}const float *knots, const float *cp, \\
+\ind{20}int nkn, const float *kn, int ppitch, \\
+\ind{20}float *p, float *dp, float *ddp, float *dddp );}
+The procedure \texttt{mbs\_TabBSCurveDer3f} evaluates a~B-spline curve
+and its derivatives of order $1$ $2$ and~$3$ using the procedure
+\texttt{mbs\_multideBoorDer3f}.
+
+The parameters: \texttt{spdimen} --- space dimension,
+\texttt{degree} --- degree of the curve, \texttt{lastknot} --- number
+of the last knot, \texttt{knots} --- array of curve knots, 
+\texttt{cp} --- array of control points,
+\texttt{nkn} --- number~$k$, \texttt{kn} --- array with
+$k$~numbers (values of the curve parameter), \texttt{ppitch} --- pitch
+of the arrays~\texttt{p}, \texttt{dp}, \texttt{ddp} and~\texttt{dddp}, in which the
+points and derivative vectors of order $1$, $2$ and~$3$ respectively are to be stored.
+The first coordinates of the consecutive points or vectors are stored
+at the positions distant by the value of \texttt{ppitch}.
+
+
+\newpage
+\section{Computing the representation of derivatives}
+
+Computing the derivative vector at a~point is something different than
+constructing a~representation of the curve, which describes the derivative.
+The procedures in this section use the following formulae:
+\begin{align}
+  \frac{\mathrm{d}}{\mathrm{d}t}\sum_{i=0}^n\bm{p}_iB^n_i(t) =
+  \sum_{i=0}^{n-1}n(\bm{p}_{i+1}-\bm{p}_i)B^{n-1}_{i+1}(t),
+\end{align}
+for B\'{e}zier curves, and
+\begin{align}
+  \frac{\mathrm{d}}{\mathrm{d}t}\sum_{i=0}^{N-n-1}\bm{d}_iN^n_i(t) =
+  \sum_{i=0}^{N-n-2}\frac{n}{u_{i+n+1}-u_{i+1}}(\bm{d}_{i+1}-\bm{d}_i)
+  N^{n-1}_{i+1}(t),
+\end{align}
+for B-spline curves. The B-spline functions $N^n_i$ and $N^{n-1}_i$ are
+defined with the same knot sequence.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiFindBezDerivativef ( int degree, \\
+\ind{33}int ncurves, int spdimen, \\
+\ind{33}int pitch, const float *ctlpoints, \\
+\ind{33}int dpitch, float *dctlpoints );}
+The procedure \texttt{mbs\_multiFindBezDerivativef} computes the control
+points of B\'{e}zier curves of degree $n-1$, which describe the derivatives
+of given B\'{e}zier curves of degree~$n$.
+
+\begin{sloppypar}\hyphenpenalty=200
+Input parameters: \texttt{degree} --- degree~$n$ of the given curves (must
+be positive),
+\texttt{ncurves} --- number of curves, \texttt{spdimen} --- dimension of
+the space, in which the curves are located, \texttt{pitch} --- pitch of the
+array \texttt{ctlpoints}, which is the distance between the beginnings of
+the representations of the consecutive curves in the array
+\texttt{ctlpoints}, with the control points.
+\end{sloppypar}
+
+The parametr \texttt{dpitch} specifies the pitch of the array
+\texttt{dctlpoints}, in which the procedure stores the control points
+of the curves representing the derivatives.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_FindBezDerivativeC1f(degree,coeff,dcoeff) \bsl \\
+\ind{2}mbs\_multiFindBezDerivativef ( degree, 1, 1, 0, coeff, 0, dcoeff ) \\
+\#define mbs\_FindBezDerivativeC2f(degree,ctlpoints,dctlpoints) \bsl \\
+\ind{2}mbs\_multiFindBezDerivativef ( degree, 1, 2, 0, \bsl \\
+\ind{4}(float*)ctlpoints, 0, (float*)dctlpoints ) \\
+\#define mbs\_FindBezDerivativeC3f(degree,ctlpoints,dctlpoints) \bsl \\
+\ind{2}mbs\_multiFindBezDerivativef ( degree, 1, 3, 0, \bsl \\
+\ind{4}(float*)ctlpoints, 0, (float*)dctlpoints ) \\
+\#define mbs\_FindBezDerivativeC4f(degree,ctlpoints,dctlpoints) \bsl \\
+\ind{2}mbs\_multiFindBezDerivativef ( degree, 1, 4, 0, \bsl \\
+\ind{4}(float*)ctlpoints, 0, (float*)dctlpoints )}
+The above macros call \texttt{mbs\_multiFindBezDerivativef} in order to
+compute the control points of the derivative of one B\'{e}zier curve
+of degree~$n$ in the space of dimension $1$, $2$, $3$, $4$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void mbs\_multiFindBSDerivativef ( int degree, int lastknot, \\
+\ind{33}const float *knots, \\
+\ind{33}int ncurves, int spdimen, \\
+\ind{33}int pitch, const float *ctlpoints, \\
+\ind{33}int *lastdknot, float *dknots, \\
+\ind{33}int dpitch, float *dctlpoints );}
+The procedure \texttt{mbs\_multiFindBSDerivativef} computes the control points
+of B-spline curves of degree $n-1$, which describe the derivatives of
+given B-spline curves of degree~$n$.
+
+Input parameters: \texttt{degree} --- degree $n$ of the given curves,
+\texttt{lastknot} --- index $N$ of the last knot, \texttt{knots} ---
+array of knots $u_0,\ldots,u_N$, \texttt{ncurves} --- number of curves
+\texttt{spdimen} --- dimension of the space,
+\texttt{pitch} --- pitch of the array \texttt{ctlpoints} (specifying the
+distance between the beginnings of the consecutive curves),
+\texttt{ctlpoints} --- array with the control points of the given curves.
+
+The output parameter \texttt{*lastdknot} takes the value $N-2$, and the
+procedure copies the knots $u_1,\ldots,u_{N-1}$ to the array \texttt{dknots}.
+The parameters \texttt{lastdknot} and~\texttt{dknots} may be \texttt{NULL},
+and then they are ignored.
+
+The parameter \texttt{dpitch} specifies the pitch of the array \texttt{dctlpoints},
+in which the procedure stores the control points of the curves,
+which describe the derivatives.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define mbs\_FindBSDerivativeC1f(degree,lastknot,knots,coeff, \bsl \\
+\ind{4}lastdknot,dknots,dcoeff) \bsl \\
+\ind{2}mbs\_multiFindBSDerivativef ( degree, lastknot, knots, 1, 1, 0, \bsl \\
+\ind{4}coeff, lastdknot, dknots, 0, dcoeff ) \\
+\#define mbs\_FindBSDerivativeC2f(degree,lastknot,knots,ctlpoints, \bsl \\
+\ind{4}lastdknot,dknots,dctlpoints) \bsl \\
+\ind{2}mbs\_multiFindBSDerivativef ( degree, lastknot, knots, 1, 2, 0, \bsl \\
+\ind{4}(float*)ctlpoints, lastdknot, dknots, 0, (float*)dctlpoints ) \\
+\#define mbs\_FindBSDerivativeC3f(degree,lastknot,knots,ctlpoints, \bsl \\
+\ind{4}lastdknot,dknots,dctlpoints)\ ... \\
+\#define mbs\_FindBSDerivativeC4f(degree,lastknot,knots,ctlpoints, \bsl \\
+\ind{4}lastdknot,dknots,dctlpoints)\ ...}
+\begin{sloppypar}
+The above macros call \texttt{mbs\_multiFindBSDerivativef} in order to find
+the representation of the derivative of one B-spline curve in the
+space of dimension $1$, $2$, $3$ or $4$.
+\end{sloppypar}
+

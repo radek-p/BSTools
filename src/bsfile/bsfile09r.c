@@ -1,0 +1,146 @@
+
+/* ///////////////////////////////////////////////////////////////////////// */
+/* This file is a part of the BSTools package                                */
+/* written by Przemyslaw Kiciak                                              */
+/* ///////////////////////////////////////////////////////////////////////// */
+/* (C) Copyright by Przemyslaw Kiciak, 2009, 2013                            */
+/* this package is distributed under the terms of the                        */
+/* Lesser GNU Public License, see the file COPYING.LIB                       */
+/* ///////////////////////////////////////////////////////////////////////// */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <malloc.h>
+#include <string.h>
+#include <ctype.h>
+
+#include "pkvaria.h"
+#include "pknum.h"
+#include "pkgeom.h"
+#include "camerad.h"
+#include "multibs.h"
+#include "bsfile.h"
+
+boolean bsf_ReadBSplineHoled ( int maxk, int *hole_k, double *knots,
+                               point2d *domain_cp, point4d *hole_cp,
+                               int *spdimen, boolean *rational,
+                               byte *mk, char *name )
+{
+  boolean _name, sides, domcp, surfcp, _mk;
+  int     ns, nk, ncp, lkn, dim, nmk, cpdimen;
+
+  if ( bsf_nextsymbol != BSF_SYMB_BSHOLE )
+    goto failure;
+  bsf_GetNextSymbol ();
+  if ( bsf_nextsymbol != BSF_SYMB_LBRACE )
+    goto failure;
+  bsf_GetNextSymbol ();
+
+        /* nothing has ben read yet */
+  _name = sides = domcp = surfcp = _mk = *rational = false;
+  if ( name )
+    *name = 0;
+  ns = nk = 0;
+  nmk = -1;
+  for (;;) {
+    switch ( bsf_nextsymbol ) {
+case BSF_SYMB_NAME:
+      if ( _name )
+        goto failure;
+      bsf_GetNextSymbol ();
+      if ( bsf_nextsymbol == BSF_SYMB_STRING ) {
+        strcpy ( name, bsf_namebuffer );
+        bsf_GetNextSymbol ();
+      }
+      else
+        goto failure;
+      _name = true;
+      break;
+
+case BSF_SYMB_SIDES:
+      if ( sides )
+        goto failure;
+      bsf_GetNextSymbol ();
+      if ( bsf_nextsymbol != BSF_SYMB_INTEGER )
+        goto failure;
+      if ( bsf_nextint < 3 || bsf_nextint > maxk )
+        goto failure;
+      *hole_k = ns = bsf_nextint;
+      bsf_GetNextSymbol ();
+      sides = true;
+      break;
+
+case BSF_SYMB_KNOTS:
+      if ( !sides )
+        goto failure;
+      if ( nk >= ns )
+        goto failure;
+      bsf_GetNextSymbol ();
+      if ( !bsf_ReadKnotSequenced ( 10, &lkn, &knots[nk*11], NULL ) )
+        goto failure;
+      if ( lkn != 10 )
+        goto failure;
+      nk ++;
+      break;
+
+case BSF_SYMB_DOMAIN:
+      if ( domcp || !sides )
+        goto failure;
+      bsf_GetNextSymbol ();
+      if ( bsf_nextsymbol != BSF_SYMB_CPOINTS )
+        goto failure;
+      bsf_GetNextSymbol ();
+      ncp = bsf_ReadPointsd ( 2, 12*ns+1, &domain_cp[0].x, &dim );
+      if ( ncp != 12*ns+1 )
+        goto failure;
+      domcp = true;
+      break;
+
+case BSF_SYMB_CPOINTS:
+      if ( surfcp || !sides )
+        goto failure;
+      bsf_GetNextSymbol ();
+      ncp = bsf_ReadPointsd ( 4, 12*ns+1, &hole_cp[0].x, &cpdimen );
+      if ( ncp != 12*ns+1 )
+        goto failure;
+      surfcp = true;
+      break;
+
+case BSF_SYMB_CPOINTSMK:
+      if ( _mk || !sides )
+        goto failure;
+      bsf_GetNextSymbol ();
+      nmk = bsf_ReadPointsMK ( 12*ns+1, mk );
+      _mk = true;
+      break;
+
+case BSF_SYMB_RBRACE:
+      bsf_GetNextSymbol ();
+      if ( nmk >= 0 && nmk != 12*ns+1 )
+        goto failure;
+      if ( (*rational && dim < cpdimen+1) || (!*rational && dim < cpdimen) )
+        goto failure;  
+      *spdimen = dim;
+      if ( sides && domcp && surfcp && nk == ns ) {
+        if ( !_mk && mk )
+          memset ( mk, 0, 12*ns+1 );
+        return true;
+      }
+      else
+        goto failure;
+
+case BSF_SYMB_RATIONAL:
+      bsf_GetNextSymbol ();
+      *rational = true;
+      break;
+
+default:
+      goto failure;  /* anything else is forbidden */
+    }
+  }
+
+failure:
+  return false;
+} /*bsf_ReadBSplineHoled*/
+

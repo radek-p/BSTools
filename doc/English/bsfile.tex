@@ -1,0 +1,174 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{The \texttt{libbsfile} library}
+
+\cprog{%
+\#define BSF\_SYMB\_EOF       0 \\
+\#define BSF\_SYMB\_ERROR     1 \\
+\#define BSF\_SYMB\_INTEGER   2 \\
+\#define BSF\_SYMB\_FLOAT     3 \\
+\#define BSF\_SYMB\_LBRACE    4 \\
+\#define BSF\_SYMB\_RBRACE    5 \\
+\#define BSF\_SYMB\_PLUS      6 \\
+\#define BSF\_SYMB\_MINUS     7 \\
+\#define BSF\_SYMB\_STRING    8 \\
+\#define BSF\_SYMB\_COMMA     9}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define BSF\_FIRST\_KEYWORD 10 \\
+\#define BSF\_SYMB\_BCURVE   10 \\
+\#define BSF\_SYMB\_BPATCH   11 \\
+\#define BSF\_SYMB\_BSCURVE  12 \\
+\#define BSF\_SYMB\_BSHOLE   13 \\
+\#define BSF\_SYMB\_BSPATCH  14 \\
+\#define BSF\_SYMB\_CLOSED   15 \\
+\#define BSF\_SYMB\_CPOINTS  16 \\
+\#define BSF\_SYMB\_DEGREE   17 \\
+\#define BSF\_SYMB\_DIM      18 \\
+\#define BSF\_SYMB\_DOMAIN   19 \\
+\#define BSF\_SYMB\_KNOTS    20 \\
+\#define BSF\_SYMB\_KNOTS\_U  21 \\
+\#define BSF\_SYMB\_KNOTS\_V  22 \\
+\#define BSF\_SYMB\_NAME     23 \\
+\#define BSF\_SYMB\_RATIONAL 24 \\
+\#define BSF\_SYMB\_SIDES    25 \\
+\#define BSF\_SYMB\_UNIFORM  26}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define BSF\_NKEYWORDS 17 \\
+extern const char *bsf\_keyword[BSF\_NKEYWORDS];}
+
+\vspace{\bigskipamount}
+\cprog{%
+extern FILE   *bsf\_input, *bsf\_output;}
+
+\vspace{\bigskipamount}
+\cprog{%
+extern int    bsf\_nextsymbol; \\
+extern int    bsf\_nextint; \\
+extern double bsf\_nextfloat;}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean bsf\_OpenInputFile ( char *filename ); \\
+void bsf\_CloseInputFile ( void ); \\
+void bsf\_GetNextSymbol ( void );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void bsf\_PrintErrorLocation ( void );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean bsf\_ReadDoubleNumber ( double *number ); \\
+boolean bsf\_ReadPointd ( int maxspdimen, double *point, int *spdimen ); \\
+int bsf\_ReadPointsd ( int maxspdimen, int maxnpoints, \\
+                      double *points, int *spdimen );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean bsf\_ReadSpaceDim ( int maxdim, int *spdimen ); \\
+boolean bsf\_ReadCurveDegree ( int maxdeg, int *degree ); \\
+boolean bsf\_ReadPatchDegree ( int maxdeg, int *udeg, int *vdeg );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean bsf\_ReadKnotSequenced ( int maxlastknot, int *lastknot, double *knots, \\
+                                boolean *closed );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean bsf\_ReadBezierCurve4d ( int maxdeg, int *deg, point4d *cpoints, \\
+                                int *spdimen, boolean *rational );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean bsf\_ReadBSplineCurve4d ( int maxdeg, int maxlastknot, int maxncpoints, \\
+                                 int *deg, int *lastknot, double *knots, \\
+                                 boolean *closed, point4d *cpoints, \\
+                                 int *spdimen, boolean *rational );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean bsf\_ReadBezierPatch4d ( int maxdeg, int maxlastknot, int maxncpoints, \\
+                                int *udeg, int *vdeg, \\
+                                int *pitch, point4d *cpoints, \\
+                                int *spdimen, boolean *rational );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean bsf\_ReadBSplinePatch4d ( int maxdeg, int maxlastknot, int maxncpoints, \\
+                                 int *udeg, int *lastknotu, double *knotsu, \\
+                                 int *vdeg, int *lastknotv, double *knotsv, \\
+                                 boolean *closed\_u, boolean *closed\_v, \\
+                                 int *pitch, point4d *cpoints, \\
+                                 int *spdimen, boolean *rational );}
+
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean bsf\_ReadBSplineHoled ( int maxk, int *hole\_k, double *knots, \\
+                               point2d *domain\_cp, point3d *hole\_cp );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean bsf\_OpenOutputFile ( char *filename ); \\
+void bsf\_CloseOutputFile ( void );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void bsf\_WriteComment ( char *comment ); \\
+void bsf\_WriteDoubleNumber ( double x ); \\
+void bsf\_WritePointd ( int spdimen, const double *point ); \\
+void bsf\_WritePointsd ( int spdimen, int cols, int rows, int pitch, \\
+                        const double *points );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void bsf\_WriteSpaceDim ( int spdimen ); \\
+void bsf\_WriteCurveDegree ( int degree ); \\
+void bsf\_WritePatchDegree ( int udeg, int vdeg );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void bsf\_WriteKnotSequenced ( int lastknot, const double *knots, boolean closed );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean bsf\_WriteBezierCurved ( int spdimen, boolean rational, \\
+                                int deg, const double *cpoints );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean bsf\_WriteBSplineCurved ( int spdimen, boolean rational, \\
+                                 int deg, int lastknot, const double *knots, \\
+                                 boolean closed, \\
+                                 double *cpoints );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean bsf\_WriteBezierPatchd ( int spdimen, boolean rational, \\
+                                int udeg, int vdeg, \\
+                                int pitch, const double *cpoints );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean bsf\_WriteBSplinePatchd ( int spdimen, boolean rational, \\
+                                 int udeg, int lastknotu, const double *knotsu, \\
+                                 int vdeg, int lastknotv, const double *knotsv, \\
+                                 boolean closed\_u, boolean closed\_v, \\
+                                 int pitch, const double *cpoints );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean bsf\_WriteBSplineHoled ( int hole\_k, const double *knots, \\
+                                const point2d *domain\_cp, \\
+                                const point3d *hole\_cp );}
+
+

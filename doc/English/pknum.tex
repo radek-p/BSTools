@@ -1,0 +1,3177 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{The \texttt{libpknum} library}
+
+This library contains procedures with various general numerical algorithms.
+Currently most of them are related with the linear algebra, but this may
+change if new needs have to be satisfied.
+
+\vspace{\medskipamount}
+\noindent
+\textbf{TODO:} In the future it would be desirable to optimize
+these proceures or to reimplement them as the interface to the
+BLAS procedures of the LAPACK package. This should be accompanied with
+the appropriate changes of procedures in the \texttt{libmultibs}
+library, as many of them contain matrix operations instead of
+calls to specialized procedures.
+
+
+\section{Full matrix operations}
+
+The procedures described in this section process matrices represented
+as ordinary arrays with all coefficients. Sparse matrices, whose most
+coefficients are~$0$, may and often should be represented in a~different way.
+In Section~\ref{sect:band:matrix} there are descriptions of procedures
+for so called band matrices, being some kind of sparse matrices.
+In Section~\ref{sect:sparse:matrices} there are procedures of processing
+sparse matrices, whose nonzero coefficients may be distributed in
+a~completely irregular way.
+
+The rows and columns of an~$m\times n$ matrix are indexed from~$0$ to $m-1$
+and from~$0$ to~$n-1$ respectively.
+
+
+\subsection{Elementary operations}
+
+\ucprog{%
+void pkn\_AddMatrixf ( int nrows, int rowlen, \\
+\ind{22}int inpitch1, const float *indata1, \\
+\ind{22}int inpitch2, const float *indata2, \\
+\ind{22}int outpitch, float *outdata ); \\
+void pkn\_SubtractMatrixf ( int nrows, int rowlen, \\
+\ind{27}int inpitch1, const float *indata1, \\
+\ind{27}int inpitch2, const float *indata2, \\
+\ind{27}int outpitch, float *outdata ); \\
+void pkn\_AddMatrixMf ( int nrows, int rowlen, \\
+\ind{23}int inpitch1, const float *indata1, \\
+\ind{23}int inpitch2, const float *indata2, \\
+\ind{23}double a, \\
+\ind{23}int outpitch, float *outdata );}
+
+\dcprog{%
+void pkn\_MatrixMDifferencef ( int nrows, int rowlen, \\
+\ind{30}int inpitch1, const float *indata1, \\
+\ind{30}int inpitch2, const float *indata2, \\
+\ind{30}double a, \\
+\ind{30}int outpitch, float *outdata ); \\
+void pkn\_MatrixLinCombf ( int nrows, int rowlen, \\
+\ind{26}int inpitch1, const float *indata1, \\
+\ind{26}double a, \\
+\ind{26}int inpitch2, const float *indata2, \\
+\ind{26}double b, \\
+\ind{26}int outpitch, float *outdata );}
+The procedures above compute the matrices
+
+\vspace{\medskipamount}
+\centerline{\begin{tabular}{rl}
+  $A+B$ & \texttt{pkn\_AddMatrixf}, \\
+  $A-B$ & \texttt{pkn\_SubtractMatrixf}, \\
+  $A+aB$ & \texttt{pkn\_AddMatrixMf}, \\
+  $a(A-B)$ & \texttt{pkn\_MatrixMDifferencef}, \\
+  $aA+bB$ & \texttt{pkn\_MatrixLinCombf}.
+\end{tabular}}
+
+\vspace{\medskipamount}
+Both given matrices and the result have \texttt{nrows} rows and \texttt{rowlen}
+columns. The coefficients of $A$ and $B$ are given in the arrays
+\texttt{indata1} and \texttt{indata2}. The result is stored in the array
+\texttt{outdata}. The pitches of the arrays are
+\texttt{inpitch1}, \texttt{inpitch2} and \texttt{outpitch} respectively.
+
+\vspace{\medskipamount}
+\noindent
+\textbf{Remark:} The important property of the array processing procedures
+is the fact that if there are unused areas between the rows, their
+contents are unchanged. This property is assumed by various other procedures,
+which may store some other data in these areas, with a~guarantee of not
+destroying them. For instance, to initialize the zero matrix, only rows
+sholud be filled with zeros, not the whole array. In addition, it is legal
+to specify negative pitches, as long as it does not cause reading or writing
+outside of the area reserved for this purpose.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_MultMatrixNumf ( int nrows, int rowlen, \\
+\ind{26}int inpitch, const float *indata, \\
+\ind{26}double a, \\
+\ind{26}int outpitch, float *outdata );}
+The procedure \texttt{pkn\_MultMatrixNumf} computes the product of the matrix~$A$
+of dimensions $m\times n$ ($m={}$\texttt{nrows}, $n={}$\texttt{rowlen}),
+and the number~$a$.
+
+The coefficients of the matrix are given in the array \texttt{indata},
+with the pitch \texttt{inpitch}, and the result is stored in the array
+\texttt{outdata}, whose pitch is \texttt{outpitch}. The number~$a$ is the value
+of the parameter~\texttt{a}.
+
+If the pitch of the array~\texttt{outdata} is greater than the row length,
+the contents of the unused areas between the rows is left unchanged.
+
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+void pkn\_MultArrayf ( int nrows, int rowlen, \\
+\ind{22}int pitch\_a, const float *a, \\
+\ind{22}int pitch\_b, const float *b, \\
+\ind{22}int pitch\_c, float *c )}
+The procedure \texttt{pkn\_MultArrayf} multiplies the coefficients of the matrices
+$A$ and $B$, i.e.\ it computes the numbers $c_{ij}=a_{ij}b_{ij}$. These matrices
+and the matrix of the products~$C$ have the dimensions
+ \texttt{nrows}$\times$\texttt{rowlen}.
+The pitches of the arrays \texttt{a}, \texttt{b} and \texttt{c} with the
+coefficients of the matrices $A$, $B$ and $C$ are equal to \texttt{pitch\_a},
+\texttt{pitch\_b} and \texttt{pitch\_c} respectively.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_MultMatrixf ( int nrows\_a, int rowlen\_a, \\
+\ind{23}int pitch\_a, const float *a, \\
+\ind{23}int rowlen\_b, int pitch\_b, const float *b, \\
+\ind{23}int pitch\_c, float *c );}
+The procedure \texttt{pkn\_MultMatrixf} multiplies the rectangular matrices,
+i.e.\ it computes the product matrix $C=AB$, where $A\in\R^{m,n}$,
+$B\in\R^{n,l}$, and consequently $C\in\R^{m,l}$.
+
+The parameters \texttt{nrows\_a},
+\texttt{rowlen\_a} and \texttt{rowlen\_b} have the values $m$, $n$
+and $l$ respectively. The coefficients of $A$ and $B$ are given in the arrays
+\texttt{a} and \texttt{b}, with the pitches \texttt{pitch\_a}
+and \texttt{pitch\_b}. The parameter \texttt{pitch\_c} specifies the pitch
+of the array \texttt{c}, in which the procedure stores the result.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_MultMatrixAddf ( int nrows\_a, int rowlen\_a, \\
+\ind{25}int pitch\_a, const float *a, \\
+\ind{25}int rowlen\_b, int pitch\_b, const float *b, \\
+\ind{25}int pitch\_c, float *c ); \\
+void pkn\_MultMatrixSubf ( int nrows\_a, int rowlen\_a, \\
+\ind{25}int pitch\_a, const float *a, \\      
+\ind{25}int rowlen\_b, int pitch\_b, const float *b, \\
+\ind{25}int pitch\_c, float *c );}
+The procedure \texttt{pkn\_MultMatrixAddf} computes the sum of a~matrix and
+the product of two matrices, i.e.\ the matrix $D=C+AB$, where $A\in\R^{m,n}$,
+$B\in\R^{n,l}$, and $C, D\in\R^{m,l}$.
+
+The procedure \texttt{pkn\_MultMatrixSubf} computes the matrix $D=C-AB$,
+for the matrices $A$, $B$, $C$ having the dimensions as above.
+
+The values of the parameters \texttt{nrows\_a},
+\texttt{rowlen\_a} and~\texttt{rowlen\_b} are $m$, $n$
+and~$l$ respectively. The coefficients of $A$ and~$B$ are given in
+the arrays
+\texttt{a} and~\texttt{b}, whose pitches are \texttt{pitch\_a}
+and~\texttt{pitch\_b}. The parameter \texttt{pitch\_c} specifies the pitch of
+the array
+\texttt{c}, which initially contains the coefficients of~$C$, and
+the coefficients of~$D$ on exit.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_MultTMatrixf ( int nrows\_a, int rowlen\_a, \\
+\ind{24}int pitch\_a, const float *a, \\
+\ind{24}int rowlen\_b, int pitch\_b, const float *b, \\
+\ind{24}int pitch\_c, float *c );}
+The procedure \texttt{pkn\_MultTMatrixf}  multiplies the rectangular matrices,
+i.e.\ it computes the product matrix $C=A^TB$, where $A\in\R^{m,n}$,
+$B\in\R^{m,l}$, and consequently $C\in\R^{n,l}$.
+
+The parameters \texttt{nrows\_a}, \texttt{rowlen\_a} and \texttt{rowlen\_b}
+have the values $m$, $n$ and $l$ respectively. The coefficients of $A$ and $B$
+are given in the arrays \texttt{a} and \texttt{b}, with the pitches
+\texttt{pitch\_a} and \texttt{pitch\_b}. The parameter \texttt{pitch\_c}
+specifies the pitch of the array \texttt{c}, in which the procedure stores
+the result.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_MultTMatrixAddf ( int nrows\_a, int rowlen\_a, int pitch\_a, \\
+\ind{25}const float *a, \\                           
+\ind{25}int rowlen\_b, int pitch\_b, const float *b, \\                           
+\ind{25}int pitch\_c, float *c ); \\                           
+void pkn\_MultTMatrixSubf ( int nrows\_a, int rowlen\_a, int pitch\_a, \\
+\ind{25}const float *a, \\                           
+\ind{25}int rowlen\_b, int pitch\_b, const float *b, \\                           
+\ind{25}int pitch\_c, float *c );}                           
+
+
+\vspace{\bigskipamount}
+\cprog{%
+double pkn\_ScalarProductf ( int spdimen, \\
+\ind{28}const float *a, const float *b );}
+The value of the above procedure is the scalar product of two vectors,
+$a$ and $b$ in the space $\R^n$. The dimension $n$ is the value of the
+parameter \texttt{spdimen}.
+
+\vspace{\bigskipamount}
+\cprog{%
+double pkn\_SecondNormf ( int spdimen, const float *b );}
+The value of this procedure is the second norm (square root of the sum
+of squares of the coordinates) of the vector $b$, in the space $\R^n$
+of dimension $n=$\texttt{spdimen}.
+
+\vspace{\bigskipamount}
+\cprog{%
+double pkn\_detf ( int n, float *a );}
+The value of this procedure is the determinant of the matrix~$A$, of dimensions
+$n\times n$. The parameter~\texttt{n} specifies the dimensions of the matrix,
+whose coefficients are given in the array~\texttt{a}
+(of length $n^2$; its pitch is~$n$), containing the subsequent rows or columns.
+The contents of this array is destroyed.
+
+The determinant is evaluated with the Gaussian elimination with full
+pivoting.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_MVectorSumf ( int m, int n, float *sum, ... ); \\
+void pkn\_MVectorLinCombf ( int m, int n, float *sum, ... );}
+The procedures \texttt{pkn\_MVectorSumf} and~\texttt{pkn\_MVectorLinCombf} compute
+respectively the sum and linear combination of $m$~vectors in~$\R^n$. The parameters
+\texttt{m} and~\texttt{n} specify the numbers $m$ and~$n$, which must be
+positive. The parametr~\texttt{sum} points to the array in which the result
+is to be stored. At the call of \texttt{pkn\_MVectorSumf} this parameter must be
+followed by $m$~pointers to the arrays of \texttt{float}s, to be added.
+
+At the call to \texttt{pkn\_MVectorLinCombf} the parameter
+\texttt{sum} must be followed by $m$ pairs of parameters; each pair
+consists of a~pointer (of type \texttt{float*}) and the coefficient of the
+linear combination of type \texttt{double}.
+
+
+%\newpage
+\subsection{Solving systems of linear equations}
+
+A~system of linear equations $A\bm{x}=\bm{b}$ with a~full nonsingular square
+matrix~$A$ may be solved with the Gaussian elimination method; the procedures
+described in this section implement this algorithm with full pivoting.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_GaussDecomposePLUQf ( int n, float *a, \\
+\ind{34}int *P, int *Q );}
+The procedure \texttt{pkn\_GaussDecomposePLUQf} computes the factors of
+decomposition of a~square matrix $A=P^{-1}LUQ$ with $n$ rows and columns.
+These factors are: a~permutation matrix~$P^{-1}$, a~lower triangular matrix~$L$
+with diagonal coefficients equal to~$1$, an upper triangular matrix~$U$ and
+a~permutation matrix~$Q$.
+
+The parameter~\texttt{n} specifies the matrix dimensions.
+Its coefficients have to be stored in the array~\texttt{a} of length~$n^2$;
+the array contains consecutive rows. The procedure stores in this array
+the computed coefficients of the matrices
+$L$~and~$U$. The permutation matrices $P$~and~$Q$ are represented by
+the numbers stored in the arrays \texttt{P} and~\texttt{Q} of length $n-1$.
+
+The procedure returns \texttt{true}, if the computation is successful,
+or \texttt{false}, in case the matrix~$A$ turned out to be singular.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_multiSolvePLUQf ( int n, const float *lu, \\
+\ind{27}const int *P, const int *Q, \\
+\ind{27}int spdimen, int pitch, float *b );}
+The procedure \texttt{pkn\_multiSolvePLUQf} solves the system of linear equations
+$AX=B$, where the matrix~$A$ with $n$ rows and columns is nonsingular.
+The matrix~$B$ has $d$ columns and $n$ rows.
+
+The matrix~$A$ is represented with its decomposition factors found by
+the procedure~\texttt{pkn\_GaussDecomposePLUQf}. The parameter~\texttt{n}
+specifies its dmensions. The parameter \texttt{spdimen} specifies the number
+of columns~$d$ of the matrices $B$ and~$X$. The coefficients of~$B$ are stored
+in the array~\texttt{b}, whole pitch is \texttt{pitch}. The computed solution
+is stored in this array.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_multiGaussSolveLinEqf ( int n, const float *a, \\
+\ind{32}int spdimen, int pitch, float *b );}
+The procedure~\texttt{pkn\_multiGaussSolveLinEqf} solves the system of equations
+$AX=B$ with a~nonsingular matrix~$A$ with respect to the matrix~$X$.
+To do this, the procedure makes a~copy of the array~\texttt{a}
+(in order to leave its contents intact)
+and then it calls the procedures \texttt{pkn\_GaussDecomposePLUQf}
+and~\texttt{pkn\_multiSolvePLUQf}. The value returned is \texttt{true}
+if the computation has been successful, or \texttt{false} otherwise.
+The cause of the failure may be a~singular matrix~$A$, or insufficient
+scratch memory.
+
+As for $d<n$ the most time-consuming part of the algorithm is finding
+the decomposition of~$A$, if it is necessary to solve a~number of systems
+with the same matrix~$A$ and different matrices~$B$, it is better not to
+use this procedure. Instead, the matrix~$A$ should be decomposed once,
+and then for each matrix~$B$ \texttt{pkn\_multiSolvePLUQf} may be called.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_GaussInvertMatrixf ( int n, float *a );}
+The procedure \texttt{pkn\_GaussInvertMatrixf} computes the inverse of
+a~given matrix~$A$ of dimensions $n\times n$. It is best not to use it at
+all.
+
+
+\newpage
+\subsection{\label{ssect:QR}The $QR$ decomposition and least-squares problems}
+
+The procedures described in this section compute the decomposition of
+a~rectangular metrix~$A$ into the orthogonal factor $Q$ and the upper
+triangular factor~$R$, and use this decomposition to solve the
+linear least squares problem for a~system of linear equations
+$A\bm{x}=\bm{b}$ with a~full matrix~$A$.
+
+The orthogonal matrix~$Q$ represents the transformation, which is the
+composition of a~sequence of symmetric reflections with respect to some
+hyperplanes. The correct method of representing such a~matrix is to
+store the normal vectors of the hyperplanes.
+
+The reflection with respect to a~hyperplane is a~mapping
+$\R^m\rightarrow\R^m$, whose matrix is given by the formula
+\begin{align*}
+H_i = I_m-\bm{w}_i\gamma_i\bm{w}_i^T,
+\quad\mbox{where}\quad
+  \gamma_i = \frac{2}{\bm{w}_i^T\bm{w}_i}.
+\end{align*}
+$I_m$ is the identity matrix $m\times m$. The reflection hyperplane normal
+vector is~$\bm{w}_i$. The reflections constructed in order to find the matrix
+decomposition are called the \textbf{Householder reflections}. They are
+chosen so as to obtain the images of consecutive columns being the columns
+of a~triangular matrix. To spped up solving the least squares problems,
+apart from the vectors $\bm{w}_i$ also the numbers $\gamma_i$ are stored;
+computing them based on $\bm{w}_i$ is possible, but it takes time.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_QRDecomposeMatrixf ( int nrows, int ncols, \\
+\ind{33}float *a, float *aa );}
+The procedure \texttt{pkn\_QRDecomposeMatrixf} finds the decomposition
+of the matrix~$A$, which has \texttt{nrows} rows and \texttt{ncols} columns,
+into the factors $Q$ (orthogonal) and $R$ (upper triangular).
+The coefficients of~$A$ have to be stored in the array~\texttt{a},
+of length \texttt{nrows}$\times$\texttt{ncols}, which contains the subsequent
+rows of the matrix~$A$.
+
+Upon the return from the procedure, the array~\texttt{a} contains the
+representations of these factors. The coefficients of the matrix~$R$
+on the diagonal and above it are stored in the appropriate places
+of the array (the coefficient $r_{ij}$ for $i\leq j$ replaces the coefficient
+$a_{ij}$). The orthogonal matrix~$Q$ is represented as a~sequence of
+the normal vectors of the Householder reflection hyperplanes,
+which transform the matrix $A$ into $R$. The coordinates of these vectors
+are stored on the places of the array~\texttt{a}, initially used to
+hold the coefficients $a_{ij}$ for $i>j$. The remaining \texttt{ncols}
+coordinates, which do not fit there, and additional \texttt{ncols}
+numbers~$\gamma_i$ are stored in the array \texttt{aa}.
+The way of storing the coefficients of~$R$ and of the reflections
+representation is shown in the figure.%
+\begin{figure}[ht]
+  \centerline{%
+  \begin{minipage}[t]{2.25in}
+  \texttt{\begin{tabular}{r@{ }c@{ }r@{}l@{}l@{}l}
+  a &=& \{$r_{00}$, \mbox{}&$r_{01}$,&$r_{02}$,&$r_{03}$, \\
+    & &   $w_{10}$,&$r_{11}$,&$r_{12}$,&$r_{13}$, \\
+    & &   $w_{20}$,&$w_{21}$,&$r_{22}$,&$r_{23}$, \\
+    & &   $w_{30}$,&$w_{31}$,&$w_{32}$,&$r_{33}$, \\
+    & &   $w_{40}$,&$w_{41}$,&$w_{42}$,&$w_{43}$, \\
+    & &   $w_{50}$,&$w_{51}$,&$w_{52}$,&$w_{53}$\}; \\
+ aa &=& \{$w_{00}$,&$w_{11}$,&$w_{22}$,&$w_{33}$, \\
+    & & $\gamma_0$, \mbox{}&$\gamma_1$,&$\gamma_2$,&$\gamma_3$\};
+  \end{tabular}}
+  \end{minipage}
+  \begin{minipage}[t]{2.5in}
+    $\bm{w}_0 =  \left[\begin{array}{c}
+      w_{00} \\ w_{10} \\ w_{20} \\ w_{30} \\ w_{40} \\ w_{50}
+    \end{array}\right]$,
+    $\bm{w}_1 =  \left[\begin{array}{c}
+      0 \\ w_{11} \\ w_{21} \\ w_{31} \\ w_{41} \\ w_{51}
+    \end{array}\right]$, \ldots
+  \end{minipage}}
+  \caption{Storing the representation of the matrices $Q$ and $R$ for
+    a~matrix $6\times 4$}
+\end{figure}
+
+The procedure returns \texttt{true} in case of success. Failure, signalled
+by \texttt{false}, occurs when the columns of the matrix~$A$ are linearly
+dependent. The contents of the arrays \texttt{a} and \texttt{aa} are then
+undefinite.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+void pkn\_multiReflectVectorf ( int nrows, int ncols, \\
+\ind{31}const float *a, const float *aa, \\
+\ind{31}int spdimen, int pitch, float *b );}
+The procedure \texttt{pkn\_multiReflectVectorf} computes the product
+of the matrices~$Q^{-1}$ and~$B$; the factor~$Q$ is an orthogonal matrix,
+whose representation computed by the procedure \texttt{pkn\_QRDecomposeMatrixf}
+(in the form of a~sequence of Householder reflections) is stored
+in the arrays~\texttt{a} and~\texttt{aa}. The matrix~$B$ having
+\texttt{ncols} rows and \texttt{spdimen} columns is stored in the
+array~\texttt{b}.
+The pitch of the array~\texttt{b}, i.e.\ the distance between the first
+coefficients of consecutive rows, is the value of the parameter
+\texttt{pitch}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_multiInvReflectVectorf ( int nrows, int ncols, \\
+\ind{32}const float *a, const float *aa, \\
+\ind{32}int spdimen, int pitch, float *b );}
+The procedure \texttt{pkn\_multiInvReflectVectorf} computes the product
+of the matrices~$Q$ and~$B$; the factor~$Q$ is an orthogonal matrix,
+whose representation has been computed by the procedure
+\texttt{pkn\_QRDecomposeMatrixf} (in the form of a~sequence of Householder
+reflections), is stored in the arrays~\texttt{a} and~\texttt{aa}.
+The matrix~$B$ having \texttt{ncols} rows and \texttt{spdimen} columns
+is stored in the array~\texttt{b}.
+The pitch of the array~\texttt{b}, i.e.\ the distance between the first
+coefficients of two consecutive rows, is the value of the parameter
+\texttt{pitch}.
+
+\vspace{\bigskipamount}
+%\newpage
+\cprog{%
+void pkn\_multiMultUTVectorf ( int nrows, const float *a, \\
+\ind{30}int spdimen, int bpitch, float *b, \\
+\ind{30}int xpitch, float *x );}
+The procedure \texttt{pkn\_multiMultUTVectorf} computes the product
+of the matrices~$R$ and~$B$; the factor~$R$ is a~triangular matrix,
+whose representation found e.g.\ by the procedure
+\texttt{pkn\_QRDecomposeMatrixf} is stored in the array~\texttt{a}.
+The matrix~$B$ having \texttt{nrows} rows and 
+\texttt{spdimen} columns is stored in the array~\texttt{b}.
+The pitch of the array~\texttt{b}, i.e.\ the distance between the first
+coefficients of two consecutive rows, is the value of the parameter
+\texttt{bpitch}.
+
+The result of the multiplication is stored in the array~\texttt{x},
+whose pitch is the vaalue of the parameter~\texttt{xpitch}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_multiMultInvUTVectorf ( int nrows, const float *a, \\
+\ind{33}int spdimen, int bpitch, float *b, \\
+\ind{33}int xpitch, float *x );}
+The procedure \texttt{pkn\_multiMultUTVectorf} computes the product
+of the matrices~$R^{-1}$ and~$B$; the matrix~$R$ is triangular,
+and its representation, perhaps computed by the procedure
+\texttt{pkn\_QRDecomposeMatrixf}, is stored in the array~\texttt{a}.
+The matrix~$B$, having \texttt{nrows} rows and
+\texttt{spdimen} columns is stored in the array~\texttt{b}.
+The pitch of the array~\texttt{b}, i.e.\ the distance between the first
+coefficients of two consecutive rows, is the value of the parameter
+\texttt{bpitch}.
+
+The result of the multiplication is stored in the array~\texttt{x},
+whose pitch is the vaalue of the parameter~\texttt{xpitch}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_multiMultTrUTVectorf ( int nrows, const float *a, \\
+\ind{33}int spdimen, int bpitch, float *b, \\                        
+\ind{33}int xpitch, float *x ); \\                        
+void pkn\_multiMultInvTrUTVectorf ( int nrows, const float *a, \\
+\ind{33}int spdimen, int bpitch, float *b, \\                           
+\ind{33}int xpitch, float *x );}                           
+
+\vspace{\bigskipamount}
+%\newpage
+\cprog{%
+boolean pkn\_multiSolveRLSQf ( int nrows, int ncols, float *a, \\
+\ind{30}int spdimen, int bpitch, float *b, \\
+\ind{30}int xpitch, float *x );}
+The procedure \texttt{pkn\_multiSolveRLSQf} solves a~linear least-squares problem
+for the system of equations
+$AX=B$, i.e.\ it decomposes the matrix~$A$ (whose columns must be linearly
+independent) into the factors $Q$ and $R$, and then it computes the matrix
+$Y=Q^{-1}B$, and finally $X=R_1^{-1}Y$, where the square matrix~$R_1$ is the upper
+block of the matrix~$R$.
+
+The numbers of rows and columns of the matrix~$A$ are specified by the
+parameters \texttt{nrows} and \texttt{ncols}. Its coefficients have to be stored
+in an array~\texttt{a} (the consecutive rows must be stored without unused
+areas between them). The dimensions of the matrix~$B$ are \texttt{nrows}
+rows and \texttt{spdimen} columns. Its coefficients are to be stored
+in an array~\texttt{b}, whose pitch is \texttt{bpitch}.
+
+The result, i.e.\ the coefficients of the matrix~$X$ of dimensions
+\texttt{ncols}$\times$\texttt{spdimen} are stored by the procedure
+in the array~\texttt{x}, whose pitch is~\texttt{xpitch}.
+
+If the computation has been successful, the procedure returns \texttt{true}.
+Failure, indicated by \texttt{false}, occurs when the problem is nonregular,
+i.e.\ when the columns of the matrix~$A$ are linearly dependent.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_QRGetReflectionf ( int nrows, int ncols, \\
+\ind{28}const float *a, const float *aa, \\
+\ind{28}int nrefl, float *w, float *gamma );}
+\begin{sloppypar}
+The procedure \texttt{pkn\_QRGetReflectionf} ,,extracts'' the representation
+of one Householder reflection from the arrays \texttt{a} and~\texttt{aa},
+in which this representation has been stored by the procedure
+\texttt{pkn\_QRDecomposeMatrixf}.%
+\end{sloppypar}
+
+The parameters \texttt{nrows} and~\texttt{ncols} describe the dimensions of the
+matrix~$A$, whose $QR$ decomposition factors are given in the arrays
+\texttt{a} and~\texttt{aa}. The parametr \texttt{nrefl}, whose value~$i$
+must be between~\texttt{0} and~\texttt{ncols-1}, specifies the number
+of the reflection. The coordinates of the reflection hyperplane normal
+vector~$\bm{w}$ are stored in the array~\texttt{w} of length
+$l=$\texttt{nrows-$i$}; they are the last~$l$ of~\texttt{nrows} coordinates
+of this vector, and the first~$i$ coordinates are~$0$.
+
+The variable \texttt{*gamma} obtains the value of the parameter $\gamma_i$.
+One may call the procedure with \texttt{gamma=NULL}, and then the parameter
+\texttt{gamma} is ignored.
+
+
+
+\newpage
+\section{\label{sect:band:matrix}Band matrix processing}
+
+\subsection{\label{ssect:band:basic}The representation and basic procedeures}
+
+A~band matrix $m\times n$ is a~matrix which satisfies the following condition:
+there exists a~number $w$ and two nondecreasing sequences of numbers,
+$j_0<\cdots<j_{m-1}$ and $k_0<\cdots<k_{m-1}$, such that the coefficient
+$a_{ij}$ (in the $i$-th row and $j$-th column) is~$0$, if $j<j_i$ or $j\geq k_i$,
+and for all~$i$ there is $k_i-j_i\leq w$. The number~$w$ is called the
+\emph{band width} and if it is much smaller than the number of columns~$n$,
+then representing such a~matrix requires significantly less memory.
+Moreover, many algorithms of processing such matrices are much faster
+than the algorithms of processing full matrices.
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct bandm\_profile \{ \\
+\ind{2}int firstnz; \\
+\ind{2}int ind; \\
+\} bandm\_profile;}
+
+The parameters, which describe a~band matrix are:
+the numbers of columns and (not always necessary) rows, and two arrays.
+The first array, \texttt{prof}, of length $n+1$ (greater by~$1$ than
+the number of columns) consists of structures of type
+\texttt{bandm\_profile}, which describe consecutive columns
+of the matrix. The second array,~\texttt{a}, is used for storing the
+array coefficients, according to the description in the first array.
+
+The value of \texttt{prof[j].firstnz} (from~$0$ to $m-1$) is the index
+of the row, which contains the first nonzero coefficient
+of the $j$-th column. The value of \texttt{prof[j].ind} is the index of
+the array~\texttt{a}, indicating the position of that coefficient.
+The consecutive cells of the array~\texttt{a} hold the consecutive
+coefficients of this column. The number of consecutive coefficients
+from this column, which may be nonzero, is equal to
+\texttt{prof[j+1].ind-prof[j].ind}. An example of such
+a~representation is shown in Figure~\ref{fig:band:matrix}.
+\begin{figure}[ht]
+  \begin{minipage}{1.82in}
+  \begin{align*}
+    \left[\begin{array}{ccccc}
+      a_0 &   0 &      0 &      0 &   0    \\
+      a_1 & a_4 & a_{10} &      0 &   0    \\
+      a_2 & a_5 & a_{11} &      0 &   0    \\
+      a_3 & a_6 & a_{12} &      0 &   0    \\
+        0 & a_7 & a_{13} &      0 &   0    \\
+        0 & a_8 & a_{14} & a_{17} &   0    \\
+        0 & a_9 & a_{15} & a_{18} &   0    \\
+        0 &   0 & a_{16} & a_{19} &   0    \\
+        0 &   0 &      0 & a_{20} & a_{23} \\
+        0 &   0 &      0 & a_{21} & a_{24} \\
+        0 &   0 &      0 & a_{22} & a_{25} \\
+        0 &   0 &      0 &      0 & a_{26}
+    \end{array}\right]
+  \end{align*}
+  \end{minipage}
+  \begin{minipage}{3.05in}
+    \texttt{int ncols = 5;} \\[10pt]
+    \texttt{bandm\_profile prof[6] = \\
+     \{\{0,0\},\{1,4\},\{1,10\},\{5,17\},\{8,23\},\{*,27\}\};} \\[10pt]
+    \texttt{float a[27] = \{ $a_0$,\ldots,$a_{26}$ \};}
+  \end{minipage}
+  \caption{\label{fig:band:matrix}A band matrix and the arrays, which represent it}
+\end{figure}
+
+To represent a~sequence of reflections with respect to hyperplanes, whose
+normal vectors are $\bm{w}_0,\ldots,\bm{w}_{n-1}$, it is necessary to
+create the arrays \texttt{a} and \texttt{prof}, just like these for a~band
+matrix. The array~\texttt{a} is used to store the numbers $\gamma_i$, followed by
+the nonzero coordinates of the normal vectors $\bm{w}_i$ (just as if they
+were columns of a~band matrix). The contents of the array \texttt{prof}
+makes it possible to find these coordinates. An example is in
+Figure~\ref{fig:householder:matrix}.%
+\begin{figure}[ht]
+\newcommand{\mkb}[2]{\mbox{\raisebox{0pt}[0pt][0pt]{$\displaystyle%
+\begin{array}[t]{@{}c@{}}{#1} \\[4pt] \uparrow \\ {#2} \end{array}$}}}
+  \begin{minipage}{2.2in}
+  \begin{align*}
+    \left[\begin{array}{ccccc}
+      w_5 &   0    &      0 &      0 &   0    \\
+      w_6 & w_9    &      0 &      0 &   0    \\
+      w_7 & w_{10} & w_{15} &      0 &   0    \\
+      w_8 & w_{11} & w_{16} & w_{21} &   0    \\
+        0 & w_{12} & w_{17} & w_{22} & w_{29} \\
+        0 & w_{13} & w_{18} & w_{23} & w_{30} \\
+        0 & w_{14} & w_{19} & w_{24} & w_{31} \\
+        0 &   0    & w_{20} & w_{25} & w_{32} \\
+        0 &   0    &      0 & w_{26} & w_{33} \\
+        0 &   0    &      0 & w_{27} & w_{34} \\
+        0 &   0    &      0 & w_{28} & w_{35} \\
+        \mkb{0}{\bm{w}_0} & \mkb{0}{\bm{w}_1} &
+        \mkb{0}{\bm{w}_2} & \mkb{0}{\bm{w}_3} &
+        \mkb{w_{36}}{\bm{w}_4}
+    \end{array}\right]
+  \end{align*}
+  \vspace*{0.6cm}
+  \end{minipage}
+  \begin{minipage}{2.75in}
+    \texttt{int ncols = 5;} \\[10pt]
+    \texttt{bandm\_profile prof[6] = \\
+     \ind{2}\{\{0,5\},\{1,9\},\{2,15\},\{3,21\},\\
+     \ind{2}\{4,29\},\{*,37\}\};} \\[10pt]
+    \texttt{float a[37] = \\
+    \ind{2}\{ $\gamma_0$,\ldots,$\gamma_4$,$w_5$,\ldots,$w_{36}$ \};}
+  \end{minipage}
+  \caption{\label{fig:householder:matrix}A~representation of a~sequence of
+    reflections. The columns of the}
+  \centerline{matrix on the left side are the normal vectors
+   of the reflection hyperplanes}
+\end{figure}
+
+The representation described above is intended to save storage space
+in case of reflections constructed in order to solve a~linear least squares
+problem for a~system of equations with a~band matrix~$A$.
+The composition of all reflections in the order of columns is the
+transformation described by the orthogonal matrix $Q^T$. By composing
+these reflections in the reverse order we obtain the matrix~$Q$:
+the matrix~$R$ such that $A=QR$, is upper triangular.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_BandmFindQRMSizes ( int ncols, \\
+\ind{29}const bandm\_profile *aprof, \\
+\ind{29}int *qsize, int *rsize );}
+The procedure \texttt{pkn\_BandmFindQRMSizes} computes the lengths
+of the arrays necessary to represent the coefficients of the matrices
+$Q$ and~$R$, being the factors of the orthogonal-triangular decomposition
+of a~band matrix~$A$.
+The matrix~$R$ will be represented as a~band matrix in the ,,ordinary''
+way (i.e.\ the appropriate array will contain its nonzero coefficients,
+just like the matrix~$A$ to be decomposed), and the matrix~$Q$, which
+describes the composition of teh Householder reflections, will be
+represented by the normal vectors of the reflection hyperplanes.
+Both ways of representing these matrices are described above.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_BandmQRDecomposeMatrixf ( int nrows, int ncols, \\
+\ind{34}const bandm\_profile *aprof, \\
+\ind{34}const float *a, \\
+\ind{34}bandm\_profile *qprof, float *q, \\
+\ind{34}bandm\_profile *rprof, float *r );}
+The procedure \texttt{pkn\_BandmQRDecomposeMatrixf} finds the factors
+of decomposition of a~band matrix~$A$, i.e.\ the orthogonal matrix~$Q$
+and the uupper triangular matrix~$R$. The matrix~$A$ of dimensions
+\texttt{nrows}$\times$\texttt{ncols} is represented with the array
+\texttt{aprof}, whose contents describes the positions of the
+nonzero coefficients in its columns, and the array~\texttt{a},
+where these coefficients are stored.
+
+The computed upper triangular matrix~$R$ is also a~band matrix.
+The procedure stores its representation in the arrays
+\texttt{rprof} and~\texttt{r}. The former array must be of length
+at least \texttt{ncols}$+1$. The length of the latter array must be
+at least equal to that computed by the procedure
+\texttt{pkn\_BandmFindQRSizes}, which should be called first.
+
+The orthogonal matrix~$Q$ is the product of the matrices of the Householder
+reflections, which transform the matrix~$A$ to the triangular form.
+The number of reflections is \texttt{ncols}, therefore the array
+\texttt{qprof} must be of length at least \texttt{ncols}$+1$. The length
+of the array~\texttt{q} for storing the coordinates of the reflection
+hyperplanes normal vectors, must not be less than the appropriate number
+computed by \texttt{pkn\_BandmFindQRSizes}.
+
+\vspace{\medskipamount}
+\noindent
+\textbf{Remark:} The number of columns, \texttt{ncols}, must be \emph{less}
+than the number of rows, \texttt{nrows}; square matrices are decomposed
+with an error (to be fixed some time in the future).
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_multiBandmReflectVectorf ( int ncols, \\
+\ind{36}const bandm\_profile *qprof, \\
+\ind{36}const float *q, \\
+\ind{36}int spdimen, float *b );}
+The procedure \texttt{pkn\_multiBandmReflectVectorf} performs \texttt{ncols}
+reflections of the columns of a~matrix~$B$, having \texttt{spdimen} columns.
+The consecutive rows of this matrix are stored in the array~\texttt{b},
+which upon return will hold the result. The order of the reflections
+is the same that the order of vectors in the array~\texttt{q}
+(i.e.\ first with respect to $\bm{w}_0$, then $\bm{w}_1$ etc.).
+
+The representation of the reflections is given in the arrays
+\texttt{qprof} and~\texttt{q}, as described before.
+
+\newpage
+%\vspace{\bigskipamount}
+\cprog{%
+void pkn\_multiBandmInvReflectVectorf ( int ncols, \\
+\ind{39}const bandm\_profile *qprof, \\
+\ind{39}const float *q, \\
+\ind{39}int spdimen, float *b );}
+The procedure \texttt{pkn\_multiBandmReflectVectorf} performs \texttt{ncols}
+reflections of the columns of a~matrix~$B$, which has \texttt{spdimen} columns.
+The consecutive rows of this matrix are stored in the array~\texttt{b},
+which upon return will hold the result. The order of the reflections
+is reverse to the ordering of vectors in the array~\texttt{q}
+(i.e.\ if $n={}$\texttt{ncols}, then the reflection with respect to the
+hyperplane, whose normal vector is $\bm{w}_{n-1}$ is done first,
+then $\bm{w}_{n-2}$ etc.).
+
+The representation of the reflections is given in the arrays
+\texttt{qprof} and~\texttt{q}, as described before.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_multiBandmMultVectorf ( int nrows, int ncols, \\
+\ind{33}const bandm\_profile *aprof, \\
+\ind{33}const float *a, \\
+\ind{33}int spdimen, const float *x, \\
+\ind{33}float *y );}
+\begin{sloppypar}
+The procedure \texttt{pkn\_multiBandmMultVectorf} performs the multiplication
+of a~band matrix~$A$ of dimensions \texttt{nrows}$\times$\texttt{ncols},
+represented with the arrays \texttt{aprof} and~\texttt{a} and the matrix~$X$
+of dimensions \texttt{ncols}$\times$\texttt{spdimen}. The result --- the matrix
+$Y=AX$ of dimensions \texttt{nrows}$\times$\texttt{spdimen} is stored in
+the array~$y$. The arrays \texttt{x}~and~\texttt{y} hold consecutive rows
+of the matrices $X$~and~$Y$.%
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_multiBandmMultInvUTMVectorf ( int nrows, \\
+\ind{39}const bandm\_profile *rprof, \\
+\ind{39}const float *r, \\
+\ind{39}int spdimen, const float *x, \\
+\ind{39}float *y );}
+The procedure \texttt{pkn\_multiBandmMultInvUTMVectorf} computes the matrix
+$Y=A^{-1}X$. The matrix~$A$ of~dimensions \texttt{nrows}$\times$\texttt{nrows}
+must be nonsingular upper triangular. The matrix~$X$ of dimensions
+\texttt{nrows}$\times$\texttt{spdimen} is represented with the
+array~\texttt{x}, containing the consecutive rows. The result is stored in the
+array~\texttt{y}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_multiBandmMultTrVectorf ( int ncols, \\
+\ind{35}const bandm\_profile *aprof, \\
+\ind{35}const float *a, \\
+\ind{35}int spdimen, const float *x, \\
+\ind{35}float *y )}
+\begin{sloppypar}
+The procedure \texttt{pkn\_multiBandmMultTrVectorf} multiplies the transposition
+of a~band matrix~$A$ of dimensions $m\times n$, represented with the arrays
+\texttt{aprof} and~\texttt{a}, and the matrix~$X$ of dimensions
+$n\times d$. The result --- the matrix $Y=A^TX$
+of dimensions \texttt{nrows}$\times$\texttt{spdimen} --- is stored in
+the array~\texttt{y}. The arrays \texttt{x}~and~\texttt{y} contain
+the consecutive rows of the matrices $X$~and~$Y$.%
+\end{sloppypar}
+
+The number $m$ is represented by the profile of the matrix~$A$,
+$n$ is the value of the parameter~\texttt{ncols} and $d$ is the value of
+\texttt{spdimen}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_multiBandmMultInvTrUTMVectorf ( int nrows, \\
+\ind{39}const bandm\_profile *rprof, \\
+\ind{39}const float *r, \\
+\ind{39}int spdimen, const float *x, \\
+\ind{39}float *y )}
+\begin{sloppypar}
+The procedure \texttt{pkn\_multiBandmMultInvTrUTMVectorf} computes the matrix
+$Y=A^{-T}X$.
+The matrix~$A$ of~dimensions \texttt{nrows}$\times$\texttt{nrows}
+must be nonsingular upper triangular. The matrix~$X$ of~dimensions
+\texttt{nrows}$\times$\texttt{spdimen} is represented with the array~\texttt{x},
+containing the consecutive rows. The result is stored in the array~\texttt{y}.
+\end{sloppypar}
+
+
+\subsection{\label{ssect:bandm:rlsq}Solving linear least squares problems}
+
+An example of using the procedures described above to solve a~regular linear
+least squares problem $A\bm{x}=\bm{b}$, with a~column-regular band matrix~$A$:
+\begin{enumerate}
+  \item Create a~representation of the matrix~$A$.
+  \item Call \texttt{pkn\_BandmFindQRMSizes} and then allocate
+    arrays, whose lengths are computed by this procedure, for the
+    representations of the arrays $Q$~and~$R$, being the decomposition
+    factors of~$A$.
+  \item Call \texttt{pkn\_BandmQRDecomposeMatrixf} to find the decomposition
+    of the matrix~$A$.
+  \item Compute the vector $\bm{y}=Q^T\bm{b}$ by calling
+    \texttt{pkn\_multiBandmReflectVectorf}.
+  \item Compute $\bm{x}=R_1^{-1}\bm{y}_1$, where the matrix $R_1$ is the block
+    $n\times n$, consisting of the initial rows of~$R$ and the vector~$\bm{y}_1$
+    consists of the first~$n$ coordinates of~$\bm{y}$. To do this, call
+    \texttt{pkn\_multiBandmMultInvUTMVectorf}.
+\end{enumerate}
+
+%\vspace{\bigskipamount}
+\newpage
+\cprog{%
+void pkn\_multiBandmSolveRLSQf ( int nrows, int ncols, \\
+\ind{32}const bandm\_profile *aprof, \\
+\ind{32}const float *a, \\
+\ind{32}int nrsides, int spdimen, \\
+\ind{32}int bpitch, const float *b, \\
+\ind{32}int xpitch, float *x );}
+\begin{sloppypar}
+The procedure \texttt{pkn\_multiBandmSolveRLSQf} solves in the way described
+above $z$~linear least squares problems, posed by the system of equations
+\begin{align*}
+  A[\bm{x}_0,\ldots,\bm{x}_{z-1}] = [\bm{b}_0,\ldots,\bm{b}_{z-1}].
+\end{align*}
+The band matrix~$A$ of dimensions
+$m\times n$ (given by the parameters \texttt{nrows} i~\texttt{ncols}) is
+represented with use of the arrays \texttt{aprof} and~\texttt{a}.
+The array~\texttt{b}, whose length is \texttt{bpitch}$\times z$,
+describes the right-hand sides of the systems of equations,
+i.e.\ $z$~matrices~$\bm{b}_0,\ldots,\bm{b}_{z-1}$, each
+of dimensions $m\times d$, whose consecutive rows are stored
+in the array without gaps; there are $z=$\texttt{nrsides} such matrices
+in the array, and the positions of the first coefficients of two consecutive
+matrices differ by \texttt{bpitch}. Each of the $d$~columns of each matrix
+is one right-hand side vector of the system (thus in fact the procedure solves
+$zd={}$\texttt{nrsides}$\times$\texttt{spdimen} least squares problems with the
+same matrix~$A$ and a~number of right-hand side vectors).
+\end{sloppypar}
+
+The solutions are the columns of the matrix $\bm{x}$, whose coefficients
+(in consecutive rows) are stored in the array~\texttt{x}. This array must
+have length at least~\texttt{xpitch}$\times z$. The parameter \texttt{xpitch}
+specifies the distance between the first coefficients of consecutive
+matrices $\bm{x}_i$ in the array~\texttt{x}.
+
+
+\subsection{Solving regular problems with constraints}
+
+A~regular linear least squares problem with constraints is to find the
+vector~$\bm{x}$, which satisfies the system of equations
+\begin{align*}
+  C\bm{x} = \bm{d},
+\end{align*}
+called the constraints equations, such that the vector $\bm{r}=A\bm{x}-\bm{b}$
+has the smallest second norm, assuming that the matrix~$A\in\R^{m,n}$
+is columnwise-regular and the matrix~$C\in\R^{w,n}$ is rowwise regular.
+
+The linear independence of the rows of~$C$ implies the consistency of
+the constraints equations and such a~problem has a~unique solution.
+It may be found by solving the following system:
+\begin{align*}
+  \left[\begin{array}{cc} A & C^T \\ C & 0 \end{array}\right]
+  \left[\begin{array}{c} \bm{x} \\ \bm{y} \end{array}\right] =
+  \left[\begin{array}{c} \bm{b} \\ \bm{d} \end{array}\right].
+\end{align*}
+A~numerical method appropriate for doing this follows:
+\begin{enumerate}
+  \item Decompose the matrix~$A$ to the factors $Q$ and~$R$,
+    such that $Q$ is an orthogonal matrix and~$R$ is upper triangular.
+  \item Solve the system of equations $R^TE=C^T$.
+  \item Decompose the matrix~$E$ to the factors $U$ and~$F$,
+    such that $U$ is an orthogonal matrix and~$F$ is upper triangular.
+    By $F_1$ denote the $w\times w$ matrix, which is the block of~$F$
+    consisting of its $w$~initial rows.
+  \item Using the factors $QR$ of~$A$ compute the solution~$\bm{x}_0$
+    of the regular least squares problem, by solving the system
+    $R_1\bm{x}_0=\bm{y}_1$ (see Section~\ref{ssect:bandm:rlsq}).
+  \item Solve the systems of equations $F_1^T\bm{e}=\bm{d}-C\bm{x}_0$ and
+    $F_1\bm{f}=\bm{e}$.
+  \item Solve the systems $R_1^T\bm{g}=C^T\bm{f}$ and $R_1\bm{h}=\bm{g}$.
+  \item Compute $\bm{x}=\bm{x}_0+\bm{h}$.
+\end{enumerate}
+
+\cprog{%
+void pkn\_multiBandmSolveCRLSQf ( int nrows, int ncols, \\
+\ind{23}const bandm\_profile *aprof, const float *a, \\   
+\ind{23}int nconstr, int cpitch, const float *c, \\
+\ind{23}int nrsides, int spdimen, \\
+\ind{23}int bpitch, const float *b, \\
+\ind{23}int dpitch, const float *d, \\
+\ind{23}int xpitch, float *x );}
+\begin{sloppypar}
+The procedure \texttt{pkn\_multiBandmSolveCRLSQf} solves $z$~regular
+least squares problems with constraints, for the system
+of linear equations
+\begin{align*}
+  A[\bm{x}_0,\ldots,\bm{x}_{z-1}] = [\bm{b}_0,\ldots,\bm{b}_{z-1}],
+\end{align*}
+with a~band matrix~$A$ where the constraints are described by the system
+\begin{align*}
+  C[\bm{x}_0,\ldots,\bm{x}_{z-1}] = [\bm{d}_0,\ldots,\bm{d}_{z-1}],
+\end{align*}
+with a~full matrix~$C$.%
+\end{sloppypar}
+
+The parameters:
+\texttt{nrows}, \texttt{ncols} --- numbers of rows~$m$ and columns~$n$ of the
+matrix~$A$,
+\texttt{aprof}, \texttt{a} --- profile (i.e.\ the representation of the positions
+of nonzero coefficients) and the array with the nonzero coefficients of~$A$,
+\texttt{nconstr} --- number~$w$ of constraints
+(must be less than~$n$), \texttt{cpitch} --- pitch (i.e.\ distance
+of the beginnings of consecutive rows) of the array~\texttt{c} with the
+coefficients of~$C$,
+\texttt{nrsides} --- number~$z$, \texttt{spdimen} --- length~$d$
+of rows of the matrices~$\bm{b}_i$ (and also~$\bm{x}_i$ and~$\bm{d}_i$),
+\texttt{bpitch} --- pitch of the array~\texttt{b} with the coefficients
+of the matrices $\bm{b}_0,\ldots,\bm{b}_{z-1}$ (the distance
+between the beginnings of the consecutive matrices; the rows of each matrix
+are stored without gaps),
+\texttt{dpitch} --- pitch of the array~\texttt{d} with
+the coefficients of the matrices~$\bm{d}_0,\ldots,\bm{d}_{z-1}$,
+\texttt{xpitch} --- pitch of the array~\texttt{x} to store the result.
+
+The parameter~\texttt{d} may be \texttt{NULL} --- then the constraint
+equations are homogeneous.
+
+
+
+\subsection{Solving dual linear least squares problems}
+
+\begin{sloppypar}
+A~dual linear least-squares problem is finding the solution~$\bm{x}$
+of a~system of equations $A\bm{x}=\bm{b}$ with a~matrix~$A\in\R^{m,n}$
+row-regular, such that for a~given vector $\bm{x}_0\in\R^n$
+the number $\|\bm{x}-\bm{x}_0\|_2$ is minimal. The procedures described
+earlier may be used to solve such a~problem, if the program creates
+a~band representation of the matrix~$A^T$.
+\end{sloppypar}
+\begin{enumerate}
+  \item Create a~band representation of the matrix $A^T$.
+  \item Call \texttt{pkn\_BandmFindQRSizes} and allocate arrays
+    of appropriate lengths for storing the representations of the factors
+    $Q$~and~$R$ of the decomposition of $A^T$.
+  \item Call \texttt{pkn\_BandmQRDecomposeMatrixf} to find the decomposition
+    of $A^T$ (which is equivalent to decomposing~$A$ into the factors
+    $R^T$~and~$Q^T$).
+  \item Compute the vector $\bm{z}_0=Q^T\bm{x}_0$, by calling
+    \texttt{pkn\_multiBandmReflectVectorf}. If $\bm{x}_0=\bm{0}$,
+    then it is possible instead to set $\bm{z}_0=\bm{0}$ (without any
+    computation).
+  \item\begin{sloppypar}%
+    Call \texttt{pkn\_multiBandmMultInvTrUTMVectorf} in order to
+    solve the system $R_1^T\bm{z}_1=\bm{b}$. If
+    $\bm{b}=\bm{0}$, then it is possible instead to set $\bm{z}_1=\bm{0}$
+    (without any computation).
+    Compute the vector~$\bm{z}$, whose first $m$~coordinates
+    are the corresponding coordinates of~$\bm{z}_1$,
+    and the other coordinates are the coordinates of~$\bm{z}_0$.%
+    \end{sloppypar}
+  \item Call \texttt{pkn\_multiBandmInvReflectVectorf} to compute
+    the solution, i.e.\ the vector $\bm{x}=Q\bm{z}$.
+\end{enumerate}
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_multiBandmSolveDLSQf ( int nrows, int ncols, \\
+\ind{32}const bandm\_profile *atprof, \\
+\ind{32}const float *at, \\
+\ind{32}int nrsides, int spdimen, \\
+\ind{32}int bpitch, const float *b, \\
+\ind{32}int x0pitch, const float *x0, \\
+\ind{32}int xpitch, float *x );}
+\begin{sloppypar}
+The procedure \texttt{pkn\_multiBandmSolveDLSQf} solves dual linear least
+squares problems in the way described above. The parameters \texttt{nrows}
+(the number of rows,~$n$), \texttt{ncols} (the number of columns,~$m$),
+\texttt{atprof} (the profile) and~\texttt{at} (the array of coefficients)
+describe the matrix $A^T$.
+\end{sloppypar}
+
+There are $zd=$\texttt{nrsides}$\times d$ right-hand sides of the system,
+i.e.\ the matrices~$\bm{b}$, with $m$~rows and~$d=$\texttt{spdimen} columns;
+each column is the right-hand side of
+one problem (thus the procedure solves $d$~problems with the matrix~$A$).
+The consecutive rows of~$\bm{b}$ must be stored in the array~\texttt{b}.
+The positions of the first coefficients of two consecutive matrices~$\bm{b}$
+differ by \texttt{bpitch}.
+The parameter~\texttt{b} may also be \texttt{NULL}, which means that
+the right-hand sides of the systems are the zero vector.
+
+The approximations of the solutions are the columns of $z$~matrices~$\bm{x}_0$
+of dimensions $n\times d$. The consecutive rows of these matrices
+must be given in the array~\texttt{x0}, the positions of the first coefficients
+of two consecutive matrices $\bm{x}_0$ differ by~\texttt{x0pitch}.
+If the parameter \texttt{x0} is \texttt{NULL}, then the matrices~$\bm{x}_0$ are
+assumed to be zero.
+
+The solutions are the columns of the matrices~$\bm{x}$. The consecutive rows
+of these matrices are stored in the array~\texttt{x}, whose length must be
+at least $z\times$\texttt{xpitch}.
+
+
+\newpage
+\subsection{Debugging}
+
+The procedures described in this section print out into \texttt{stdout}
+matrices in the text form. These procedures are sometimes quite
+helpful in detecting bugs.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_PrintMatf ( int nrows, int ncols, const float *a );}
+The procedure \texttt{pkn\_PrintMatf} prints the coefficients of a~full
+matrix~$A$, represented explicitly in an array.
+
+The parameters \texttt{nrows} and \texttt{ncols} specify the numbers of rows and
+columns respectively. The array \texttt{a} contains the coefficients of~$A$,
+row by row.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_PrintBandmf ( int ncols, const bandm\_profile *aprof, \\
+\ind{23}const float *a );}
+The procedure \texttt{pkn\_PrintBandmf} prints a~band matrix represented
+by the arrays \texttt{aprof} and \texttt{a}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_PrintBandmRowSumf ( int ncols, const bandm\_profile *aprof, \\
+\ind{23}const float *a );}
+The procedure \texttt{pkn\_PrintBandmRowSumf} prints a~band matrix represented
+by the arrays \texttt{aprof} and \texttt{a}. The sum of coefficients for
+each row is written at the end of the row.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_PrintProfile ( int ncols, const bandm\_profile *prof );}
+The procedure \texttt{pkn\_PrintProfile} prints out the contents of the array
+\texttt{prof}, i.e.\ the profile of a~band matrix.
+
+
+\newpage
+\section[Processing ``packed'' symmetric and triangular matrices]%
+  {\label{sect:packed:sym:array}Processing ``packed'' symmetric \\
+   and triangular matrices}
+
+A~square symmetric matrix $n\times n$ may be represented with
+$\frac{1}{2}(n+1)n$ numbers, i.e.\ almost twice less than a~general matrix
+of the same dimensions. Also, triangular matrices (lower and upper)
+may be represented without storing the zero coefficients above
+or below the diagonal. The procedures described in this section process
+matrices represented in such a~space-saving way.
+\begin{figure}[ht]
+  \begin{minipage}{2.2in}
+    \begin{align*}
+      A = \left[\begin{array}{cccc}
+        a_{00} & a_{10} & a_{20} & a_{30} \\
+        a_{10} & a_{11} & a_{21} & a_{31} \\
+        a_{20} & a_{21} & a_{22} & a_{32} \\
+        a_{30} & a_{31} & a_{32} & a_{33}
+      \end{array}\right]
+    \end{align*}
+  \end{minipage}
+  \begin{minipage}{2.7in}
+    \texttt{int n = $4$;} \\
+    \texttt{float a[] = \{$a_{00}$,$a_{10}$,$a_{11}$,$a_{20}$,$a_{21}$,$a_{22}$,} \\
+    \texttt{\ind{13}$a_{30}$,$a_{31}$,$a_{32}$,$a_{33}$\};}
+  \end{minipage}
+  \caption{\label{fig:symmat}The space saving representation of a~symmetric matrix}
+\vspace{\bigskipamount}
+  \centerline{\begin{minipage}{2.4in}
+    \begin{align*}
+      L = \left[\begin{array}{cccc}
+        l_{00} & 0 & 0 & 0 \\
+        l_{10} & l_{11} & 0 & 0 \\
+        l_{20} & l_{21} & l_{22} & 0 \\
+        l_{30} & l_{31} & l_{32} & l_{33}
+      \end{array}\right]
+    \end{align*}
+  \end{minipage}
+  \begin{minipage}{2.4in}
+    \begin{align*}
+      L^T = \left[\begin{array}{cccc}
+        l_{00} & l_{10} & l_{20} & l_{30} \\
+        0 & l_{11} & l_{21} & l_{31} \\
+        0 & 0 & l_{22} & l_{32} \\
+        0 & 0 & 0 & l_{33}
+      \end{array}\right]
+    \end{align*}
+  \end{minipage}}
+
+\vspace{\medskipamount}
+  \centerline{\begin{minipage}{3.6in}
+    \texttt{int n = $4$;} \\
+    \texttt{float l[] = \{$l_{00}$,$l_{10}$,$l_{11}$,$l_{20}$,$l_{21}$,$l_{22}$,%
+    $l_{30}$,$l_{31}$,$l_{32}$,$l_{33}$\};}
+  \end{minipage}}
+  \caption{\label{fig:trmat}The space saving representations of triangular matrices}
+\end{figure}
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define pkn\_SymMatIndex(i,j) \bsl \\
+\ind{2}( (i) >= (j) ?\ (i)*((i)+1)/2+(j) :\ (j)*((j)+1)/2+(i) )}
+The macro \texttt{pkn\_SymMatIndex} computes the index of the coefficient
+$a_{ij}$ of a~symmetric matrix~$A$ in the array used to store the coefficients.
+This is also the index of the coefficient $l_{ij}$ of a~lower triangular
+matrix~$L$, provided that $i\geq j$ (otherwise $l_{ij}=0$).
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_CholeskyDecompf ( int n, float *a );}
+The procedure \texttt{pkn\_CholeskyDecompf} decomposes a~symmetric
+positive-definite matrix~$A$ (i.e.\ such that $A^T=A$ and
+$\forall_{\bm{x}\neq\bm{0}}\,\bm{x}^TA\bm{x}>0$) into triangular factors:
+$A=LL^T$. The coefficients of the lower triangular matrix~$L$ are stored
+in the array~\texttt{a}, initially occupied by the coefficients of the
+matrix~$A$.
+
+The parameter \texttt{n} specifies the dimensions of the matrices.
+The procedure returns \texttt{true}, if the decomposition has been
+computed successfully, and \texttt{false}, if during the computations
+the matrix~$A$ turned out not to be positive-definite.
+In that case the contents of the array~\texttt{a}
+is indefinite.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_SymMatrixMultf ( int n, const float *a, int spdimen, \\
+\ind{26}int bpitch, const float *b, \\
+\ind{26}int xpitch, float *x ); \\
+void pkn\_LowerTrMatrixMultf ( int n, const float *l, int spdimen, \\
+\ind{30}int bpitch, const float *b, \\
+\ind{30}int xpitch, float *x ); \\
+void pkn\_UpperTrMatrixMultf ( int n, const float *l, int spdimen, \\
+\ind{30}int bpitch, const float *b, \\
+\ind{30}int xpitch, float *x );}
+\begin{sloppypar}
+The procedures \texttt{pkn\_SymMatrixMultf}, \texttt{pkn\_LowerTrMatrixMultf}
+and \\ \texttt{pkn\_UpperTrMatrixMultf} compute respectively the product~$X$ of
+a~symmetric, lower triangular and upper triangular matrix~$A$ of dimensions
+$n\times n$ and the matrix~$B$ of dimensions $n\times d$, whose representation
+is ,,full''.
+\end{sloppypar}
+
+The parameters \texttt{n} and~\texttt{spdimen} specify the dimensions
+$n$ and~$d$ of the matrices.
+The parameter~\texttt{a} or~\texttt{l} points to an array with the coefficients
+of the matrix~$A$, stored in the space saving way. The parameter~\texttt{b} is
+a~pointer to an array with the coefficients of~$B$, whose pitch
+is \texttt{bpitch}.
+The parameters \texttt{x} and~\texttt{xpitch} are the pointer to an array for
+the result and the pitch of this array respectively.
+
+\vspace{\medskipamount}
+\noindent
+\textbf{Remark:}
+There is no specific procedure of multiplication of symmetric matrices,
+because in general the product of symmetric matrices does not have to be
+symmetric. Also, there are no procedures of multiplication of two lower or upper
+triangular matrices, because so far I~did not need them. If necessary,
+one can \mbox{convert} the matrices to the full representation (with the
+procedures described later) and use the procedure of multiplication of
+general matrices.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_LowerTrMatrixSolvef ( int n, const float *l, int spdimen, \\
+\ind{31}int bpitch, const float *b, \\
+\ind{31}int xpitch, float *x ); \\
+void pkn\_UpperTrMatrixSolvef ( int n, const float *l, int spdimen, \\
+\ind{31}int bpitch, const float *b, \\
+\ind{31}int xpitch, float *x );}
+\begin{sloppypar}
+The procedures \texttt{pkn\_LowerTrMatrixSolvef}
+and~\texttt{pkn\_UpperTrMatrixSolvef}
+\mbox{solve} systems of linear equations with a~lower triangular matrix~$L$
+and an upper triangular matrix~$L^T$, represented in the space saving way.
+This is equivalent to multiplying the right-hand side matrix~$B$ by the
+matrix $L^{-1}$ or $L^{-T}$.%
+\end{sloppypar}
+
+The parameters~\texttt{n} and~\texttt{spdimen} specify the dimensions of
+the matrices $L\colon n\times n$ and~$B$ and $X\colon n\times d$.
+The arrays~\texttt{l} and~\texttt{b} contain the coefficients of~$L$ and~$B$.
+The procedures store the results in the array~\texttt{x}. The parameters
+\texttt{bpitch} and~\texttt{xpitch} specify the pitches of the arrays
+\texttt{b} and~\texttt{x}.
+
+One can pass the same array as both parameters: \texttt{b} and~\texttt{x};
+in this case the result will replace the right-hand side matrix, but then
+both parameters, \texttt{bpitch} and~\texttt{xpitch} must have the same value.
+If the arrays are different, then the contents of~\texttt{b}
+remains unchanged.
+
+\vspace{\medskipamount}
+To solve a~system of linear equations $A\bm{x}=\bm{b}$ with a~symmetric
+positive-definite matrix~$A$, one can call the procedure
+\texttt{pkn\_CholeskyDecompf}, which computes the matrix~$L$
+such that $A=LL^T$, and then solve the system
+$L\bm{y}=\bm{b}$ with \texttt{pkn\_LowerTrMatrixSolvef}
+and~$L^T\bm{x}=\bm{y}$ with \texttt{pkn\_UpperTrMatrixSolvef}.
+This is a~faster method than using an algorithm appropriate for
+general matrices (like the Gaussian elimination or Householder reflections).
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_SymToFullMatrixf ( int n, const float *syma, \\
+\ind{28}int pitch, float *fulla ); \\
+void pkn\_FullToSymMatrixf ( int n, int pitch, const float *fulla, \\
+\ind{28}float *syma ); \\
+\#define pkn\_FullToLTrMatrixf(n,pitch,fulla,ltra) \bsl \\
+\ind{2}pkn\_FullToSymMatrixf(n,pitch,fulla,ltra) \\
+void pkn\_LTrToFullMatrixf ( int n, const float *ltra, \\
+\ind{28}int pitch, float *fulla ); \\
+void pkn\_UTrToFullMatrixf ( int n, const float *utra, \\
+\ind{28}int pitch, float *fulla ); \\
+void pkn\_FullToUTrMatrixf ( int n, int pitch, const float *fulla, \\
+\ind{28}float *utra );}
+The procedures and the macro above make the conversion between the space saving
+and full representations of symmetric and triangular matrices.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_ComputeQSQTf ( int m, const float *s, \\
+\ind{24}int n, const float *a, const float *aa, \\
+\ind{24}float *b ); \\
+void pkn\_ComputeQTSQf ( int m, const float *s, \\
+\ind{24}int n, const float *a, const float *aa, \\
+\ind{24}float *b );}
+The procedures \texttt{pkn\_ComputeQSQTf} and~\texttt{pkn\_ComputeQTSQf}
+compute respectively the products of the matrices
+\begin{align*}
+  QSQ^T \quad\mbox{and}\quad Q^TSQ,
+\end{align*}
+where~$S$ is a~symmetric matrix $m\times m$, represented in the packed
+form, and the matrix~$Q$ is orthogonal $m\times m$.
+The matrix~$Q$ represents the composition of $n$ Householder reflections,
+obtained by orthogonal-triangular decomposition of a~matrix~$A$,
+having dimensions $m\times n$, as described in Section~\ref{ssect:QR}.
+
+The parameters~\texttt{m} and~\texttt{n} describe the dimensions of the
+matrices~$S$ and~$A$.
+The array~\texttt{s} contains the coefficients of the matrix~$S$. The
+arrays~\texttt{a} and~\texttt{aa} contain the representations of the
+reflections (i.e.\ of the matrix~$Q$), as described in Section~\ref{ssect:QR}.
+The coefficients of the product, which is a~symmetric matrix, are
+stored in in the array~\texttt{b}.
+One may call the procedure with \texttt{b=s}; then the coefficients of~$S$
+will be replaced in the array by the coefficients of the product.
+
+The procedures implement the Ortega-Householder algorithm;
+for each subsequent reflection, represented by the matrix
+$H_i=I_m-\bm{v}_i\beta_i\bm{v}_i^T$, where $i=0,\ldots,n-1$, the procedures
+compute
+\begin{align*}
+  &\mbox{the vector } \bm{u} = B_{i-1}\bm{v}_i\beta_i, \\
+  &\mbox{the wector } \bm{p} = \bm{u}-\bm{v}_i\bm{v}_i^T\bm{u}\beta_i/2, \\
+  &\mbox{the matrix } B_i = B_{i-1} - (\bm{v}_i\bm{p}^T+\bm{p}\bm{v}_i^T),
+\end{align*}
+where $B_0=S$ and~$\bm{v}_i=\bm{w}_i$, $\beta_i=\gamma_i$
+for the procedure \texttt{pkn\_ComputeQTSQf}, and
+$\bm{v}_i=\bm{w}_{n-i-1}$, $\beta_i=\gamma_{n-i-1}$ for the procedure
+\texttt{pkn\_ComputeQSQTf}. The final result is the matrix $B_{n-1}$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_MatrixLowerTrMultf ( int m, int n, int bpitch, \\
+\ind{10}const float *b, const float *l, int xpitch, float *x );   \\
+void pkn\_MatrixUpperTrMultf ( int m, int n, int bpitch, \\
+\ind{10}const float *b, const float *l, int xpitch, float *x ); \\
+void pkn\_MatrixLowerTrSolvef ( int m, int n, int bpitch, \\
+\ind{10}const float *b, const float *l, int xpitch, float *x ); \\
+void pkn\_MatrixUpperTrSolvef ( int m, int n, int bpitch, \\
+\ind{10}const float *b, const float *l, int xpitch, float *x ); \\
+void pkn\_MatrixLowerTrMultAddf ( int m, int n, int bpitch, \\
+\ind{10}const float *b, const float *l, int xpitch, float *x ); \\
+void pkn\_MatrixUpperTrMultAddf ( int m, int n, int bpitch, \\
+\ind{10}const float *b, const float *l, int xpitch, float *x ); \\
+boolean pkn\_MatrixLowerTrSolveAddf ( int m, int n, int bpitch, \\
+\ind{10}const float *b, const float *l, int xpitch, float *x ); \\
+boolean pkn\_MatrixUpperTrSolveAddf ( int m, int n, int bpitch, \\
+\ind{10}const float *b, const float *l, int xpitch, float *x ); \\
+void pkn\_MatrixLowerTrMultSubf ( int m, int n, int bpitch, \\
+\ind{10}const float *b, const float *l, int xpitch, float *x ); \\
+void pkn\_MatrixUpperTrMultSubf ( int m, int n, int bpitch, \\
+\ind{10}const float *b, const float *l, int xpitch, float *x ); \\
+boolean pkn\_MatrixLowerTrSolveSubf ( int m, int n, int bpitch, \\
+\ind{10}const float *b, const float *l, int xpitch, float *x ); \\
+boolean pkn\_MatrixUpperTrSolveSubf ( int m, int n, int bpitch, \\
+\ind{10}const float *b, const float *l, int xpitch, float *x );}  
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_SymMatSubAATf ( int n, float *b, int m, int pitch\_a, \\
+\ind{25}const float *a );}
+
+
+\newpage
+\section{\label{sect:nrb:sym:array}Processing symmetric and triangular matrices \\
+with a~nonregular band}
+
+Matrices $n\times n$, symmetric or triangular with a~nonregular band
+are represented with two arrays: the profile and the coefficient array.
+The profile is an array of $n$~integers; its $i$-th element
+is the index of the first nonzero coefficient of the $i$-th row
+(rows and columns are numbered from~$0$). Examples are shown in
+Figures~\ref{fig:nrb:sym:array} and~\ref{fig:nrb:tr:array}.
+\begin{figure}[ht]
+  \centerline{\begin{minipage}{2.2in}
+    \begin{align*}
+    \left[\begin{array}{cccccc}
+      a_{00} & a_{10} & & & & \\
+      a_{10} & a_{11} & a_{21} & & a_{41} & \\
+       & a_{21} & a_{22} & a_{32} & a_{42} & \\
+       & & a_{32} & a_{33} & a_{43} & a_{53} \\
+       & a_{41} & a_{42} & a_{43} & a_{44} & a_{54} \\
+       & & & a_{53} & a_{54} & a_{55}
+    \end{array}\right]
+    \end{align*}
+  \end{minipage}
+  \begin{minipage}{2.7in}
+    \texttt{int n = $6$;} \\
+    \texttt{float a[] = \{$a_{00}$,$a_{10}$,$a_{11}$,$a_{21}$,$a_{22}$,$a_{32}$,} \\
+    \texttt{\mbox{} \ \ \ $a_{33}$,$a_{41}$,$a_{42}$,$a_{43}$,$a_{44}$,$a_{53}$,$a_{54}$,$a_{55}$\};} \\
+    \texttt{int prof[] = \{0,0,1,2,1,3\};}
+  \end{minipage}}
+  \caption{\label{fig:nrb:sym:array}Representtion of a~symmetric matrix
+    with a~nonregular band}
+  \centerline{\begin{minipage}{2.2in}
+    \begin{align*}
+    \left[\begin{array}{cccccc}
+      l_{00} & & & & & \\
+      l_{10} & l_{11} & & & & \\
+       & l_{21} & l_{22} & & & \\
+       & & l_{32} & l_{33} & &  \\
+       & l_{41} & l_{42} & l_{43} & l_{44} & \\
+       & & & l_{53} & l_{54} & l_{55}
+    \end{array}\right]
+    \end{align*}
+  \end{minipage}
+  \begin{minipage}{2.2in}
+    \begin{align*}
+    \left[\begin{array}{cccccc}
+      l_{00} & l_{10} & & & & \\
+       & l_{11} & l_{21} & & l_{41} & \\
+       & & l_{22} & l_{32} & l_{42} & \\
+       & & & l_{33} & l_{43} & l_{53} \\
+       & & & & l_{44} & l_{54} \\
+       & & & & & l_{55}
+    \end{array}\right]
+    \end{align*}
+  \end{minipage}}
+  \vspace{\medskipamount}
+  \texttt{int n = 6;} \\
+  \texttt{float l[] = \{$l_{00}$,$l_{10}$,$l_{11}$,$l_{21}$,$l_{22}$,$l_{32}$,%
+     $l_{33}$,$l_{41}$,$l_{42}$,$l_{43}$,$l_{44}$,$l_{53}$,$l_{54}$,$l_{55}$\};} \\
+  \texttt{int prof[] = \{0,0,1,2,1,3\};}
+  \caption{\label{fig:nrb:tr:array}Representation of triangular matrices
+    with nonregular bands}
+\end{figure}
+
+\vspace{\bigskipamount}
+\cprog{%
+int pkn\_NRBArraySize ( int n, const int *prof );}
+The procedure \texttt{pkn\_NRBArraySize} computes the length of the array for storing
+the matrix coefficients, based on the profile.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_NRBFindRowsf ( int n, const int *prof, const float *a, \\
+\ind{27}float **row );}
+The procedure \texttt{pkn\_NRBFindRowsf} stores in the array \texttt{row}
+of length~$n$ pointers to virtual rows; the access
+to the coefficient $a_{ij}$ is given by the expression \texttt{row[i][j]},
+assuming that the following condition is satisfied:
+$\texttt{prof[i]}\leq\texttt{j}\leq i$.
+
+\begin{sloppypar}
+The procedures described below have the parameter \texttt{row}, which may be
+\texttt{NULL}; then they call \texttt{pkn\_NRBFindRowsf}.
+One can also create the array \texttt{row} once, call \texttt{pkn\_NRBFindRowsf},
+and then pass this array as the parameter to these procedures.
+This saves some time (and may be useful also during the computation of
+the coefficients of the matrix in the application).%
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_NRBSymCholeskyDecompf ( int n, const int *prof, \\
+\ind{36}float *a, float **row );}
+The procedure \texttt{pkn\_NRBCholeskyDecompf} decomposes a~symmetric,
+positive-definite matrix~$A$ into triangular factors $L$ and~$L^T$,
+using the Cholesky's method. The coefficients of the matrix~$L$ are stored
+in the array~\texttt{a}, where they replace the coefficients of the given
+matrix~$A$. The profile of both matrices, $A$ and~$L$ are the same.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_NRBSymMultf ( int n, const int *prof, \\
+\ind{26}const float *a, const float **row, \\
+\ind{26}int spdimen, int xpitch, const float *x, \\
+\ind{26}int ypitch, float *y ); \\
+boolean pkn\_NRBLowerTrMultf ( int n, const int *prof, \\
+\ind{26}const float *a, const float **row, \\
+\ind{26}int spdimen, int xpitch, const float *x, \\
+\ind{26}int ypitch, float *y ); \\
+boolean pkn\_NRBUpperTrMultf ( int n, const int *prof, \\
+\ind{26}const float *a, const float **row, \\
+\ind{26}int spdimen, int xpitch, const float *x, \\
+\ind{26}int ypitch, float *y );}
+\begin{sloppypar}
+The procedures \texttt{pkn\_NRBSymMultf}, \texttt{pkn\_NRBLowerTrMultf} \\
+and \texttt{pkn\_NRBUpperTrMultf} compute respectively the product
+of a~symmetric, lower triangulad or upper triangular matrix with a~nonregular
+band, and of the full matrix~$X$.%
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_NRBLowerTrSolvef ( int n, const int *prof, \\
+\ind{26}const float *l, const float **row, \\
+\ind{26}int spdimen, int bpitch, const float *b, \\
+\ind{26}int xpitch, float *x ); \\
+boolean pkn\_NRBUpperTrSolvef ( int n, const int *prof, \\
+\ind{26}const float *l, const float **row, \\
+\ind{26}int spdimen, int bpitch, const float *b, \\
+\ind{26}int xpitch, float *x );}
+The procedures \texttt{pkn\_NRBLowerTrSolvef} and~\texttt{pkn\_NRBUpperTrSolvef}
+solve respectively a~system of linear equations with a~lower or
+upper triangular matrix with a~nonregular band.
+
+
+%\vspace{\bigskipamount}
+\newpage
+\cprog{%
+boolean pkn\_NRBSymFindEigenvalueIntervalf ( int n, const int *prof, \\
+\ind{40}float *a, float **row, \\
+\ind{40}float *amin, float *amax );}
+The procedure \texttt{pkn\_NRBSymFindEigenvalueIntervalf} finds,
+based on the Gershgorin theorem, an interval containing all
+eigenvalues of a~symmetric matrix with irregular band.
+
+The parameters \texttt{n}, \texttt{prof}, \texttt{a} and \texttt{row}
+represent the matrix.
+
+The parameters \texttt{amin}, \texttt{amax} point to the variables,
+to which the procedure has to assign the interval limits.
+
+Return value \texttt{true} signals a~success, \texttt{false} ---
+a~failure, which may be caused by insufficient scratch memory, when
+the parameter \texttt{row} is \texttt{NULL} and the procedure
+must itself construct the array of pointers to virtual rows
+based on the profile
+(an error may then be detected by the procedure
+\texttt{pkn\_NRBFindRowsf}).
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_NRBComputeQTSQf ( int n, int *prof, float *Amat, \\
+\ind{30}float **Arows, \\
+\ind{30}int w, float *Bmat, float *bb, \\
+\ind{30}int *qaprof, float **QArows ); \\
+boolean pkn\_NRBComputeQSQTf ( int n, int *prof, float *Amat, \\
+\ind{30}float **Arows, \\
+\ind{30}int w, float *Bmat, float *bb, \\
+\ind{30}int *qaprof, float **QArows );}
+The input data for the above procedures are:
+a~symmetric $n\times n$ matrix~$S$ with irregular band and an
+orthogonal matrix~$Q$, represented by a~sequence of $w$~Householder
+reflections of~$\R^n$ (where $w<n$).
+The matrix~$Q$ may be obtained by a~$QR$ decomposition of an~$n\times w$
+matrix~$B$, using the procedure \texttt{pkn\_QRDecomposeMatrixf}.
+
+The procedure \texttt{pkn\_NRBComputeQTSQf} has to compute the matrix
+$C=Q^TSQ$.
+
+The procedure \texttt{pkn\_NRBComputeQSQTf} has to compute the matrix
+$D=QSQ^T$.
+
+In both cases the result is represented as a~symmetric matrix with irregular
+band.
+
+Input parameters: \texttt{n}, \texttt{prof}, \texttt{Amat},
+\texttt{Arows} --- representation of the matrix~$S$. \\
+\textbf{Caution:} currently the parameter \texttt{Arows} must not be
+\texttt{NULL}, it must point to an array of $n$~pointers to virtual
+rows of the matrix~$S$.
+
+The parameters \texttt{n}, \texttt{w}, \texttt{Bmat}, \texttt{bb} represent
+the matrix~$Q$ in the way described in Section~\ref{ssect:QR}.
+The number~$w$ is the number of reflections the columns of the matrix
+in the array~\texttt{Bmat} contain the coordinates of the normal vectors
+of reflection hyperplanes~$\bm{w}_i$
+(except for initial zeros and the first nonzero coordinate),
+the array~\texttt{bb} contains the first nonzero coordinate of each
+vector~$\bm{w}_i$ and the numbers~$\gamma_i$.
+
+Output parameters: \texttt{qaprof} --- pointer to an array of length~$n$,
+in which the profile of the array~$C$ or~$D$ will be stored
+(this array has to be allocated by the caller),
+\texttt{QArows} --- pointer to an array  of length~$n$,
+to hold the pointers of virtual rows of the computed matrix.
+Its coefficients are stored in an array allocated by \texttt{malloc};
+the address of the beginning of this array (to be passed to \texttt{free}
+when the time comes) is the address of the first virtual row.
+
+The return value \texttt{true} signals a~success and \texttt{false}
+signals a~failure, which may be caused by insufficient memory in the
+scratch pool or in the heap processed by
+\texttt{malloc} and \texttt{free}.
+
+\textbf{Remark:} in practical applications more useful may be the
+procedures \\
+\texttt{pkn\_NRBComputeQTSQblf} and \texttt{pkn\_NRBComputeQSQTblf}
+described below. They do the same task, but the result is conveniently
+divided into separate blocks.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_NRBComputeQTSQblf ( int n, int *prof, float *Amat, \\
+\ind{32}float **Arows, \\
+\ind{32}int w, float *Bmat, float *bb, \\
+\ind{32}int *qa11prof, float **QA11rows, \\
+\ind{32}int *qa22prof, float **QA22rows, \\
+\ind{32}float **QA21 ); \\
+boolean pkn\_NRBComputeQSQTblf ( int n, int *prof, float *Amat, \\
+\ind{32}float **Arows, \\
+\ind{32}int w, float *Bmat, float *bb, \\
+\ind{32}int *qa11prof, float **QA11rows, \\
+\ind{32}int *qa22prof, float **QA22rows, \\
+\ind{32}float **QA21 );}
+The input data for the above procedures are:
+a~symmetric $n\times n$ matrix~$S$ with irregular band and an
+orthogonal matrix~$Q$, represented by a~sequence of $w$~Householder
+reflections of~$\R^n$ (where $w<n$).
+The matrix~$Q$ may be obtained by a~$QR$ decomposition of an~$n\times w$
+matrix~$B$, using the procedure \texttt{pkn\_QRDecomposeMatrixf}.
+
+The procedure \texttt{pkn\_NRBComputeQTSQblf} has to compute blocks of the matrix
+$C=Q^TSQ$.
+
+The procedure \texttt{pkn\_NRBComputeQSQTblf} has to compute blocks of the matrix
+$D=QSQ^T$.
+
+The result, e.g.\ the matrix~$C$, has the block structure
+\begin{align*}
+  C = \left[\begin{array}{cc}
+     C_{11} & C_{21}^T \\ C_{21} & C_{22}
+  \end{array}\right].
+\end{align*}
+The blocks $C_{11}$ and $C_{22}$, of dimensions $w\times w$ and
+$n-w\times n-w$ respectively, are symmetric matrices represented
+with irregular band. The block~$C_{21}$ of dimensions
+$n-w\times w$ is represented as a~full matrix.
+
+Input parameters are identical as these of the procedures
+described before: \texttt{n}, \texttt{prof}, \texttt{Amat},
+\texttt{Arows} --- representation of the matrix~$S$. \\
+\textbf{Caution:} currently the parameter \texttt{Arows} must not be
+\texttt{NULL}, it must point to an array of $n$~pointers to virtual
+rows of the matrix~$S$.
+
+The parameters \texttt{n}, \texttt{w}, \texttt{Bmat}, \texttt{bb} represent
+the matrix~$Q$ in the way described in Section~\ref{ssect:QR}.
+The number~$w$ is the number of reflections the columns of the matrix
+in the array~\texttt{Bmat} contain the coordinates of the normal vectors
+of reflection hyperplanes~$\bm{w}_i$
+(except for initial zeros and the first nonzero coordinate),
+the array~\texttt{bb} contains the first nonzero coordinate of each
+vector~$\bm{w}_i$ and the numbers~$\gamma_i$.
+
+Output parameters: \texttt{qa11prof} and \texttt{qa22prof} --- pointers to
+arrays of lengths~$w$ and $n-w$ respectively, in which the profiles of
+the matrices~$C_{11}$ and $C_{22}$ will be stored
+(these arrays have to be allocated by the caller)
+\texttt{QA11rows} and \texttt{QA22rows}--- pointers to the arrays
+of lengths~$w$ and $n-w$, in which pointers to virtual rows of the matrices
+$C_{11}$ and $C_{22}$ will be stored.
+The parameterr~\texttt{QA21} points to the variable, to which the address of
+the first coefficient of the block~$C_{12}$ will be assigned (this is
+a~full matrix, stored row by row, without gaps).
+
+All coefficients of the result matrix are stored in a~memory block
+allocated with \texttt{malloc}; the address of the beginning of this block
+(to be passed to \texttt{free} when necessary)
+is the address of the beginning of the first virtual row of~$C_{11}$.
+
+The return value \texttt{true} signals a~success and \texttt{false}
+signals a~failure, which may be caused by insufficient memory in the
+scratch pool or in the heap processed by
+\texttt{malloc} and \texttt{free}.
+
+
+\newpage
+\section{\label{sect:block:sym:array}Processing block symmetric matrices}
+
+\subsection{Matrices of the first type block structure}
+
+\begin{sloppypar}
+The procedures of filling polygonal holes in the library \texttt{libg2hole}
+need to solve systems of linear equations with symmetric positive-definite
+matrices having a~block structure --- with zero blocks apart from the
+diagonal and the last row and column. An example is shown in
+Figure~\ref{fig:block:sympos}%
+\end{sloppypar}
+\begin{figure}[ht]
+  \begin{align*}
+    \left[\begin{array}{cccc}
+      A_{00} & & & A_{30}^T \\
+      & A_{11} & & A_{31}^T \\
+      & & A_{22} & A_{32}^T \\
+      A_{30} & A_{31} & A_{32} & A_{33} 
+    \end{array}\right]\qquad
+    \left[\begin{array}{cccc}
+      L_{00} & & & \\
+      & L_{11} & & \\
+      & & L_{22} & \\
+      L_{30} & L_{31} & L_{32} & L_{33} 
+    \end{array}\right]
+  \end{align*}
+  \caption{\label{fig:block:sympos}Structure of a~block symmetric matrix and a~lower triangular block matrix}
+\end{figure}
+
+The structure of such a~matrix is described by three numbers.
+The first ($k$) is the number of diagonal blocks except for the last one,
+the second ($r$) specifies the dimensions of those blocks
+and the third number ($s$) specifies the dimensions of the last diagonal block.
+The matrix has therefore $kr+s$ rows and columns.
+
+The coefficients of such a~matrix are stored in an array~\texttt{A}.
+The diagonal blocks are represented in the ,,packed'' form, discussed in the
+previous section, the subdiagonal blocks are stored as full matrices.
+The length of the array~\texttt{A} must be at least
+$kr(r+1)/2+s(s+1)/2+krs$.
+
+To do most computations the procedures described below call the procedures
+of processing full matrices and packed symmetric matrices described
+in the preceding sections.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_Block1CholeskyDecompMf ( int k, int r, int s, \\
+\ind{29}float *A );}
+The procedure \texttt{pkn\_Block1CholeskyDecompMf} finds the decomposition
+of the block matrix~$A$ into triangular factors $L$ and~$L^T$.
+The coefficients of the lower triangular matrix~$L$ are stored in the
+array~\texttt{A}, where they replace
+the coefficients of the matrix~$A$. This is possible, because
+the matrix~$L$ has zero blocks where the matrix~$A$ has the zero blocks.
+
+The procedeure returns \texttt{true} after a~successful computation,
+and~\texttt{false} otherwise. Failure may be caused by a~non-positive
+definite matrix~$A$ or by an~ill-conditioned matrix, for which
+rounding errors may produce a~nonpositive diagonal coefficient.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_Block1LowerTrMSolvef ( int k, int r, int s, \\
+\ind{13}const float *A, \\
+\ind{13}int spdimen, int xpitch, float *x ); \\
+void pkn\_Block1UpperTrMSolvef ( int k, int r, int s, \\
+\ind{13}const float *A, \\
+\ind{13}int spdimen, int xpitch, float *x );}
+The procedures above solve the systems of equations $L\bm{x}=\bm{b}$
+and~$L^T\bm{x}=\bm{b}$ respectively. The right-hand side and the solution
+are matrices $n\times d$ (where $n=kr+s$). The procedures replace the
+coefficients of the right-hand side in the array~\texttt{x}, whose pitch
+is \texttt{xpitch}, by the coefficients of the solution.
+
+To solve a~system of linear equations with a~symmetric positive definite
+block matrix~$A$, one should decompose it into triangular factors
+(using the procedure \texttt{pkn\_Block1CholeskyDecompMf}), and then call
+the above two procedures.
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_Block1SymMatrixMultf ( int k, int r, int s, \\
+\ind{33}float *A, \\
+\ind{33}int spdimen, int xpitch, float *x, \\
+\ind{33}int ypitch, float *y );}
+The procedure~\texttt{pkn\_Block1SymMatrixMultf} multiplies the matrices,
+i.e.\ it computes the product $\bm{y}=A\bm{x}$, where~$A$ is a~symmetric block
+matrix $n\times n$ (where $n=kr+s$), and the matrix~$\bm{x}$ (and~$\bm{y}$)
+is full, of dimensions $n\times d$. The array~\texttt{x} contains the
+coefficients of the matrix~$\bm{x}$.
+The array~\texttt{y} is the place, where the result is stored. The pitches of
+the two arrays (i.e.\ distances between the first coefficients of consecutive
+rows) are equal to \texttt{xpitch} and~\texttt{ypitch} respectively.
+The parameter \texttt{spdimen} specifies~$d$.
+
+
+\newpage
+\subsection{Matrices of the second block type structure}
+
+\begin{sloppypar}
+The block structure of the third type processed by the \texttt{libpknum}
+library is shown in~Figure~\ref{fig:Block2:matrix}.
+Such matrices are symmetric and they consist of~$2k+\nobreak 1\times 2k+1$ blocks,
+where $k\geq 3$.%
+\end{sloppypar}
+\begin{figure}[ht]
+\newcommand{\BBox}{\rule[-2.5mm]{0mm}{5mm}\raisebox{0pt}[4mm][0pt]{\framebox[5.1mm]{\rule{0mm}{2.7mm}}}}
+\newcommand{\zddots}{\mbox{\raisebox{0pt}[0pt][0pt]{$\ddots$}}}
+\newcommand{\zvdots}{\mbox{\raisebox{0pt}[0pt][0pt]{$\vdots$}}}
+\begin{align*}
+\left[\begin{array}{c@{\;\,}c@{\;\,}c@{\;\,}c@{\;\,}c@{\;\,}c|c@{\;\,}c@{\;\,}c@{\;\,}c@{\;\,}c@{\;\,}c|c}
+\BBox & & & & & & \BBox & \BBox & & & & & \BBox \\
+ & \BBox & & & & & & \BBox & \BBox & & & & \BBox \\
+ & & \BBox & & & & & & \BBox & \zddots & & & \BBox \\
+ & & & \zddots & & & & & & \zddots & \zddots & & \zvdots \\
+ & & & & \BBox & & & & & & \BBox & \BBox & \BBox \\
+ & & & & & \BBox & \BBox & & & & & \BBox & \BBox \\ \hline
+\rule{0mm}{6mm}\BBox & & & & & \BBox & \BBox & \BBox & & & & \BBox & \BBox \\
+\BBox & \BBox & & & & & \BBox & \BBox & \BBox & & & \BBox & \BBox \\
+ & \BBox & \BBox & & & & & \BBox & \BBox & \zddots & & \BBox & \BBox \\
+ & & \zddots & \zddots & & & & & \zddots & \zddots & \zddots & \zvdots & \zvdots \\
+ & & & \zddots & \BBox & & & & & \zddots & \BBox & \BBox & \BBox \\
+ & & & & \BBox & \BBox & \BBox & \BBox & \BBox & \ldots & \BBox & \BBox & \BBox \\ \hline
+\rule{0mm}{6mm}\BBox & \BBox & \BBox & \makebox[5.1mm][c]{$\ldots$} & \BBox & \BBox & \BBox & \BBox  & \BBox & \makebox[5.1mm][c]{$\ldots$} & \BBox & \BBox & \BBox
+\end{array}\right]
+\end{align*}
+\caption{\label{fig:Block2:matrix}Second type block matrix structure
+for a~symmetric matrix}
+\end{figure}
+
+Nonzero blocks are placed as shown, and the rows and columns are numbered
+from~$0$ to $2k$:
+\begin{itemize}
+  \item The blocks $A_{00},\ldots,A_{k-1,k-1}$ are $r\times r$.
+  \item The blocks $A_{kk},\ldots,A_{2k-1,2k-1}$ are $s\times s$.
+  \item The block $A_{2k,2k}$ is $t\times t$.
+\end{itemize}
+If the matrix~$A$ is positive-definite, then the lower triangular matrix~$L$,
+such that $LL^T=A$, has zero blocks corresponding to the zero blocks of
+the matrix~$A$.
+
+The whole matrix has dimensions $k(r+s)+t\times k(r+s)+t$. To store the
+coefficients of its nonzero blocks one needs
+\begin{itemize}
+  \item $k\cdot\frac{1}{2}(r+1)r$ cells for the diagonal blocks
+    $A_{00},\ldots,A_{k-1,k-1}$,
+  \item $k\cdot\frac{1}{2}(s+1)s$ cells for the diagonal blocks
+    $A_{kk},\ldots,A_{2k-1,2k-1}$,
+  \item $\frac{1}{2}(t+1)t$ cells for the diagonal block $A_{2k,2k}$,
+  \item \raggedright
+    $2k\cdot rs$ cells for the blocks $A_{k,k-1},A_{k,0},A_{k+1,k},A_{k+1,k+1},%
+    \ldots,\allowbreak A_{2k-1,2k-2},$ \\ $A_{2k-1,2k-1}$,
+  \item $(2k-3)\cdot s^2$ cells for the blocks $A_{k+1,k},\ldots,A_{2k-2,2k-3}$
+    and $A_{2k-1,k},\ldots,A_{2k-1,2k-2}$.
+  \item $k\cdot(r+s)t$ cells for the blocks $A_{2k,0},\ldots,A_{2k,2k-1}$.
+\end{itemize}
+This fits in an array of length
+\begin{align*}
+k\Bigl(\frac{1}{2}(r+1)r+\frac{1}{2}(s+1)s+(r+s)(t+2s)\Bigr)+\frac{1}{2}(t+1)t-3s^2.
+\end{align*}
+
+
+\subsubsection*{Computing block positions in the array}
+
+Having two indices $i,j\in\{0,\ldots,2k\}$, where $i\geq j$, one has to
+compute the position of the first element of the block $A_{ij}$
+in the array.
+\begin{enumerate}
+  \item If $i=j<k$, then $p=i\frac{1}{2}(r+1)r$.
+  \item If $k\leq i=j<2k$, then $p=k\frac{1}{2}(r+1)r+i\frac{1}{2}(s+1)s$.
+  \item If $i=j=2k$, then $p=\frac{1}{2}k\LP(r+1)r+(s+1)s\RP$.
+  \item Let $N_1=\frac{1}{2}\LP k(r+1)r+k(s+1)s+(t+1)t\RP$.
+
+    If $k\leq i<2k$, $0\leq j<k$ and $i-j\bmod k\in\{0,1\}$, then \\
+    $p=N_1+\LP 2(i-k)+1-(i-j)\bmod k\RP rs.$
+  \item Let $N_2=N_1+2krs$.
+
+    If $k<i<2k-1$ and $j=i-1$, then $p=N_2+(i-k-1)s^2$.
+  \item If $i=2k-1$ and $k\leq j<2k-2$, then $p=N2+(j-2)s^2$.
+  \item Let $N_3=N_2+(2k-3)s^2$.
+
+    If $i=2k$ and $j<k$, then $p=N_3+jrt$.
+  \item If $i=2k$ and $k\leq j<2k$, then $p=N_3+krt+(j-k)st$.
+  \item Else the block $A_{ij}$ is a~zero block, whose coefficients
+    are not stored.
+\end{enumerate}
+For diagonal blocks only the lower triangle is stored in the packed form.
+The subdiagonal blocks are stored rowwise, like other full matrices.
+
+
+\subsubsection*{Triangular decomposition of a~symmetric matrix~$A$}
+
+If the matrix~$L$ is lower-triangular and it consists of the blocks
+$L_{i,j}$ (i.e.\ for $i<j$ the block $L_{i,j}$ is zero),
+then the matrix~$A=LL^T$ consists of the blocks
+\begin{align*}
+  A_{i,j} = \sum_{l=0}^jL_{i,l}L_{l,j}^T.
+\end{align*}
+
+The blocks of~$L$ may be found using the following algorithm: \\
+Consecutively for $i=0,\ldots,2k$ compute (with the Cholesky's method)
+the lower triangular block
+$L_{i,i}$, such that $L_{i,i}L_{i,i}^T=A_{i,i}-\sum_{l=0}^{i-1}L_{i,l}L_{i,l}^T$,
+and then for $j=i+1,\ldots,2k$ compute the block
+$L_{j,i} = (A_{j,i}-\sum_{l=0}^{i-1}L_{j,l}L_{i,l}^T)L_{i,i}^{-T}$.
+
+\vspace{\bigskipamount}
+
+For a~matrix~$A$ having block structure discussed above, one may compute
+\begin{enumerate}
+  \item For $i=0,\ldots,k-1$ the matrix $L_{i,i}$ such that $L_{i,i}L_{i,i}^T=A_{i,i}$, \\
+    and then $L_{j,i}=A_{j,i}L_{i,i}^{-T}$, where $j\in\{i+k,i+(k+1)\bmod k,2k\}$.
+  \item The matrix $L_{k,k}$, such that
+    $L_{k,k}L_{k,k}^T=A_{k,k}-L_{k,0}L_{k,0}^T-L_{k,k-1}L_{k,k-1}^T$, \\ and then
+    $L_{k+1,k}$, $L_{2k-1,k}$ i~$L_{2k,k}$.
+  \item For $i=k+1,\ldots,2k-3$ the matrix $L_{i,i}$ such that \\
+    $L_{i,i}L_{i,i}^T=A_{i,i}-L_{i,i-k-1}L_{i,i-k-1}^T-L_{i,i-k}L_{i,i-k}^T-L_{i,i-1}L_{i,i-1}^T$, \\
+    and then $L_{i+1,i}$, $L_{2k-1,i}$ i~$L_{2k,i}$.
+  \item The matrix $L_{2k-2,2k-2}$, such that \\
+    $L_{2k-2,2k-2}L_{2k-2,2k-2}^T=A_{2k-2,2k-2}$ \\
+    $-L_{2k-2,k-3}L_{2k-2,k-3}^T-L_{2k-2,k-2}L_{2k-2,k-2}^T-L_{2k-2,2k-3}L_{2k-2,2k-3}^T$, \\
+    and then $L_{2k-1,2k-2} =$ \\
+    $(A_{2k-1,2k-2}-L_{2k-1,k-2}L_{2k-2,k-2}^T-L_{2k-1,2k-3}L_{2k-2,2k-3}^T)L_{2k-2,2k-2}^{-T}$ \\
+    and~$L_{2k,2k-2}=
+    (A_{2k,2k-2}-L_{2k,k-2}L_{2k-2,k-2}^T-L_{2k,2k-3}L_{2k-2,2k-3}^T)L_{2k-2,2k-2}^{-T}$.
+  \item The matrix $L_{2k-1,2k-1}$, such that \\
+    $L_{2k-1,2k-1}L_{2k-1,2k-1}^T=A_{2k-1,2k-1}-\sum_{l=k-2}^{2k-2}L_{2k-1,l}L_{2k-1,l}^T$, \\
+    and then $L_{2k,2k-1} = (A_{2k,2k-1}-\sum_{l=k-2}^{2k-2}L_{2k,l}L_{2k-1,l}^T)L_{2k-1,2k-1}^{-T}$.
+  \item The matrix $L_{2k,2k}$, such that
+    $L_{2k,2k}L_{2k,2k}^T=A_{2k,2k}-\sum_{l=0}^{2k-1}L_{2k,l}L_{2k,l}^T$.
+\end{enumerate}
+
+\subsubsection*{Procedures}
+
+\vspace{\bigskipamount}
+\cprog{%
+int pkn\_Block2ArraySize ( int k, int r, int s, int t ); \\
+int pkn\_Block2FindBlockPos ( int k, int r, int s, int t, \\
+\ind{29}int i, int j ); \\
+int pkn\_Block2FindElemPos ( int k, int r, int s, int t, \\
+\ind{29}int i, int j );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_Block2CholeskyDecompMf ( int k, int r, int s, int t, \\
+\ind{37}float *A );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_Block2LowerTrMSolvef ( int k, int r, int s, int t, \\
+\ind{30}const float *L, \\
+\ind{30}int spdimen, int xpitch, float *x ); \\
+void pkn\_Block2UpperTrMSolvef ( int k, int r, int s, int t, \\
+\ind{30}const float *L, \\
+\ind{30}int spdimen, int xpitch, float *x );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_Block2SymMatrixMultf ( int k, int r, int s, int t, \\
+\ind{26}float *A, \\
+\ind{26}int spdimen, int xpitch, const float *x, \\
+\ind{26}int ypitch, float *y );}
+
+
+
+\newpage
+\subsection{Matrices of the third block type structure}
+
+The third block structure of matrices (Block3) differs from the
+first structure by the presence of nonzero co-diagonal blocks.
+A~symmetric, positive-definite matrix having such a~structure
+may be decomposed into triangular factors, $A=LL^T$,
+example is in Figure~\ref{fig:block3:sympos}.
+\begin{figure}[ht]
+  \begin{align*}
+    \left[\begin{array}{ccccc}
+      A_{00} & A_{10}^T & & & A_{40}^T \\
+      A_{10} & A_{11} & A_{21}^T & & A_{41}^T \\
+      & A_{21} & A_{22} & A_{32}^T & A_{42}^T \\
+      & & A_{32} & A_{33} & A_{43}^T \\
+      A_{40} & A_{41} & A_{42} & A_{43} & A_{44}
+    \end{array}\right] \qquad
+    \left[\begin{array}{ccccc}
+      L_{00} & & & & \\
+      L_{10} & L_{11} & & & \\
+      & L_{21} & L_{22} & & \\
+      & & L_{32} & L_{33} & \\
+      L_{40} & L_{41} & L_{42} & L_{43} & L_{44}
+    \end{array}\right]
+  \end{align*}
+  \caption{\label{fig:block3:sympos}Block structure of the third type for a~symmetric matrix}
+  \centerline{and a~lower triangular matrix}
+\end{figure}
+The matrix is divided into $(k+1)\times(k+1)$ blocks, in rows and columns
+numbered from~$0$ to~$k$. The blocks in the columns $0,\ldots,k-1$ have
+$r$~columns each, the blocks in the $k$-th column have $s$~columns.
+The blocks in the rows $0,\ldots,k-1$ have $r$~rows, the blocks in the
+$k$-th row have $s$~rows.
+If $k=2$, then such a~matrix is full, but the storage of its coefficients
+in the array used to represent it is specific.
+
+Symmetric diagonal blocks $A_{00},\ldots,A_{kk}$ are represented in the packed
+form (lower triangle only, see Section~\ref{sect:packed:sym:array}). Other blocks,
+having dimensions $s\times r$ (in the bottom row) and $r\times r$
+(under the diagonal, except for the bottom row)
+are represented like full matrices.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+int pkn\_Block3ArraySize ( int k, int r, int s ); \\
+int pkn\_Block3FindBlockPos ( int k, int r, int s, int i, int j ); \\
+int pkn\_Block3FindElemPos ( int k, int r, int s, int i, int j );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean pkn\_Block3CholeskyDecompMf ( int k, int r, int s, \\
+\ind{37}float *A );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_Block3LowerTrMSolvef ( int k, int r, int s, \\
+\ind{30}const float *L, \\
+\ind{30}int spdimen, int xpitch, float *x ); \\
+void pkn\_Block3UpperTrMSolvef ( int k, int r, int s, \\
+\ind{30}const float *L, \\
+\ind{30}int spdimen, int xpitch, float *x );}
+
+\vspace{\bigskipamount}
+\cprog{%
+void pkn\_Block3SymMatrixMultf ( int k, int r, int s, \\
+\ind{26}const float *A, \\
+\ind{26}int spdimen, int xpitch, const float *x, \\
+\ind{26}int ypitch, float *y );}
+
+
+\newpage
+\section{\label{sect:sparse:matrices}Irregular sparse matrices}
+
+A~sparse matrix, whose nonzero coefficients may be a~small fraction of all
+coefficients, may (and often have to) be represented using memory saving
+data structures. The representation of matrices used by the procedures
+described in this section is the following: two numbers, $m$ and~$n$, are
+the numbers of rows and columns respectively. Then $n_{\mathrm{nz}}$ is the
+number of nonzero coefficients (it must be between~$0$ and $mn$). The array
+\texttt{nzi}, whose entries are of type \texttt{index2}, contains positions
+of the nonzero coefficients $a_{ij}$, where $0\leq i<m$, $0\leq j<n$.
+The actual coefficients are stored \emph{in a~separate array}~\texttt{a}, so that
+if $k\in\{0,\ldots,n_{\mathrm{nz}}-1\}$ and \texttt{nzi[$k$] == \{$i$,$j$\}},
+then $a_{ij}$\texttt{ == a[$k$]}. The ordering of entries in these arrays is
+irrelevant (in particular it is not assumed that the row or column indices
+are stored in ascending or any at all order).
+
+Due to the separation of the distribution of the nonzero coefficients from
+the actual coefficients, the coefficients may be of various types:
+\texttt{float}, \texttt{double}, complex, vectors or matrices. Currently the
+procedures in the library implement multiplication algorithms for sparse
+matrices, whose coefficients are \texttt{float} and \texttt{double}.
+
+There is another possibility---using submatrices. The \texttt{nzi} array in
+a~submatrix representation has entries of type \texttt{index3}. The fields
+\texttt{i} and~\texttt{j} are the indices of the row and column of the
+coefficient~$a_{ij}$. The field~\texttt{k} is the index to the array in
+which the coefficients are stored. In this way it is possible to define
+a~number of submatrices of a~sparse matrix without copying the coefficients.
+
+\medskip
+\begin{listingC}
+typedef struct {
+    int i, j;
+  } index2;
+
+typedef struct {
+    int i, j, k;
+  } index3;
+\end{listingC}
+
+Apart from the two arrays mentioned above, additional arrays may be used;
+permutation arrays, which hold orderings of the entries (sorted by rows
+and by columns in each row, or sorted by columns and by rows in each
+column), and additional arrays, with indices to the permutation arrays,
+pointing the first entry for each row or column. These arrays are used by
+procedures of matrix multiplication described later.
+
+\begin{listingC}
+void pkn_SPMindex2to3 ( int nnz, index2 *ai, index3 *sai );
+void pkn_SPMindex3to2 ( int nnz, index3 *sai, index2 *ai );
+\end{listingC}
+The procedures convert indices, which is sometimes useful. The parameter
+\texttt{nnz} is the length of the arrays being the next two parameters.
+
+The procedure \texttt{pkn\_SPMindex2to3} for each entry of \texttt{ai} copies
+the fields \texttt{i} and~\texttt{j} and assigns \texttt{sai[k] = k;}
+
+The procedure \texttt{pkn\_SPMindex3to2} for each entry of \texttt{sai}
+copies the fields \texttt{i} and~\texttt{j} and forgets~\texttt{k}.
+
+
+\subsection{Multiplication of a~matrix and a~vector}
+
+\begin{listingC}
+boolean pkn_MultSPMVectorf ( int nrows, int ncols, int nnz,
+                             const index2 *ai, const float *ac,    
+                             int spdimen, const float *x,
+                             float *y );
+boolean pkn_MultSPMTVectorf ( int nrows, int ncols, int nnz,
+                              const index2 *ai, const float *ac,
+                              int spdimen, const float *x,
+                              float *y );
+
+boolean pkn_MultSPsubMVectorf ( int nrows, int ncols, int nnz,
+                                const index3 *ai, const float *ac,
+                                int spdimen, const float *x, 
+                                float *y );
+boolean pkn_MultSPsubMTVectorf ( int nrows, int ncols, int nnz,
+                                 const index3 *ai, const float *ac,
+                                 int spdimen, const float *x,
+                                 float *y );
+\end{listingC}
+
+The procedures above compute the product $A\bm{x}$ or $A^T\bm{x}$, where
+$A$~is a~sparse matrix or submatrix, and $\bm{x}$~is a~vector or a~full
+matrix, whose rows have the length $d=$\texttt{spdimen} and are stored in an
+array~\texttt{x} without gaps in between.
+
+The parameters $m=$\texttt{nrows} and $n=$\texttt{ncols} specify the dimensions
+of the array~$A$. The parameter \texttt{nnz} is the number of nonzero
+coefficients of~$A$. The array \texttt{ai} contains positions of these
+coefficients and~\texttt{ac} are the actual coefficients.
+
+The array \texttt{y} is the place to store the result. Its length must be
+respectively $md$ or $nd$ if $A\bm{x}$ or $A^T\bm{x}$ is computed.
+
+
+\subsection{\label{ssect:pknum:sparse:mult}Multiplication of two sparse matrices}
+
+Multiplication of two sparse matrices may be done in a~number of ways, which
+is the reason of providing that many procedures for that operation. First of
+all, as the product of two sparse matrices is usually also a~sparse matrix,
+and the sparse representation is used for it, it is necessary to count the
+nonzero coefficients of the result before computing them---the application
+must allocate sufficient arrays and then the multiplication may be done.
+
+There are two approaches to the multiplication of sparse matrices
+implemented so far. The first method is to do it directly, i.e.\ to obtain
+the result in the allocated arrays. Here the numerical computations are done
+together with finding the distribution of nonzero ceofficients of the
+product. The second approach separates these two computations. As each
+coefficient of the product is the sum of product of some coefficients of the
+factors, it is possible to find the list of the entries of the factors to
+multiply and add for each nonzero coefficients, and then store these lists
+in an additional array. The numerical computations, which take much less
+time, are done by a~separate procedure. This approach is particularly
+effective, if there are a~number of products of matrices, which have the
+same distributions of nonzero coefficients. A~drawback is the amount of
+memory needed for storing the multiplication lists, which may be prohibitive
+for huge matrices.
+
+
+\subsubsection{Sorting by rows and columns}
+
+\begin{listingC}
+boolean pkn_SPMSortByRows ( int nrows, int ncols, int nnz,
+                            index2 *ai, int *permut );
+boolean pkn_SPMSortByCols ( int nrows, int ncols, int nnz,
+                            index2 *ai, int *permut );
+\end{listingC}
+The parameters $m=$\texttt{nrows} and $n=$\texttt{ncols} specify the
+dimensions of a~matrix~$A$, the number $n_{\mathrm{nz}}=$\texttt{nnz} is
+the number of nonzero coefficients, whose distribution is given in the array
+\texttt{ai}. The array \texttt{permut} of length~$n_{\mathrm{nz}}$ on exit
+contains the permuted numbers from~$0$ to $n_{\mathrm{nz}}-1$.
+
+The procedure \texttt{pkn\_SPMSortByRows} finds the permutation such that
+if $k<l$ then \texttt{ai[$k$].i < ai[$l$].i} or (\texttt{ai[$k$].i == ai[$l$].i}
+and \texttt{ai[$k$].j <= ai[$l$].j}). This permutation establishes the
+\texttt{ordering by rows}.
+
+The procedure \texttt{pkn\_SPMSortByCols} finds the permutation such that
+if $k<l$ then \texttt{ai[$k$].j < ai[$l$].j} or (\texttt{ai[$k$].j == ai[$l$].j}
+and \texttt{ai[$k$].i <= ai[$l$].i}). This permutation establishes the
+\texttt{ordering by columns}.
+
+The return value is \texttt{true} if the computation has been successful, or
+\texttt{false} if the sorting procedure failed because of insufficient
+scratch memory.
+
+\medskip
+\begin{listingC}
+boolean pkn_SPMFindRows ( int nrows, int ncols, int nnz,
+                          index2 *ai, int *permut, boolean ro,
+                          int *rows );
+boolean pkn_SPMFindCols ( int nrows, int ncols, int nnz,
+                          index2 *ai, int *permut, boolean co,
+                          int *cols );
+\end{listingC}
+The parameters $m=$\texttt{nrows} and $n=$\texttt{ncols} specify the
+dimensions of a~matrix~$A$, the number $n_{\mathrm{nz}}=$\texttt{nnz} is
+the number of nonzero coefficients, whose distribution is given in the array
+\texttt{ai}.
+
+If the next parameter, \texttt{ro} or \texttt{co}, is nonzero
+(e.g.\ \texttt{true}), the array \texttt{permut} on entry must contain the
+odering by rows or by columns, respectively. If the parameter \texttt{ro} or
+\texttt{co} is zero (\texttt{false}), then the sorting procedure
+\texttt{pkn\_SPMSortByRows} or \texttt{pkn\_SPMSortByCols} will be
+called.
+
+The array \texttt{rows} must be of length $m+1$, the array \texttt{cols}
+must be of length $n+1$. On exit, this array contains indices of the first
+entries to the \texttt{permut} array, corresponding to the rows or columns
+(and the last entry is~$n_{\mathrm{nz}}$).
+
+The return value is \texttt{true} if the computation has been successful, or
+\texttt{false} if an error has been detected or the sorting procedure
+failed.
+
+
+\medskip
+\begin{listingC}
+boolean pkn_SPsubMSortByRows ( int nrows, int ncols, int nnz,
+                               index3 *ai, int *permut );
+boolean pkn_SPsubMSortByCols ( int nrows, int ncols, int nnz,
+                               index3 *ai, int *permut );
+boolean pkn_SPsubMFindRows ( int nrows, int ncols, int nnz,
+                             index3 *ai, int *permut, boolean ro,
+                             int *rows );
+boolean pkn_SPsubMFindCols ( int nrows, int ncols, int nnz,
+                             index3 *ai, int *permut, boolean co,
+                             int *cols );
+\end{listingC}
+The four procedures above do the same things for sparse submatrices, that
+the previous four procedures for sparse matrices. The fields~\texttt{k} of
+the \texttt{index3} structures are ignored.
+
+
+\subsubsection{Counting the nonzero coefficients of the product}
+
+The algorithm of multiplying two sparse matrices has two variants, using
+respectively the row and the column ordering of the nonzero coefficients.
+The procedures implementing the first variant have names ending with the
+letter~\texttt{R}, and these with the second variant have names with the
+suffix~\texttt{C} (the suffix may be followed by the letter \texttt{f}
+or~\texttt{d}, indicating the floating point precision; procedures with
+names without this letter do not make any floating point operations and they
+serve for both precisions). The complete set of multiplication procedures is
+only for the ``\texttt{C}'' version.
+
+The number of procedures is increased by the fact that having two matrices,
+$A$ and~$B$, one may be interested in computing $AB$, $AB^T$ or $A^TB$
+(there are no procedures for $A^TB^T$, but they might be added if
+necessary). Which procedure does what is indicated by the infix \texttt{MM},
+\texttt{MMT} or \texttt{MTM} in the procedure identifier.
+Also there are variants for multiplying submatrices, which doubles the
+number of multiplication procedures.
+
+\newpage
+%\medskip
+\begin{listingC}
+boolean pkn_SPMCountMMnnzR ( int nra, int nca, int ncb,
+                               int nnza, index2 *ai,
+                               int *apermut, int *arows, boolean ra,
+                               int nnzb, index2 *bi,
+                               int *bpermut, int *brows, boolean rb,
+                               int *nnzab, int *nmultab );
+boolean pkn_SPMCountMMnnzC ( int nra, int nca, int ncb,
+                               int nnza, index2 *ai,
+                               int *apermut, int *acols, boolean ca,
+                               int nnzb, index2 *bi,
+                               int *bpermut, int *bcols, boolean cb,
+                               int *nnzab, int *nmultab );
+boolean pkn_SPMCountMMTnnzR ( int nra, int nca, int nrb,
+                              int nnza, index2 *ai,
+                              int *apermut, int *arows, boolean ra,
+                              int nnzb, index2 *bi,
+                              int *bpermut, int *bcols, boolean cb,
+                              int *nnzab, int *nmultab );
+boolean pkn_SPMCountMMTnnzC ( int nra, int nca, int nrb,
+                              int nnza, index2 *ai,
+                              int *apermut, int *acols, boolean ca,
+                              int nnzb, index2 *bi,
+                              int *bpermut, int *brows, boolean rb,
+                              int *nnzab, int *nmultab );
+boolean pkn_SPMCountMTMnnzR ( int nra, int nca, int ncb,
+                              int nnza, index2 *ai,
+                              int *apermut, int *acols, boolean ca,
+                              int nnzb, index2 *bi,
+                              int *bpermut, int *brows, boolean rb,
+                              int *nnzab, int *nmultab );
+boolean pkn_SPMCountMTMnnzC ( int nra, int nca, int ncb,
+                              int nnza, index2 *ai,
+                              int *apermut, int *arows, boolean ra,
+                              int nnzb, index2 *bi,
+                              int *bpermut, int *bcols, boolean cb,
+                              int *nnzab, int *nmultab );
+\end{listingC}
+The procedures, whose headers are shown above, count the nonzero
+coefficients of the product of two sparse matrices and the total
+number of floating point multiplication of coefficients necessary to compute
+the product.
+
+The parameters of these procedures are: \texttt{nra}, \texttt{nca}---numbers
+of rows and columns of the matrix~$A$, \texttt{nrb}, \texttt{ncb}---numbers
+of rows and columns of the matrix~$B$ (always one of those parameters is
+absent, as the dimensions of the matrices to multiply must match).
+
+The parameters \texttt{nnza} and \texttt{nnzb} are numbers of nonzero
+coefficients, the arrays \texttt{ai} and \texttt{bi} contain distributions of
+the nonzero coefficients.
+
+The arrays \texttt{apermut} and \texttt{bpermut} are used to store the
+permutations establishing the orderings of coefficients of the matrices.
+If the parameter \texttt{ra} is nonzero, then the permutation in
+\texttt{apermut} must represent the row ordering, and the array
+\texttt{arows} must contain indices to the \texttt{apermut} array, pointing
+to the first entries of subsequent rows (see the procedure
+\texttt{pkn\_SPsubMFindRows}).
+
+If the parameter \texttt{ca} is nonzero, then the permutation in
+\texttt{apermut} must represent the column ordering, and the array
+\texttt{acols} must contain indices to the \texttt{apermut} array, pointing
+to the first entries of subsequent columns (see the procedure
+\texttt{pkn\_SPsubMFindCols}).
+
+If the parameter \texttt{ra} or~\texttt{ca} is zero (\texttt{false}), the
+proper ordering and indices to the rows or columns will be found, but the
+caller must provide arrays of sufficient capacity.
+
+The same rules apply to the parameters \texttt{bpermut}, \texttt{brows},
+\texttt{bcols}, \texttt{rb} and \texttt{cb}.
+
+The number of nonzero coefficients of the product is assigned to the
+variable pointed by parameter \texttt{nnzab}, and the total number of
+floating point multiplications is assigned to the variable pointed by
+\texttt{nmultab}.
+
+The procedures return \texttt{true} if the computation was successful, or
+\texttt{false} if an error has been detected or there was insufficient
+scratch memory.
+
+\medskip
+\begin{listingC}
+boolean pkn_SPsubMCountMMnnzR ( int nra, int nca, int ncb,
+                                int nnza, index3 *ai,
+                                int *apermut, int *arows, boolean ra,
+                                int nnzb, index3 *bi,
+                                int *bpermut, int *brows, boolean rb,
+                                int *nnzab, int *nmultab );
+boolean pkn_SPsubMCountMMnnzC ( int nra, int nca, int ncb,
+                                int nnza, index3 *ai,
+                                int *apermut, int *acols, boolean ca,
+                                int nnzb, index3 *bi,
+                                int *bpermut, int *bcols, boolean cb,
+                                int *nnzab, int *nmultab );
+boolean pkn_SPsubMCountMMTnnzR ( int nra, int nca, int nrb,
+                                 int nnza, index3 *ai,
+                                 int *apermut, int *arows, boolean ra,
+                                 int nnzb, index3 *bi,
+                                 int *bpermut, int *bcols, boolean cb,
+                                 int *nnzab, int *nmultab );
+boolean pkn_SPsubMCountMMTnnzC ( int nra, int nca, int nrb,
+                                 int nnza, index3 *ai,
+                                 int *apermut, int *acols, boolean ca,
+                                 int nnzb, index3 *bi,
+                                 int *bpermut, int *brows, boolean rb,
+                                 int *nnzab, int *nmultab );
+boolean pkn_SPsubMCountMTMnnzR ( int nra, int nca, int ncb,
+                                 int nnza, index3 *ai,
+                                 int *apermut, int *acols, boolean ca,
+                                 int nnzb, index3 *bi,
+                                 int *bpermut, int *brows, boolean rb,
+                                 int *nnzab, int *nmultab );
+boolean pkn_SPsubMCountMTMnnzC ( int nra, int nca, int ncb,
+                                 int nnza, index3 *ai,
+                                 int *apermut, int *arows, boolean ra,
+                                 int nnzb, index3 *bi,
+                                 int *bpermut, int *bcols, boolean cb,
+                                 int *nnzab, int *nmultab );
+\end{listingC}
+These procedures count the number of nonzero coefficients of the product
+and the total number of floating point multiplications for sparse
+submatrices. See the description of the procedures described in this
+section, whose names do not have the infix \texttt{sub}.
+
+
+\subsubsection{Finding the distribution of nonzero coefficients of the product}
+
+\begin{listingC}
+boolean pkn_SPMmultMMCempty ( int nra, int nca, int ncb,
+                              int nnza, index2 *ai,
+                              int *apermut, int *acols, boolean ca,
+                              int nnzb, index2 *bi,
+                              int *bpermut, int *bcols, boolean cb,
+                              index2 *abi );
+boolean pkn_SPMmultMMTCempty ( int nra, int nca, int nrb,
+                               int nnza, index2 *ai,
+                               int *apermut, int *acols, boolean ca,
+                               int nnzb, index2 *bi,
+                               int *bpermut, int *brows, boolean rb,
+                               index2 *abi );
+boolean pkn_SPMmultMTMCempty ( int nra, int nca, int ncb,
+                               int nnza, index2 *ai,
+                               int *apermut, int *arows, boolean ra,
+                               int nnzb, index2 *bi,
+                               int *bpermut, int *bcols, boolean ba,
+                               index2 *abi );
+\end{listingC}
+The procedures above find the distribution of nonzero coefficients of the
+product of two matrices, $AB$, $AB^T$ or~$A^TB$ respectively, based on the
+distribution of the nonzero coefficients of the matrices~$A$ and~$B$.
+
+The parameters of these procedures are: \texttt{nra}, \texttt{nca}---numbers
+of rows and columns of the matrix~$A$, \texttt{nrb}, \texttt{ncb}---numbers
+of rows and columns of the matrix~$B$ (always one of those parameters is
+absent, as the dimensions of the matrices to multiply must match).
+
+The parameters \texttt{nnza} and \texttt{nnzb} are numbers of nonzero
+coefficients, the arrays \texttt{ai} and \texttt{bi} contain distributions of
+the nonzero coefficients.
+
+The arrays \texttt{apermut} and \texttt{bpermut} are used to store the
+permutations establishing the orderings of coefficients of the matrices.
+If the parameter \texttt{ra} is nonzero, then the permutation in
+\texttt{apermut} must represent the row ordering, and the array
+\texttt{arows} must contain indices to the \texttt{apermut} array, pointing
+to the first entries of subsequent rows (see the procedure
+\texttt{pkn\_SPsubMFindRows}).
+
+If the parameter \texttt{ca} is nonzero, then the permutation in
+\texttt{apermut} must represent the column ordering, and the array
+\texttt{acols} must contain indices to the \texttt{apermut} array, pointing
+to the first entries of subsequent columns (see the procedure
+\texttt{pkn\_SPsubMFindCols}).
+
+If the parameter \texttt{ra} or~\texttt{ca} is zero (\texttt{false}), the
+proper ordering and indices to the rows or columns will be found, but the
+caller must provide arrays of sufficient capacity.
+
+The same rules apply to the parameters \texttt{bpermut}, \texttt{brows},
+\texttt{bcols}, \texttt{rb} and \texttt{cb}.
+
+The array \texttt{abi} of length determined by procedure
+\texttt{pkn\_SPMCountMMnnzC} (for $AB$), \texttt{pkn\_SPMCountMMTnnzC} (for
+$AB^T$), or \texttt{pkn\_SPMCountMTMnnzC} (for $A^TB$---this length is
+assigned to the variable pointed by the parameter \texttt{nnzab} of these
+procedures) must be allocated by the caller. On exit it contains the
+distribution of the nonzero coefficients of the product. No actual
+multiplication of the coefficient is done.
+
+
+\subsubsection{The fast matrix multiplication}
+
+\begin{listingC}
+boolean pkn_SPMmultMMCf ( int nra, int nca, int ncb,
+                          int nnza, index2 *ai, float *ac,
+                          int *apermut, int *acols, boolean ca,
+                          int nnzb, index2 *bi, float *bc,
+                          int *bpermut, int *bcols, boolean cb,
+                          index2 *abi, float *abc );
+boolean pkn_SPMmultMMTCf ( int nra, int nca, int nrb,
+                           int nnza, index2 *ai, float *ac,
+                           int *apermut, int *acols, boolean ca,
+                           int nnzb, index2 *bi, float *bc,
+                           int *bpermut, int *brows, boolean rb,
+                           index2 *abi, float *abc );
+boolean pkn_SPMmultMTMCf ( int nra, int nca, int ncb,
+                           int nnza, index2 *ai, float *ac,
+                           int *apermut, int *arows, boolean ra,
+                           int nnzb, index2 *bi, float *bc,
+                           int *bpermut, int *bcols, boolean cb,
+                           index2 *abi, float *abc );
+\end{listingC}
+The procedures above compute the product of two sparse matrices,
+$AB$, $AB^T$ or~$A^TB$ respectively, which involves finding the distribution
+of nonzero coefficients of the product.
+
+The parameters of these procedures are: \texttt{nra}, \texttt{nca}---numbers
+of rows and columns of the matrix~$A$, \texttt{nrb}, \texttt{ncb}---numbers
+of rows and columns of the matrix~$B$ (always one of those parameters is
+absent, as the dimensions of the matrices to multiply must match).
+
+The parameters \texttt{nnza} and \texttt{nnzb} are numbers of nonzero
+coefficients, the arrays \texttt{ai} and \texttt{bi} contain distributions of
+the nonzero coefficients.
+
+The arrays \texttt{apermut} and \texttt{bpermut} are used to store the
+permutations establishing the orderings of coefficients of the matrices.
+If the parameter \texttt{ra} is nonzero, then the permutation in
+\texttt{apermut} must represent the row ordering, and the array
+\texttt{arows} must contain indices to the \texttt{apermut} array, pointing
+to the first entries of subsequent rows (see the procedure
+\texttt{pkn\_SPsubMFindRows}).
+
+If the parameter \texttt{ca} is nonzero, then the permutation in
+\texttt{apermut} must represent the column ordering, and the array
+\texttt{acols} must contain indices to the \texttt{apermut} array, pointing
+to the first entries of subsequent columns (see the procedure
+\texttt{pkn\_SPsubMFindCols}).
+
+If the parameter \texttt{ra} or~\texttt{ca} is zero (\texttt{false}), the
+proper ordering and indices to the rows or columns will be found, but the
+caller must provide arrays of sufficient capacity.
+
+The same rules apply to the parameters \texttt{bpermut}, \texttt{brows},
+\texttt{bcols}, \texttt{rb} and \texttt{cb}.
+
+The arrays \texttt{abi} and \texttt{abc}, whose length ought to be determined
+by the procedure \texttt{pkn\_SPMCountMMnnzC} (for $AB$),
+\texttt{pkn\_SPMCountMMTnnzC} (for $AB^T$), or \\
+\texttt{pkn\_SPMCountMTMnnzC}
+(for $A^TB$---this length is assigned to the variable pointed by the
+parameter \texttt{nnzab} of these procedures) must be allocated by the caller.
+On exit the array \texttt{abi} contains the distribution of the nonzero
+coefficients of the product, and the coefficients are stored in the array
+\texttt{abc}.
+
+
+\medskip
+\begin{listingC}
+boolean pkn_SPsubMmultMMCf ( int nra, int nca, int ncb,
+                             int nnza, index3 *ai, float *ac,
+                             int *apermut, int *acols, boolean ca,
+                             int nnzb, index3 *bi, float *bc,
+                             int *bpermut, int *bcols, boolean cb,
+                             index2 *abi, float *abc );
+boolean pkn_SPsubMmultMMTCf ( int nra, int nca, int nrb,
+                              int nnza, index3 *ai, float *ac,
+                              int *apermut, int *acols, boolean ca,
+                              int nnzb, index3 *bi, float *bc,
+                              int *bpermut, int *brows, boolean rb,
+                              index2 *abi, float *abc );
+boolean pkn_SPsubMmultMTMCf ( int nra, int nca, int ncb,
+                              int nnza, index3 *ai, float *ac,
+                              int *apermut, int *arows, boolean ra,
+                              int nnzb, index3 *bi, float *bc,
+                              int *bpermut, int *bcols, boolean cb,
+                              index2 *abi, float *abc );
+\end{listingC}
+The procedures above multiply two sparse submatrices, in the way analoguous
+to that used by the three procedures without the infix ``\texttt{sub}'' in
+their names, which are described above. Note that the result of the
+multiplication is a~sparse \emph{matrix}, not a~submatrix, i.e.\ the
+distribution of the product is represented by the structures of type
+\texttt{index2}, not \texttt{index3}. For description of the parameters see
+the procedures for matrix multiplication.
+
+
+\subsubsection{The very fast matrix multiplication}
+
+A~very fast matrix multiplication is possible if the distribution of the
+nonzero coefficients of the product is known and for each nonzero
+coefficient of the product a~list of coefficients of the factors, to be
+multiplied and added, is known. In some applications this information may be
+found once, and then the floating point computations are instant.
+
+\begin{sloppypar}
+The preparation involves counting the nonzero coefficients and
+multiplications, by calling one of the procedures
+\texttt{pkn\_SPMCountMMnnzR}, \texttt{pkn\_SPMCountMMTnnzR},
+\texttt{pkn\_SPMCountMTMnnzR}, \texttt{pkn\_SPMCountMMnnzC},
+\texttt{pkn\_SPMCountMMTnnzC}, \texttt{pkn\_SPMCountMTMnnzC}, or an
+analoguous procedure with the ``\texttt{sub}'' infix.
+These procedures find the numbers $n_{\mathrm{nz}}$ and $n_{\mathrm{mult}}$,
+which are the number of nonzero coefficients of the product and the total
+number of multiplications to compute them.%
+\end{sloppypar}
+
+Then it is necessary to allocate the arrays \texttt{abi} of
+length~$n_{\mathrm{nz}}$ (to store the distribution of nonzero coefficients
+of the product), \texttt{abpos} of length $n_{\mathrm{nz}}+1$ (to store the
+indices to the next array) and~\texttt{aikbkj} of length~$n_{\mathrm{mult}}$
+(to store the lists of coefficients to multiply and add). The last stage of
+the preparation is calling one of the procedures, whose headers are shown
+below, to find the distribution of the nonzero product coefficients and the
+lists of coefficients of the factors to multiply.
+
+After the preparation, the procedure \texttt{pkn\_SPMFastMultMMf} may be
+called. This procedure makes only the floating point operations, and it is
+appropriate for all cases---$AB$, $AB^T$, $A^TB$, using the row and column
+ordering. Time savings are considerable if the preparation is done once and
+then a~number of matrices with the same distributions of nonzero
+coefficients are to be multiplied, on the other hand the lists of
+coefficients to multiply need much memory, which may be not available for
+huge matrices.
+
+\begin{listingC}
+boolean pkn_SPMFindMMnnzR ( int nra, int nca, int ncb,  
+                      int nnza, index2 *ai, int *apermut, int *arows,
+                      int nnzb, index2 *bi, int *bpermut, int *brows,
+                      index2 *abi, int *abpos, index2 *aikbkj );
+boolean pkn_SPMFindMMnnzC ( int nra, int nca, int ncb,  
+                      int nnza, index2 *ai, int *apermut, int *acols,
+                      int nnzb, index2 *bi, int *bpermut, int *bcols,
+                      index2 *abi, int *abpos, index2 *aikbkj );
+boolean pkn_SPMFindMMTnnzR ( int nra, int nca, int nrb,  
+                       int nnza, index2 *ai, int *apermut, int *arows,
+                       int nnzb, index2 *bi, int *bpermut, int *bcols,
+                       index2 *abi, int *abpos, index2 *aikbkj );
+boolean pkn_SPMFindMMTnnzC ( int nra, int nca, int nrb,  
+                       int nnza, index2 *ai, int *apermut, int *acols,
+                       int nnzb, index2 *bi, int *bpermut, int *brows,
+                       index2 *abi, int *abpos, index2 *aikbkj );
+boolean pkn_SPMFindMTMnnzR ( int nra, int nca, int ncb,  
+                       int nnza, index2 *ai, int *apermut, int *acols,
+                       int nnzb, index2 *bi, int *bpermut, int *brows,
+                       index2 *abi, int *abpos, index2 *aikbkj );
+boolean pkn_SPMFindMTMnnzC ( int nra, int nca, int ncb,  
+                       int nnza, index2 *ai, int *apermut, int *arows,
+                       int nnzb, index2 *bi, int *bpermut, int *bcols,
+                       index2 *abi, int *abpos, index2 *aikbkj );
+\end{listingC}
+The procedures above find the distributions of nonzero coefficients of the
+product of two sparse matrices, and the lists of factor coefficients to
+multiply, as a~part of preparation for the fastest procedure of multiplying
+the sparse matrices in this package.
+
+The parameters of these procedures are: \texttt{nra}, \texttt{nca}---numbers
+of rows and columns of the matrix~$A$, \texttt{nrb}, \texttt{ncb}---numbers
+of rows and columns of the matrix~$B$ (always one of those parameters is
+absent, as the dimensions of the matrices to multiply must match).
+
+The parameters \texttt{nnza} and \texttt{nnzb} are numbers of nonzero
+coefficients, the arrays \texttt{ai} and \texttt{bi} contain distributions of
+the nonzero coefficients.
+
+The arrays \texttt{apermut} and \texttt{bpermut} are used to store the
+permutations establishing the orderings of coefficients of the matrices.
+If the parameter \texttt{ra} is nonzero, then the permutation in
+\texttt{apermut} must represent the row ordering, and the array
+\texttt{arows} must contain indices to the \texttt{apermut} array, pointing
+to the first entries of subsequent rows (see the procedure
+\texttt{pkn\_SPsubMFindRows}).
+
+The permutation in \texttt{apermut} must represent the column ordering,
+and the array \texttt{acols} must contain indices to the \texttt{apermut}
+array, pointing to the first entries of subsequent columns (see the
+procedure \texttt{pkn\_SPsubMFindCols}).
+
+The same rules apply to the arrays \texttt{bpermut} and \texttt{brows} or
+\texttt{bcols}.
+
+Results are stored in the arrays \texttt{abi}, \texttt{abpos} and
+\texttt{aikbkj}, which must be provided by the caller.
+The lengths of these arrays may be found in the way described above the
+headers.
+
+The procedures return \texttt{true} in case of success or \texttt{false}
+after a~failure.
+
+
+\medskip
+\begin{listingC}
+boolean pkn_SPsubMFindMMnnzR ( int nra, int nca, int ncb,  
+                      int nnza, index3 *ai, int *apermut, int *arows,
+                      int nnzb, index3 *bi, int *bpermut, int *brows,
+                      index2 *abi, int *abpos, index2 *aikbkj );
+boolean pkn_SPsubMFindMMnnzC ( int nra, int nca, int ncb,  
+                      int nnza, index3 *ai, int *apermut, int *acols,
+                      int nnzb, index3 *bi, int *bpermut, int *bcols,
+                      index2 *abi, int *abpos, index2 *aikbkj );
+boolean pkn_SPsubMFindMMTnnzR ( int nra, int nca, int nrb,  
+                       int nnza, index3 *ai, int *apermut, int *arows,
+                       int nnzb, index3 *bi, int *bpermut, int *bcols,
+                       index2 *abi, int *abpos, index2 *aikbkj );
+boolean pkn_SPsubMFindMMTnnzC ( int nra, int nca, int nrb,  
+                       int nnza, index3 *ai, int *apermut, int *acols,
+                       int nnzb, index3 *bi, int *bpermut, int *brows,
+                       index2 *abi, int *abpos, index2 *aikbkj );
+boolean pkn_SPsubMFindMTMnnzR ( int nra, int nca, int ncb,  
+                       int nnza, index3 *ai, int *apermut, int *acols,
+                       int nnzb, index3 *bi, int *bpermut, int *brows,
+                       index2 *abi, int *abpos, index2 *aikbkj );
+boolean pkn_SPsubMFindMTMnnzC ( int nra, int nca, int ncb,  
+                       int nnza, index3 *ai, int *apermut, int *arows,
+                       int nnzb, index3 *bi, int *bpermut, int *bcols,
+                       index2 *abi, int *abpos, index2 *aikbkj );
+\end{listingC}
+The procedures with headers shown above do the same thing as their
+corresponding procedures without the infix ``\texttt{sub}'', in order to
+prepare the fast multiplication of sparse submatrices. Note that the product
+is represented as a~sparse matrix (not a~submatrix), whose distribution of
+nonzero coefficients is represented by structures of type \texttt{index2}.
+
+To see a~description of the parameters, see the procedures above.
+
+\medskip
+\begin{listingC}
+void pkn_SPMFastMultMMf ( float *ac, float *bc,
+                          int nnzab, int *abpos, index2 *aikbkj,
+                          float *abc );
+\end{listingC}
+The procedure \texttt{pkn\_SPMFastMultMMf} performs multiplication and
+summing of floating point numbers in order to compute the coefficients of
+the product of two sparse matrices. Before calling it it is necessary to
+prepare the computation, using the procedures described above.
+
+
+\newpage
+\section{\label{sect:pknum:PCG}Conjugate gradient method for linear equations}
+
+Systems of linear equations $A\bm{x}=\bm{b}$ with a~large matrix~$A$ should
+be solved using iterative methods; sometimes it is the only approach having
+a~chance to work. If the matrix~$A$ is symmetric and positive-definite, then
+an algorithm worth using is the conjugate gradient method. The numerical
+operations in this method are: computation of the products $A\bm{v}$ for
+some vectors~$\bm{v}$, and computing scalar products and linear combination of
+vectors. It is also possible to introduce a~\textbf{preconditioner}, i.e.\
+a~matrix~$Q$, which has three properties: it is symmetric and positive
+definite, it is an approximation of~$A$, and it is easy to compute the
+product of~$Q^{-1}\bm{w}$ for any vector~$\bm{w}$ (i.e.\ to solve the system of
+equations $Q\bm{u}=\bm{w}$, which must be possible and much easier than solving
+$A\bm{x}=\bm{b}$).
+
+\medskip
+\begin{listingC}
+boolean pkn_PCGf ( int n, void *usrdata, float *b, float *x,
+            boolean (*multAx)( int n, void *usrdata,
+                               const float *x, float *Ax ),
+            boolean (*multQIx)( int n, void *usrdata,
+                                const float *x, float *Qix ),
+            int maxit, float eps, float delta, int *itm );
+\end{listingC}
+The procedure \texttt{pkn\_PCGf} implements the conjugate gradient method of
+solving systems of linear equations $A\bm{x}=\bm{b}$ with symmetric
+positive-definite matrices~$A$, using a~preconditioner~$Q$.
+
+Parameters: \texttt{n}---number of equations and unknown variables,
+\texttt{usrdata}---pointer to any data structure, which is passed to the
+subprograms pointed by the parameters \texttt{multAx} and \texttt{multQIx},
+\texttt{b}---array of coordinates of the vector~$\bm{b}$.
+
+The array \texttt{x} on entry contains an initial approximation of the
+solution (it must be initialised---set all entries to~$0$ if there is no
+better idea), on exit it contains the solution, or rather an approximation
+of the solution obtained after the last iteration.
+
+The subprogram pointed by \texttt{multAx} must multiply the array~$A$ by
+vector~$\bm{x}$, whose coordinates are in the array~\texttt{x}, and store
+the result in the array \texttt{Ax}. The representation of the matrix~$A$
+and the implementation of the multiplication is completely irrelevant.
+The data representing~$A$ may be accessible via the pointer
+\texttt{usrdata}, which is passed to this subprogram whenever
+\texttt{pkn\_PCGf} calls it.
+
+Similarly the subprogram pointed by \texttt{multQIx} must compute the product
+$Q^{-1}\bm{x}$ and store it in the array \texttt{Qix}. The way of
+representing the preconditioner $Q$ or its inverse is irrelevant.
+If the parameter \texttt{multQIx} is \texttt{NULL}, then it is assumed that
+the preconditioner is the $n\times n$ identity matrix.
+
+The values returned by the subprograms pointed by \texttt{multAx} and
+\texttt{multQIx} should be \texttt{true} in case of success and
+\texttt{false} in case of any failure. Returning \texttt{false} will result
+in termination of the conjugate gradient method iterations.
+
+The parameter \texttt{maxit} is the limit of the number of iterations (it
+must be positive and not greater than~$n$). The parameters \texttt{eps}
+($\varepsilon$) and~\texttt{delta} ($\delta$) specify the stop
+criterions---iterations are terminated if $\|\bm{v}\|_2<\varepsilon$ or
+$\|\bm{r}\|_2<\delta$ or the limit of iterations has been reached. Here
+$\bm{v}$ denotes the vector constructed by the conjugate gradient method,
+which determines the direction of the next line, along which the quadratic
+polynomial $\frac{1}{2}\bm{x}^TA\bm{x}-\bm{x}^T\bm{b}$ is minimised, and
+$\bm{r}=\bm{b}-A\bm{x}$ is the residuum vector.
+
+The parameter \texttt{itm} points to a~variable, to which
+\texttt{pkn\_PCGf} assigns the number of iterations made.
+
+The returned value of \texttt{pkn\_PCGf} is \texttt{true} in case of
+success, or \texttt{false} if one of the subprograms passed as parameters
+failed (i.e.\ returned \texttt{false}) or there was insufficient scratch
+memory.
+
+
+\newpage
+\section{Triangular bit matrices}
+
+Matrices, whose elements are bits, may be used to represent the distribution
+of nonzero coefficients of sparse matrices, whose elements are numbers. This
+is useful e.g.\ to renumber the equations and variables of a~system of
+equations in order to obtain a~band matrix (with a~narrow band, containing
+relatively few zeros), such that the system may be solved using a~direct
+method. This approach was used in the procedures of shape optimization of the
+surfaces represented by meshes (in the \texttt{libg2blending} library---see
+Section~\ref{sect:g2bl:mesh:nl}). As the matrices used there are symmetric,
+the procedures described below process a~packed representation of triangular
+matrices (such a~matrix may be interpreted as the lower triangle of
+a~symmetric matrix, and it takes a~half of the storage space necessary for
+a~square matrix).
+
+\medskip
+\begin{listingC}
+int pkn_TMBSize ( int n );
+\end{listingC}
+The procedure \texttt{pkn\_TMBsize} computes the number of bytes necessary
+to represent an $n\times n$ bit matrix. An application is supposed to call
+it prior to the memory allocation for the bit matrix.
+
+\medskip
+\begin{listingC}
+boolean pkn_TMBElem ( byte *bittm, int i, int j );
+\end{listingC}
+The procedure \texttt{pkn\_TMBElem} returns \texttt{true} if $b_{ij}=1$
+of \texttt{false} if $b_{ij}=0$. The bits of the matrix are stored in the
+array \texttt{bittm}, and \texttt{i} and~\texttt{j} are indices of the row
+and column, which are numbered from $0$ to~$n-1$.
+
+\medskip
+\begin{listingC}
+void pkn_TMBElemSet ( byte *bittm, int i, int j );
+void pkn_TMBElemClear ( byte *bittm, int i, int j );
+\end{listingC}
+The two procedures above assign~$1$ or~$0$ respectively to the bit $b_{ij}$
+of the bit matrix. The bits are stored in the array \texttt{bittm}, and
+\texttt{i} and~\texttt{j} are indices of the row
+and column, which are numbered from $0$ to~$n-1$.
+
+\medskip
+\begin{listingC}
+boolean pkn_TMBTestAndSet ( byte *bittm, int i, int j );
+boolean pkn_TMBTestAndClear ( byte *bittm, int i, int j );
+\end{listingC}
+The two procedures above assign~$1$ or~$0$ respectively to the bit $b_{ij}$
+of the bit matrix, and their return value is the previous value of that bit.
+The bits are stored in the array \texttt{bittm}, and \texttt{i} and~\texttt{j}
+are indices of the row and column, which are numbered from $0$ to~$n-1$.
+
+These operations are not uninterruptible, as is often necessary in
+concurrent programming. Joining the two operations is motivated by saving
+time of computing the proper byte and mask, which would have to be done
+twice if the two operations (extracting the bit and assigning the new value)
+were separated.
+
+
+\newpage
+\section{Solving nonlinear equations}
+
+\cprog{%
+boolean pkn\_SolveSqEqf ( float p, float q, float *x1, float *x2 );}
+\hspace*{\parindent}
+The procedure \texttt{pkn\_SolveSqEqf} computes the zeros of the polynomial
+$x^2+2px+q$ with real coefficients.
+The parameters \texttt{p} and~\texttt{q} specify the coefficients
+$p$~and~$q$. The parameters \texttt{x1} and~\texttt{x2} are used to return
+the result.
+
+If the zeros of the polynomial are \emph{real}, then the procedure
+returns \texttt{true}. Then the value of \texttt{*x1} is the smaller zero
+and the value of \texttt{*x2} is the greater zero.
+
+If the zeros are \emph{complex}, then the value of the procedure
+is \texttt{false}. In this case the value of \texttt{*x1} is the real part
+and the value of \texttt{*x2} is the absolute value of the imaginary
+part of the zeros.
+
+\vspace{\bigskipamount}
+\cprog{%
+float pkn\_Illinoisf ( float (*f) (float), float a, float b, \\
+\ind{22}float eps, boolean *error );}
+\begin{sloppypar}
+The procedure \texttt{pkn\_Illinoisf} computes with the accuracy
+up to~$\varepsilon$ a~zero of a~real function~$f$ in the interval $[a,b]$.
+The function must be continuous in this interval and its values at
+$a$ and $b$ must have different signs. If the function $f$ has more than one
+zero in~$[a,b]$, then the procedure will compute one of them. The numerical algorithm
+for smooth functions with zeros of multiplicity~$1$ is usually faster
+than the bisection.
+\end{sloppypar}
+
+The parameter \texttt{f} is a~procedure computing the value of~$f$ for
+a~given argument. The parameters \texttt{a} and~\texttt{b} specify the interval
+$[a,b]$, in which the zero is searched. The parameter \texttt{eps}
+specifies the required accuracy $\varepsilon$ of the solution
+(it must be a~positive number, and it should not be less than
+the maximal limit accuracy, depending on the rounding errors
+of evaluation of the function~$f$). The parameter \texttt{error} on return
+is \texttt{false} if there was no error detected, and \texttt{true}
+if the values of~$f$ at both ends of the interval $[a,b]$ have the same sign.
+
+The zero of the function is returned as the value of the procedure.
+
+
+\newpage
+\section{Optimization}
+
+\cprog{%
+float pkn\_GoldenRatf ( float (*f) (float), float a, float b, \\
+\ind{23}float eps, boolean *error );}
+\hspace*{\parindent}%
+The procedure \texttt{pkn\_GoldenRatf} uses the golden ratio method to find
+a~minimum of a~real function~$f$ of one variable in the interval $[a,b]$.
+The parameters \texttt{a}, \texttt{b} specify the ends of this interval
+the parameter \texttt{eps} specifies the required accuracy (its value must be
+positive), the procedure \texttt{*f} has to compute the value of the
+function~$f$ at the given point.
+
+The parameter \texttt{*error} is assigned \texttt{true}, if the procedure
+does not detect any error (currently it does not detect any errors,
+but after tests this parameter may find its uses).
+
+The value of the procedure is the computed minimal point of~$f$;
+it is an approximation of some local minimum in the interval $[a,b]$.
+
+
+\newpage
+\section{Computing derivatives of composite functions}
+
+The procedures described in this section compute partial derivatives
+of order  $1,\ldots,4$ of a~function~$\bm{h}$, being the composition
+of a~function $\bm{f}\colon\R^2\rightarrow\R^2$
+and~$\bm{g}\colon\R^2\rightarrow\R^d$, based on the partial derivatives
+of these functions. The procedures deal with functions of two variables,
+though the approach used here may be used for functions of other number of
+variables (but so far I~did not need that).
+
+Let $\bm{f}(u,v)=[x(u,v),y(u,v)]^T$.
+The formulae expressing the derivatives of the composition of consecutive
+orders may be derived recursively, using the formulae for the derivatives
+of the first order:
+\begin{align*}
+  \bm{h}_u &{}= x_u\bm{g}_x + y_u\bm{g}_y, \\
+  \bm{h}_v &{}= x_v\bm{g}_x + y_v\bm{g}_y,
+\end{align*}
+and the formulae for the derivative of a~product of functions. The
+formulae
+\begin{align*}
+  \bm{h}_{uu} &{}= x_u^2\bm{g}_{xx} + 2x_uy_u\bm{g}_{xy} + y_u^2\bm{g}_{yy} +
+              x_{uu}\bm{g}_x + y_{uu}\bm{g}_y, \\
+  \bm{h}_{uv} &{}= x_ux_v\bm{g}_{xx} + (x_uy_v+x_vy_u)\bm{g}_{xy} + y_uy_v\bm{g}_{yy} +
+              x_{uv}\bm{g}_x + y_{uv}\bm{g}_y, \\
+  \bm{h}_{vv} &{}= x_v^2\bm{g}_{xx} + 2x_vy_v\bm{g}_{xy} + y_v^2\bm{g}_{yy} +
+              x_{vv}\bm{g}_x + y_{vv}\bm{g}_y,
+\end{align*}
+and the formulae for the derivatives of higher orders, which are significantly
+longer, may be rewritten in matrix form, e.g.
+\begin{align}\label{eq:comp:der:matrix:1}
+\left[\begin{array}{@{\:}c@{\:}} \bm{h}_u \\ \bm{h}_v \end{array}\right] &{}=   
+A_{11}\left[\begin{array}{@{\:}c@{\:}} \bm{g}_x \\ \bm{g}_y \end{array}\right], \\
+\label{eq:comp:der:matrix:2}
+\left[\begin{array}{@{\:}c@{\:}}
+  \bm{h}_{uu} \\ \bm{h}_{uv} \\ \bm{h}_{vv} \end{array}\right] &{}=
+A_{21}\left[\begin{array}{@{\:}c@{\:}} \bm{g}_x \\ \bm{g}_y \end{array}\right] +
+A_{22}\left[\begin{array}{@{\:}c@{\:}} \bm{g}_{xx} \\ \bm{g}_{xy} \\ \bm{g}_{yy}
+      \end{array}\right], \\
+\label{eq:comp:der:matrix:3}
+\left[\begin{array}{@{\:}c@{\:}} \bm{h}_{uuu} \\ \bm{h}_{uuv} \\ \bm{h}_{uvv} \\
+      \bm{h}_{vvv} \end{array}\right] &{}=
+A_{31}\left[\begin{array}{@{\:}c@{\:}} \bm{g}_x \\ \bm{g}_y \end{array}\right] +
+A_{32}\left[\begin{array}{@{\:}c@{\:}} \bm{g}_{xx} \\ \bm{g}_{xy} \\ \bm{g}_{yy}
+      \end{array}\right] +
+A_{33}\left[\begin{array}{@{\:}c@{\:}} \bm{g}_{xxx} \\ \bm{g}_{xxy} \\ \bm{g}_{xyy} \\
+      \bm{g}_{yyy} \end{array}\right], \\
+\label{eq:comp:der:matrix:4}
+\left[\begin{array}{@{\:}c@{\:}} \bm{h}_{uuuu} \\ \bm{h}_{uuuv} \\ \bm{h}_{uuvv} \\
+      \bm{h}_{uvvv} \\ \bm{h}_{vvvv} \end{array}\right] &{}=
+A_{41}\left[\begin{array}{@{\:}c@{\:}} \bm{g}_x \\ \bm{g}_y \end{array}\right] +
+A_{42}\left[\begin{array}{@{\:}c@{\:}} \bm{g}_{xx} \\ \bm{g}_{xy} \\ \bm{g}_{yy}
+      \end{array}\right] +
+A_{43}\left[\begin{array}{@{\:}c@{\:}} \bm{g}_{xxx} \\ \bm{g}_{xxy} \\ \bm{g}_{xyy} \\
+      \bm{g}_{yyy} \end{array}\right] +
+A_{44}\left[\begin{array}{@{\:}c@{\:}} \bm{g}_{xxxx} \\ \bm{g}_{xxxy} \\ \bm{g}_{xxyy} \\
+      \bm{g}_{xyyy} \\ \bm{g}_{yyyy} \end{array}\right].
+\end{align}
+The coefficients of the matrices $A_{11},\ldots,A_{44}$ are expressions of
+the partial derivatives of the functions $x$ and~$y$.
+
+
+\subsection{\label{ssect:comp:matrices}Computing derivative transformation
+  matrices}
+
+\cprog{%
+void pkn\_Setup2DerA11Matrixf ( \\
+\ind{8}float xu, float yu, float xv, float yv, float *A11 ); \\
+void pkn\_Setup2DerA21Matrixf ( float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, float *A21 ); \\
+void pkn\_Setup2DerA22Matrixf ( \\
+\ind{8}float xu, float yu, float xv, float yv, float *A22 ); \\
+void pkn\_Setup2DerA31Matrixf ( \\
+\ind{8}float xuuu, float yuuu, float xuuv, float yuuv, \\
+\ind{8}float xuvv, float yuvv, float xvvv, float yvvv, \\
+\ind{8}float *A31 ); \\
+void pkn\_Setup2DerA32Matrixf ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, float *A32 ); \\
+void pkn\_Setup2DerA33Matrixf ( \\
+\ind{8}float xu, float yu, float xv, float yv, float *A33 ); \\
+void pkn\_Setup2DerA41Matrixf ( \\
+\ind{8}float xuuuu, float yuuuu, float xuuuv, float yuuuv, \\
+\ind{8}float xuuvv, float yuuvv, float xuvvv, float yuvvv, \\
+\ind{8}float xvvvv, float yvvvv, float *A41 ); \\
+void pkn\_Setup2DerA42Matrixf ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, \\
+\ind{8}float xuuu, float yuuu, float xuuv, float yuuv, \\
+\ind{8}float xuvv, float yuvv, float xvvv, float yvvv, \\
+\ind{8}float *A42 ); \\
+void pkn\_Setup2DerA43Matrixf ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, float *A43 ); \\
+void pkn\_Setup2DerA44Matrixf ( \\
+\ind{8}float xu, float yu, float xv, float yv, float *A44 );}
+\hspace*{\parindent}
+The above procedures compute the matrices, which arrear in
+Formulae~(\ref{eq:comp:der:matrix:1})--(\ref{eq:comp:der:matrix:4}).
+The parameters of type \texttt{float} specify the derivatives of the functions
+$x$ and~$y$, e.g.\ the value of the parameter \texttt{xu} is $x_u$,
+i.e.\ $\frac{\partial x}{\partial u}$, the value of \texttt{yuuv}
+is $y_{uuv}=\frac{\partial^3y}{\partial^2u\partial v}$
+etc. The coefficients of the matrices are stored in the
+arrays pointed by the parameters \texttt{A11}\ldots\texttt{A44}.
+
+
+\subsection{Computing derivatives of composite functions}
+
+\cprog{%
+void pkn\_Comp2Derivatives1f ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}int spdimen, const float *gx, const float *gy, \\
+\ind{8}float *hu, float *hv ); \\
+void pkn\_Comp2Derivatives2f ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, \\
+\ind{8}int spdimen, const float *gx, const float *gy, \\
+\ind{8}const float *gxx, const float *gxy, const float *gyy, \\
+\ind{8}float *huu, float *huv, float *hvv ); \\
+void pkn\_Comp2Derivatives3f ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, \\
+\ind{8}float xuuu, float yuuu, float xuuv, float yuuv, \\
+\ind{8}float xuvv, float yuvv, float xvvv, float yvvv, \\
+\ind{8}int spdimen, const float *gx, const float *gy, \\
+\ind{8}const float *gxx, const float *gxy, const float *gyy, \\
+\ind{8}const float *gxxx, const float *gxxy, \\
+\ind{8}const float *gxyy, const float *gyyy, \\
+\ind{8}float *huuu, float *huuv, float *huvv, float *hvvv ); \\
+void pkn\_Comp2Derivatives4f ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, \\
+\ind{8}float xuuu, float yuuu, float xuuv, float yuuv, \\
+\ind{8}float xuvv, float yuvv, float xvvv, float yvvv, \\
+\ind{8}float xuuuu, float yuuuu, float xuuuv, float yuuuv, \\
+\ind{8}float xuuvv, float yuuvv, float xuvvv, float yuvvv, \\
+\ind{8}float xvvvv, float yvvvv, \\
+\ind{8}int spdimen, const float *gx, const float *gy, \\
+\ind{8}const float *gxx, const float *gxy, const float *gyy, \\
+\ind{8}const float *gxxx, const float *gxxy, \\
+\ind{8}const float *gxyy, const float *gyyy, \\
+\ind{8}const float *gxxxx, const float *gxxxy, const float *gxxyy, \\
+\ind{8}const float *gxyyy, const float *gyyyy, \\
+\ind{8}float *huuuu, float *huuuv, float *huuvv, \\
+\ind{8}float *huvvv, float *hvvvv );}
+\hspace*{\parindent}
+The above procedures compute the partial derivatives of order $1,\ldots,4$
+of the function $\bm{h}=\bm{f}\comp\bm{g}$ based on the partial derivatives
+of the function $\bm{f}\colon\R^2\rightarrow\R^2$, described by two scalar
+functions, $x(u,v)$ and~$y(u,v)$, and of the function
+$\bm{g}\colon\R^2\rightarrow\R^d$.
+
+The dimension $d$~of the space, whose elements are the values of~$\bm{g}$,
+is (for all these procedures) specified by the parameter \texttt{spdimen}.
+
+The names of the other parameters denote their meaning.
+For example the value of \texttt{xu} is equal to the derivative of
+$x$ with respect to $u$; similarly, the parameter \texttt{yuuvv} specifies
+the value $y_{uuvv}=\frac{\partial^4 y}{\partial^2u\partial^2v}$ etc.
+
+Similarly, the parameter \texttt{gx} points to the array of $d$ coordinates
+of the vector $\bm{g}_x=\frac{\partial\bm{g}}{\partial x}$, and the parameter
+\texttt{hu} points to the array, in which the procedure will store the
+$d$ coordinates of the vector $\frac{\partial\bm{h}}{\partial u}$ etc.
+
+As the computation of the derivatives of~$\bm{h}$ of order~$n$ requires
+only the matrices $A_{n1},\ldots,A_{nn}$ (see
+Formulae~(\ref{eq:comp:der:matrix:1})--(\ref{eq:comp:der:matrix:4})),
+each procedure computes computes only the derivatives of
+one order --- $1$, $2$, $3$ or~$4$ respectively. 
+These derivatives are computed based on the derivatives of $\bm{f}$
+and~$\bm{g}$ of orders $1,\ldots,n$.
+
+\vspace{\medskipamount}
+\noindent
+\textbf{Remark:} If the function~$\bm{f}$ is an affine mapping, then
+its derivatives of order higher than $1$ are~$0$. In that case the matrices
+$A_{ij}$ for $j<i$ are zero matrices and it is better (namely, a~bit faster)
+to compute the derivatives of the $n$-th order of~$\bm{h}$ by computing
+the matrix~$A_{nn}$ (with the appropriate procedure described in
+Section~\ref{ssect:comp:matrices}), and by multiplying it by the
+matrix, whose rows are the appropriate derivatives of the $n$-th order
+of the function~$\bm{g}$.
+
+
+\subsection{Computing derivatives of compositions with inverse functions}
+
+\ucprog{%
+void pkn\_Comp2iDerivatives1f ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}int spdimen, const float *hu, const float *hv, \\
+\ind{8}float *gx, float *gy ); \\
+void pkn\_Comp2iDerivatives2f ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, \\
+\ind{8}int spdimen, const float *hu, const float *hv, \\
+\ind{8}const float *huu, const float *huv, const float *hvv, \\
+\ind{8}float *gx, float *gy, float *gxx, float *gxy, float *gyy );}
+
+\dcprog{%
+void pkn\_Comp2iDerivatives3f ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, \\
+\ind{8}float xuuu, float yuuu, float xuuv, float yuuv, \\
+\ind{8}float xuvv, float yuvv, float xvvv, float yvvv, \\
+\ind{8}int spdimen, const float *hu, const float *hv, \\
+\ind{8}const float *huu, const float *huv, const float *hvv, \\
+\ind{8}const float *huuu, const float *huuv, \\
+\ind{8}const float *huvv, const float *hvvv, \\
+\ind{8}float *gx, float *gy, float *gxx, float *gxy, float *gyy, \\
+\ind{8}float *gxxx, float *gxxy, float *gxyy, float *gyyy ); \\
+void pkn\_Comp2iDerivatives4f ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, \\
+\ind{8}float xuuu, float yuuu, float xuuv, float yuuv, \\
+\ind{8}float xuvv, float yuvv, float xvvv, float yvvv, \\
+\ind{8}float xuuuu, float yuuuu, float xuuuv, \\
+\ind{8}float yuuuv, float xuuvv, float yuuvv, \\
+\ind{8}float xuvvv, float yuvvv, float xvvvv, float yvvvv, \\
+\ind{8}int spdimen, const float *hu, const float *hv, \\
+\ind{8}const float *huu, const float *huv, const float *hvv, \\
+\ind{8}const float *huuu, const float *huuv, const float *huvv, \\
+\ind{8}const float *hvvv, const float *huuuu, const float *huuuv, \\
+\ind{8}const float *huuvv, const float *huvvv, const float *hvvvv, \\
+\ind{8}float *gx, float *gy, float *gxx, float *gxy, float *gyy, \\
+\ind{8}float *gxxx, float *gxxy, float *gxyy, float *gyyy, \\
+\ind{8}float *gxxxx, float *gxxxy, float *gxxyy, \\
+\ind{8}float *gxyyy, float *gyyyy );}
+\hspace*{\parindent}
+The above procedures compute the partial derivatives of the function
+$\bm{g}=\bm{f}^{-1}\comp\bm{h}$, which is the composition of a~function
+$\bm{f}^{-1}\colon\R^2\rightarrow\R^2$ with
+$\bm{h}\colon\R^2\rightarrow\R^d$. The function~$\bm{f}$, given by
+two scalar functions, $x(u,v)$ and~$y(u,v)$, must be regular
+(i.e.\ its partial derivative vectors of the first order must be linearly
+independent). Moreover, the functions $\bm{f}$ and~$\bm{h}$
+must be smooth enough.
+
+The parameter~\texttt{spdimen} of all the procedures specifies the dimension~$d$
+of the space, whose elements are the values of~$\bm{g}$ and~$\bm{h}$.
+The other parameters have names, which explain their meanings.
+For example the parameter \texttt{yu} specifies the value of
+$y_u=\frac{\partial y}{\partial u}$ etc. Similarly, the parameter \texttt{huv}
+is the pointer to the array with the $d$~coordinates of the vector
+$\bm{h}_{uv}=\frac{\partial^2\bm{h}}{\partial u\partial v}$, and the
+parameter \texttt{gyyyy} points to the array, in which the $d$ coordinates
+of the vector $\bm{g}_{yyyy}=\frac{\partial^4\bm{g}}{\partial y^4}$ are
+to be stored by the procedure.
+
+The algorithm is based on the interpretation of
+Formulae~(\ref{eq:comp:der:matrix:1})--(\ref{eq:comp:der:matrix:4})) as
+systems of linear equations with unknown derivatives of the function~$\bm{g}$.
+These equations are solved with the procedure
+\texttt{pkn\_multiGaussSolveLinEqf}, which is an implementation of
+the Gaussian elimination method with full pivoting.
+Because the computation of the derivatives of order~$n$ of the function~$\bm{g}$
+must be preceded by computing the derivatives of order lower than~$n$,
+the procedures have the parameters --- pointers to the arrays intended
+to store all these derivatives (this is different than with the procedures
+described in the previous section).
+
+
+\subsection{Computing derivatives of inverse functions}
+
+\cprog{%
+void pkn\_f2iDerivatives1f ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float *gx, float *gy ); \\
+void pkn\_f2iDerivatives2f ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, \\
+\ind{8}float *gx, float *gy, float *gxx, float *gxy, float *gyy ); \\
+void pkn\_f2iDerivatives3f ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, \\
+\ind{8}float xuuu, float yuuu, float xuuv, float yuuv, \\
+\ind{8}float xuvv, float yuvv, float xvvv, float yvvv, \\
+\ind{8}float *gx, float *gy, float *gxx, float *gxy, float *gyy, \\
+\ind{8}float *gxxx, float *gxxy, float *gxyy, float *gyyy ); \\
+void pkn\_f2iDerivatives4f ( \\
+\ind{8}float xu, float yu, float xv, float yv, \\
+\ind{8}float xuu, float yuu, float xuv, \\
+\ind{8}float yuv, float xvv, float yvv, \\
+\ind{8}float xuuu, float yuuu, float xuuv, float yuuv, \\
+\ind{8}float xuvv, float yuvv, float xvvv, float yvvv, \\
+\ind{8}float xuuuu, float yuuuu, float xuuuv, \\
+\ind{8}float yuuuv, float xuuvv, float yuuvv, \\
+\ind{8}float xuvvv, float yuvvv, float xvvvv, float yvvvv, \\
+\ind{8}float *gx, float *gy, float *gxx, float *gxy, float *gyy, \\
+\ind{8}float *gxxx, float *gxxy, float *gxyy, float *gyyy, \\
+\ind{8}float *gxxxx, float *gxxxy, float *gxxyy, \\
+\ind{8}float *gxyyy, float *gyyyy );}
+\hspace*{\parindent}
+The above procedures compute the partial derivatives of the function
+$\bm{g}=\bm{f}^{-1}$, where $\bm{f}\colon\R^2\rightarrow\R^2$ is
+a~regular and sufficiently smooth function, described by two scalar functions,
+$x(u,v)$ and~$y(u,v)$. The actual computation is done by the procedures
+described in the previous section, which compute the derivatives of
+the composition of $\bm{f}^{-1}$ with the function~$\bm{h}$, being the
+identity mapping of~$\R^2$.
+
+
+\newpage
+\section{Quadratures}
+
+\begin{listingC}
+boolean pkn_QuadRectanglesf ( float a, float b, int n,
+                              float *qknots, float *qcoeff );
+\end{listingC}
+
+\begin{listingC}
+boolean pkn_QuadSimpsonf ( float a, float b, int n,
+                           float *qknots, float *qcoeff );
+\end{listingC}
+
+
+\begin{listingC}
+boolean pkn_QuadGaussLegendre4f ( float a, float b, int n,
+                                  float *qknots, float *qcoeff );
+boolean pkn_QuadGaussLegendre6f ( float a, float b, int n,
+                                  float *qknots, float *qcoeff );
+boolean pkn_QuadGaussLegendre8f ( float a, float b, int n,
+                                  float *qknots, float *qcoeff );
+boolean pkn_QuadGaussLegendre10f ( float a, float b, int n,
+                                   float *qknots, float *qcoeff );
+boolean pkn_QuadGaussLegendre12f ( float a, float b, int n,
+                                   float *qknots, float *qcoeff );
+boolean pkn_QuadGaussLegendre14f ( float a, float b, int n,
+                                   float *qknots, float *qcoeff );
+boolean pkn_QuadGaussLegendre16f ( float a, float b, int n,
+                                   float *qknots, float *qcoeff );
+boolean pkn_QuadGaussLegendre18f ( float a, float b, int n,
+                                   float *qknots, float *qcoeff );
+boolean pkn_QuadGaussLegendre20f ( float a, float b, int n,
+                                   float *qknots, float *qcoeff );
+\end{listingC}
+
+

@@ -1,0 +1,117 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{Programy demonstracyjne}
+
+Programy demonstracyjne do"l"aczone do bibliotek (w~poddrzewie katalog"ow
+\texttt{demo}) maj"a trzy cele. Po pierwsze wy"swietlaj"a ruchome obrazki,
+kt"ore mog"a pom"oc w~zaznajamianiu si"e z~krzywymi i~powierzchniami
+sklejanymi. Po drugie, umo"rliwiaj"a testowanie procedur z~bibliotek (wiele
+b"l"ed"ow zosta"lo wykryte dzi"eki tym programom).
+Po trzecie, mog"a stanowi"c "zr"od"lo informacji o~sposobie wykorzystania
+bibliotek w~innych zastosowaniach.
+
+Programy te powstawa"ly w~spos"ob niezbyt systematyczny, na zasadzie
+dorabiania kolejnych funkcji w~miar"e potrzeb zg"laszanych przez moje
+widzimisi"e. Dlatego \textbf{nie s"a one przyk"ladem} szczeg"olnie
+eleganckiego programowania. S"a one oparte o~za"lo"renie, "re poza
+dzia"laj"acym "srodowiskiem XWindow nie ma w~systemie "radnych
+specyficznych bibliotek graficznych ani innych (np.\ Gnome, KDE,
+Athena, Motif, OpenGL). Programy te korzystaj"a wi"ec z~interfejsu
+z~systemem realizowanego tylko przez bibliotek"e \texttt{Xlib}.
+Dzi"eki temu powinno da"c si"e je skompilowa"c i~uruchomi"c na~dowolnym
+komputerze wyposa"ronym w~system XWindow. Osoby, kt"orych wygl"ad,
+mo"rliwo"sci lub spos"ob obs"lugi tych program"ow nie zadowala,
+zach"ecam do zaprojektowania i~napisania w"lasnych program"ow; nie
+w"atpi"e, "re b"ed"a znacznie lepsze.
+
+
+\section{Program \texttt{pokrzyw}}
+
+Program \texttt{pokrzyw} (katalog \texttt{demo/pokrzyw})
+wy"swietla i~umo"rliwia kszta"ltowanie (pokrzywienie) p"laskiej
+(,,zwyk"lej'' lub wymiernej) krzywej B-sklejanej stopnia od~$1$ do~$8$.
+Dwa okna z~prawej strony ekranu (okna programu utworzonego przez system
+XWindow) zawieraj"a obraz krzywej (wraz z~laman"a kontroln"a i~innymi
+obiektami) oraz ci"agu w"ez"l"ow.
+
+Wi"ekszo"s"c polece"n wydaje si"e za pomoc"a lewego guzika myszy; s"lu"ry on
+do ,,chwytania i~trzymania'' punkt"ow kontrolnych i~w"ez"l"ow, a~tak"re do
+pstrykania%
+\footnote{to jest jedyny uznawany przeze mnie polski odpowiednik
+angielskiego czasownika \emph{``to click''}.}
+wihajstr"ow%
+\footnote{ang.~\emph{``widgets''}.}
+(guzik"ow itp.).
+
+Prawy guzik s"lu"ry tylko do wstawiania w"ez"l"ow. Aby przesun"a"c w"eze"l
+lub punkt kontrolny nale"ry ustawi"c na nim kursor i~nacisn"a"c \emph{lewy}
+guzik, a~nast"epnie przesun"a"c kursor dok"adkolwiek. Aby usun"a"c w"eze"l
+nale"ry wskaza"c go kursorem, nacisn"a"c \emph{lewy} guzik i~trzymaj"ac go
+nacisn"a"c klawisz \ovalbox{\texttt{R}}.
+
+Lewa strona ekranu zawiera menu, tj.\ kolekcj"e wihajstr"ow, kt"ore s"lu"r"a
+do wydawania polece"n. Aby zako"nczy"c dzia"lanie programu nale"ry
+pstrykn"a"c (lewym guzikiem myszy) guzik \framebox{\texttt{Quit}}, albo
+nacisn"a"c klawisz \ovalbox{\texttt{Q}}.
+
+Naci"sni"ecie klawisza \ovalbox{\texttt{M}} nadaje oknu programu wielko"s"c
+maksymaln"a, za"s \ovalbox{\texttt{m}} minimaln"a. Pozosta"le polecenia
+interpretowane przez program (poprzez wihajstry) mo"rna odgadn"a"c po jego
+uruchomieniu.
+
+
+\section{Program \texttt{pognij}}
+
+Program \texttt{pognij} (katalog \texttt{demo/pognij}) wy"swietla
+i~umo"rliwia kszta"ltowanie (pogi"ecie) krzywej (,,zwyk"lej'' lub wymiernej)
+B-sklejanej w~przestrzeni tr"ojwymiarowej. Od programu \texttt{pokrzyw}
+r"o"rni si"e on g"l"ownie tym, "re ma cztery okna z~obrazem krzywej
+zamiast jednego.
+
+Trzy z~tych okien przedstawiaj"a obraz krzywej w~rzutach prostopad"lych na
+p"laszczyzny $xy$, $yz$, $zx$ uk"ladu wsp"o"lrz"ednych, a~czwarte (na~dole
+z~prawej strony) obraz krzywej w~rzucie perspektywicznym. Pierwsze trzy okna
+umo"rliwiaj"a zmienianie punkt"ow kontrolnych krzywej; mo"rna w~nich
+,,przesuwa"c'' punkty kontrolne (trzymaj"ac naci"sni"ety lewy guzik myszy).
+W~oknie czwartym lewy guzik s"lu"ry do zmieniania po"lo"renia obserwatora,
+a~prawy guzik umo"rliwia ,,zmienianie ogniskowej'' kamery u"rytej do
+otrzymania obrazu krzywej w~tym oknie (nale"ry go nacisn"a"c i~przesun"a"c
+kursor w~g"or"e lub w~d"o"l).
+
+Naci"sni"ecie klawisza \ovalbox{\texttt{R}} w~chwili, gdy kursor jest
+w~oknie rzutu perspektywicznego powoduje przywr"ocenie pocz"atkowego
+po"lo"renia obserwatora.
+
+Wielko"s"c czterech okien z~obrazami krzywej mo"rna zmienia"c. W~tym celu
+nale"ry ustawi"c kursor mi"edzy tymi oknami (wy"swietlany kszta"lt kursora
+zmieni si"e), a~nast"epnie nacisn"a"c lewy guzik i~przesun"a"c kursor.
+Naci"sni"ecie klawisza \ovalbox{\texttt{R}} w~chwili gdy kursor znajduje
+si"e mi"edzy tymi oknami powoduje nadanie im jednakowych wielko"sci.
+
+Pozosta"le elementy obs"lugi tego programu s"a takie same jak programu
+\texttt{pokrzyw}.
+
+
+\section{Program \texttt{pomnij}}
+
+\section{Program \texttt{polep}}
+
+\begin{sloppypar}
+Program \texttt{polep} s"lu"ry do demonstrowania procedury wype"lniania
+wielok"atnego otwo\-ru w~powierzchni sklejanej (z"lo"ronej z~p"lat"ow
+wielomianowych stopnia $(3,3)$). Procedura ta jest opisana szczeg"o"lowo
+w~ksi"a"rce \emph{Podstawy modelowania krzywych i~powierzchni}. Cztery okna,
+w~kt"orych program wy"swietla obrazy powierzchni, s"a obs"lugiwane w~spos"ob
+identyczny jak cztery okna z~obrazami krzywej w~programie
+\texttt{pognij}.
+\end{sloppypar}
+
+Punkty kontrolne powierzchni mo"rna zmienia"c za pomoc"a myszy, w~oknach
+z~rzutami r"ownoleg"lymi. Opr"ocz tego program zawiera generator
+,,gotowych'' danych, obs"lugiwany przez trzy suwaki w~g"ornej cz"e"sci menu.
+
+

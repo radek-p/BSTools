@@ -1,0 +1,1716 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{Biblioteka \texttt{libeghole}}
+
+Biblioteka \texttt{libeghole} zawiera procedury wype"lniania wielok"atnego
+otworu w~powierzchni sklejanej z~p"lat"ow stopnia~$(3,3)$. Podstawy
+teoretyczne i~opis konstrukcji s"a opisane w~pracy \emph{Konstrukcje
+powierzchni g"ladko wype"lniaj"acych wielok"atne otwory}.
+
+\section{\label{sect:G2:data}Przygotowanie danych}
+
+Dane dla procedur wype"lniania otworu sk"ladaj"a si"e z~czterech cz"e"sci:
+\begin{itemize}
+  \item Liczby wierzcho"lk"ow otworu, $k$,
+  \item $k$ jedenastoelementowych ci"ag"ow w"ez"l"ow,
+  \item $12k+1$ punkt"ow kontrolnych dziedziny,
+  \item $12k+1$ punkt"ow kontrolnych powierzchni.
+\end{itemize}
+Opr"ocz wymienionych wy"rej danych mo"rna okre"sli"c \textbf{wi"ezy}, czyli
+r"ownania liniowe, kt"ore maj"a by"c spe"lnione przez powierzchni"e
+wype"lniaj"ac"a otw"or. Spos"ob ich przygotowania jest opisany
+w~p.~\ref{ssect:g2h:constraints}.
+
+Liczba ca"lkowita $k$ musi by"c nie mniejsza ni"r~$3$ i~nie wi"eksza
+ni"r~$16$. Powierzchnia z~otworem sk"lada si"e z~$3k$ p"lat"ow wielomianowych
+stopnia~$(3,3)$, otaczaj"acych \mbox{$k$-k"atny} otw"or.
+
+\textbf{Ci"agi w"ez"l"ow} $u^{(n)}_0,\ldots,u^{(n)}_{10}$, dla $n=0,\ldots,k-1$,
+musz"a spe"lnia"c warunki
+\begin{align*}
+  u^{(n)}_0\leq u^{(n)}_1<\cdots<u^{(n)}_9\leq u^{(n)}_{10},
+\end{align*}
+oraz
+\begin{align*}
+  u^{(n)}_i-u^{(n)}_1 = u^{(m)}_0-u^{(m)}_{10-i},
+\end{align*}
+dla $m=(n+2)\bmod k$ i~$i=4,\ldots,9$.
+Ci"agi te podaje si"e w~jednowymiarowej tablicy o~d"lugo"sci $11k$;
+musi ona zawiera"c wyrazy tych ci"ag"ow kolejno po sobie, bez przerw.
+
+\textbf{Punkty kontrolne dziedziny}, $\bm{c}_0,\ldots,\bm{c}_{12k}$ le"r"a
+w~p"laszczy"znie i~stanowi"a wierzcho"lki
+siatki kontrolnej. Schemat siatki i~spos"ob numeracji tych punkt"ow jest
+pokazany na rysunku~\ref{fig:domain:cnet}. Siatka ta zawiera $k$~siatek
+kontrolnych p"laskich bikubicznych p"lat"ow B-sklejanych, kt"ore maj"a
+wsp"olne kawa"lki wielomianowe.%
+\begin{figure}[ht]
+  \centerline{\epsfig{file=g2hdomain.ps}}
+  \caption{\label{fig:domain:cnet}Reprezentacja dziedziny powierzchni
+    wype"lniaj"acej otw"or}
+\end{figure}
+
+Dla $n=0,\ldots,k-1$ $n$-ty p"lat B-sklejany jest reprezentowany przez
+ci"agi w"ez"l"ow $u^{(n)}_0,\ldots,u^{(n)}_{10}$ i~$u^{(m)}_0,\ldots,u^{(m)}_7$,
+gdzie $m=(n+1)\bmod k$, oraz punkty kontrolne $\bm{c}^{(n)}_{ij}$, $i=0,\ldots,6$,
+$j=0,\ldots,3$, takie "re:
+\begin{itemize}
+  \item $\bm{c}^{(n)}_{ij}=\bm{c}_{12(n+1)-3j-i}$ dla $i=0,\ldots,2$, $j=0,\ldots,3$
+  \item $\bm{c}^{(n)}_{ij}=\bm{c}_{12m-3i-j}$ dla $i=3,\ldots,6$, $j=0,\ldots,2$,
+    gdzie $m=(n+1)\bmod k$,
+  \item $\bm{c}^{(n)}_{3,3}=\bm{c}_0$,
+  \item $\bm{c}^{(n)}_{ij}=\bm{c}_{12m+i-3}$ dla $i=4,\ldots,6$, $j=3$,
+    gdzie $m=(n+2)\bmod k$. 
+\end{itemize}
+P"laty B-sklejane reprezentowane przez te ci"agi w"ez"l"ow i~punkty
+kontrolne musz"a by"c regularne i~z~wyj"atkiem wsp"olnych fragment"ow,
+kt"orych istnienie zapewnia reprezentacja, roz"l"aczne.
+
+\begin{sloppypar}
+Zbi"or punkt"ow p"lat"ow B-sklejanych reprezentowanych przez ci"agi w"ez"l"ow
+i~punk\-ty kontrolne opisane wy"rej jest dziedzin"a pewnej parametryzacji
+powierzchni z~otworem, za"s otoczony tymi p"latami obszar~$\varOmega$, kt"ory
+jest krzywoliniowym $k$-k"atem, jest dziedzin"a pewnej parametryzacji
+powierzchni wype"lniaj"acej, kt"ora ma by"c skonstruowana. Dla takiej
+parametryzacji b"edzie okre"slony funkcjona"l~$F$, kt"orego warto"s"c
+jest miar"a jako"sci powierzchni (ma on by"c minimalizowany).
+Zmieniaj"ac punkty kontrolne~$\bm{c}_i$ zmienia si"e ten funkcjona"l,
+co wp"lywa na wynik konstrukcji.%
+\end{sloppypar}
+
+\textbf{Punkty kontrolne powierzchni}, $\bm{b}_0,\ldots,\bm{b}_{12k}$, le"r"a
+w~przestrzeni o~wymiarze~$d$ (w~praktyce zwykle b"edzie $d=3$ dla powierzchni
+wielomianowej, albo $d=4$, je"sli ma by"c wype"lniony otw"or w~powierzchni
+b"ed"acej jednorodn"a reprezentacj"a powierzchni kawa"lkami wymiernej).
+Siatka kontrolna powierzchni jest zbudowana analogicznie jak siatka
+kontrolna dziedziny, tj.\ mo"rna w~niej wyr"o"rni"c $k$~siatek kontrolnych
+p"lat"ow B-sklejanych stopnia~$(3,3)$. Dla $n=0,\ldots,k-1$ p"lat $n$-ty jest
+reprezentowany przez ci"agi w"ez"l"ow $u^{(n)}_0,\ldots,u^{(n)}_{10}$
+i~$u^{(m)}_0,\ldots,u^{(m)}_7$, gdzie $m=(n+1)\bmod k$, oraz punkty kontrolne
+$\bm{b}^{(n)}_{ij}$, $i=0,\ldots,6$, $j=0,\ldots,3$, kt"ore s"a punktami
+$\bm{b}_l$ o~indeksach~$l$ okre"slonych tak samo jak indeksy punkt"ow
+kontrolnych $\bm{c}^{(n)}_{ij}$ p"lat"ow B-sklejanych otaczaj"acych dziedzin"e.
+
+Tablica punkt"ow kontrolnych powierzchni, kt"ora ma by"c parametrem procedur
+konstruuj"acych wype"lnienie otworu, sk"lada si"e z~$(12k+1)d$ liczb
+zmiennopozycyjnych --- ka"rde kolejne $d$~z~nich to wsp"o"lrz"edne kolejnego
+punktu~$\bm{b}_l$. Punkty $\bm{c}^{(n)}_{ij}$ i~$\bm{b}^{(n)}_{ij}$
+dla $i\in\{0,6\}$ oraz dla $j=0$ nie maj"a wp"lywu na wynik konstrukcji
+(tj.\ na powierzchni"e wype"lniaj"ac"a otw"or), podobnie jak w"ez"ly
+$u^{(n)}_0$ i~$u^{(n)}_{10}$, ale trzeba je poda"c. Na
+rysunku~\ref{fig:domain:cnet} punkty, kt"ore maj"a wp"lyw na wynik konstrukcji,
+s"a zaznaczone czarnymi kropkami.
+
+
+\section{Minimum teorii}
+
+Dok"ladny opis podstaw teoretycznych konstrukcji realizowanych przez procedury
+z~biblioteki \texttt{libeghole} znajduje si"e w~pracy \emph{Konstrukcje
+powierzchni g"ladko wype"lniaj"acych wielok"atne otwory}. Opis poni"rej
+zawiera tylko wiadomo"sci teoretyczne niezb"edne do poprawnego przygotowania
+danych dla procedur.
+
+\subsection{Bazy u"rywane w~konstrukcjach}
+
+Aby skonstruowa"c powierzchni"e wype"lniaj"ac"a otw"or, procedury
+biblioteczne konstruuj"a baz"e $\phi_0,\ldots,\phi_{n+m}$ pewnej
+przestrzeni liniowej~$V$, do kt"orej nale"r"a funkcje skalarne klasy~$C^1$
+albo~$C^2$ opisuj"ace wsp"o"lrz"edne powierzchni wype"lniaj"acej.
+Powierzchnia ta okre"slona jest wzorem
+\begin{align}\label{eq:G2:surface}
+  \bm{p} =
+  \sum_{i=0}^{n-1}\bm{a}_i\phi_i+\sum_{i=0}^{m-1}\bm{b}_i\phi_{n+i}.
+\end{align}
+Wektory $\bm{b}_i\in\R^d$ s"a danymi punktami kontrolnymi powierzchni
+z~otworem. Siatka kontrolna powierzchni, kt"orej to s"a wierzcho"lki,
+jest grafem izomorficznym z~siatk"a kontroln"a dziedziny pokazan"a na
+rysunku~\ref{fig:domain:cnet} i~jej wierzcho"lki s"a ponumerowane
+analogicznie. Wierzcho"lki te podaje si"e (w~takiej kolejno"sci)
+w~tablicy przekazywanej procedurom konstrukcji powierzchni jako parametr.
+Tablica zawiera $12k+1$ punkt"ow kontrolnych, z~kt"orych $m=6k+1$
+ma wp"lyw na powierzchni"e wype"lniaj"ac"a otw"or.
+
+\begin{sloppypar}
+Zadaniem procedur konstrukcji jest obliczenie wektor"ow
+$\bm{a}_0,\ldots,\bm{a}_{n-1}\in\R^d$, kt"ore minimalizuj"a pewne
+funkcjona"ly przyj"ete za miar"e ,,brzydoty'' powierzchni.
+Funkcje bazowe $\phi_0,\ldots,\phi_{n+m-1}$ s"a okre"slone w~obszarze
+$\varOmega\in\R^2$, kt"ory jest otworem w~p"las\-kiej powierzchni
+reprezentowanej przez w"ez"ly i~siatk"e kontroln"a dziedziny, opisan"a
+w~poprzednim punkcie. Obszar~$\varOmega$ jest podzielony na
+$k$~czworok"at"ow krzywoliniowych $\varOmega_0,\ldots,\varOmega_{k-1}$,
+kt"ore s"a obrazami kwadratu jednostkowego
+w~przekszta"lceniach~$\bm{d}_0,\ldots,\bm{d}_{k-1}$, zwanych
+\textbf{p"latami dziedziny}. Funkcja~$\phi_i$ jest zdefiniowana wzorem
+\begin{align*}
+  \phi_i(\bm{x}) = p_{li}(\bm{d}_l^{-1}(\bm{x}))\qquad
+  \mbox{dla $\bm{x}\in\varOmega_i$,}
+\end{align*}
+za pomoc"a p"lat"ow dziedziny i~funkcji $p_{i0},\ldots,p_{i,k-1}$,
+zwanych \textbf{p"latami funkcji bazowych}. Powierzchnia wype"lniaj"aca
+otw"or sk"lada si"e z~$k$~p"lat"ow wielomianowych lub sklejanych
+$\bm{p}_0,\ldots,\bm{p}_{k-1}$, okre"slonych wzorem
+\begin{align*}
+  \bm{p}_l =
+  \sum_{i=0}^{n-1}\bm{a}_ip_{li}+\sum_{i=0}^{m-1}\bm{b}_ip_{l,i+n}.
+\end{align*}
+Reprezentacja B\'{e}ziera lub B-sklejana tych p"lat"ow jest ostatecznym
+wynikiem konstrukcji.%
+\end{sloppypar}
+
+\begin{sloppypar}
+Funkcje bazowe $\phi_0,\ldots,\phi_{n+m-1}$ mo"rna podzieli"c na dwa
+podzbiory. Funkcje $\phi_0,\ldots,\phi_n$ spe"lniaj"a jednorodny warunek
+brzegowy, tj.\ ich warto"sci i~pochodne cz"astkowe rz"edu $1$ (lub $1$ i~$2$)
+na brzegu obszaru~$\varOmega$ s"a r"owne~$0$. Funkcje
+$\phi_n,\ldots,\phi_{n+m-1}$ spe"lniaj"a warunki brzegowe dobrane tak, aby
+dla dowolnych wektor"ow $\bm{a}_0,\ldots,\bm{a}_{n-1}$ powierzchnia opisana
+wzorem~(\ref{eq:G2:surface}) "l"aczy"la si"e z~powierzchni"a dan"a
+z~ci"ag"lo"sci"a p"laszczyzny stycznej lub krzywizny.
+Funkcje $\phi_n,\ldots,\phi_{n+m-1}$ i~ich
+pochodne rz"edu $1$ i~$2$ (albo $1,\ldots,4$) w~\textbf{punkcie "srodkowym},
+tj.\ wsp"olnym punkcie wszystkich obszar"ow $\varOmega_l$ maj"a warto"s"c~$0$.%
+\end{sloppypar}
+
+P"o"lproste styczne do wsp"olnych krzywych obszar"ow
+$\varOmega_0,\ldots,\varOmega_{k-1}$ s"a nachylone pod k"atami
+$\alpha_0,\ldots,\alpha_{k-1}$, przy czym
+$\alpha_0<\alpha_1<\cdots<\alpha_{k-1}<\alpha_0+2\pi$. Zbi"or
+$\varDelta=\{\alpha_0,\ldots,\alpha_{k-1}\}$ nazywa si"e \textbf{podzia"lem
+k"ata pe"lnego}. Niech $h$ oznacza liczb"e par
+$\{\alpha_i,\alpha_i+\pi\}\subset\varDelta$. W~przypadku powierzchni wype"lniaj"acej
+klasy~$G^1$ lub~$G^1Q^2$, oznaczmy
+\begin{align*}
+  n' = 3 + \max\{k,h+3\}.
+\end{align*}
+Liczba $n'$ jest liczb"a element"ow tzw.\ \textbf{bazy podstawowej}, w~kt"orej
+wszystkie p"laty funkcji bazowych s"a bikubicznymi p"latami Coonsa,
+okre"slonymi przez wielomiany stopnia~$5$ (s"a to zatem p"laty wielomianowe
+stopnia~$(5,5)$).
+
+Mo"rna przyj"a"c $n=n'$ lub $n=n'+4k$; w~tym drugim przypadku mamy \textbf{baz"e
+rozszerzon"a} odpowiednio powi"ekszonej przestrzeni
+$V_0=\mathord{\mathrm{lin}}\{\phi_0,\ldots,\phi_{n-1}\}\subset~V$. P"laty funkcji
+bazowych do"l"aczonych $4k$ funkcji bazowych s"a iloczynami tensorowymi
+wielomian"ow Bernsteina $B^5_2$ i~$B^5_3$. Podobnie jak w~przypadku
+u"rycia bazy podstawowej, wynik konstrukcji sk"lada si"e z~$k$~p"lat"ow
+B\'{e}ziera stopnia~$(5,5)$.
+
+Jeszcze jedna mo"rliwo"s"c to wype"lnianie otworu p"latami B-sklejanymi
+stopnia~$(5,5)$. Baza odpowiedniej przestrzeni~$V_0$ opr"ocz element"ow
+bazy podstawowej zawiera dwie rodziny funkcji: w~pierwszej z~nich
+p"laty funkcji bazowych s"a iloczynami tensorowymi funkcji B-sklejanych
+$N^5_i$ i~$N^5_j$ dla $i,j\in\{2,\ldots,3+n_km_2\}$. Musi by"c $1\leq m_2\leq 4$
+P"laty funkcji bazowych drugiej rodziny funkcji s"a bikubicznymi p"latami
+Coonsa, okre"slonymi przez krzywe sklejane stopnia~$5$, maj"ace $n_km_1$
+w"ez"l"ow, gdzie $1\leq m_1\leq 2$. Wymiar przestrzeni~$V_0$ jest wtedy r"owny
+$n'+k\LP(2+n_km_2)^2+2n_km_1\RP$. Wynik konstrukcji ma posta"c $k$~p"lat"ow
+B-sklejanych stopnia~$(5,5)$.
+
+Dla konstrukcji powierzchni klasy~$G^2$ niech
+\begin{align*}
+  n' = 6+\max\{k,h+4\}+\max\{2k,2h+5\}.
+\end{align*}
+Je"sli $n=n'$, to mamy baz"e podstawow"a, w~kt"orej p"laty funkcji bazowych s"a
+dwupi"etnymi p"latami Coonsa stopnia~$(9,9)$.
+
+Baza rozszerzona zawiera dodatkowo $16k$ funkcji, kt"orych p"laty funkcji bazowych
+s"a iloczynami tensorowymi wielomian"ow Bernsteina $B^9_3,\ldots,B^^9_6$.
+W~obu przypadkach wynik konstrukcji sk"lada si"e z~$k$ wielomianowych p"lat"ow
+stopnia~$(9,9)$, reprezentowanych w~postaci B\'{e}ziera.
+
+Mo"rna te"r u"ry"c bazy sklejanej, okre"slonej za pomoc"a trzech parametr"ow,
+$n_k$, $m_1$ i~$m_2$; w~tym przypadku przestrze"n~$V_0$ ma wymiar
+\begin{align*}
+  n' + k\LP(4+n_km_2)^2+3n_km_1\RP,
+\end{align*}
+a~wynik konstrukcji sk"lada si"e z~$k$~p"lat"ow B-sklejanych stopnia~$(9,9)$.
+Musi by"c $1\leq m_1\leq 3$, $1\leq m_2\leq 7$.
+
+
+\subsection{Kryteria optymalizacji powierzchni klasy~$G^1$}
+
+Powierzchnie wype"lniaj"ace klasy~$G^1$ maj"a stopie"n~$(5,5)$.
+Powierzchnie te s"a konstruowane przez minimalizacj"e
+funkcjona"l"ow
+\begin{align*}
+  F_a(\bm{p}) &{}\stackrel{\mathrm{def}}{=}
+  \int_{\varOmega}\|\Delta\bm{p}\|_2^2\,\mathrm{d}\varOmega, \\
+  F_b(\bm{p}) &{}\stackrel{\mathrm{def}}{=}
+  \int_{\varOmega}H^2\sqrt{\det G}\,\mathrm{d}\varOmega,
+\end{align*}
+gdzie $G$~oznacza macierz pierwszej formy podstawowej, a~$H$ oznacza
+krzywizn"e "sredni"a powierzchni. Funkcjona"l~$F_a$ jest
+form"a kwadratow"a, kt"ora ma jednoznacznie okre"slone minimum
+(tak"re dla dowolnych niesprzecznych w"ez"l"ow).
+Funkcjona"l~$F_b$, podobnie jak~$F_d$, jest istotnie nieliniowy,
+a~jego warto"s"c zale"ry tylko od kszta"ltu powierzchni.
+Minimalizacja funkcjona"lu~$F_b$ jest bardziej k"lopotliwa i~czasoch"lonna ni"r
+minimalizacja~$F_a$ i~nie dla ka"rdej powierzchni danej jest wykonalna.
+
+
+\subsection{Kryteria optymalizacji powierzchni klasy~$G^2$}
+
+Wektory $\bm{a}_0,\ldots,\bm{a}_{n-1}$ s"a dobierane tak, aby zminimalizowa"c
+warto"s"c jednego z~nast"epuj"acych funkcjona"l"ow:
+\begin{align*}
+  F_c(\bm{p}) \stackrel{\mathrm{def}}{=}{}&
+  \int_{\varOmega}\|\nabla\!\Delta\bm{p}\|_F^2\,\mathrm{d}\varOmega, \\
+  F_d(\bm{p}) \stackrel{\mathrm{def}}{=}{}&
+  \int_{\varOmega}\|\nabla_{\!\cal M}H\|_2^2\sqrt{\det G}\,\mathrm{d}\varOmega.
+\end{align*}
+Kolejne wiersze macierzy $\nabla\!\Delta\bm{p}$ s"a gradientami laplasjan"ow
+$d$~funkcji skalarnych opisuj"acych parametryzacj"e~$\bm{p}$; symbol
+$\|\cdot\|_F$ oznacza norm"e Frobeniusa, tj.\ pierwiastek sumy kwadrat"ow
+wszystkich wsp"o"lczynnik"ow macierzy.
+
+Funkcjona"l~$F_c$ jest okre"slony dla powierzchni w~przestrzeni o~dowolnym
+wymiarze~$d$, natomiast w~przypadku funkcjona"lu~$F_d$ musi by"c $d=3$.
+Symbol~$H$ oznacza krzywizn"e "sredni"a powierzchni, $\nabla_{\!\cal M}H$
+oznacza gradient krzywizny "sredniej na powierzchni, za"s~$G$ oznacza
+macierz pierwszej formy podstawowej.
+
+Funkcjona"l~$F_c$ jest form"a kwadratow"a, kt"orej minimalizacja polega na
+rozwi"azaniu uk"ladu r"owna"n liniowych
+\begin{align}\label{eq:g2h:Ritz:eq}
+  A\bm{a}=-B\bm{b},
+\end{align}
+w~kt"orym wyst"epuj"a macierze $A=[a_{ij}]_{i,j}$ i~$B=[b_{ij}]_{i,j}$
+o~wymiarach $n\times n$ i~$n\times m$, kt"orych wsp"o"lczynniki
+\begin{align*}
+  a_{ij} = a(\phi_i,\phi_j), \qquad
+  b_{ij} = a(\phi_i,\phi_{j+n}),
+\end{align*}
+s"a warto"sciami formy dwuliniowej
+\begin{align*}
+  a(f,g) = \int_{\varOmega}\scp{\nabla\!\Delta f}%
+  {\nabla\!\Delta g}\,\mathrm{d}\varOmega.
+\end{align*}
+Macierz $\bm{b}$ o~wymiarach $m\times d$ sk"lada si"e z~punkt"ow kontrolnych
+powierzchni danej, macierz~$\bm{a}$, o~wymiarach $n\times d$ sk"lada si"e
+z~niewiadomych wektor"ow $\bm{a}_0,\ldots,\bm{a}_{n-1}$. Liczba~$d$ jest
+wymiarem przestrzeni, w~kt"orej jest powierzchnia, na przyk"lad~$3$
+(ale mo"re te"r by"c~$4$ w~konstrukcji wielomianowej powierzchni
+jednorodnej, reprezentuj"acej powierzchni"e wymiern"a).
+
+
+Warto"s"c funkcjona"lu~$F_d$ nie zale"ry od parametryzacji powierzchni
+(kt"ora musi le"re"c w~$\R^3$),
+tylko od jej kszta"ltu. Znalezienie jego minimum jest trudniejsze, bardziej
+czasoch"lonne i~nie zawsze wykonalne (wykonalno"s"c konstrukcji zale"ry od
+danej powierzchni z~otworem). Polega ono na rozwi"azaniu uk"ladu r"owna"n
+nieliniowych
+\begin{align}
+  \nabla F(a_0,\ldots,a_{n-1}) = \bm{0},
+\end{align}
+gdzie funkcja~$F$ jest okre"slona wzorem
+\begin{align*}
+  F(a_0,\ldots,a_{n-1}) = F_d(\bm{p}),
+\end{align*}
+dla parametryzacji $\bm{p}$ danej wzorem
+\begin{align*}
+  \bm{p}(u,v) &{}= \left[\begin{array}{c} u \\ v \\ p(u,v) \end{array}\right],
+\qquad
+  p(u,v) = \sum_{i=0}^{n-1}a_i\phi_i+\sum_{i=0}^{m-1}b_i\phi_{n+i}.
+\end{align*}
+Powierzchnia z~otworem jest przedstawiana w~takim uk"ladzie
+wsp"o"lrz"ednych $uvw$, aby by"la w~nim wykresem funkcji skalarnej,
+$w=q(u,v)$. Dziedzin"e $\varOmega$ konstruuje si"e przez zrzutowanie
+powierzchni na p"laszczyzn"e~$uv$. Liczby $b_0,\ldots,b_{m-1}$ s"a
+wsp"o"lrz"ednymi~$w$ punkt"ow kontrolnych powierzchni danej.
+
+
+\subsection{Kryteria optymalizacji dla powierzchni klasy~$G^1Q^2$}
+
+\subsection{R"ownania wi"ez"ow}
+
+\begin{sloppypar}
+Konstrukcje umo"rliwiaj"a nak"ladanie wi"ez"ow opisanych przez r"ownania
+liniowe, np.\ wi"ez"ow interpolacyjnych. Minimum funkcjona"lu~$F_c$ lub~$F_d$
+mo"rna poszukiwa"c w~zbiorze powierzchni, kt"orych wsp"o"lczynniki
+spe"lniaj"a uk"lad r"owna"n
+\begin{align}\label{eq:constraints}
+  C\bm{a} = \bm{d}.
+\end{align}
+Macierz~$C$ o~wymiarach $w\times n$, musi by"c wierszowo regularna.
+Macierz~$\bm{d}$, o~wymiarach $\bm{w}\times d$ opisuje praw"a stron"e
+uk"ladu r"owna"n wi"ez"ow, przy czym~$w$ jest liczb"a wi"ez"ow, a~$d$ jest
+wymiarem przestrzeni, w~kt"orej jest powierzchnia; dla konstrukcji
+z~minimalizacj"a funkcjona"lu $F_d$ musi by"c $d=3$.
+\end{sloppypar}
+
+Kolejne wiersze niewiadomej macierzy~$\bm{a}$ s"a wektorami
+$\bm{a}_0,\ldots,\bm{a}_{n-1}$, wyst"epuj"acymi we
+wzorze~(\ref{eq:G2:surface}). Je"sli $i$-ty warunek na"lo"rony na powierzchni"e
+ma posta"c $\bm{p}(\bm{x})=\bm{p}_0$ (to jest warunek interpolacyjny, kt"ory
+narzuca punkt powierzchni odpowiadaj"acy punktowi~$\bm{x}\in\varOmega$), to
+wsp"o"lczynniki w~$i$-tym wierszu macierzy~$C$ maj"a by"c r"owne
+$\phi_0(\bm{x}),\ldots,\phi_{n-1}(\bm{x})$, a~$i$-ty wiersz
+macierzy~$\bm{d}$ ma by"c r"owny
+$\bm{p}_0-\sum_{i=0}^{m-1}\bm{b}_i\phi_{n+i}(\bm{x})$. Podobnie, narzucenie
+warto"sci $\bm{v}$ pochodnej cz"astkowej na przyk"lad ze wzgl"edu na~$u$
+w~punkcie~$\bm{x}$ nast"epuje za pomoc"a r"ownania wi"ezu, dla kt"orego
+odpowiedni wiersz macierzy~$C$ sk"lada si"e z~liczb
+$\frac{\partial}{\partial u}\phi_0(\bm{x}),\ldots,%
+\frac{\partial}{\partial u}\phi_{n-1}(\bm{x})$, a~po prawej stronie
+(tj.\ w~macierzy~$\bm{d}$) jest $\bm{v}-\sum_{i=0}^{m-1}\bm{b}_i%
+\frac{\partial}{\partial u}\phi_{n+i}(\bm{x})$.
+
+W~przypadku funkcjona"lu $F_d$, w~razie zastosowania bazy rozszerzonej,
+dopuszczalne jest tylko narzucanie wi"ez"ow interpolacyjnych w~punkcie
+"srodkowym dziedziny (tj.\ we wsp"olnym punkcie obszar"ow~$\varOmega_i$).
+Biblioteka zawiera procedury obliczaj"ace warto"sci funkcji bazowych i~ich
+pochodnych cz"astkowych w~tym punkcie. Ponadto s"a te"r procedury
+udost"epniaj"ace pe"ln"a informacj"e o~dowolnej funkcji bazowej. Na
+podstawie tej informacji program mo"re obliczy"c warto"sci dowolnego
+funkcjona"lu liniowego na wszystkich funkcjach bazowych. Warto"sci tych
+mo"rna nast"epnie u"ry"c jako wsp"o"lczynniki w~r"ownaniu wi"ezu.
+
+\vspace{\medskipamount}
+Opisany wy"rej spos"ob narzuca jednocze"snie i~niezale"rnie na wszystkie
+wsp"o"lrz"edne po\-wierzch\-ni wype"lniaj"acej wi"ezy tej samej natury.
+Alternatywna posta"c r"owna"n wi"ez"ow jest nast"epuj"aca:
+\begin{align}\label{eq:alt:constraints}
+  C_0\bm{a}_0+\cdots+C_{d-1}\bm{a}_{d-1} = \bm{d}.
+\end{align}
+Macierze $C_0,\ldots,C_{d-1}$ maj"a wymiary $w\times n$, przy czym
+macierz~$C=[C_0,\ldots,C_{d-1}]$ (o~wymiarach $w\times nd$) musi by"c
+wierszowo regularna. Ta posta"c wi"ez"ow jest og"olniejsza i~dopuszcza
+okre"slenie warto"sci dowolnego funkcjona"lu liniowego dla
+parametryzacji~$\bm{p}$. Mo"rna na przyk"lad narzuci"c tylko warto"s"c
+pierwszej wsp"o"lrz"ednej punktu~$\bm{p}(\bm{x})$, przyjmuj"ac $i$-ty wiersz
+macierzy~$C_0$ z"lo"rony ze wsp"o"lczynnik"ow
+$\phi_0(\bm{x}),\ldots,\phi_{n-1}(\bm{x})$,
+a~w~macierzach $C_1,\ldots,C_{d-1}$ umieszczaj"ac w~$i$-tym wierszu zera.
+
+
+\subsection{Tabela procedur konstrukcji powierzchni}
+
+Orientacj"e w"sr"od dost"epnych procedurach konstrukcji powierzchni
+wype"lniaj"acych powinna u"latwi"c nast"epuj"aca tabela:
+
+\vspace{\bigskipamount}
+\centerline{%
+\begin{picture}(2800,950)
+\put(50,480){%
+\begin{tabular}{@{}c@{\:}|@{\:}c@{\:}|@{\:}c@{\:}|@{\:}c@{\:}|@{\:}c@{\:}|@{\:}c@{\:}|@{\:}c@{\:}|@{\:}c@{\:}|@{\:}c@{\:}|@{\:}c@{\:}}
+      & Coons & B\'{e}zier & B-spline & Coons & B\'{e}zier & B-spline & Coons & B\'{e}zier & B-spline \\ \hline
+$G^1$ &   1.  &     2.     &    3.    &   4.  &     5.     &          &   7.  &     8.     &          \\ \hline
+$G^2$ &  10.  &    11.     &   12.    &  13.  &    14.     &          &  16.  &    17.     &          \\ \hline
+$G^1Q^2$ & 19.&    20.     &   21.    &  22.  &    23.     &          &  25.  &    26.     &          \\ \hline
+$G^1$ &  28.  &    29.     &   30.    &  31.  &    32.     &          &  34.  &    35.     &          \\ \hline
+$G^2$ &  37.  &    38.     &   39.    &  40.  &    41.     &          &  43.  &    44.     &          \\ \hline
+$G^1Q^2$ & 46.&    47.     &   48.    &       &            &          &       &            &
+\end{tabular}}%
+\put(-70,594){L$\left\{\makebox[0pt][l]{\rule{0pt}{20pt}}\right.$}
+\put(-70,258){\makebox[0pt][r]{N}L$\left\{\makebox[0pt][l]{\rule{0pt}{20pt}}\right.$}
+\put(300,100){$\underbrace{\makebox[100pt][c]{}}_{\mbox{bez wi"ez"ow}}$}
+\put(1163,100){$\underbrace{\makebox[100pt][c]{}}_{\mbox{wi"ezy~(\ref{eq:constraints})}}$}
+\put(2027,100){$\underbrace{\makebox[100pt][c]{}}_{\mbox{wi"ezy~(\ref{eq:alt:constraints})}}$}
+\end{picture}}
+
+\vspace{\bigskipamount}
+Procedury zaznaczone w~pierwszych trzech wierszach realizuj"a konstrukcje
+z~minimalizacj"a form kwadratowych (przez rozwi"azanie uk"ladu r"owna"n liniowych).
+
+Procedury w~kolejnych trzech wierszach rozwi"azuj"a uk"lady r"owna"n nieliniowych,
+w~celu dokonania minimalizacji odpowiednich funkcjona"l"ow niezale"rnych od
+parametryzacji.
+
+Procedury w~pierwszych trzech kolumnach dokonuj"a konstrukcji bez nak"ladania
+wi"ez"ow. W~kolejnych trzech kolumnach s"a wyliczone procedury konstrukcji
+z~wi"ezami o~postaci~(\ref{eq:constraints}), a~w~nast"epnych trzech
+z~wi"ezami~(\ref{eq:alt:constraints}).
+
+Na g"orze ka"rdej kolumny jest podana posta"c bazy u"rywanej w~konstrukcji.
+Nazwy procedur s"a nast"epuj"ace:
+
+\begin{enumerate}
+\item \texttt{g1h\_FillHolef}.
+\item \texttt{g1h\_ExtFillHolef}.
+\item \texttt{g1h\_SplFillHolef}.
+\item \texttt{g1h\_FillHoleConstrf}.
+\item \texttt{g1h\_ExtFillHoleConstrf}.
+\addtocounter{enumi}{1}
+\item \texttt{g1h\_FillHoleAltConstrf}.
+\item \texttt{g1h\_ExtFillHoleAltConstrf}.
+\addtocounter{enumi}{1}
+\item \texttt{g2h\_FillHolef}.
+\item \texttt{g2h\_ExtFillHolef}.
+\item \texttt{g2h\_SplFillHolef}.
+\item \texttt{g2h\_FillHoleConstrf}.
+\item \texttt{g2h\_ExtFillHoleConstrf}.
+\addtocounter{enumi}{1}
+\item \texttt{g2h\_FillHoleAltConstrf}.
+\item \texttt{g2h\_ExtFillHoleAltConstrf}.
+\addtocounter{enumi}{1}
+\item \texttt{g1h\_Q2FillHolef}.
+\item \texttt{g1h\_Q2ExtFillHolef}.
+\item \texttt{g1h\_Q2SplFillHolef}.
+\item \texttt{g1h\_Q2FillHoleConstrf}.
+\item \texttt{g1h\_Q2ExtFillHoleConstrf}.
+\addtocounter{enumi}{1}
+\item \texttt{g1h\_Q2FillHoleAltConstrf}.
+\item \texttt{g1h\_Q2ExtFillHoleAltConstrf}.
+\addtocounter{enumi}{1}
+\item \texttt{g1h\_NLFillHolef}.
+\item \texttt{g1h\_NLExtFillHolef}.
+\item \texttt{g1h\_NLSplFillHolef}.
+\item \texttt{g1h\_NLFillHoleConstrf}.
+\item \texttt{g1h\_NLExtFillHoleConstrf}.
+\addtocounter{enumi}{1}
+\item \texttt{g1h\_NLFillHoleAltConstrf}.
+\item \texttt{g1h\_NLExtFillHoleAltConstrf}.
+\addtocounter{enumi}{1}
+\item \texttt{g2h\_NLFillHolef}.
+\item \texttt{g2h\_NLExtFillHolef}.
+\item \texttt{g2h\_NLSplFillHolef}.
+\item \texttt{g2h\_NLFillHoleConstrf}.
+\item \texttt{g2h\_NLExtFillHoleConstrf}.
+\addtocounter{enumi}{1}
+\item \texttt{g2h\_NLFillHoleAltConstrf}.
+\item \texttt{g2h\_NLExtFillHoleAltConstrf}.
+\addtocounter{enumi}{1}
+\item \texttt{g1h\_Q2NLFillHolef}.
+\item \texttt{g1h\_Q2NLExtFillHolef}.
+\item \texttt{g1h\_Q2NLSplFillHolef}.
+\end{enumerate}
+
+\newpage
+\section{Spos"ob u"rycia procedur}
+
+\subsection{Konstrukcja podstawowa}
+
+\begin{sloppypar}
+Konstrukcja powierzchni wype"lniaj"acej sk"lada si"e z~dw"och g"l"ownych
+etap"ow. Pierwszy etap polega na skonstruowaniu bazy przestrzeni liniowej~$V$,
+kt"orej elementami s"a funkcje opisuj"ace parametryzacj"e powierzchni
+(tj.\ ka"rd"a ze wsp"o"lrz"ednych), oraz obliczenie zale"rnych od tej bazy
+wsp"o"lczynnik"ow macierzy, kt"ore wyst"epuj"a w~rozwi"azywanych w~drugim
+etapie uk"lad"ow r"owna"n. To obliczenie jest do"s"c czasoch"lonne,
+ale przetwarzana jest w~nim tylko reprezentacja dziedziny.%
+\end{sloppypar}
+
+W~drugim etapie na podstawie punkt"ow kontrolnych powierzchni i~ewentualnie
+wi"ez"ow (je"sli zosta"ly one okre"slone) jest obliczana prawa strona
+uk"ladu r"owna"n, kt"ory jest nast"epnie rozwi"azywany. Rozwi"azanie uk"ladu
+jest u"rywane do wyznaczenia $k$~p"lat"ow B\'{e}ziera stopnia~$(9,9)$,
+z~kt"orych sk"lada si"e powierzchnia wype"lniaj"aca. Drugi etap
+zabiera znacznie mniej czasu i~w~praktyce mo"re by"c powtarzany wielokrotnie,
+gdy u"rytkownik programu interakcyjnego manipuluje punktami kontrolnymi
+powierzchni lub wi"ezami (ale zmiana w"ez"l"ow wymaga powt"orzenia pierwszego
+etapu konstrukcji).
+
+Pierwszy etap konstrukcji zostanie zrealizowany przez wykonanie
+nast"epuj"acych instrukcji:
+
+\vspace{\medskipamount}
+\noindent{\ttfamily%
+GHoleDomainf *domain; \\
+\ldots \\
+if ( !(domain = gh\_CreateDomainf ( k, knots, domain\_cp )) ) \\
+\mbox{} \ exit ( 1 ); \\
+if ( !g2h\_ComputeBasisf ( domain ) ) \\
+\mbox{} \ exit ( 1 ); \\
+if ( !g2h\_DecomposeMatrixf ( domain ) ) \\
+\mbox{} \ exit ( 1 );}
+
+\vspace{\medskipamount}
+\begin{sloppypar}
+Parametr \texttt{k} okre"sla liczb"e wierzcho"lk"ow otworu, za"s
+tablice \texttt{knots} i~\texttt{domain\_cp} zawieraj"a odpowiednio ci"agi
+w"ez"l"ow i~punkty kontrolne dziedziny. Procedura \texttt{gh\_CreateDomainf}
+tworzy struktur"e danych, kt"ora zawiera reprezentacj"e dziedziny~$\varOmega$
+parametryzacji powierzchni wype"lniaj"acej, a~tak"re sposobu jej podzia"lu
+na fragmenty ($k$~krzywoliniowych czworok"at"ow) i~bazy przestrzeni~$V$.
+Struktura ta dalej b"edzie nazywana \textbf{rekordem dziedziny}.%
+\end{sloppypar}
+
+\begin{sloppypar}
+Po utworzeniu rekordu dziedziny (przed wywo"laniem \texttt{g2h\_ComputeBasisf}),
+mo"r\-na wywo"la"c procedur"e \texttt{g2h\_SetOptionProcf} w~celu u"rycia innych
+ni"r domy"slne opcji w~konstrukcji. Procedura \texttt{g2h\_ComputeBasisf}
+oblicza reprezentacj"e funkcji, z~kt"orych sk"lada si"e baza przestrzeni~$V$,
+co zajmuje raczej ma"lo czasu.%
+\end{sloppypar}
+
+Procedura \texttt{g2h\_DecomposeMatrixf} oblicza wsp"o"lczynniki macierzy
+$A$ i~$B$, kt"ore wyst"epuj"a w~uk"ladzie r"owna"n~(\ref{eq:g2h:Ritz:eq}).
+Wsp"o"lczynniki te s"a warto"sciami formy dwuliniowej w~przestrzeni~$V$ dla
+par funkcji bazowych. Wektor~$\bm{b}$ sk"lada si"e z~punkt"ow kontrolnych
+powierzchni (b"ed"a one okre"slone w~drugim etapie konstrukcji),
+a~niewiadomy wektor~$\bm{a}$ sk"lada si"e z~pozosta"lych wsp"o"lczynnik"ow
+u"rywanej w~konstrukcji reprezentacji powierzchni wype"lniaj"acej. Macierz~$A$,
+kt"ora jest symetryczna i~dodatnio okre"slona, jest nast"epnie rozk"ladana
+metod"a Choleskiego na czynniki tr"ojk"atne: $A=LL^T$, kt"ore b"ed"a potrzebne
+podczas rozwi"azywania uk"ladu. Obliczenie wsp"o"lczynnik"ow macierzy $A$ i~$B$
+jest najbardziej czasoch"lonnym krokiem konstrukcji --- dla $k=8$ procesor
+Pentium~IV z~zegarem $1.8$GHz mo"re na to zu"ry"c ok.~$0.15$s.
+
+\vspace{\medskipamount}
+Wykonanie drugiego etapu konstrukcji polega na wykonaniu instrukcji
+
+\vspace{\medskipamount}
+\noindent{\ttfamily%
+if ( !g2h\_FillHolef ( domain, d, surf\_cp, acoeff, output ) ) \\
+\mbox{} \ exit ( 1 );}
+
+\vspace{\medskipamount}
+Parametr \texttt{domain} jest wska"znikiem rekordu dziedziny, dla kt"orego
+pierwszy etap konstrukcji zosta"l (z~sukcesem) zako"nczony. Parametr~\texttt{d}
+okre"sla wymiar przestrzeni, w~kt"orej le"ry powierzchnia, tablica
+\texttt{surf\_cp} zawiera punkty kontrolne powierzchni, a~parametr
+\texttt{output} jest wska"znikiem procedury, kt"ora zostanie wywo"lana
+$k$-krotnie. Za ka"rdym razem jej parametry b"ed"a opisywa"c reprezentacj"e
+B\'{e}ziera kolejnego p"lata b"ed"acego cz"e"sci"a powierzchni wype"lniaj"acej
+otw"or.
+
+Parametr \texttt{acoeff} jest tablic"a, do kt"orej ma by"c wstawione
+rozwi"azanie uk"ladu r"owna"n~(\ref{eq:g2h:Ritz:eq}). Mo"re ono by"c
+potrzebne, ja"sli kogo"s interesuje warto"s"c funkcjona"lu~$F$
+dla skonstruowanej powierzchni ("sci"slej, suma warto"sci dla funkcji
+opisuj"acych wsp"o"lrz"edne powierzchni). Parametr teh mo"re mie"c
+te"r warto"s"c \texttt{NULL} i~wtedy jest ignorowany.
+
+
+\subsection{Konstrukcja nieliniowa}
+
+Aby otrzyma"c powierzchni"e wype"lniaj"ac"a, dla kt"orej funkcjona"l~$F_d$
+przyjmuje minimaln"a warto"s"c, nale"ry utworzy"c reprezentacj"e dziedziny,
+skonstruowa"c baz"e i~obliczy"c wsp"o"lczynniki macierzy~$A$ i~$B$,
+a~nast"epnie zamiast procedury \texttt{g2h\_FillHolef} wywo"la"c procedur"e
+\texttt{g2h\_NLFillHolef}.
+
+Obliczenia w~tej konstrukcji s"a znacznie bardziej pracoch"lonne (do paru
+sekund), a~ponadto wykonalno"s"c tej konstrukcji zale"ry od powierzchni
+z~otworem. Je"sli powierzchnia ta nie jest dostatecznie p"laska lub jest
+zdegenerowana, to konstrukcja mo"re zako"nczy"c si"e niepowodzeniem.
+
+
+\subsection{Konstrukcje z~przestrzeni"a rozszerzon"a}
+
+P"laty wype"lniaj"ace otw"or skonstruowane w~spos"ob opisany wy"rej s"a
+okre"slone jako dwupi"etne p"laty Coonsa, kt"orych krzywe opisuj"ace
+brzegi i~pochodne w~kierunku poprzecznym do brzegu maj"a stopie"n~$9$
+lub mniejszy. Reprezentacja Coonsa u"rywana w~konstrukcji jest poddawana
+konwersji do postaci B\'{e}ziera. Poniewa"r przes\-trze"n wielomian"ow dw"och
+zmiennych stopnia~$(9,9)$ ma wymiar~$100$, a~wielomiany stopnia~$(9,9)$
+maj"ace dwupi"etn"a reprezentacj"e Coonsa tworz"a podprzestrze"n
+o~wymiarze~$84$, wi"ec istnieje mo"rliwo"s"c rozszerzenia przestrzeni
+funkcji, za pomoc"a kt"orych s"a reprezentowane powierzchnie wype"lniaj"ace,
+do przestrzeni, kt"orej wymiar jest o~$16k$ wi"ekszy. Powierzchnie, wyznaczone
+za pomoc"a minimalizacji funkcjona"lu~$F$ w~rozszerzonej przestrzeni,
+mog"a mie"c lepszy kszta"lt (i~cz"esto maj"a).
+
+Aby skorzysta"c z~tej mo"rliwo"sci, po utworzeniu rekordu dziedziny
+za pomoc"a procedury \texttt{gh\_CreateDomainf} i~ewentualnym
+zarejestrowaniu procedury wprowadzania opcji, nale"ry utworzy"c baz"e
+przestrzeni podstawowej, wywo"luj"ac jak poprzednio \texttt{g2h\_ComputeBasisf}
+(konstrukcja dodatkowych funkcji, kt"ore wchodz"a w~sk"lad bazy rozszerzonej
+przestrzeni nie wymaga "radnych dodatkowych oblicze"n). Nast"epnie
+\emph{zamiast} procedury \texttt{g2h\_DecomposeMatrixf} nale"ry wywo"la"c
+procedur"e \texttt{g2h\_DecomposeExtMatrixf}, kt"ora obliczy macierze~$A$
+i~$B$ odpowiednio powi"ekszonego uk"ladu r"owna"n~(\ref{eq:g2h:Ritz:eq})
+i~roz"lo"ry macierz~$A$ na czynniki tr"ojk"atne.
+
+Drugi etap konstrukcji przy u"ryciu przestrzeni rozszerzonej wykonuje
+procedura \texttt{g2h\_ExtFillHolef}, kt"or"a nale"ry wywo"la"c \emph{zamiast}
+procedury \texttt{g2h\_FillHolef}. Parametry tych procedur s"a identyczne.
+
+Dane wykorzystywane w~obu konstrukcjach s"a tworzone i~przechowywane
+w~rekordzie dziedziny niezale"rnie, w~zwi"azku z~czym mo"rna najpierw
+utworzy"c i~roz"lo"ry"c macierze uk"lad"ow dla obu tych konstrukcji,
+a~potem wykona"c je w~dowolnej kolejno"sci i~por"owna"c wyniki.
+Czas oblicze"n dla przestrzeni rozszerzonej jest d"lu"rszy, ale r"o"rnica
+jest praktycznie niezauwa"ralna. Obliczenia dla przestrzeni rozszerzonej
+wymagaj"a za to wi"ecej pami"eci --- zar"owno na wyniki (wsp"o"lczynniki
+macierzy, kt"ore przechowuje si"e w~obszarach rezerwowanych przez
+\texttt{malloc}), jak i~na tablice pomocnicze (w~puli pami"eci ,,podr"ecznej'',
+obs"lugiwanej przez procedury opisane w~p.~\ref{sect:scratch:mem}).
+W~wersji podw"ojnej precyzji dla $k=8$ tablice pomocnicze mog"a zajmowa"c
+oko"lo~$2$MB.
+
+Aby skonstruowa"c powierzchni"e minimaln"a funkcjona"lu~$F_d$
+przy u"ryciu przes\-trze\-ni rozszerzonej, nale"ry wywo"la"c procedur"e
+\texttt{g2h\_NLExtFillHolef}. Pami"e"c ,,podr"eczna'' potrzebna w~tej
+konstrukcji mo"re mie"c wielko"s"c do ok.\ $8$MB.
+
+
+\subsection{\label{ssect:g2h:constraints}Konstrukcje z~wi"ezami}
+
+W~celu skonstruowania powierzchni z~wi"ezami nale"ry skonstruowa"c
+reprezentacj"e dziedziny (przy u"ryciu \texttt{gh\_CreateDomainf}),
+skonstruowa"c baz"e, a~nast"epnie wprowadzi"c macierz~$C$ uk"ladu r"owna"n
+wi"ez"ow i~wywo"la"c procedur"e konstrukcji powierzchni z~wi"ezami.
+
+\begin{sloppypar}
+Dla \textbf{przestrzeni podstawowej}, do wprowadzania macierzy uk"ladu r"owna"n
+wi"ez"ow~(\ref{eq:constraints}) s"lu"ry
+procedura~\texttt{g2h\_SetConstraintMatrixf}. Powierzchni"e minimaln"a
+funkcjona"lu~$F_c$ z~wi"ezami konstruuje procedura
+\texttt{g2h\_FillHoleConstrf}. Powierzchni"e minimaln"a funkcjona"lu~$F_d$
+z~wi"ezami o~tej postaci konstruuje procedura \texttt{g2h\_NLFillHoleConstrf}.%
+\end{sloppypar}
+
+Do wprowadzenia macierzy uk"ladu r"owna"n wi"ez"ow
+o~postaci~(\ref{eq:alt:constraints})
+s"lu"ry procedura \texttt{g2h\_SetAltConstraintMatrixf}. Powierzchni"e
+minimaln"a funkcjona"lu~$F_c$ z~wi"ezami o~tej postaci konstruuje procedura
+\texttt{g2h\_FillHoleAltConstrf}, a~powierzchni"e minimaln"a
+funkcjona"lu~$F_d$ procedura \texttt{g2h\_NLFillHoleAltConstrf}.
+
+Dla \textbf{przestrzeni rozszerzonej} do wprowadzenia macierzy uk"ladu
+r"owna"n~(\ref{eq:constraints}) s"lu"ry procedura
+\texttt{g2h\_SetExtConstraintMatrixf}. Powierzchnia minimalna funkcjona"lu
+$F_c$ jest konstruowana przez procedur"e
+\texttt{g2h\_ExtFillHoleConstrf}, a~powierzchnia minimalna~$F_d$ przez
+\texttt{g2h\_NLExtFillHoleConstrf}.
+
+Macierz uk"ladu~(\ref{eq:alt:constraints}) dla przestrzeni rozszerzonej
+wprowadza si"e za pomoc"a procedury
+\texttt{g2h\_SetExtAltConstraintMatrixf}. Powierzchnie minimalne
+funkcjona"l"ow $F_c$ i~$F_d$ otrzymuje si"e za pomoc"a procedur
+\texttt{g2h\_ExtFillHoleAltConstrf} i~\texttt{g2h\_NLExtFillHoleAltConstrf}.
+
+Macierz ka"rdego z~czterech rodzaj"a wi"ez"ow
+(tj.\ o~postaci~(\ref{eq:constraints}) i~(\ref{eq:alt:constraints}) dla
+przestrzeni podstawowej i~rozszerzonej) mo"re by"c okre"slona niezale"rnie
+od~pozosta"lych. Aby zmieni"c macierz uk"ladu wi"ez"ow, wystarczy ponownie
+wywo"la"c odpowiedni"a procedur"e spo"sr"od wymienionych wy"rej.
+
+
+\section{Procedury podstawowe}
+
+\cprog{%
+\#define G2H\_FINALDEG  9 \\
+\#define GH\_MAX\_K \ 16}
+\begin{sloppypar}
+\hspace*{\parindent}
+Powy"rsze dwie sta"le symboliczne okre"slaj"a stopie"n p"lat"ow wype"lniaj"acych
+otw"or i~najwi"eksz"a dopuszczaln"a liczb"e wierzcho"lk"ow wielok"atnego otworu.%
+\end{sloppypar}
+
+Sta"lych tych nie mo"rna po prostu zmieni"c --- stopie"n~$9$ jest rezultatem
+zastosowania odpowiedniego schematu interpolacyjnego. Procedury biblioteczne
+mog"a zrealizowa"c te"r schemat interpolacyjny, kt"orego wynikiem s"a p"laty
+stopnia~$10$. W~tym celu trzeba usun"a"c definicj"e symbolu
+\texttt{G2H\_FINALDEG9} w~pliku nag"l"owkowym i~skompilowa"c procedury.
+
+Dziedzina parametryzacji powierzchni wype"lniaj"acej $k$-k"atny otw"or jest
+dzielona na $k$~cz"e"sci. Do reprezentowania zbior"ow tych cz"e"sci s"a
+u"rywane liczby ca"lkowite kr"otkie, czyli zmienne o~d"lugo"sci $16$~bit"ow.
+Aby wype"lnia"c
+otwory wi"ecej ni"r szesnastok"atne, trzeba przerobi"c odpowiedni fragment
+procedur, tak, aby u"rywa"ly one np.\ s"l"ow $32$-bitowych, co umo"rliwi
+wype"lnianie otwor"ow trzydziestodwuk"atnych.
+
+\vspace{\bigskipamount}
+\cprog{%
+typedef struct GHoleDomainf \{ \\
+\ind{4}int     hole\_k; \\
+\ind{4}float   *hole\_knots; \\
+\ind{4}point2f *domain\_cp; \\
+\ind{4}boolean basisG1, basisG2; \\
+\ind{4}void    *privateG; \\
+\ind{4}void    *privateG1; \\
+\ind{4}void    *SprivateG1; \\
+\ind{4}void    *privateG2; \\
+\ind{4}void    *SprivateG2; \\
+\ind{4}int     error\_code; \\
+\ind{2}\} GHoleDomainf;}
+Typ struktury \texttt{GHoleDomainf} opisuje rekord dziedziny, tj.\ obiekt
+reprezentuj"acy dane potrzebne do skonstruowania powierzchni
+wype"lniaj"acej otw"or. W~programie deklaruje si"e zmienn"a wska"znikow"a
+do rekordu tego typu, poniewa"r za ich tworzenie i~poprawno"s"c danych
+odpowiedzialne s"a procedury biblioteczne.
+
+Pole \texttt{hole\_k} opisuje liczb"e wierzcho"lk"ow wielok"atnego
+otworu do wype"lnienia (od $3$ do $16$).
+
+Pole \texttt{hole\_knots} jest wska"znikiem do tablicy $11k$ liczb,
+kt"ore s"a w"ez"lami w~reprezentacji powierzchni z~otworem.
+
+Pole \texttt{domain\_cp} jest wska"znikiem do tablicy $12k+1$ punkt"ow
+statki kontrolnej reprezentuj"acej dziedzin"e parametryzacji
+powierzchni wype"lniaj"acej.
+
+Pola \texttt{privateG}, \texttt{privateG1}, \texttt{SprivateG1},
+\texttt{privateG2} i~\texttt{SprivateG2} s"a wska"znikami rekord"ow
+(ich budowa i~zawarto"s"c s"a niewidoczne dla aplikacji) z~wszystkimi
+innymi danymi potrzebnymi w~poszczeg"olnych konstrukcjach powierzchni
+wype"lniaj"acych.
+
+Pole \texttt{error\_code} s"lu"ry do przechowywania informacji o~sukcesie,
+albo o~przyczynie niepowodzenia oblicze"n.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+GHoleDomainf* gh\_CreateDomainf ( int     hole\_k, \\
+\ind{33}float   *hole\_knots, \\
+\ind{33}point2f *domain\_cp ); \\
+void gh\_DestroyDomainf ( GHoleDomainf *domain );}
+Procedura \texttt{gh\_CreateDomainf} tworzy obiekt typu~\texttt{GHoleDomainf},
+kt"ory reprezentuje dziedzin"e powierzchni wype"lniaj"acej i~zwraca wska"znik
+do tego obiektu. Bloki pami"eci dla tego obiektu i~wszystkich danych
+wskazywanych przez zawarte w~nim wska"zniki s"a rezerwowane za pomoc"a procedury
+\texttt{malloc}.
+
+Parameter \texttt{hole\_k} okre"sla liczb"e~$k$ wierzcho"lk"ow dziedziny otworu
+(musi by"c od $3$ do~$16$).
+
+Parameter \texttt{hole\_knots} jest tablic"a z~$11k$ liczbami --- w"ez"lami
+reprezentacji powierzchni z~otworem i~dziedziny.
+
+Parameter \texttt{domain\_cp} jest tablic"a z~$12k+1$ punktami kontrolnymi
+reprezentacji dziedziny. Zawarto"s"c tych dw"och tablic jest kopiowana
+do pami"eci rezerwowanej przez procedur"e \texttt{gh\_CreateDomainf}.    
+
+Je"sli nie mo"rna zarezerwowa"c pami"eci lub w~danych zosta"l wykryty b"l"ad,
+to warto"sci"a procedury jest \texttt{NULL}.
+
+Obiekt natychmiast po utworzeniu nie jest got"ow do wype"lniania powierzchni
+--- ta procedura nie konstruuje bazy. Obliczenia przygotowawcze s"a
+nieco czasoch"lonne, dlatego w~aplikacji mo"re by"c wygodne ich oddzielenie
+od utworzenia obiektu.
+
+\vspace{\medskipamount}
+Procedura \texttt{gh\_DestroyDomainf} zwalnia (za pomoc"a procedury \texttt{free})
+pami"e"c zajmowan"a przez reprezentacj"e dziedziny (w~szczeg"olno"sci wszystkie
+bloki pami"eci zarezerwowane podczas oblicze"n wykonanych podczas przetwarzania
+tej reprezentacji).
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_SetOptionProcf ( GHoleDomainf *domain, \\
+\ind{4}int (*OptionProc)( GHoleDomainf *domain, int query, int qn, \\
+\ind{23}int *ndata, int **idata, float **fdata ) );}
+Procedura \texttt{g2h\_SetOptionProcf} rejestruje dostarczon"a przez aplikacj"e
+procedur"e, kt"orej zadaniem jest okre"slenie opcji dla konstrukcji
+i~przekazanie odpowiednich danych. Je"sli po utworzeniu reprezentacji
+dziedziny nie zarejestrujemy takiej procedury, to u"rywana jest procedura
+domy"slna (kt"ora na ka"rde pytanie o~opcj"e daje odpowied"z domy"sln"a).
+
+Ten spos"ob okre"slania opcji zosta"l zrealizowany w~celu ustalenia
+listy parametr"ow procedur bibliotecznych podczas opracowywania konstrukcji.
+Korzy"s"c z~niego jest taka, "re aplikacja, kt"ora nie u"rywa opcji
+innych ni"r standardowe, nie musi wywo"lywa"c procedur bibliotecznych
+z~parametrami pozbawionymi dla tej aplikacji znaczenia.
+
+Zasady okre"slania opcji s"a opisane w~p.~\ref{ssect:g2h:options}.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_ComputeBasisf ( GHoleDomainf *domain );}
+Procedura \texttt{g2h\_ComputeBasisf} konstruuje funkcje bazowe, przy u"ryciu
+kt"orych mo"rna b"edzie wype"lnia"c otwory w~powierzchniach.
+Parametr procedury jest wska"znikiem obiektu utworzonego przez
+procedur"e \texttt{gh\_CreateDomainf}. Warto"s"c procedury \texttt{true}
+oznacza sukces, a~\texttt{false} oznacza niepowodzenie obliczenia.
+
+Je"sli dla dziedziny przekazanej jako parametr zosta"la zarejestrowana
+procedura okre"slania opcji, to b"edzie ona wywo"lana pewn"a liczb"e razy.
+Procedura ta ma wp"lyw na wynik oblicze"n (tj.\ posta"c funkcji bazowych),
+czyli tak"re na powierzchnie wype"lniaj"ace otrzymane przy u"ryciu tej bazy.
+
+Procedura \texttt{g2h\_ComputeBasisf} powinna by"c wywo"lana tylko raz
+dla reprezentacji dziedziny utworzonej przez procedur"e
+\texttt{gh\_CreateDomainf}. Je"sli trzeba dla tej samej dziedziny
+skonstruowa"c wi"ecej ni"r jedn"a baz"e, np.\ przy u"ryciu r"o"rnych opcji,
+to trzeba za ka"rdym razem zlikwidowa"c reprezentacj"e dziedziny (wywo"luj"ac
+\texttt{gh\_DestroyDomainf}) i~utworzy"c j"a od nowa.
+
+Obliczenie realizowane przez t"e procedur"e zajmuje umiarkowan"a ilo"s"c czasu,
+dlatego mo"rna je wykona"c ,,na poczekaniu'' podcase obs"lugi komunikatu
+(zwi"azane z~tym op"o"znienie nie powinno by"c zauwa"ralne dla u"rytkownika
+programu interakcyjnego).
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_ComputeFormMatrixf ( GHoleDomainf *domain ); \\
+boolean g2h\_DecomposeMatrixf ( GHoleDomainf *domain );}
+\begin{sloppypar}
+Procedura \texttt{g2h\_ComputeFormMatrixf} oblicza wsp"o"lczynniki macierzy
+uk"ladu r"owna"n rozwi"azywanego podczas konstruowania powierzchni
+wype"lniaj"acej otw"or, \textbf{przy u"ryciu przestrzeni podstawowej}.
+Parametrem procedury jest reprezentacja dziedziny utworzona przez procedur"e
+\texttt{gh\_CreateDomainf}, dla kt"orej procedura \texttt{g2h\_ComputeBasisf}
+skonstruowa"la z~sukcesem reprezentacj"e funkcji bazowych.%
+\end{sloppypar}
+
+\vspace{\medskipamount}
+\begin{sloppypar}
+Procedura \texttt{g2h\_DecomposeMatrixf} rozk"lada (metod"a Choleskiego)
+macierz uk"la\-du, skonstruowan"a przez procedur"e
+\texttt{g2h\_ComputeFormMatrixf}. Je"sli wsp"o"lczynniki nie zosta"ly obliczone,
+to procedura \texttt{g2h\_DecomposeMatrixf} najpierw oblicza je, wywo"luj"ac
+\texttt{g2h\_ComputeFormMatrixf}.%
+\end{sloppypar}
+
+\vspace{\medskipamount}
+Warto"sci"a obu procedur jest \texttt{true} je"sli obliczenie przebieg"lo
+poprawnie, albo \texttt{false} w~przeciwnym razie.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_FillHolef ( GHoleDomainf *domain, \\
+\ind{14}int spdimen, const float *hole\_cp, float *acoeff, \\
+\ind{14}void (*outpatch) ( int n, int m, const float *cp ) );}
+\begin{sloppypar}
+Procedura \texttt{g2h\_FillHolef} konstruuje powierzchni"e wype"lniaj"ac"a
+wielok"atny otw"or, \textbf{w~oparciu o~przestrze"n podstawow"a}.%
+\end{sloppypar}
+
+\begin{sloppypar}
+Parametr \texttt{domain} wskazuje reprezentacj"e dziedziny
+utworzon"a przez procedur"e \texttt{gh\_CreateDomainf}, dla kt"orej procedura
+\texttt{g2h\_ComputeBasisf} skonstruowa"la (z~sukcesem) reprezentacj"e
+funkcji bazowych. Liczba~$k$ wierzcho"lk"ow otworu i~ci"agi w"ez\-"l"ow
+nale"r"ace do reprezentacji powierzchni zosta"ly okre"slone przy wywo"laniu
+procedury \texttt{gh\_CreateDomainf}.%
+\end{sloppypar}
+
+Parametr \texttt{spdimen} okre"sla wymiar~$d$ przestrzeni, w~kt"orej le"ry
+powierzchnia. Dla powierzchni wielomianowej w~$\R^3$ parametr ten b"edzie
+mia"l warto"s"c~$3$. Dla powierzchni wielomianowej w~$\R^4$, kt"ora jest
+jednorodn"a reprezentacj"a powierzchni wymiernej w~$\R^3$ trzeba poda"c~$4$.
+
+Parametr \texttt{hole\_cp} jest tablic"a, kt"ora zawiera $(12k+1)d$ liczb
+zmiennopozycyjnych, b"ed"acych wsp"o"lrz"ednymi $12k+1$ punkt"ow kontrolnych
+powierzchni.
+
+Parametr \texttt{acoeff} mo"re mie"c warto"s"c \texttt{NULL}
+(i~wtedy jest ignorowany), lub wskazywa"c tablic"e, do kt"orej procedura
+wstawi rozwi"azanie uk"ladu r"owna"n~(\ref{eq:g2h:Ritz:eq}). Tab\-li\-ca ta musi
+mie"c d"lugo"s"c $nd$, gdzie $d$~jest wymiarem przestrzeni, w~kt"orej le"ry
+powierzchnia (tj.\ warto"sci"a parametru \texttt{spdimen}), a~$n$ jest
+wymiarem przestrzeni podstawowej --- mo"rna go otrzyma"c za pomoc"a procedury
+\texttt{g2h\_V0SpaceDimf}.
+
+Parametr \texttt{outpatch} jest wska"znikiem procedury (dostarczonej przez
+aplikacj"e), kt"ora b"edzie wywo"lana $k$~razy, w~celu wyprowadzenia
+punkt"ow kontrolnych $k$ p"lat"ow B\'{e}ziera stopnia~$(9,9)$ wype"lniaj"acych
+otw"or.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_ComputeExtFormMatrixf ( GHoleDomainf *domain ); \\
+boolean g2h\_DecomposeExtMatrixf ( GHoleDomainf *domain );}
+\begin{sloppypar}
+Procedura \texttt{g2h\_ComputeExtFormMatrixf} oblicza wsp"o"lczynniki macierzy
+uk"la\-du r"owna"n rozwi"azywanego podczas konstruowania powierzchni
+wype"lniaj"acej otw"or, \textbf{przy u"ryciu przestrzeni rozszerzonej}.
+Parametrem procedury jest reprezentacja dziedziny utworzona przez procedur"e
+\texttt{gh\_CreateDomainf}, dla kt"orej procedura \texttt{g2h\_ComputeBasisf}
+skonstruowa"la z~sukcesem reprezentacj"e funkcji bazowych.%
+\end{sloppypar}
+
+\vspace{\medskipamount}
+\begin{sloppypar}
+Procedura \texttt{g2h\_DecomposeExtMatrixf} rozk"lada (metod"a Choleskiego)
+macierz uk"la\-du, skonstruowan"a przez procedur"e
+\texttt{g2h\_ComputeExtFormMatrixf}. Je"sli wsp"o"lczynniki nie zosta"ly obliczone,
+to procedura \texttt{g2h\_DecomposeExtMatrixf} najpierw oblicza je, wywo"luj"ac
+\texttt{g2h\_ComputeExtFormMatrixf}.%
+\end{sloppypar}
+
+\vspace{\medskipamount}
+Warto"sci"a obu procedur jest \texttt{true} je"sli obliczenie przebieg"lo
+poprawnie, albo \texttt{false} w~przeciwnym razie.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_ExtFillHolef ( GHoleDomainf *domain, \\
+\ind{14}int spdimen, const float *hole\_cp, float *acoeff, \\
+\ind{14}void (*outpatch) ( int n, int m, const float *cp ) );}
+\begin{sloppypar}
+Procedura \texttt{g2h\_ExtFillHolef} konstruuje powierzchni"e wype"lniaj"ac"a
+wielok"atny otw"or, \textbf{w~oparciu o~przestrze"n rozszerzon"a}.%
+\end{sloppypar}
+
+\begin{sloppypar}
+Parametr \texttt{domain} wskazuje reprezentacj"e dziedziny
+utworzon"a przez procedur"e \texttt{gh\_CreateDomainf}, dla kt"orej procedura
+\texttt{g2h\_ComputeBasisf} skonstruowa"la (z~sukcesem) reprezentacj"e
+funkcji bazowych. Liczba~$k$ wierzcho"lk"ow otworu i~ci"agi w"ez\-"l"ow
+nale"r"ace do reprezentacji powierzchni zosta"ly okre"slone przy wywo"laniu
+procedury \texttt{gh\_CreateDomainf}.%
+\end{sloppypar}
+
+Parametr \texttt{spdimen} okre"sla wymiar~$d$ przestrzeni, w~kt"orej le"ry
+powierzchnia. Dla powierzchni wielomianowej w~$\R^3$ parametr ten b"edzie
+mia"l warto"s"c~$3$. Dla powierzchni wielomianowej w~$\R^4$, kt"ora jest
+jednorodn"a reprezentacj"a powierzchni wymiernej w~$\R^3$ trzeba poda"c~$4$.
+
+Parametr \texttt{hole\_cp} jest tablic"a, kt"ora zawiera $(12k+1)d$ liczb
+zmiennopozycyjnych, b"ed"acych wsp"o"lrz"ednymi $12k+1$ punkt"ow kontrolnych
+powierzchni.
+
+Parametr \texttt{acoeff} mo"re mie"c warto"s"c \texttt{NULL}
+(i~wtedy jest ignorowany), lub wskazywa"c tablic"e, do kt"orej procedura
+wstawi rozwi"azanie uk"ladu r"owna"n~(\ref{eq:g2h:Ritz:eq}). Tab\-li\-ca ta musi
+mie"c d"lugo"s"c $nd$, gdzie $d$~jest wymiarem przestrzeni, w~kt"orej le"ry
+powierzchnia (tj.\ warto"sci"a parametru \texttt{spdimen}), a~$n$ jest
+wymiarem przestrzeni rozszerzonej --- mo"rna go otrzyma"c za pomoc"a procedury
+\texttt{g2h\_ExtV0SpaceDimf}.
+
+Parametr \texttt{outpatch} jest wska"znikiem procedury (dostarczonej przez
+aplikacj"e), kt"ora b"edzie wywo"lana $k$~razy, w~celu wyprowadzenia
+punkt"ow kontrolnych $k$ p"lat"ow B\'{e}ziera stopnia~$(9,9)$ wype"lniaj"acych
+otw"or.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+int g2h\_GetErrorCodef ( GHoleDomainf *domain, \\
+\ind{24}char **ErrorString );}
+Procedura \texttt{g2h\_GetErrorCodef} mo"re by"c wywo"lana w~razie
+niepowodzenia kt"orego"s etapu konstrukcji, w~celu ustalenia przyczyny.
+Jej warto"sci"a jest numer (kod) b"l"edu. Je"sli parametr \texttt{ErrorString}
+jest r"o"rny od \texttt{NULL}, to zmienna \texttt{*ErrorString} po powrocie
+z~procedury wskazuje napis, kt"ory jest opisem b"l"edu (po angielsku).
+
+
+\section{\label{ssect:g2h:options}Wprowadzanie opcji}
+
+Procedura \texttt{g2h\_SetOptionProcf} opisana w~poprzednim punkcie s"lu"ry
+do zarejestrowania procedury (nale"r"acej do aplikacji), kt"ora ma ,,odpowiada"c
+na pytania'' na temat opcji. Procedura ta ma mie"c nast"epuj"acy nag"l"owek
+(nazwy procedury i~parametr"ow mog"a oczywi"scie by"c inne):
+
+\vspace{\medskipamount}
+\noindent{\ttfamily%
+int SetOptionf ( GHoleDomainf *domain, int query, int qn, \\
+\ind{17}int *ndata, int **idata, float **fdata );}
+
+\vspace{\medskipamount}
+Podczas konstruowania bazy procedura ta b"edzie wywo"lana pewn"a liczb"e razy.
+Pierwszy jej parametr jest wska"znikiem reprezentacji dziedziny wype"lnianego
+otwo\-ru. Drugi parametr (\texttt{query}) jest numerem opcji, kt"or"a procedura
+ma okre"sli"c. Parametr~\texttt{qn} jest dodatkowym numerem, kt"ory mo"re
+by"c potrzebny w~opcjach dodanych do przysz"lych wersji biblioteki, a~na razie
+mo"rna go zignorowa"c.
+
+Warto"s"c procedury jest interpretowana jako odpowied"z na pytanie o~opcj"e,
+kt"or"a nale"ry zastosowa"c. Mo"rliwe numery opcji (tj.\ warto"sci parametru
+\texttt{query}) i~odpowiedzi s"a sta"lymi symbolicznymi (o~nazwach
+zaczynaj"acych si"e odpowiednio od \texttt{G2HQUERY\_} i~\texttt{G2H\_})
+wymienionymi ni"rej. Lista ta mo"re si"e zmieni"c w~przysz"lych wersjach
+biblioteki \texttt{libeghole}.
+
+\vspace{\bigskipamount}
+\cprog{%
+\#define G2H\_DEFAULT                    0 \\
+\mbox{} \\
+\#define G2HQUERY\_CENTRAL\_POINT         1 \\
+\#define G2H\_CENTRAL\_POINT\_GIVEN        1 \\
+\mbox{} \\
+\#define G2HQUERY\_CENTRAL\_DERIVATIVES1  2 \\
+\#define G2H\_CENRTAL\_DERIVATIVES1\_ALT   1 \\
+\#define G2H\_CENTRAL\_DERIVATIVES1\_GIVEN 2 \\
+\mbox{} \\
+\#define G2HQUERY\_DOMAIN\_CURVES         3 \\
+\#define G2H\_DOMAIN\_CURVES\_DEG4         1 \\
+\mbox{} \\
+\#define G2HQUERY\_BASIS                 4 \\
+\#define G2H\_USE\_RESTRICTED\_BASIS       1}
+\begin{sloppypar}
+Po ka"rdym wywo"laniu procedura wprowadzania opcji mo"re zwr"oci"c warto"s"c
+\texttt{G2H\_DEFAULT}. W~szczeg"olno"sci taka powinna by"c warto"s"c zwracana
+dla ka"rdej opcji (okre"slonej przez parametr \texttt{query}), kt"orej procedura
+,,nie rozumie''. Dzi"eki temu aplikacja ma szanse dzia"la"c poprawnie po
+skompilowaniu z~nowsz"a wersj"a biblioteki.%
+\end{sloppypar}
+
+Je"sli parametr \texttt{query} ma warto"s"c \texttt{G2HQUERY\_CENTRAL\_POINT},
+to odpowied"z (tj.\ warto"s"c procedury) \texttt{G2H\_DEFAULT} spowoduje
+przyj"ecie za punkt "srodkowy dziedziny (tj.\ wsp"olny naro"rnik obszar"ow,
+na kt"ore dziedzina zostanie podzielona) "srodka ci"e"rko"sci "srodk"ow
+bok"ow otworu (to jest konstrukcja opisana w~artyku"lach).
+Je"s\-li procedura zwr"oci warto"s"c \texttt{G2H\_CENTRAL\_POINT\_GIVEN}, to
+zmienna \texttt{*ndata} musi otrzyma"c warto"s"c~$2$, a~zmiennej \texttt{*fdata}
+nale"ry przypisa"c warto"s"c wskazuj"ac"a tablic"e z~dwiema liczbami
+zmiennopozycyjnymi, kt"ore s"a wsp"o"lrz"ednymi punktu "srodkowego podanego
+przez aplikacj"e.
+
+Je"sli warto"sci"a parametru \texttt{query} jest
+\texttt{G2HQUERY\_CENTRAL\_DERIVATIVES1} i~procedura zwr"oci warto"s"c
+\texttt{G2H\_DEFAULT}, to wektory pochodnych pierwszego rz"edu krzywych
+podzia"lu dziedziny w~punkcie "srodkowym i~wektory pochodnych poprzecznych
+p"lat"ow pomocniczych dziedziny zostan"a przyj"ete zgodnie z~opisem
+w~artyku"lach. Warto"s"c \texttt{G2H\_CENTRAL\_DERIVATIVES\_ALT} spowoduje
+przyj"ecie wektor"ow pochodnych krzywych tak samo, za"s wektory pochodnych
+poprzecznych b"ed"a do nich prostopad"le. Warto"s"c
+\texttt{G2H\_CENTRAL\_DERIVATIVES\_GIVEN} oznacza, "re aplikacja podaje
+wektory pochodnych krzywych. Zmienna \texttt{*ndata} ma mie"c warto"s"c
+$2k$ (dla $k$-k"atnego otworu), a~tablica wskazywana przez zmienn"a
+\texttt{*fdata} ma zawiera"c $2k$ liczb zmiennopozycyjnych. Ka"rde kolejne
+dwie z~tych liczb s"a wsp"o"lrz"ednymi wektora pochodnej kolejnej krzywej.
+
+Parametr \texttt{query} o~warto"sci \texttt{G2HQUERY\_DOMAIN\_CURVES} oznacza
+pytanie o~pochodne krzywych podzia"lu dziedziny rz"edu wy"rszego ni"r~$1$
+w~punkcie "srodkowym. W~odpowiedzi na to pytanie nale"ry zwr"oci"c
+warto"s"c \texttt{G2H\_DEFAULT}, co spowoduje przyj"ecie zerowych pochodnych
+rz"edu $2$, $3$ i~$4$. Inne opcje w~tym przypadku s"a na razie niedopracowane
+i~mog"a da"c niepoprawne skutki.
+
+Je"sli parametr \texttt{query} ma warto"s"c \texttt{G2HQUERY\_BASIS}, to
+odpowied"z \texttt{G2H\_DEFAULT} oznacza u"rycie wszystkich stopni swobody
+wyboru pochodnych cz"astkowych p"lat"ow wype"lniaj"acych otw"or w~ich punkcie
+wsp"olnym (liczba ta jest wymiarem przestrzeni podstawowej). Zale"rnie od
+liczby wierzcho"lk"ow otworu i~podzia"lu dziedziny, liczba tych stopni jest
+od~$16$ do~$30$ (dla otwor"ow tr"oj- do o"smiok"atnych). Odpowied"z
+\texttt{G2H\_USE\_RESTRICTED\_BASIS} powoduje ograniczenie liczby stopni
+swobody do~$15$ (jest to wymiar przestrzeni wielomian"ow dw"och zmiennych
+stopnia co najwy"rej~$4$).
+
+
+\section{\label{sect:g2h:constraints}Nak"ladanie wi"ez"ow}
+
+\cprog{%
+int g2h\_V0SpaceDimf ( GHoleDomainf *domain ); \\
+int g2h\_ExtV0SpaceDimf ( GHoleDomainf *domain );}
+\begin{sloppypar}
+\hspace*{\parindent}Procedury \texttt{g2h\_V0SpaceDimf}
+i~\texttt{g1h\_ExtV0SpaceDimf} obliczaj"a
+odpowiednio wymiary przestrzeni podstawowej i~rozszerzonej, u"rywanych
+w~konstrukcjach po\-wierzch\-ni wype"lniaj"acych otw"or. Parametr \texttt{domain}
+jest wska"znikiem rekordu dziedziny, dla kt"orej baza przestrzeni podstawowej
+zosta"la pomy"slnie skonstruowana.%
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_GetBPDerivativesf ( GHoleDomainf *domain, \\
+\ind{32}int cno, float *val );}
+\begin{sloppypar}
+Procedura \texttt{g1h\_GetBPDerivativesf} oblicza warto"sci funkcji
+bazowych (bazy przestrzeni podstawowej) w~punkcie "srodkowym
+i~warto"sci pochodnych rz"edu $1,\ldots,4$
+krzywych brzegowych p"lat"ow funkcji bazowych. Numer krzywej jest okre"slony
+przez warto"s"c parametru~\texttt{cno} (musi by"c od~$0$ do~$k-1$).
+Obliczone warto"sci s"a wpisywane do tablicy \texttt{val}, o~d"lugo"sci~$5n$,
+gdzie $n$ jest wymiarem przestrzeni podstawowej. Kolejne pi"atki liczb
+wpisywanych do tej tablicy odpowiadaj"a kolejnym funkcjom bazowym.%
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_GetBFuncPatchf ( GHoleDomainf *domain, \\
+\ind{29}int fn, int pn, float *bp );}
+Procedura \texttt{g1h\_GetBFuncPatchf} oblicza i~umieszcza w~tablicy~\texttt{bp}
+wsp"o"lczynniki $j$-tego p"lata $i$-tej funkcji bazowej. Warto"s"c
+parametru~\texttt{fn} okre"sla numer~$i\in\{0,\ldots,n-1\}$ funkcji bazowej,
+a~\texttt{pn} okre"sla numer~$j\in\{0,\ldots,k-1\}$ p"lata tej funkcji.
+Procedura ta mo"re si"e przyda"c, je"sli wi"ezy nak"ladane na powierzchni"e
+wype"lniaj"ac"a otw"or nie s"a warunkami interpolacyjnymi w~punkcie "srodkowym
+powierzchni.
+
+\begin{sloppypar}
+P"laty funkcji bazowych s"a (skalarnymi) wielomianami dw"och zmiennych, stopnia
+\texttt{G2H\_FINALDEG} ze wzgl"edu na ka"rd"a zmienn"a. Wsp"o"lczynniki
+reprezentuj"a te p"laty w~tensorowej bazie Bernsteina.%
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_SetConstraintMatrixf ( GHoleDomainf *domain, \\
+\ind{34}int nconstr, const float *cmat );}
+Procedura \texttt{g2h\_SetConstraintMatrixf} zwi"azuje z~dziedzin"a
+powierzchni wype"lniaj"acej macierz uk"ladu r"owna"n liniowych opisuj"acych
+wi"ezy, kt"ore maj"a by"c na"lo"rone na powierzchni"e.
+Parametr \texttt{nconstr} jest liczb"a wi"ez"ow (tj.\ r"owna"n), czyli liczb"a
+wierszy macierzy. Liczba kolumn jest r"owna wymiarowi przestrzeni podstawowej.
+Kolejne wiersze s"a podane w~tablicy \texttt{cmat}. Wiersze te musz"a by"c
+liniowo niezale"rne.
+
+Warto"s"c \texttt{true} procedury oznacza powodzenie, za"s \texttt{false}
+oznacza, "re podana macierz nie jest wierszowo-regularna.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_FillHoleConstrf ( GHoleDomainf *domain, \\
+\ind{14}int spdimen, const float *hole\_cp, \\
+\ind{14}int nconstr, const float *constr, \\
+\ind{14}float *acoeff, \\
+\ind{14}void (*outpatch) ( int n, int m, const float *cp ) );}
+Procedura \texttt{g1h\_FillHoleConstrf} konstruuje powierzchni"e wype"lniaj"ac"a
+otw"or, z~na"lo"ronymi wi"ezami, przy u"ryciu przestrzeni podstawowej.
+Przed wywo"laniem tej procedury nale"ry z~dziedzin"a powierzchni zwi"aza"c
+macierz uk"ladu r"owna"n opisuj"acego wi"ezy (to okre"sla m.in.\ liczb"e
+na"lo"ronych wi"ez"ow). Parametry \texttt{domain}, \texttt{spdimen},
+\texttt{hole\_cp}, \texttt{acoeff} i~\texttt{outpatch} maj"a takie samo znaczenie
+jak w~procedurze \texttt{g2h\_FillHolef}. Parametr \texttt{nconstrf} okre"sla
+liczb"e wi"ez"ow (musi ona zgadza"c si"e z~liczb"a podan"a w~wywo"laniu
+\texttt{g2h\_SetConstraintMatrixf}. Tablica \texttt{constr} zawiera
+macierz prawej strony r"owna"n wi"ez"ow --- \texttt{nconstr} wierszy po
+\texttt{spdimen} liczb.
+
+Zmiana wi"ez"ow (zar"owno macierzy jak i~prawej strony) nie wymaga tworzenia
+rekordu dziedziny od pocz"atku. Aby zmieni"c wi"ezy, wystarczy ponownie
+wywo"la"c \texttt{g2h\_SetConstraintMatrixf} i~\texttt{g1h\_FillHoleConstrf}.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_SetAltConstraintMatrixf ( GHoleDomainf *domain, \\
+\ind{20}int spdimen, \\
+\ind{20}int nconstr, const float *cmat );}
+\begin{sloppypar}
+Procedura \texttt{g2h\_SetAltConstraintMatrixf} s"lu"ry do wprowadzenia
+macierzy~$C$ uk"ladu r"owna"n wi"ez"ow o~postaci~(\ref{eq:alt:constraints})
+dla konstrukcji z~przestrzeni"a podstawow"a. Macierz ta ma wymiary $nd\times w$,
+gdzie~$n$ jest wymiarem przestrzeni (mo"rna go otrzyma"c, wywo"luj"ac procedur"e
+\texttt{g2h\_V0SpaceDimf}), $d$~jest wymiarem przestrzeni, w~kt"orej znajduje
+si"e powierzchnia (czyli np.~$3$), $w$~jest liczb"a wi"ez"ow.%
+\end{sloppypar}
+
+Parametr \texttt{spdimen} okre"sla wymiar~$d$, parametr \texttt{nconstr}
+okre"sla liczb"e wi"ez"ow. Wsp"o"lczynniki macierzy~$C$ nale"ry poda"c
+w~tablicy~\texttt{cmat}. Podzia"lka tej tablicy jest r"owna d"lugo"sci
+wiersza, tj.~$nd$. Macierz~$C$ musi by"c wierszowo regularna.
+
+Warto"s"c \texttt{true} procedury \texttt{g2h\_SetAltConstraintMatrixf} oznacza,
+"re macierz jest wierszowo regularna. Warto"s"c \texttt{false} oznacza, "re nie
+(tj.\ procedura numeryczna uzna"la, "re wiersze s"a liniowo zale"rne)
+i~z~tak"a macierz"a nie mo"rna wykona"c konstrukcji.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_FillHoleAltConstrf ( GHoleDomainf *domain, \\
+\ind{10}int spdimen, const float *hole\_cp, \\
+\ind{10}int naconstr, const float *constr, \\
+\ind{10}float *acoeff, \\
+\ind{10}void (*outpatch) ( int n, int m, const float *cp ) );}
+\begin{sloppypar}
+Procedura \texttt{g2h\_FillHoleAltConstrf} konstruuje powierzchni"e
+wype"lniaj"ac"a, kt"ora jest punktem minimalnym funkcjona"lu~$F_c$ w~zbiorze
+powierzchni reprezentowalnych przy u"ryciu przestrzeni podstawowej
+i~spe"lniaj"acych r"ownania wi"ez"ow~(\ref{eq:alt:constraints}).
+Macierz~$C$ tego uk"ladu musi by"c wprowadzona wcze"sniej, przez wywo"lanie
+procedeury \texttt{g2h\_SetAltConstraintMatrixf}.%
+\end{sloppypar}
+
+Parametr \texttt{spdimen} okre"sla wymiar~$d$ przestrzeni, w~kt"orej znajduje
+si"e powierzchnia. Tablica \texttt{hole\_cp} zawiera punkty kontrolne tej
+powierzchni. Parametr \texttt{naconstr} okre"sla liczb"e wi"ez"ow~$w$.
+W~tablicy \texttt{constr} nale"ry poda"c wsp"o"lczynniki wektora prawej
+strony uk"ladu r"owna"n wi"ez"ow ($w$~liczb). Liczby~$d$ i~$w$ musz"a si"e
+zgadza"c z~warto"sciami odpowiednich parametr"ow poprzedzaj"acego wywo"lania
+procedury \texttt{g2h\_SetAltConstraintMatrixf}.
+
+Je"sli parametr \texttt{acoeff} jest r"o"rny od~\texttt{NULL}, to ma wskazywa"c
+tablic"e, do kt"orej procedura wpisze obliczone jako wynik optymalizacji
+wektory $\bm{a}_0,\ldots,\bm{a}_{n-1}$. Procedura wskazywana przez
+parametr \texttt{output} zostanie wywo"lana $k$~razy w~celu wyprowadzenia
+wyniku konstrukcji, tj.\ p"lat"ow B\'{e}ziera wype"lniaj"acych otw"or.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_SetExtConstraintMatrixf ( GHoleDomainf *domain, \\
+\ind{34}int nconstr, const float *cmat );}
+Procedura \texttt{g2h\_SetExtConstraintMatrixf} zwi"azuje z~dziedzin"a
+powierzchni wype"lniaj"acej macierz~$C$ uk"ladu r"owna"n
+liniowych~(\ref{eq:constraints}) opisuj"acych wi"ezy, kt"ore maj"a by"c
+na"lo"rone na powierzchni"e reprezentowan"a przy u"ryciu przestrzeni rozszerzonej..
+Parametr \texttt{nconstr} jest liczb"a wi"ez"ow (tj.\ r"owna"n), czyli liczb"a
+wierszy macierzy. Liczba kolumn jest r"owna wymiarowi przestrzeni rozszerzonej.
+Kolejne wiersze s"a podane w~tablicy \texttt{cmat}. Wiersze te musz"a by"c
+liniowo niezale"rne. D"lugo"s"c wiersza~$n$ jest r"owna wymiarowi przestrzeni~$V_0$,
+kt"ory mo"rna pozna"c, wywo"luj"ac procedur"e \texttt{g2h\_ExtV0SpaceDimf}.
+
+Warto"s"c \texttt{true} procedury oznacza powodzenie, za"s \texttt{false}
+oznacza, "re podana macierz nie jest wierszowo-regularna.
+
+Pierwsze~$16k$ wsp"o"lczynnik"ow odpowiada funkcjom bazowym, kt"ore w~punkcie
+"srodkowym dziedziny maj"a warto"sci i~pochodne do czwartego rz"edu w"l"acznie
+r"owne~$0$. Ostatnie $n'$~wsp"o"lczynnik"ow w~wierszu to warto"sci
+odpowiedniego funkcjona"lu liniowego dla funkcji bazowych przestrzeni podstawowej.
+Je"sli wi"ezy s"a okre"slane w~celu skonstruowania powierzchni minimalnej
+funkcjona"lu~$F_d$ (za pomoc"a procedury \texttt{g2h\_NLExtFillHoleConstrf}),
+to pierwsze~$16k$ wsp"o"lczynniki w~ka"rdym wierszu musz"a by"c zerami.
+Ograniczenie to wynika z~zastosowanej w~tej konstrukcji metody numerycznej.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_ExtFillHoleConstrf ( GHoleDomainf *domain, \\
+\ind{14}int spdimen, const float *hole\_cp, \\
+\ind{14}int nconstr, const float *constr, \\
+\ind{14}float *acoeff, \\
+\ind{14}void (*outpatch) ( int n, int m, const float *cp ) );}
+\begin{sloppypar}
+Procedura \texttt{g1h\_ExtFillHoleConstrf} konstruuje powierzchni"e wype"lniaj"ac"a
+otw"or, z~na"lo"ronymi wi"ezami, przy u"ryciu przestrzeni rozszerzonej.
+Przed wywo"laniem tej procedury nale"ry z~dziedzin"a powierzchni zwi"aza"c
+macierz uk"ladu r"owna"n opisuj"acego wi"ezy (to okre"sla m.in.\ liczb"e
+na"lo"ronych wi"ez"ow). Parametry \texttt{domain}, \texttt{spdimen},
+\texttt{hole\_cp}, \texttt{acoeff} i~\texttt{outpatch} maj"a takie samo znaczenie
+jak w~procedurze \texttt{g2h\_ExtFillHolef}. Parametr \texttt{nconstrf} okre"sla
+liczb"e wi"ez"ow (musi ona zgadza"c si"e z~liczb"a podan"a w~wywo"laniu
+\texttt{g2h\_SetExtConstraintMatrixf}. Tablica \texttt{constr} zawiera
+macierz prawej strony r"owna"n wi"ez"ow --- \texttt{nconstr} wierszy po
+\texttt{spdimen} liczb.%
+\end{sloppypar}
+
+Zmiana wi"ez"ow (zar"owno macierzy jak i~prawej strony) nie wymaga tworzenia
+rekordu dziedziny od pocz"atku. Aby zmieni"c wi"ezy, wystarczy ponownie
+wywo"la"c \texttt{g2h\_SetExtConstraintMatrixf} i~\texttt{g1h\_ExtFillHoleConstrf}.
+
+\vspace{\bigskipamount}
+\cprog{% 
+boolean g2h\_SetExtAltConstraintMatrixf ( GHoleDomainf *domain, \\
+\ind{32}int spdimen, \\
+\ind{32}int naconstr, const float *acmat );}
+\begin{sloppypar}
+Zadaniem procedury \texttt{g2h\_SetExtAltConstraintMatrixf} jest wprowadzenie
+macierzy~$C$ uk"ladu r"owna"n wi"ez"ow~(\ref{eq:alt:constraints}) dla konstrukcji
+powierzchni wype"lniaj"acej reprezentowanej za pomoc"a przestrzeni rozszerzonej.
+Wymiary tej macierzy to~$nd\times w$, gdzie $n$ jest wymiarem przestrzeni
+rozszerzonej, $d$~jest wymiarem przestrzeni, w~kt"orej jest powierzchnia
+(np.~$3$), a~liczba wierszy~$w$ jest liczb"a wi"ez"ow.%
+\end{sloppypar}
+
+Parametry: \texttt{spdimen} --- wymiar~$d$, \texttt{naconstr} --- liczba
+wi"ez"ow~$w$, \texttt{acmat} --- tablica wsp"o"lczynnik"ow macierzy~$C$.
+Tablica ta ma podzia"lk"e r"own"a d"lugo"sci wiersza, tj.~$nd$.
+
+Tablic"e~$C$ mo"rna podzieli"c na bloki $C_0,\ldots,C_{d-1}$, o~wymiarach
+$w\times d$. Je"sli wi"ezy s"a okre"slane na potrzeby konstrukcji opartej
+na minimalizacji funkcjona"lu~$F_d$, to musi by"c $d=3$. W~ka"rdym wierszu
+ka"rdego bloku pierwsze $16k$~wspo"lczynniki musz"a by"c zerami, a~ponadto
+macierz~$C$ musi by"c wierszowo-regularna.
+Ograniczenie to wynika z~zastosowanej w~konstrukcji metody numerycznej.
+
+Warto"s"c \texttt{true} procedury oznacza akceptacj"e macierzy,
+za"s warto"s"c \texttt{false} oznacza, "re na podstawie rachunku numerycznego
+macierz zosta"la przez procedur"e uznana za wierszowo-nieregularn"a.
+
+\vspace{\bigskipamount}
+\cprog{% 
+boolean g2h\_ExtFillHoleAltConstrf ( GHoleDomainf *domain, \\                 
+\ind{10}int spdimen, const float *hole\_cp, \\                             
+\ind{10}int naconstr, const float *constr, \\          
+\ind{10}float *acoeff, \\
+\ind{10}void (*outpatch) ( int n, int m, const float *cp ) );}
+Procedura \texttt{g2h\_ExtFillHoleAltConstrf} dokonuje konstrukcji powierzchni
+wype"lniaj"acej, kt"ora minimalizuje funkcjona"l~$F_c$ w~zbiorze powierzchni
+spe"lniaj"acych r"ownania wi"ez"ow o~postaci~(\ref{eq:alt:constraints}).
+Macierz tego uk"ladu musi by"c wcze"sniej wprowadzona za pomoc"a procedury
+\texttt{g2h\_SetExtAltConstraintsf}.
+
+Parametry \texttt{spdimen} i~\texttt{naconstr} okre"slaj"a wymiar~$d$
+przestrzeni, w~kt"orej jest powierzchnia i~licz"e wi"ez"ow~$w$. Liczby te musz"a
+by"c takie same jak we wcze"sniejszym wywo"laniu
+\texttt{g2h\_SetExtAltConstraintsf}. W~tablicy \texttt{hole\_cp} nale"ry poda"c
+wsp"o"lrz"edne punkt"ow kontrolnych powierzchni. W~tablicy \texttt{constr}
+nale"ry poda"c wsp"o"lczynniki wektora prawej strony uk"ladu
+r"owna"n~(\ref{eq:alt:constraints}). Je"sli parametr \texttt{acoeff} ma
+warto"s"c r"o"rn"a od~\texttt{NULL}, to do wskazywanej przeze"n tablicy
+procedura wpisze wsp"o"lrz"edne wektor"ow $\bm{a}_0,\ldots,\bm{a}_{n-1}$,
+otrzymanych w~wyniku optymalizacji. Parametr \texttt{outpatch} wskazuje
+procedur"e, kt"ora s"lu"ry do wyprowadzenia wyniku konstrukcji w~postaci
+p"lat"ow B\'{e}ziera.
+
+Warto"s"c \texttt{true} oznacza zako"nczenie konstrukcji sukcesem,
+a~\texttt{false} oznacza niepowodzenie.
+
+\vspace{\bigskipamount}
+\cprog{%
+float g2h\_FunctionalValuef ( GHoleDomainf *domain, int spdimen, \\
+\ind{23}const float *hole\_cp, const float *acoeff ); \\
+float g2h\_ExtFunctionalValuef ( GHoleDomainf *domain, int spdimen, \\
+\ind{23}const float *hole\_cp, const float *acoeff );}
+Procedury \texttt{g2h\_FunctionalValuef} i~\texttt{g2h\_ExtFunctionalValuef}
+obliczaj"a warto"sci funkcjona"lu~$F_c$ dla powierzchni wype"lniaj"acej
+otw"or, okre"slonej przez punkty kontrolne dane w~tablicy \texttt{hole\_cp}
+i~wektory $\bm{a}_0,\ldots,\bm{a}_{n-1}$ podane w~tablicy~\texttt{acoeff},
+b"ed"ace odpowiednio wsp"o"lczynnikami reprezentacji powierzchni w~bazie
+przestrzeni podstawowej i~rozszerzonej.
+
+Po skonstruowaniu powierzchni za pomoc"a dowolnej procedury opisanej w~tym
+lub w~nast"epnym punkcie, mo"rna wywo"la"c jedn"a z~powy"rszych procedur,
+w~celu obliczenia warto"sci tego funkcjona"lu; w~tym celu nale"ry utworzy"c
+odpowiedni"a tablic"e (o~d"lugo"sci $dn$ liczb typu \texttt{float}, gdzie
+$d$~jest wymiarem przestrzeni, w~kt"orej le"ry powierzchnia (warto"sci"a
+parametru~\texttt{spdimen}), a~$n$ jest wymiarem przestrzeni~$V_0$),
+przekaza"c t"e tablic"e jako parametr \texttt{acoeff} procedury dokonuj"acej
+konstrukcji, a~nast"epnie procedury obliczaj"acej warto"s"c funkcjona"lu.
+
+\subsection{Wype"lnianie otwor"ow p"latami B-sklejanymi}
+
+\cprog{%
+\#define G2H\_S\_MAX\_NK  4 \\
+\#define G2H\_S\_MAX\_M1  3 \\
+\#define G2H\_S\_MAX\_M2  7}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_ComputeSplBasisf ( GHoleDomainf *domain, \\
+\ind{31}int nk, int m1, int m2 );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_ComputeSplFormMatrixf ( GHoleDomainf *domain ); \\
+boolean g2h\_DecomposeSplMatrixf ( GHoleDomainf *domain );}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_SplFillHolef ( GHoleDomainf *domain, \\
+\ind{11}int spdimen, const float *hole\_cp, \\
+\ind{11}float *acoeff, \\
+\ind{11}void (*outpatch) ( int n, int lknu, const float *knu, \\
+\ind{30}int m, int lknv, const float *knv, \\
+\ind{30}const float *cp ) );}
+
+\vspace{\bigskipamount}
+
+\section{Procedury konstrukcji nieliniowych}
+
+Opisane w~tym punkcie procedury dokonuj"a konstrukcji powierzchni wype"lniaj"acych
+przez minimalizacj"e funkcjona"lu~$F_d$. Wykonalno"s"c tych konstrukcji
+zale"ry w~znacznie wi"ekszym stopniu od danej powierzchni z~otworem.
+Ponadto s"a one bardziej czasosch"lonne. Powierzchnia z~otworem do wype"lnienia
+przy u"ryciu tych procedur musi le"re"c w~przestrzeni~$\R^3$ (a~wi"ec nie
+mo"re to by"c np.\ jednorodna reprezentacja powierzchni wymiernej).
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_ComputeNLNormalf ( GHoleDomainf *domain, \\
+\ind{31}const point3f *hole\_cp, \\
+\ind{31}vector3f *anv );}
+Procedura \texttt{g2h\_ComputeNLNormalf} konstruuje wersor jednej z~osi
+uk"ladu wsp"o"lrz"ednych, w~kt"orym powierzchnia z~otworem i~konstruowana
+powierzchnia wype"lniaj"aca b"ed"a przedstawione jako wykresy funkcji
+skalarnych. Parametry wej"sciowe tej procedury to \texttt{domain} --- wska"znik
+reprezentacji dziedziny i~\texttt{hole\_cp} --- tablica punkt"ow kontrolnych
+powierzchni. Parametr \texttt{anv} wskazuje zmienn"a, do kt"orej procedura
+wpisuje wynik.
+
+Warto"s"c \texttt{true} procedury oznacza sukces, a~\texttt{false} --- jego brak
+(je"sli powierzchnia okre"slona przez podane punkty kontrolne nie jest
+dostatecznie p"laska). Procedura \texttt{g2h\_ComputeNLNormalf} w~zasadzie
+nie jest przeznaczona do wywo"lywania przez aplikacj"e.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_NLFillHolef ( GHoleDomainf *domain, \\
+\ind{12}const point3f *hole\_cp, float *acoeff, \\
+\ind{12}void (*outpatch) ( int n, int m, const point3f *cp ) );}
+Procedura~\texttt{g2h\_NLFillHolef} dokonuje konstrukcji powierzchni
+wype"lniaj"acej, b"ed"acej punktem minimalnym funkcjona"lu~$F_d$
+w~przestrzeni podstawowej, bez na"lo"ronych wi"ez"ow.
+Procedura ta jest odpowiednikiem procedury \texttt{g2h\_FillHolef}
+i~ma takie same parametry z~wyj"atkiem \texttt{spdimen}.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_NLFillHoleConstrf ( GHoleDomainf *domain, \\
+\ind{12}const point3f *hole\_cp, \\
+\ind{12}int nconstr, const vector3f *constr, \\
+\ind{12}float *acoeff, \\
+\ind{12}void (*outpatch) ( int n, int m, const point3f *cp ) );}
+\begin{sloppypar}
+Procedura \texttt{ g2h\_NLFillHoleConstrf } konstruuje powierzchni"e
+wype"lniaj"ac"a, kt"o\-ra minimalizuje funkcjona"l~$F_d$ w~przestrzeni
+podstawowej, z~na"lo"ronymi wi"ezami opisanymi przez uk"lad
+r"owna"n~(\ref{eq:constraints}). Procedura ta jest odpowiednikiem
+procedury \texttt{g2h\_FillHoleConstrf}.%
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_NLFillHoleAltConstrf ( GHoleDomainf *domain, \\
+\ind{12}const point3f *hole\_cp, \\
+\ind{12}int nconstr, const float *constr, \\
+\ind{12}float *acoeff, \\
+\ind{12}void (*outpatch) ( int n, int m, const point3f *cp ) );}
+Procedura \texttt{g2h\_NLFillHoleAltConstrf} konstruuje powierzchni"e
+wype"lniaj"ac"a, kt"ora minimalizuje funkcjona"l~$F_d$ w~przestrzeni
+podstawowej, z~na"lo"ronymi wi"ezami opisanymi przez uk"lad
+r"owna"n~(\ref{eq:alt:constraints}). Jest ona odpowiednikiem
+procedury \texttt{g2h\_FillHoleAltConstrf}.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_NLExtFillHolef ( GHoleDomainf *domain, \\
+\ind{12}const point3f *hole\_cp, \\
+\ind{12}float *acoeff, \\
+\ind{12}void (*outpatch) ( int n, int m, const point3f *cp ) );}
+Procedura \texttt{g2h\_NLExtFillHolef} dokonuje konstrukcji powierzchni
+minimalnej funkcjona"lu~$F_d$ w~przestrzeni rozszerzonej, bez na"lo"ronych
+wi"ez"ow. Procedura ta jest odpowiednikiem procedury \texttt{g2h\_ExtFillHolef}
+i~ma takie same parametry (z~wyj"atkiem \texttt{spdimen}).
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_NLExtFillHoleConstrf ( GHoleDomainf *domain, \\
+\ind{12}const point3f *hole\_cp, \\
+\ind{12}int nconstr, const vector3f *constr, \\
+\ind{12}float *acoeff, \\
+\ind{12}void (*outpatch) ( int n, int m, const point3f *cp ) );}
+Procedura \texttt{g2h\_NLExtFillHoleConstrf} konstruuje powierzchni"e
+wype"lniaj"ac"a, kt"ora minimalizuje funkcjona"l~$F_d$ w~przestrzeni
+rozszerzonej, z~na"lo"ronymi wi"ezami opisanymi przez uk"lad
+r"owna"n~(\ref{eq:constraints}). Procedura ta jest odpowiednikiem
+procedury \texttt{g2h\_ExtFillHoleConstrf}.
+
+Dopuszczalna w~konstrukcji wykonywanej przez t"e procedur"e
+macierz~$C$ uk"ladu r"owna"n opisuj"acych wi"ezy, wprowadzona przez
+wcze"sniejsze wywo"lanie procedury \texttt{g2h\_SetExtConstraintMatrixf},
+musi mie"c w~ka"rdym wierszu pierwsze $16k$ wsp"o"lczynnik"ow zerowych.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_NLExtFillHoleAltConstrf ( GHoleDomainf *domain, \\
+\ind{12}const point3f *hole\_cp, \\
+\ind{12}int naconstr, const float *constr, \\
+\ind{12}float *acoeff, \\
+\ind{12}void (*outpatch) ( int n, int m, const point3f *cp ) );}
+Procedura \texttt{g2h\_NLExtFillHoleAltConstrf} konstruuje powierzchni"e
+wype"lniaj"ac"a, kt"ora minimalizuje funkcjona"l~$F_d$ w~przestrzeni
+rozszerzonej, z~na"lo"ronymi wi"ezami opisanymi przez uk"lad
+r"owna"n~(\ref{eq:alt:constraints}). Jest ona odpowiednikiem
+procedury \texttt{g2h\_ExtFillHoleAltConstrf}.
+
+Bloki~$C_0,C_1,C_2$ dopuszczalnej w~konstrukcji wykonywanej przez t"e
+procedur"e macierzy~$C=[C_0,C_1,C_2]$ uk"ladu r"owna"n opisuj"acych wi"ezy,
+wprowadzonej przez wcze"sniejsze wywo"lanie procedury
+\texttt{g2h\_SetExtAltConstraintMatrixf}, musi mie"c w~ka"rdym wierszu
+pierwsze $16k$ wsp"o"lczynnik"ow zerowych.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_NLFunctionalValuef ( GHoleDomainf *domain, \\
+\ind{33}const point3f *hole\_cp, \\
+\ind{33}const vector3f *acoeff, \\
+\ind{33}float *funcval );}
+Procedura \texttt{g2h\_NLFunctionalValuef} dla powierzchni wype"lniaj"acej
+okre"slonej przez punkty kontrolne w~tablicy~\texttt{hole\_cp} i~wektory
+$\bm{a}_0,\ldots,\bm{a}_{n-1}$ (wsp"o"lczynnik"ow reprezentacji powierzchni
+w~bazie przestrzeni podstawowej) oblicza warto"s"c funkcjona"lu~$F_d$.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_NLExtFunctionalValuef ( GHoleDomainf *domain, \\
+\ind{30}const point3f *hole\_cp, \\
+\ind{30}const vector3f *acoeff, \\
+\ind{30}float *funcval );}
+Procedura \texttt{g2h\_NLExtFunctionalValuef} dla powierzchni wype"lniaj"acej
+okre"slonej przez punkty kontrolne w~tablicy~\texttt{hole\_cp} i~wektory
+$\bm{a}_0,\ldots,\bm{a}_{n-1}$ (wsp"o"lczynnik"ow reprezentacji powierzchni
+w~bazie przestrzeni rozszerzonej) oblicza warto"s"c funkcjona"lu~$F_d$.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_NLSplFillHolef ( GHoleDomainf *domain, \\
+\ind{10}const point3f *hole\_cp, \\
+\ind{10}float *acoeff, \\
+\ind{10}void (*outpatch) ( int n, int lknu, const float *knu, \\
+\ind{29}int m, int lknv, const float *knv, \\
+\ind{29}const point3f *cp ) );}
+
+
+\newpage
+\section{Procedury wizualizacji}
+
+Nazwa ,,procedury wizualizacji'' dotyczy procedur, kt"ore wyci"agaj"a
+z~rekordu dziedziny rozmaite dane, na podstawie kt"orych mo"rna uzyska"c
+wgl"ad w~dzia"lanie konstrukcji, na przyk"lad rysuj"ac rozmaite obrazki.
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_DrawDomSurrndPatchesf ( GHoleDomainf *domain, \\
+\ind{10}void (*drawpatch) ( int n, int m, const point2f *cp ) );}
+Procedura \texttt{g2h\_DrawDomSurrndPatchesf} wyci"aga reprezentacje
+B\'{e}ziera stopnia~$(3,3)$ p"lat"ow otaczaj"acych dziedzin"e,
+tj.\ wielomianowych kawa"lk"ow p"lat"ow B-sklejanych reprezentowanych
+przez w"ez"ly i~punkty kontrolne dziedziny podane podczas tworzenia
+rekordu dziedziny.
+
+Parametr \texttt{domain} wskazuje rekord dziedziny, parametr
+\texttt{drawpatch} jest wska"znikiem procedury, kt"ora dla otworu
+$k$-k"atnego b"edzie wywo"lana $3k$ razy, z~parametrami opisuj"acymi kolejne
+p"laty otaczaj"ace dziedzin"e.
+
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_DrawDomAuxPatchesf ( GHoleDomainf *domain, \\
+\ind{10}void (*drawpatch) ( int n, int m, const point2f *cp ) );}
+Procedura \texttt{g2h\_DrawDomAuxPatchesf} wyci"aga reprezentacje B\'{e}ziera
+p"lat"ow pomocniczych dziedziny. Parametr \texttt{domain} wskazuje rekord
+dziedziny, a~parametr \texttt{drawpatch} jest wska"znikiem procedury,
+kt"ora b"edzie wywo"lana $k$~razy, w~celu przekazania aplikacji
+kolejnych p"lat"ow.
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_DrawBasAuxPatchesf ( GHoleDomainf *domain, int fn, \\
+\ind{10}void (*drawpatch) ( int n, int m, const float *cp ) );}
+Procedura \texttt{g2h\_DrawBasAuxPatchesf} wyci"aga reprezentacje B\'{e}ziera
+p"lat"ow pomocniczych funkcji bazowych. S"a to wielomiany dw"och zmiennych;
+jest ich~$k$ dla ka"rdej funkcji b"ed"acej elementem bazy przestrzeni
+podstawowej. Wymiar~$n$ tej przestrzeni mo"rna pozna"c wywo"luj"ac
+procedur"e \texttt{g2h\_V0SpaceDimf}.
+
+Parametr \texttt{domain} wskazuje rekord dziedziny, parametr \texttt{fn}
+jest numerem funkcji bazowej (musi mie"c warto"s"c od~$0$ do~$n-1$),
+parametr \texttt{drawpatch} jest wska"znikiem procedury, kt"ora zostanie
+wywo"lana $k$~razy w~celu przekazania aplikacji kolejnych p"lat"ow
+pomocniczych funkcji bazowej o~numerze~\texttt{fn}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_DrawJFunctionf ( GHoleDomainf *domain, int i, int l, \\
+\ind{10}void (*drawpoly) ( int deg, const float *f ) );}
+Procedura \texttt{g2h\_DrawJFunctionf} wyci"aga wsp"o"lczynniki wielomianu
+(w~bazie Bernsteina odpowiedniego stopnia), kt"ory jest funkcj"a po"l"aczenia
+u"rywan"a w~konstrukcji funkcji bazowych. Na ka"rdy podobszar~$\varOmega_i$
+dziedziny takich funkcji jest~$16$.
+
+Parametr \texttt{domain} wskazuje rekord dziedziny. Parametr~\texttt{i}
+jest numerem obszaru (musi by"c od~$0$ do~$k-1$), parametr \texttt{l} wybiera
+funkcj"e po"l"aczenia, kt"ora ma by"c wyprowadzona za pomoc"a procedury
+wskazywanej przez parametr~\texttt{drawpoly}.
+
+Warto"s"c parametru~\texttt{l} od~$0$ do~$15$ okre"sla jedn"a z~szesnastu
+funkcji po"l"aczenia, a~od~$16$ do~$27$ iloczyn odpowiednich funkcji, u"rywany
+w~konstrukcji. Po informacj"e, kt"ora funkcja ma kt"ory numer, odsy"lam
+do tekstu "zr"od"lowego procedury.
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_DrawDiPatchesf ( GHoleDomainf *domain, \\
+\ind{10}void (*drawpatch) ( int n, int m, const point2f *cp ) );}
+\begin{sloppypar}
+Procedura \texttt{g2h\_DrawDiPatchesf} wyci"aga reprezentacje B\'{e}ziera
+stopnia~$(9,9)$ p"lat"ow dziedziny. Parametr \texttt{domain} wskazuje
+rekord dziedziny, a~parametr \texttt{drawpatch} wskazuje procedur"e, kt"ora
+ma by"c wywo"lana $k$~razy w~celu wyprowadzenia kolejnych p"lat"ow.%
+\end{sloppypar}
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_ExtractPartitionf ( GHoleDomainf *domain, \\
+\ind{10}int *hole\_k, int *hole\_m, \\
+\ind{10}float *partition, float *part\_delta, float *spart\_alpha, \\
+\ind{10}float *spart\_malpha, float *spart\_salpha, \\
+\ind{10}float *spart\_knot, float *alpha0, \\
+\ind{10}boolean *spart\_sgn, boolean *spart\_both );}
+Procedura \texttt{g2h\_ExtractPartitionf} wyci"aga informacj"e na temat
+podzia"lu k"ata pe"lnego w~punkcie "srodkowym dziedziny~$\varOmega$
+podzielonej na podobszary~$\varOmega_i$.
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_ExtractCentralPointf ( GHoleDomainf *domain, \\
+\ind{26}point2f *centp, vector2f *centder );}
+\begin{sloppypar}
+Procedura \texttt{g2h\_ExtractCentralPointf} wyci"aga punkt "srodkowy dziedziny
+i~pochodne pierwszego rz"edu krzywych podzia"lu dziedziny w~punkcie
+"srodkowym.%
+\end{sloppypar}
+
+Parametr \texttt{domain} wskazuje rekord dziedziny, parametr
+\texttt{centp} wskazuje zmienn"a, kt"orej ma by"c przypisany punkt "srodkowy,
+a~parametr \texttt{centder} wskazuje tablic"e o~d"lugo"sci~$k$,
+do kt"orej zostan"a wpisane wektory pochodnych kolejnych krzywych.
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_DrawBasAFunctionf ( GHoleDomainf *domain, int fn, \\
+\ind{10}void (*drawpatch) ( int n, int m, const point3f *cp ) );}
+Procedura \texttt{g2h\_DrawBasAFunctionf} s"lu"ry do uzyskania informacji na
+temat funkcji bazowej o~numerze \texttt{fn}$\in\{0,\ldots,n'-1\}$.
+Procedura \texttt{*drawpatch} jest wywo"lywana $k$~razy, za ka"rdym
+wywo"laniem jej parametry opisuj"a jeden p"lat dziedziny (wsp"o"lrz"edne
+$x$, $y$ punkt"ow w~tablicy~\texttt{cp}) i~odpowiedni
+p"lat funkcji bazowej (wsp"o"lrz"edne~$z$). Parametry tej procedury
+opisuj"a stopie"n, a~w~tablicy~\texttt{cp} s"a punkty kontrolne B\'{e}ziera.
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_DrawBasBFunctionf ( GHoleDomainf *domain, int fn, \\
+\ind{10}void (*drawpatch) ( int n, int m, const point3f *cp ) );}
+Procedura \texttt{g2h\_DrawBasBFunctionf} s"lu"ry fo uzyskania informacji na
+temat funkcji bazowej o~numerze \texttt{fn}$\in\{n,\ldots,n+m-1\}$.
+Procedura \texttt{*drawpatch}, kt"ora s"lu"ry do przekazania tej informacji,
+jest wywo"lywana tak samo jak dla procedury \texttt{g2h\_DrawBasAFunctionf}
+(i~mo"re to by"c ta sama procedura w~programie).
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_DrawBasCNetf ( GHoleDomainf *domain, int fn, \\
+\ind{10}void (*drawnet) ( int n, int m, const point3f *cp ) );}
+Procedura \texttt{g2h\_DrawBasCNetf} s"lu"ry do uzyskania B-sklejanych siatek
+kontrolnych reprezentuj"acych funkcj"e $\varphi_i$ dla $i=$\texttt{fn}.
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_DrawMatricesf ( GHoleDomainf *domain, \\
+\ind{10}void (*drawmatrix)(int nfa, int nfb, \\
+\ind{29}float *amat, float *bmat) );}
+Procedura \texttt{g2h\_DrawMatricesf} s"lu"ry do uzyskania macierzy $A$
+i~$B$, wyst"epuj"acych w~uk"ladzie r"owna"n~(\ref{eq:g2h:Ritz:eq}),
+napisanym dla bazy podstawowej. Poniewa"r macierz~$A$ jest symetryczna,
+jej reprezentacja jest ,,spakowana'', zgodnie z~opisem
+w~p.~\ref{sect:packed:sym:array}.
+
+Parametr~\texttt{drawmatrix} jest wska"znikiem procedury, kt"ora zostanie
+wywo"lana z~parametrami opisuj"acymi macierze; \texttt{nfa} jest liczb"a
+wierszy obu macierzy i~liczb"a kolumn macierzy~$A$. Parametr~\texttt{nfb}
+jest liczb"a kolumn macierzy~$B$. Parametry \texttt{amat} i~\texttt{bmat}
+s"a tablicami wsp"o"lczynnik"ow.
+
+\vspace{\bigskipamount}
+\cprog{%
+void g2h\_DrawExtMatricesf ( GHoleDomainf *domain, \\
+\ind{11}void (*drawmatrix)(int k, int r, int s, \\
+\ind{30}float *Aii, float *Aki, float *Akk, \\
+\ind{30}float *Bi, float *Bk) );}
+Procedura \texttt{g2h\_DrawMatricesf} s"lu"ry do uzyskania macierzy $A$
+i~$B$, wyst"epuj"acych w~uk"ladzie r"owna"n~(\ref{eq:g2h:Ritz:eq}),
+napisanym dla bazy podstawowej. Macierz~$A$ jest symetryczna,
+o~strukturze blokowej i~jest reprezentowana w~spos"ob opisany
+w~p.~\ref{sect:block:sym:array}. Macierz~$B$ jest pe"lna, jest ona
+reprezentowana w~postaci blokowej.
+
+Parametr~\texttt{drawmatrix} jest wska"znikiem procedury, kt"ora zostanie
+wywo"lana z~parametrami opisuj"acymi macierze; jej parametry \texttt{k},
+\texttt{r} i~\texttt{s} opisuj"a liczb"e i~wielko"s"c blok"ow macierzy~$A$.
+W~tablicach \texttt{Aii}, \texttt{Aki} i~\texttt{Akk} s"a podane
+wsp"o"lczynniki macierzy~$A$, a~w~tablicach \texttt{Bi} i~\texttt{Bk}
+wsp"o"lczynniki macierzy~$B$.
+
+\vspace{\bigskipamount}
+\cprog{%
+int g2h\_DrawBFcpnf ( int hole\_k, unsigned char *bfcpn );}
+Procedura \texttt{g2h\_DrawBFcpnf} umieszcza w~tablicy~\texttt{bfcpn}
+indeksy tych punkt"ow kontrolnych powierzchni i~dziedziny, kt"ore s"a
+istotne dla kszta"ltu brzegu otworu w~powierzchni i~dziedziny,
+a~tak"re p"laszczyzny stycznej i~krzywizny powierzchni na brzegu.
+Wszystkich punkt"ow kontrolnych dla powierzchni z~otworem $k$-k"atnym jest
+$12k+1$, tych istotnych jest~$6k+1$; na rysunku~\ref{fig:domain:cnet}
+s"a one zaznaczone czarnymi kropkami. Kolejno"s"c indeks"ow punkt"ow
+w~tablicy odpowiada kolejno"sci funkcji bazowych
+$\phi_n,\ldots,\phi_{n+m-1}$.
+
+Warto"sci"a procedury jest $6k+1$.
+
+\vspace{\bigskipamount}
+\cprog{%
+boolean g2h\_GetFinalPatchCurvesf ( GHoleDomainf *domain, \\
+\ind{10}int spdimen, const float *hole\_cp, float *acoeff, \\
+\ind{10}void (*outcurve) ( int n, const float *cp ) ); \\
+boolean g2h\_GetExtFinalPatchCurvesf ( GHoleDomainf *domain, \\
+\ind{10}int spdimen, const float *hole\_cp, float *acoeff, \\
+\ind{10}void (*outcurve) ( int n, const float *cp ) ); \\
+boolean g2h\_GetSplFinalPatchCurvesf ( GHoleDomainf *domain, \\
+\ind{10}int spdimen, const float *hole\_cp, float *acoeff, \\
+\ind{10}void (*outcurve) ( int n, int lkn, \\
+\ind{20}const float *kn, const float *cp ) );}
+
