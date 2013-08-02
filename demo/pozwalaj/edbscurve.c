@@ -325,7 +325,7 @@ boolean GeomObjectBSplineCurveSetDegree ( GO_BSplineCurve *obj, int deg )
   double *cp, *kn, *acp, *wcp, *akn;
   byte   *mkcp;
 
-  kn = cp = acp = akn = NULL;
+  kn = cp = acp = akn = wcp = NULL;
   mkcp = NULL;
   if ( obj->me.obj_type != GO_BSPLINE_CURVE )
     return false;
@@ -454,6 +454,8 @@ boolean GeomObjectBSplineCurveFindCPoint ( GO_BSplineCurve *obj,
     if ( ok1 )
       current_point_ind += obj->lastknot - obj->degree;
   }
+  else
+    ok1 = false;
   return ok || ok1;
 } /*GeomObjectBSplineCurveFindCPoint*/
 
@@ -607,7 +609,7 @@ boolean GeomObjectBSplineCurveInsertKnot ( GO_BSplineCurve *obj,
   if ( obj->me.obj_type != GO_BSPLINE_CURVE )
     return false;
 
-  cp = kn = NULL;
+  cp = kn = wcp = NULL;
   mkcp = NULL;
   dim = obj->me.cpdimen;
   deg = obj->degree;
@@ -747,6 +749,7 @@ boolean GeomObjectBSplineCurveRefine ( GO_BSplineCurve *obj )
 
   sp = pkv_GetScratchMemTop ();
   kn = acp = wcp = NULL;
+  mkcp = NULL;
   if ( obj->me.obj_type != GO_BSPLINE_CURVE )
     goto failure;
 

@@ -29,7 +29,7 @@
 
 /* ///////////////////////////////////////////////////////////////////////// */
 static double _pkn_NLM_NuFuncd ( int n, void *usrdata,
-                                 evalfuncd funcf, tunnelfuncd tunnel,
+                                 pkn_NLMTevalfuncd funcf, pkn_NLMTtunnelfuncd tunnel,
                                  double nu, double *x, double *grad,
                                  double *incr, double *auxx,
                                  double *hess, double *lhess,
@@ -38,19 +38,19 @@ static double _pkn_NLM_NuFuncd ( int n, void *usrdata,
   int     i, k;
   double  fnu;
 
+  *incn = MYINFINITY;
   memcpy ( lhess, hess, (n*(n+1)/2)*sizeof(double) );
   for ( i = k = 0;  i < n;  i++, k += i+1 )
     lhess[k] += nu;
   if ( pkn_CholeskyDecompd ( n, lhess ) ) {
     pkn_LowerTrMatrixSolved ( n, lhess, 1, 1, grad, 1, incr );
     pkn_UpperTrMatrixSolved ( n, lhess, 1, 1, incr, 1, incr );
+    *incn = sqrt ( pkn_ScalarProductd ( n, incr, incr ) );
     pkn_SubtractMatrixd ( 1, n, 0, x, 0, incr, 0, auxx );
     if ( tunnel ) {
       if ( tunnel ( n, usrdata, x, auxx, went_out ) ) {
-        if ( *went_out ) {
-          *incn = sqrt ( pkn_ScalarProductd ( n, incr, incr ) );
+        if ( *went_out )
           return MYINFINITY;
-        }
       }
       else
         return -MYINFINITY;  /* error */
@@ -169,14 +169,15 @@ failure:
 
 /* ///////////////////////////////////////////////////////////////////////// */
 int pkn_NLMIterd ( int n, void *usrdata, double *x,
-                   evalfuncd funcf, evalfuncgd funcfg, evalfuncghd funcfgh,
-                   transfuncd trans, tunnelfuncd tunnel,
+                   pkn_NLMTevalfuncd funcf, pkn_NLMTevalfuncgd funcfg,
+                   pkn_NLMTevalfuncghd funcfgh, pkn_NLMTtransfuncd trans,
+                   pkn_NLMTtunnelfuncd tunnel,
                    double lowerbound, double eps, double delta,
                    double *nu )
 {
   void    *sp;
   double  f, *grad, *incr, *minx, *auxx, *auxgr, *hess, *lhess;
-  double  gn, gna, incn, df, dq, rk, lmin, lmax;
+  double  gn, gna, incn, incne, df, dq, rk, lmin, lmax;
   double  ga, gb, gc, gd, ge, fga, fgb, fgc, fgd, fge, fm;
   int     i;
   boolean went_out;
@@ -184,7 +185,7 @@ int pkn_NLMIterd ( int n, void *usrdata, double *x,
 
 #define LMFUNC(nu) \
   _pkn_NLM_NuFuncd ( n, usrdata, funcf, tunnel, \
-                     nu, x, grad, incr, auxx, hess, lhess, &went_out, &incn );
+                     nu, x, grad, incr, auxx, hess, lhess, &went_out, &incn )
 
 /* this macrodefinition must always be preceded by the previous one */
 #define RECORD_MIN(nu,fnu) \
@@ -198,7 +199,7 @@ int pkn_NLMIterd ( int n, void *usrdata, double *x,
     } \
     if ( fnu < fge ) { \
       memcpy ( minx, auxx, n*sizeof(double) ); \
-      ge = nu;  fge = fnu; \
+      ge = nu;  fge = fnu;  incne = incn; \
     } \
   }
 
@@ -276,7 +277,7 @@ int pkn_NLMIterd ( int n, void *usrdata, double *x,
   rk = df/dq;
   f = fga;
   ge = -1.0;
-  gna = sqrt ( pkn_ScalarProductd ( n, incr, incr ) );
+  gna = sqrt ( pkn_ScalarProductd ( n, auxgr, auxgr ) );
   if ( gna < eps ) {
     result = PKN_LMT_FOUND_MINIMUM;
     goto way_out;
@@ -328,6 +329,7 @@ lm_trajectory:
   ga = 0.0;              fga = MYINFINITY;
   gb = ge = MYINFINITY;  fgb = fge = f;
   memcpy ( minx, x, n*sizeof(double) );
+  incne = MYINFINITY;
         /* get the initial nu for bracketing */
   if ( *nu <= 0.0 ) {
     pkn_SymMatFindEigenvalueIntervald ( n, hess, &lmin, &lmax );
@@ -402,6 +404,8 @@ lm_trajectory:
       break;
   }
   *nu = ge;
+  if ( incne < delta )
+    result = PKN_LMT_FOUND_ZEROGRAD;
 finish_lmt:
   memcpy ( x, minx, n*sizeof(double) );
 

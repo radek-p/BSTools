@@ -207,20 +207,8 @@ typedef struct {
   int bsm_maxnfac;     /* maximum number of mesh facets */ 
 } bsf_UserReaders;
 
-/* Allocate on stack new user readers data structure and initialize 
-   it to be empty (i.e. all callback pointers and user data pointer
-   are null, all data size restrictions are set some default values).
- */
-bsf_UserReaders * bsf_NewReaders ( void );
-
-/* Set up readers data structure to an empty state (see bsf_NewReaders)
- */
+/* Set up readers data structure to an empty state */
 void bsf_ClearReaders ( bsf_UserReaders *readers );
-
-#define bsf_DeleteReaders(readers) \
-do { \
-  PKV_FREE(readers); \
-} while(0) 
 
 void bsf_BC4ReadFuncd ( bsf_UserReaders *readers, bsf_BC_fptr BCReader,
                         int maxdeg );

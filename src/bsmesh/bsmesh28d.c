@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2012                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2012, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -126,9 +126,9 @@ boolean bsm_RefinementMatd ( int degree,
     cols1 = &permut2[nnz2];
     cols2 = &cols1[inv+1];
     if ( !pkn_SPMCountMMnnzC ( nv2, nv1, inv,
-                               nnz2, mi2, permut2, cols2, false,
-                               nnz1, mi1, permut1, cols1, false,
-                               &nnz3, &nmult ) )
+                               nnz2, mi2, (unsigned int*)permut2, cols2, false,
+                               nnz1, mi1, (unsigned int*)permut1, cols1, false,
+                               (unsigned int*)&nnz3, (unsigned int*)&nmult ) )
       goto failure;
     if ( nnz3 <= 0 )
       goto failure;
@@ -138,8 +138,8 @@ boolean bsm_RefinementMatd ( int degree,
     if ( !mi3 || !mc3 )
       goto failure;
     if ( !pkn_SPMmultMMCd ( nv2, nv1, inv,
-                            nnz2, mi2, mc2, permut2, cols2, true,
-                            nnz1, mi1, mc1, permut1, cols1, true,
+                            nnz2, mi2, mc2, (unsigned int*)permut2, cols2, true,
+                            nnz1, mi1, mc1, (unsigned int*)permut1, cols1, true,
                             mi3, mc3 ) )
       goto failure;
 /* that's it */

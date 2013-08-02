@@ -8,11 +8,11 @@
 #define N1  20
 #define N2 /*256*/ 50
 
-short       stab[N2];
-int         itab[N2];
-float       ftab[N2];
-double      dtab[N2];
-long double ldtab[N2];
+short       stab[N2+3];
+int         itab[N2+3];
+float       ftab[N2+3];
+double      dtab[N2+3];
+long double ldtab[N2+3];
 
 int main ( void )
 {

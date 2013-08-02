@@ -70,7 +70,8 @@ boolean myfuncgh ( int n, void *usrdata,
 #undef Y
 #undef Z
 
-void TestGrad ( int n, void *usrdata, evalfuncf funcf, evalfuncgf funcfg,
+void TestGrad ( int n, void *usrdata,
+                pkn_NLMTevalfuncf funcf, pkn_NLMTevalfuncgf funcfg,
                 float *x, float *f, float *grf, float *grt )
 {
 #define EPS 1.0e-5
@@ -90,7 +91,7 @@ void TestGrad ( int n, void *usrdata, evalfuncf funcf, evalfuncgf funcfg,
 } /*TestGrad*/
 
 void TestHess ( int n, void *usrdata,
-                evalfuncgf funcfg, evalfuncghf funcfgh,
+                pkn_NLMTevalfuncgf funcfg, pkn_NLMTevalfuncghf funcfgh,
                 float *x, float *f, float *grf, float *hf, float *ht )
 {
 #define EPS 1.0e-5

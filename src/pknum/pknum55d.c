@@ -66,7 +66,7 @@ boolean pkn_SymMatFindEigenvaluesd ( int n, double *a, double *eigenval )
       cd[i] = 0.0;
         /* the QR algorithm with deflation */
   newblock = true;
-  p = 0;
+  p = q = 0;
   sigma = 0.0;
   do {
           /* find a block to iterate */

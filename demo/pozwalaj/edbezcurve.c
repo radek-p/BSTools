@@ -314,6 +314,8 @@ boolean GeomObjectBezierCurveFindCPoint ( GO_BezierCurve *obj,
     if ( ok1 )
       current_point_ind += obj->degree+1;
   }
+  else
+    ok1 = false;
   return ok || ok1;
 } /*GeomObjectBezierCurveFindCPoint*/
 

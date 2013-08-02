@@ -759,6 +759,7 @@ int _rbi_OtherSingularityRf ( pci_key *pcii,
         /* push the cube on the stack */
   pcdsp = 0;
   pcdstack[0] = *hc;
+  result = false;
   do {
     ha = pcdstack[pcdsp--];
     if ( _rbi_PCConvexHullTestRf ( ptree, ctree, &ha ) ) {

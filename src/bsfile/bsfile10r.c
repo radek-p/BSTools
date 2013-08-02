@@ -300,18 +300,6 @@ failure:
   return false;
 } /*bsf_ReadBSFiled*/
 
-bsf_UserReaders *bsf_NewReaders ( void )
-{
-  bsf_UserReaders *readers = NULL; 
-  PKV_MALLOC ( readers, sizeof(bsf_UserReaders) );
-  if ( !readers ) {
-    fprintf(stderr, "Cannot allocate memory for bsf_UserReader ... exiting\n");
-    exit ( 11 );
-  }
-  bsf_ClearReaders ( readers );
-  return readers;
-} /*bsf_NewReaders*/
-
 void bsf_ClearReaders ( bsf_UserReaders *readers )
 {
   if ( readers ) {
@@ -321,10 +309,12 @@ void bsf_ClearReaders ( bsf_UserReaders *readers )
     readers->BSplinePatchReader = NULL;
     readers->BSMeshReader = NULL;
     readers->BSplineHoleReader = NULL;
+/*
     if ( readers->userData ) {
       fprintf(stderr, 
          "Warning -- pointer to use data will be lost (bsf_ClearReaders())\n");
     } 
+*/
     readers->userData = NULL;
     readers->bc_maxdeg   = 10;
     readers->bsc_maxdeg  = 10;

@@ -67,7 +67,7 @@ boolean GeomObjectBSplineMeshMarkBetweenVertices ( GO_BSplineMesh *obj,
     goto failure;
   if ( dist[v1] >= nv )
     goto failure;
-  for (;;) {
+  for ( ; ; ) {
     if ( mark )
       mkcp[v1] |= marking_mask;
     else
@@ -77,6 +77,7 @@ boolean GeomObjectBSplineMeshMarkBetweenVertices ( GO_BSplineMesh *obj,
     deg = mv[v1].degree;
     fhe = mv[v1].firsthalfedge;
     d = dist[v1]-1;
+    v2 = mhe[mvhei[fhe]].v1;
     for ( i = 0; i < deg; i++ ) {
       v2 = mhe[mvhei[fhe+i]].v1;
       if ( dist[v2] == d ) {

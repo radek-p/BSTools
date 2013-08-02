@@ -81,6 +81,7 @@ void GeomObjectBSplineMeshOptSpecialPatches ( GO_BSplineMesh *obj )
 printf ( "opt special patches\n" );
 
   sp = pkv_GetScratchMemTop ();
+  domain = NULL;
   obj->special_patches_ok = false;
   if ( obj->me.cpdimen != 3 )
     goto failure;

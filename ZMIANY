@@ -3327,4 +3327,18 @@ Wersja 0.31:
 786. Zmiany w programie pozwalaj, majace na celu jego dostosowanie do zmian
     list parametrow procedur opisanych w pliku bsfile.h.
 
+26.07.2013.
+787. Zmiana nazw typow wskaznikow do procedur przekazywanych jako parametry
+    do pkn_NLMIterf - dotychczasowe nazwy byly zbyt oderwane od kontekstu.
+
+
+Wersja 0.32:
+
+29.07.2013.
+788. Poprawki w procedurze pkn_NLMIterf - dopracowywanie kryterium stopu
+    (pewnie jeszcze niejedno trzeba bedzie zmienic).
+
+31.07.2013. Poprawki zmierzajace do usuniecia ostrzezen kompilatora - przy
+    okazji poprawienie paru bledow typu niezainicjowana zmienna.
+
 

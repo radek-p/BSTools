@@ -697,19 +697,20 @@ boolean pkn_QuadGaussLegendre20f ( float a, float b, int n,
 #define PKN_LMT_FOUND_BARRIER   4
 #endif
 
-typedef boolean (*evalfuncf)( int n, void *usrdata,
-                              float *x, float *f );
-typedef boolean (*evalfuncgf)( int n, void *usrdata,
-                               float *x, float *f, float *g );
-typedef boolean (*evalfuncghf)( int n, void *usrdata,
-                                float *x, float *f, float *g, float *h );
-typedef boolean (*transfuncf)( int n, void *usrdata, float *x );
-typedef boolean (*tunnelfuncf)( int n, void *usrdata,
-                                float *x0, float *x1, boolean *went_out );
+typedef boolean (*pkn_NLMTevalfuncf)( int n, void *usrdata,
+                                      float *x, float *f );
+typedef boolean (*pkn_NLMTevalfuncgf)( int n, void *usrdata,
+                                       float *x, float *f, float *g );
+typedef boolean (*pkn_NLMTevalfuncghf)( int n, void *usrdata,
+                                        float *x, float *f, float *g, float *h );
+typedef boolean (*pkn_NLMTtransfuncf)( int n, void *usrdata, float *x );
+typedef boolean (*pkn_NLMTtunnelfuncf)( int n, void *usrdata,
+                                        float *x0, float *x1, boolean *went_out );
 
 int pkn_NLMIterf ( int n, void *usrdata, float *x,
-                   evalfuncf funcf, evalfuncgf funcfg, evalfuncghf funcfgh,
-                   transfuncf trans, tunnelfuncf tunnel,
+                   pkn_NLMTevalfuncf funcf, pkn_NLMTevalfuncgf funcfg,
+                   pkn_NLMTevalfuncghf funcfgh,
+                   pkn_NLMTtransfuncf trans, pkn_NLMTtunnelfuncf tunnel,
                    float lowerbound, float eps, float delta,
                    float *nu );
 
