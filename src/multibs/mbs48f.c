@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2007, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2007, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -21,8 +21,6 @@
 #define CONST_
 
 #include "multibs.h"
-
-#include "msgpool.h"
 
 #define WGT 0.5*SQRT2
 
@@ -52,7 +50,7 @@ static boolean _mbs_DegRedFindMatrixf ( int indegree,
   b = pkv_GetScratchMemf ( Naux );
   auxknots2 = pkv_GetScratchMemf ( 3*outdeg*(deltadeg+1)+2 );
   if ( !_prof || !_mtrx || !a || !b || !auxknots2 ) {
-    pkv_SignalError ( LIB_MULTIBS, 60, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     return false;
   }
 
@@ -366,7 +364,7 @@ boolean mbs_multiBSDegRedClosedf ( int ncurves, int spdimen,
 
       /* setup the constraints matrix */
   if ( !(c = pkv_GetScratchMemf ( (outdeg-q)*(Nout-outdeg-q) )) ) {
-    pkv_SignalError ( LIB_MULTIBS, 64, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     goto failure;
   }
   memset ( c, 0, (outdeg-q)*(Nout-outdeg-q)*sizeof(float) );

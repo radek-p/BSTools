@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -17,12 +17,9 @@
 #include "pkgeom.h"
 #include "multibs.h"
 
-#include "msgpool.h"
-
 /* ////////////////////////////////////////////////// */
 /* Making a "grid" picture of a trimmed patch domain, */
 /* or the patch itself                                */
-
 static int _mbs_densd ( int n0, double a, double b, double h )
 {
   double c;
@@ -55,7 +52,7 @@ void mbs_DrawTrimBSPatchDomd ( int degu, int lastuknot, const double *uknots,
   buf = mbs_CompileTrimPatchBoundd ( nelem, bound, NULL );
   inters = (signpoint1d*)pkv_GetScratchMem ( maxinters*sizeof(signpoint1d) );
   if ( !buf || !inters ) {
-    pkv_SignalError ( LIB_MULTIBS, 24, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 0 );
   }
 

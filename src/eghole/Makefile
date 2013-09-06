@@ -3,7 +3,7 @@
 # This file is a part of the BSTools package
 # written by Przemyslaw Kiciak
 # /////////////////////////////////////////////////////////////////////
-# (C) Copyright by Przemyslaw Kiciak, 2005, 2010
+# (C) Copyright by Przemyslaw Kiciak, 2005, 2013
 # this package is distributed under the terms of the
 # Lesser GNU Public License, see the file COPYING.LIB
 # /////////////////////////////////////////////////////////////////////
@@ -16,7 +16,7 @@ LIBDIR = ../../lib
 include ../../options.mak
 
 OBJECTS = $(SRCDIR)/eghbspind.o $(SRCDIR)/eg1herrstr.o $(SRCDIR)/eg2herrstr.o \
-  $(SRCDIR)/eg1hsymmatrix.o $(SRCDIR)/eg2hsymmatrix.o
+  $(SRCDIR)/eg1hsymmatrix.o $(SRCDIR)/eg2hsymmatrix.o $(SRCDIR)/eg1hprivate.o
 
 OBJECTSF = $(SRCDIR)/eghcoref.o $(SRCDIR)/eghgraphf.o $(SRCDIR)/eghddiamf.o \
   $(SRCDIR)/egholeareaf.o \
@@ -76,6 +76,8 @@ $(TARGET): $(OBJECTS) $(OBJECTSF) $(OBJECTSD)
 
 .c.o:
 	$(CC) $(CFLAGS) -I$(INCDIR) -c $< -o $*.o
+
+$(SRCDIR)/eg1hprivate.o: $(SRCDIR)/eg1hprivate.c $(SRCDIR)/eg1hprivate.h
 
 $(SRCDIR)/eghbspind.o: $(SRCDIR)/eghbspind.c \
   $(INCDIR)/eg1holef.h $(INCDIR)/eg1holed.h \

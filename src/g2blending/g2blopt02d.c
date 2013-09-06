@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2009                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2009, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -20,7 +20,6 @@
 #include "g2blendingd.h"
 
 #include "g2blprivated.h"
-#include "msgpool.h"
 
 #define _DEBUG
 
@@ -44,7 +43,7 @@ boolean _g2bl_LazyHessiand ( int lastknotu, int lastknotv,
   dd = pkv_GetScratchMemd ( ni );
   scp = pkv_GetScratchMem ( 16*sizeof(point3d) );
   if ( !dd || !scp ) {
-    pkv_SignalError ( LIB_G2BLENDING, 13, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_2, ERRMSG_2 );
     goto failure;
   }
 

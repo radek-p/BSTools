@@ -22,7 +22,6 @@
 #include "g1blendingd.h"
 
 #include "g1blprivated.h"
-#include "msgpool.h"
 
 #define _DEBUG
 
@@ -44,7 +43,7 @@ double g1bl_SurfNetDiameterSqd ( int lastknotu, int lastknotv,
   knotsa = pkv_GetScratchMemd ( 3 );
   ccp = pkv_GetScratchMemd ( (lastknotu - DEG)*(lastknotv - DEG)*3 );
   if ( !knotsu || !knotsv || !knotsa || !ccp ) {
-    pkv_SignalError ( LIB_G1BLENDING, 4, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_G1BLENDING, ERRCODE_2, ERRMSG_2 );
     goto failure;
   }
   for ( i = 0; i <= lastknotu; i++ )
@@ -119,7 +118,7 @@ boolean _g1bl_ComputeDeltaQd ( int n, const int *prof, double **hrows,
   sp = pkv_GetScratchMemTop ();
   aux = pkv_GetScratchMemd ( 2*n );
   if ( !aux ) {
-    pkv_SignalError ( LIB_G1BLENDING, 5, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_G1BLENDING, ERRCODE_2, ERRMSG_2 );
     goto failure;
   }
   pkn_NRBSymMultd ( n, prof, hrows[0], hrows, 1, 1, dcoeff, 1, aux );

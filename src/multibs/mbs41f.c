@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -16,8 +16,6 @@
 #include "pkvaria.h"
 #include "pkgeom.h"
 #include "multibs.h"
-
-#include "msgpool.h"
 
 /* /////////////////////////////////////////////////// */
 /* computing values and derivatives of B-spline curves */
@@ -50,7 +48,7 @@ int mbs_multideBoorDer2f ( int degree, int lastknot, const float *knots,
     dpitch = (degree+1-r)*spdimen;
     d = pkv_GetScratchMemf ( ncurves*dpitch );
     if ( !d ) {
-      pkv_SignalError ( LIB_MULTIBS, 41, ERRMSG_0 );
+      PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
       exit ( 1 );
     }
     _mbs_multideBoorKernelf ( degree, knots, ncurves, spdimen,
@@ -61,7 +59,7 @@ int mbs_multideBoorDer2f ( int degree, int lastknot, const float *knots,
     dpitch = 3*spdimen;
     d = pkv_GetScratchMemf ( ncurves*dpitch );
     if ( !d ) {
-      pkv_SignalError ( LIB_MULTIBS, 42, ERRMSG_0 );
+      PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
       exit ( 1 );
     }
     pkv_Selectf ( ncurves, dpitch, pitch, dpitch,
@@ -135,7 +133,7 @@ int mbs_multideBoorDer3f ( int degree, int lastknot, const float *knots,
     dpitch = (degree+1-r)*spdimen;
     d = pkv_GetScratchMemf ( ncurves*dpitch );
     if ( !d ) {
-      pkv_SignalError ( LIB_MULTIBS, 43, ERRMSG_0 );
+      PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
       exit ( 1 );
     }
     _mbs_multideBoorKernelf ( degree, knots, ncurves, spdimen,
@@ -146,7 +144,7 @@ int mbs_multideBoorDer3f ( int degree, int lastknot, const float *knots,
     dpitch = 4*spdimen;
     d = pkv_GetScratchMemf ( ncurves*dpitch );
     if ( !d ) {
-      pkv_SignalError ( LIB_MULTIBS, 44, ERRMSG_0 );
+      PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
       exit ( 1 );
     }
     pkv_Selectf ( ncurves, dpitch, pitch, dpitch,

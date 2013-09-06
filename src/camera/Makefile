@@ -32,85 +32,85 @@ $(TARGET): $(OBJECTS)
 .c.o:
 	$(CC) $(CFLAGS) -I$(INCDIR) -c $< -o $*.o
 
-camera01f.o: camera01f.c cprivate.h msgpool.h \
+camera01f.o: camera01f.c cprivate.h $(INCDIR)/msgpool.h \
   $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
   $(INCDIR)/camerad.h
-camera02f.o: camera02f.c cprivate.h msgpool.h \
+camera02f.o: camera02f.c cprivate.h $(INCDIR)/msgpool.h \
   $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
   $(INCDIR)/camerad.h
-camera03f.o: camera03f.c cprivate.h msgpool.h \
+camera03f.o: camera03f.c cprivate.h $(INCDIR)/msgpool.h \
   $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
   $(INCDIR)/camerad.h
-camera04f.o: camera04f.c cprivate.h msgpool.h \
+camera04f.o: camera04f.c cprivate.h $(INCDIR)/msgpool.h \
   $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
   $(INCDIR)/camerad.h
-camera05f.o: camera05f.c cprivate.h msgpool.h \
+camera05f.o: camera05f.c cprivate.h $(INCDIR)/msgpool.h \
   $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
   $(INCDIR)/camerad.h
-camera06f.o: camera06f.c cprivate.h msgpool.h \
+camera06f.o: camera06f.c cprivate.h $(INCDIR)/msgpool.h \
   $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
   $(INCDIR)/camerad.h
-camera07f.o: camera07f.c cprivate.h msgpool.h \
+camera07f.o: camera07f.c cprivate.h $(INCDIR)/msgpool.h \
   $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
   $(INCDIR)/camerad.h
-camera08f.o: camera08f.c cprivate.h msgpool.h \
+camera08f.o: camera08f.c cprivate.h $(INCDIR)/msgpool.h \
   $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
   $(INCDIR)/camerad.h
-camera09f.o: camera09f.c cprivate.h msgpool.h \
+camera09f.o: camera09f.c cprivate.h $(INCDIR)/msgpool.h \
   $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
   $(INCDIR)/camerad.h
-camera10f.o: camera10f.c cprivate.h msgpool.h \
-  $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
-  $(INCDIR)/camerad.h
-
-camera01d.o: camera01d.c cprivate.h msgpool.h \
-  $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
-  $(INCDIR)/camerad.h
-camera02d.o: camera02d.c cprivate.h msgpool.h \
-  $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
-  $(INCDIR)/camerad.h
-camera03d.o: camera03d.c cprivate.h msgpool.h \
-  $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
-  $(INCDIR)/camerad.h
-camera04d.o: camera04d.c cprivate.h msgpool.h \
-  $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
-  $(INCDIR)/camerad.h
-camera05d.o: camera05d.c cprivate.h msgpool.h \
-  $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
-  $(INCDIR)/camerad.h
-camera06d.o: camera06d.c cprivate.h msgpool.h \
-  $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
-  $(INCDIR)/camerad.h
-camera07d.o: camera07d.c cprivate.h msgpool.h \
-  $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
-  $(INCDIR)/camerad.h
-camera08d.o: camera08d.c cprivate.h msgpool.h \
-  $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
-  $(INCDIR)/camerad.h
-camera09d.o: camera09d.c cprivate.h msgpool.h \
-  $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
-  $(INCDIR)/camerad.h
-camera10d.o: camera10d.c cprivate.h msgpool.h \
+camera10f.o: camera10f.c cprivate.h $(INCDIR)/msgpool.h \
   $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
   $(INCDIR)/camerad.h
 
-stereo01f.o: stereo01f.c cprivate.h msgpool.h \
+camera01d.o: camera01d.c cprivate.h $(INCDIR)/msgpool.h \
+  $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
+  $(INCDIR)/camerad.h
+camera02d.o: camera02d.c cprivate.h $(INCDIR)/msgpool.h \
+  $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
+  $(INCDIR)/camerad.h
+camera03d.o: camera03d.c cprivate.h $(INCDIR)/msgpool.h \
+  $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
+  $(INCDIR)/camerad.h
+camera04d.o: camera04d.c cprivate.h $(INCDIR)/msgpool.h \
+  $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
+  $(INCDIR)/camerad.h
+camera05d.o: camera05d.c cprivate.h $(INCDIR)/msgpool.h \
+  $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
+  $(INCDIR)/camerad.h
+camera06d.o: camera06d.c cprivate.h $(INCDIR)/msgpool.h \
+  $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
+  $(INCDIR)/camerad.h
+camera07d.o: camera07d.c cprivate.h $(INCDIR)/msgpool.h \
+  $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
+  $(INCDIR)/camerad.h
+camera08d.o: camera08d.c cprivate.h $(INCDIR)/msgpool.h \
+  $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
+  $(INCDIR)/camerad.h
+camera09d.o: camera09d.c cprivate.h $(INCDIR)/msgpool.h \
+  $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
+  $(INCDIR)/camerad.h
+camera10d.o: camera10d.c cprivate.h $(INCDIR)/msgpool.h \
+  $(INCDIR)/camera.h $(INCDIR)/cameraf.h \
+  $(INCDIR)/camerad.h
+
+stereo01f.o: stereo01f.c cprivate.h $(INCDIR)/msgpool.h \
   $(INCDIR)/stereo.h $(INCDIR)/stereof.h \
   $(INCDIR)/stereod.h $(INCDIR)/camera.h \
   $(INCDIR)/cameraf.h $(INCDIR)/camerad.h \
  
-stereo02f.o: stereo02f.c cprivate.h msgpool.h \
+stereo02f.o: stereo02f.c cprivate.h $(INCDIR)/msgpool.h \
   $(INCDIR)/stereo.h $(INCDIR)/stereof.h \
   $(INCDIR)/stereod.h $(INCDIR)/camera.h \
   $(INCDIR)/cameraf.h $(INCDIR)/camerad.h \
  
 
-stereo01d.o: stereo01d.c cprivate.h msgpool.h \
+stereo01d.o: stereo01d.c cprivate.h $(INCDIR)/msgpool.h \
   $(INCDIR)/stereo.h $(INCDIR)/stereof.h \
   $(INCDIR)/stereod.h $(INCDIR)/camera.h \
   $(INCDIR)/cameraf.h $(INCDIR)/camerad.h \
  
-stereo02d.o: stereo02d.c cprivate.h msgpool.h \
+stereo02d.o: stereo02d.c cprivate.h $(INCDIR)/msgpool.h \
   $(INCDIR)/stereo.h $(INCDIR)/stereof.h \
   $(INCDIR)/stereod.h $(INCDIR)/camera.h \
   $(INCDIR)/cameraf.h $(INCDIR)/camerad.h \

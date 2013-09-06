@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2009                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2009, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -19,7 +19,6 @@
 #include "multibs.h"
 
 #include "g2blendingf.h"
-#include "msgpool.h"
 
 static const float coeff[] =
   { -22.0, -309.0,   -666.0,   -526.0,   -666.0, -309.0,  -22.0,
@@ -47,7 +46,7 @@ boolean g2bl_SetupClosedTriharmAMatrixf ( int lastknotu, int lastknotv,
 
   PKV_MALLOC ( _prof, _n*sizeof(int) );
   if ( !_prof ) {
-    pkv_SignalError ( LIB_G2BLENDING, 1, ERRMSG_1 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_9, ERRMSG_9 );
     goto failure;
   }
 
@@ -63,7 +62,7 @@ boolean g2bl_SetupClosedTriharmAMatrixf ( int lastknotu, int lastknotv,
   PKV_MALLOC ( _Amat, asize*sizeof(float) )
   PKV_MALLOC ( _arow, _n*sizeof(float*) );
   if ( !_Amat || !_arow ) {
-    pkv_SignalError ( LIB_G2BLENDING, 2, ERRMSG_1 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_9, ERRMSG_9 );
     goto failure;
   }
   memset ( _Amat, 0, asize*sizeof(float) );
@@ -125,7 +124,7 @@ boolean g2bl_SetupClosedTriharmRHSf ( int lastknotu, int lastknotv,
   bldim = lastknotv-9;
   blnum = lastknotu-6;
   if ( bldim < 1 || blnum < 7 ) {
-    pkv_SignalError ( LIB_G2BLENDING, 3, ERRMSG_2 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_5, ERRMSG_5 );
     return false;
   }
 

@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -18,12 +18,9 @@
 #include "pkgeom.h"
 #include "multibs.h"
 
-#include "msgpool.h"
-
 /* ////////////////////////////////////////// */
 /* multiple knots insertion/removal with use  */
 /* of the Oslo algorithm                      */
-
 void mbs_multiOsloInsertKnotsd ( int ncurves, int spdimen, int degree,
                                  int inlastknot, const double *inknots,
                                  int inpitch, double *inctlpoints,
@@ -48,14 +45,14 @@ void mbs_multiOsloInsertKnotsd ( int ncurves, int spdimen, int degree,
   nc = inlastknot-degree;
   aprof = (bandm_profile*)pkv_GetScratchMem ( (nc+1)*sizeof(bandm_profile) );
   if ( !aprof ) {
-    pkv_SignalError ( LIB_MULTIBS, 16, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
   as = mbs_BuildOsloMatrixProfiled ( degree, inlastknot, inknots,
                                      outlastknot, outknots, aprof );
   aa = pkv_GetScratchMemd ( as );
   if ( !aa ) {
-    pkv_SignalError ( LIB_MULTIBS, 17, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
   mbs_BuildOsloMatrixd ( degree, inlastknot, inknots, outknots, aprof, aa );
@@ -93,7 +90,7 @@ void mbs_multiOsloRemoveKnotsLSQd ( int ncurves, int spdimen, int degree,
   nc = outlastknot-degree;
   aprof = (bandm_profile*)pkv_GetScratchMem ( (nc+1)*sizeof(bandm_profile) );
   if ( !aprof ) {
-    pkv_SignalError ( LIB_MULTIBS, 18, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
   as = mbs_BuildOsloMatrixProfiled ( degree, outlastknot, outknots,
@@ -102,7 +99,7 @@ void mbs_multiOsloRemoveKnotsLSQd ( int ncurves, int spdimen, int degree,
                      /* greater size, as later it is used for something else */
   aa = pkv_GetScratchMemd ( as );
   if ( !aa ) {
-    pkv_SignalError ( LIB_MULTIBS, 19, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
   mbs_BuildOsloMatrixd ( degree, outlastknot, outknots, inknots, aprof, aa );
@@ -116,7 +113,7 @@ void mbs_multiOsloRemoveKnotsLSQd ( int ncurves, int spdimen, int degree,
   qa = pkv_GetScratchMemd ( qs );
   ra = pkv_GetScratchMemd ( rs );
   if ( !qprof || !rprof || !qa || !ra ) {
-    pkv_SignalError ( LIB_MULTIBS, 20, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
   pkn_BandmQRDecomposeMatrixd ( nr, nc, aprof, aa, qprof, qa, rprof, ra );

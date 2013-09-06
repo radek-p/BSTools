@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -16,8 +16,6 @@
 #include "pkvaria.h"
 #include "pkgeom.h"
 #include "multibs.h"
-
-#include "msgpool.h"
 
 /* /////////////////////////////////////////// */
 /* Horner scheme for Bezier curves and patches */
@@ -96,7 +94,7 @@ void mbs_BCHornerDerPd ( int degreeu, int degreev, int spdimen,
   else {
     q = pkv_GetScratchMemd ( scr_size = (6+2*(degreev+1))*spdimen );
     if ( !q ) {
-      pkv_SignalError ( LIB_MULTIBS, 32, ERRMSG_0 );
+      PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
       exit ( 1 );
     }
     scr = &q[6*spdimen];

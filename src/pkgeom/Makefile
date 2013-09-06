@@ -51,10 +51,10 @@ geom4d.o: geom4d.c $(INCDIR)/pkgeom.h $(INCDIR)/pkgeomf.h $(INCDIR)/pkgeomd.h
 
 quaterniond.o: quaterniond.c $(INCDIR)/pkgeom.h $(INCDIR)/pkgeomf.h $(INCDIR)/pkgeomd.h
 
-convhf.o: convhf.c msgpool.h $(INCDIR)/pkgeom.h $(INCDIR)/pkgeomf.h \
+convhf.o: convhf.c $(INCDIR)/msgpool.h $(INCDIR)/pkgeom.h $(INCDIR)/pkgeomf.h \
   $(INCDIR)/pkgeomd.h $(INCDIR)/convh.h
 
-convhd.o: convhd.c msgpool.h $(INCDIR)/pkgeom.h $(INCDIR)/pkgeomf.h \
+convhd.o: convhd.c $(INCDIR)/msgpool.h $(INCDIR)/pkgeom.h $(INCDIR)/pkgeomf.h \
   $(INCDIR)/pkgeomd.h $(INCDIR)/convh.h
 
 convcone2f.o: convcone2f.c $(INCDIR)/pkgeom.h $(INCDIR)/pkgeomf.h $(INCDIR)/pkgeomd.h

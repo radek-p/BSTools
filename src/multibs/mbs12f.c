@@ -16,11 +16,8 @@
 #include "pkgeom.h"
 #include "multibs.h"
 
-#include "msgpool.h"
-
 /* /////////////////////////////////////////// */
 /* Horner scheme for Bezier curves and patches */
-
 void mbs_multiBCHornerf ( int degree, int ncurves, int spdimen, int pitch,
                           const float *ctlpoints, float t, float *cpoints )
 {
@@ -72,7 +69,7 @@ void mbs_multiBCHornerf ( int degree, int ncurves, int spdimen, int pitch,
     }
   }
   else
-    pkv_SignalError ( LIB_MULTIBS, 65, ERRMSG_4 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_8, ERRMSG_8 );
 } /*mbs_multiBCHornerf*/
 
 void mbs_BCHornerC2Rf ( int degree, const point3f *ctlpoints, float t,

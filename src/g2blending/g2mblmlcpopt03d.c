@@ -26,7 +26,6 @@
 #include "g2blprivated.h"
 #include "g2mblprivated.h"
 #include "g2mblmlprivated.h"
-#include "msgpool.h"
 
 /* ///////////////////////////////////////////////////////////////////////// */
 boolean _g2mbl_CMPSetupBlockCGPrecondd ( mesh_ml_optdata *d, int bn )
@@ -145,7 +144,7 @@ boolean _g2mbl_CMPSetupBlockCGPrecondd ( mesh_ml_optdata *d, int bn )
   hwsize = 3*bnwcp;
   PKV_MALLOC ( bd->hrows, 2*(hwsize*sizeof(double*)+bd->hsize*sizeof(double)) );
   if ( !bd->hrows ) {
-printf ( "%s\n", ERRMSG_1 );
+printf ( "%s\n", ERRMSG_9 );
     goto failure;
   }
   bd->lhrows = &bd->hrows[hwsize];
@@ -170,13 +169,13 @@ boolean _g2mbl_CMPSetupBlockHessiansd ( mesh_ml_optdata *d )
     bd = &d->bd[i];
     if ( bd->nvcp <= MAX_NVCP ) {
       if ( !_g2mbl_MLSetupBlockCholHessiand ( d, i ) ) {
-printf ( "%s\n", ERRMSG_12 );
+printf ( "%s\n", ERRMSG_20 );
         return false;
       }
     }
     else {
       if ( !_g2mbl_MLSetupBlockCGHessiand ( d, i ) ) {
-printf ( "%s\n", ERRMSG_13 );
+printf ( "%s\n", ERRMSG_21 );
         return false;
       }
       if ( d->bd[2*i+1].nvcp > MAX_NVCP ) {
@@ -187,7 +186,7 @@ printf ( "%s\n", ERRMSG_13 );
   }
   for ( ; i < nblocks; i++ )
     if ( !_g2mbl_MLSetupBlockCholHessiand ( d, i ) ) {
-printf ( "%s\n", ERRMSG_12 );
+printf ( "%s\n", ERRMSG_20 );
       return false;
     }
   return true;

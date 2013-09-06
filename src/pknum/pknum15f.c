@@ -41,7 +41,7 @@ void pkn_multiBandmSolveDLSQf ( int nrows, int ncols,
   qa = pkv_GetScratchMemf ( qsize );
   ra = pkv_GetScratchMemf ( rsize );
   if ( !qprof || !rprof || !qa || !ra ) {
-    pkv_SignalError ( LIB_PKNUM, 0, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
     exit ( 1 );
   }
 

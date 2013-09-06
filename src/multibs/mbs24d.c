@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -18,12 +18,9 @@
 #include "pkgeom.h"
 #include "multibs.h"
 
-#include "msgpool.h"
-
 /* ////////////////////////////////////////// */
 /* change of n+1 leftmost knots in a B-spline representation of curves, */
 /* using the Oslo algorithm */
-
 void mbs_multiBSChangeLeftKnotsd ( int ncurves, int spdimen, int degree,
                                    double *knots, int pitch, double *ctlpoints,
                                    double *newknots )
@@ -38,7 +35,7 @@ void mbs_multiBSChangeLeftKnotsd ( int ncurves, int spdimen, int degree,
   d = pkv_GetScratchMemd ( ncurves*spdimen*(degree+1) );
   e = pkv_GetScratchMemd ( ncurves*spdimen*(degree+1) );
   if ( !t || !d || !e )
-    pkv_SignalError ( LIB_MULTIBS, 55, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, 2, ERRMSG_2 );
   memcpy ( t, newknots, (degree+1)*sizeof(double) );
   memcpy ( &t[degree+1], &knots[degree+1], (degree-1)*sizeof(double) );
   pkv_Selectd ( ncurves, spdimen*(degree+1), pitch, spdimen*(degree+1),
@@ -79,7 +76,7 @@ void mbs_multiBSChangeRightKnotsd ( int ncurves, int spdimen, int degree,
   d = pkv_GetScratchMemd ( ncurves*spdimen*(degree+1) );
   e = pkv_GetScratchMemd ( ncurves*spdimen*(degree+1) );
   if ( !t || !d || !e )
-    pkv_SignalError ( LIB_MULTIBS, 56, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, 2, ERRMSG_2 );
   memcpy ( t, &knots[lastknot-2*degree+1], (degree-1)*sizeof(double) );
   memcpy ( &t[degree-1], newknots, (degree+1)*sizeof(double) );
   pkv_Selectd ( ncurves, spdimen*(degree+1), pitch, spdimen*(degree+1),

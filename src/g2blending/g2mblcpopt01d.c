@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2012                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2012, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -26,8 +26,6 @@
 #include "g2blprivated.h"
 #include "g2mblprivated.h"
 #include "g2mblmlprivated.h"
-
-#include "msgpool.h"
 
 /* ///////////////////////////////////////////////////////////////////////// */
 boolean _g2mbl_CMPSetupCGPrecondd ( mesh_lmt_optdata *d )
@@ -136,7 +134,7 @@ boolean _g2mbl_CMPSetupCGPrecondd ( mesh_lmt_optdata *d )
   hwsize = 3*d->nwcp;
   PKV_MALLOC ( d->phrows, hwsize*sizeof(double*) + d->phsize*sizeof(double) );
   if ( !d->phrows ) {
-printf ( "%s\n", ERRMSG_1 );
+printf ( "%s\n", ERRMSG_9 );
     goto failure;
   }
   pkn_NRBFindRowsd ( hwsize, d->phprof, (double*)&d->phrows[hwsize], d->phrows );

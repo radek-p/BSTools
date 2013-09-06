@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -15,7 +15,6 @@
 
 #include "pkvaria.h"
 #include "pknum.h"
-#include "msgpool.h"
 
 void pkn_ComputeQTSQd ( int m, const double *s,
                         int n, const double *a, const double *aa,
@@ -30,7 +29,7 @@ void pkn_ComputeQTSQd ( int m, const double *s,
   v = pkv_GetScratchMemd ( m );
   p = pkv_GetScratchMemd ( m );
   if ( !v || !p )
-    pkv_SignalError ( LIB_PKNUM, 15, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
 
   if ( s != b )
     memcpy ( b, s, (m*(m+1)/2)*sizeof(double) );
@@ -73,7 +72,7 @@ void pkn_ComputeQSQTd ( int m, const double *s,
   v = pkv_GetScratchMemd ( m );
   p = pkv_GetScratchMemd ( m );
   if ( !v || !p )
-    pkv_SignalError ( LIB_PKNUM, 15, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
 
   if ( s != b )
     memcpy ( b, s, (m*(m+1)/2)*sizeof(double) );

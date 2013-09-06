@@ -36,7 +36,7 @@ void FindConvexHull2f ( int *n, point2f *p )
 
   if ( !q || !permut ) {
 klops:
-    pkv_SignalError ( LIB_GEOM, 0, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_GEOM, 2, ERRMSG_2 );
     exit ( 1 );
   }
   for (i = 1; i < nn; i++) {

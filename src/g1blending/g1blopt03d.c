@@ -22,7 +22,6 @@
 #include "g1blendingd.h"
 
 #include "g1blprivated.h"
-#include "msgpool.h"
 
 #define DEBUG
 #define _DEBUG
@@ -112,18 +111,18 @@ boolean g1bl_InitBlSurfaceOptLMTd ( int lastknotu, int lastknotv, int pitch,
 
   *data = d = NULL;
   if ( lastknotu < DEG3+1 || lastknotv < DEG3+1) {
-    pkv_SignalError ( LIB_G1BLENDING, 14, ERRMSG_2 );
+    PKV_SIGNALERROR ( LIB_G1BLENDING, ERRCODE_5, ERRMSG_5 );
     goto failure;
   }
   if ( nkn1 < 3 || nkn1 > 10 || nkn2 < nkn1 || nkn2 > 10 ) {
-    pkv_SignalError ( LIB_G1BLENDING, 15, ERRMSG_2 );
+    PKV_SIGNALERROR ( LIB_G1BLENDING, ERRCODE_5, ERRMSG_5 );
     goto failure;
   }
 
   PKV_MALLOC ( *data, sizeof(lmt_optdata) )
   d = *data;
   if ( !d ) {
-    pkv_SignalError ( LIB_G1BLENDING, 16, ERRMSG_1 );
+    PKV_SIGNALERROR ( LIB_G1BLENDING, ERRCODE_9, ERRMSG_9 );
     goto failure;
   }
   memset ( d, 0, sizeof(lmt_optdata) );  /* clear all pointer fields */
@@ -147,7 +146,7 @@ boolean g1bl_InitBlSurfaceOptLMTd ( int lastknotu, int lastknotv, int pitch,
          (lastknotu-DEG)*(lastknotv-DEG)*sizeof(point3d);
   PKV_MALLOC ( dirtypt, size )
   if ( !dirtypt ) {
-    pkv_SignalError ( LIB_G1BLENDING, 17, ERRMSG_1 );
+    PKV_SIGNALERROR ( LIB_G1BLENDING, ERRCODE_9, ERRMSG_9 );
     goto failure;
   }
   d->dirtypt = dirtypt;
@@ -167,7 +166,7 @@ printf ( "nkn1 = %d, nkn2 = %d\n", nkn1, nkn2 );
          2*nvars*sizeof(double*);
   PKV_MALLOC ( ftab, size );
   if ( !ftab ) {
-    pkv_SignalError ( LIB_G1BLENDING, 18, ERRMSG_1 );
+    PKV_SIGNALERROR ( LIB_G1BLENDING, ERRCODE_5, ERRMSG_5 );
     goto failure;
   }
   d->ftab = ftab;
@@ -189,7 +188,7 @@ printf ( "nkn1 = %d, nkn2 = %d\n", nkn1, nkn2 );
   size = (nkn1 + s1 + s2 + s3 + nkn2 + s4)*sizeof(double);
   PKV_MALLOC ( aqcoeff, size );
   if ( !aqcoeff ) {
-    pkv_SignalError ( LIB_G1BLENDING, 19, ERRMSG_1 );
+    PKV_SIGNALERROR ( LIB_G1BLENDING, ERRCODE_9, ERRMSG_9 );
     goto failure;
   }
   d->aqcoeff = aqcoeff;
@@ -201,7 +200,7 @@ printf ( "nkn1 = %d, nkn2 = %d\n", nkn1, nkn2 );
           /* at the knots of the quadrature of lower order */
   if ( !_g1bl_TabBasisFuncd ( nkn1, &aqknots, &aqcoeff,
                               &abf, &adbf, &addbf ) ) {
-    pkv_SignalError ( LIB_G1BLENDING, 20, ERRMSG_3 );
+    PKV_SIGNALERROR ( LIB_G1BLENDING, ERRCODE_11, ERRMSG_11 );
     goto failure;
   }
   memcpy ( d->aqcoeff, aqcoeff, nkn1*sizeof(double) );
@@ -212,7 +211,7 @@ printf ( "nkn1 = %d, nkn2 = %d\n", nkn1, nkn2 );
           /* at the knots of the quadrature of higher order */
   if ( !_g1bl_TabBasisFuncd ( nkn2, &bqknots, &bqcoeff,
                               &bbf, &bdbf, &bddbf) ) {
-    pkv_SignalError ( LIB_G1BLENDING, 21, ERRMSG_3 );
+    PKV_SIGNALERROR ( LIB_G1BLENDING, ERRCODE_11, ERRMSG_11 );
     goto failure;
   }
   memcpy ( d->bqcoeff, bqcoeff, nkn2*sizeof(double) );
@@ -361,7 +360,7 @@ printf ( "%2d: ", d->itn );
   coeff = pkv_GetScratchMemd ( nvars );
   dcoeff = pkv_GetScratchMemd ( nvars );
   if ( !acp || !grad || !coeff || !dcoeff ) {
-    pkv_SignalError ( LIB_G1BLENDING, 22, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_G1BLENDING, ERRCODE_2, ERRMSG_2 );
     goto failure;
   }
 
@@ -391,7 +390,7 @@ printf ( "H" );
   }
   else {
     if ( d->accurate ) {
-      pkv_SignalError ( LIB_G1BLENDING, 23, ERRMSG_6 );
+      PKV_SIGNALERROR ( LIB_G1BLENDING, ERRCODE_14, ERRMSG_14 );
 #ifdef _DEBUG
 func = d->func;
 gn = 1.0/0.0;

@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -28,8 +28,6 @@
 #include "pkvaria.h"
 #include "pkgeom.h"
 #include "multibs.h"
-
-#include "msgpool.h"
 
 /* /////////////////////////////////////////// */
 /* constructing cubic B-spline curves of interpolation */
@@ -275,7 +273,7 @@ void mbs_multiBSCubicInterpf ( int lastinterpknot, float *interpknots,
     b = pkv_GetScratchMemf ( size_a );
     c = pkv_GetScratchMemf ( size_a );
     if ( !a || !b || !c ) {
-      pkv_SignalError ( LIB_MULTIBS, 12, ERRMSG_0 );
+      PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
       exit ( 1 );
     }
 
@@ -314,7 +312,7 @@ void mbs_multiBSCubicInterpf ( int lastinterpknot, float *interpknots,
     b = pkv_GetScratchMemf ( size_a );
     c = pkv_GetScratchMemf ( size_a );
     if ( !a || !b || !c ) {
-      pkv_SignalError ( LIB_MULTIBS, 13, ERRMSG_0 );
+      PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
       exit ( 1 );
     }
 
@@ -356,7 +354,7 @@ void mbs_multiBSCubicInterpf ( int lastinterpknot, float *interpknots,
     b = pkv_GetScratchMemf ( size_a );
     c = pkv_GetScratchMemf ( size_a );
     if ( !a || !b || !c ) {
-      pkv_SignalError ( LIB_MULTIBS, 14, ERRMSG_0 );
+      PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
       exit ( 1 );
     }
 
@@ -396,7 +394,7 @@ void mbs_multiBSCubicInterpf ( int lastinterpknot, float *interpknots,
     b = pkv_GetScratchMemf ( size_a );
     c = pkv_GetScratchMemf ( size_a );
     if ( !a || !b || !c ) {
-      pkv_SignalError ( LIB_MULTIBS, 15, ERRMSG_0 );
+      PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
       exit ( 1 );
     }
 
@@ -452,7 +450,7 @@ case BS3_BC_NOT_A_KNOT:          /* not a knot condition */
     break;
 
 default:
-    pkv_SignalError ( LIB_MULTIBS, 49, ERRMSG_1 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_5, ERRMSG_5 );
     exit ( 1 );   /* unknown boundary condition */
   }
 
@@ -487,7 +485,7 @@ case BS3_BC_NOT_A_KNOT:         /* not a knot condition */
     break;
 
 default:
-    pkv_SignalError ( LIB_MULTIBS, 50, ERRMSG_1 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_5, ERRMSG_5 );
     exit ( 1 );   /* unknown boundary condition */
   }
 

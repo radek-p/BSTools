@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -15,8 +15,6 @@
 #include "pkvaria.h"
 #include "pkgeom.h"
 #include "multibs.h"
-
-#include "msgpool.h"
 
 void mbs_multiBSDegElevClosedf ( int ncurves, int spdimen,
                          int indegree, int inlastknot, const float *inknots,
@@ -36,7 +34,7 @@ void mbs_multiBSDegElevClosedf ( int ncurves, int spdimen,
                         outknots, outpitch, outctlpoints, false );
   deg = *outdegree;
   if ( !(nlkn = pkv_GetScratchMemf ( deg+1 )) )
-    pkv_SignalError ( LIB_MULTIBS, 57, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
   r = 2*indegree+1;  r = min ( r, inlastknot );
   r = mbs_KnotMultiplicityf ( r, inknots, (u = inknots[indegree]) );
   *outlastknot = lkn += r;

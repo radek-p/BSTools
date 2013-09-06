@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2011                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2011, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -16,8 +16,6 @@
 #include "pkvaria.h"
 #include "pkgeom.h"
 #include "multibs.h"
-
-#include "msgpool.h"
 
 /* /////////////////////////////////////////// */
 /* constructing closed cubic B-spline curves of interpolation */
@@ -49,7 +47,7 @@ void mbs_multiBSCubicClosedInterpf ( int lastinterpknot, float *interpknots,
                                        /* setup the system of equations */
   a = pkv_GetScratchMemf ( 3*n );
   if ( !a ) {
-    pkv_SignalError ( LIB_MULTIBS, 12, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
   b = &a[n];

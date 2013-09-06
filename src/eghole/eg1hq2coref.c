@@ -471,17 +471,6 @@ failure:
   return false;
 } /*_g1h_Q2TabLaplacianJumpf*/
 
-unsigned short _g1h_ExtendSupport ( int hole_k, unsigned short supp )
-{
-  unsigned short s, m;
-
-  m = (unsigned short)(0x0001 << (hole_k-1));
-  s = (unsigned short)(supp | ( supp << 1 ) | (supp >> 1));
-  if ( supp & 0x0001 ) s = (unsigned short)(s | m);
-  if ( supp & m ) s |= 0x0001;
-  return s;
-} /*_g1h_ExtendSupport*/
-
 float _g1h_Q2Integralf ( int hole_k, int nquad, float *jac,
                          unsigned short supp1, float *lapj1,
                          unsigned short supp2, float *lapj2 )

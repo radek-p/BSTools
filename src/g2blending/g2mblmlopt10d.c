@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2011                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2011, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -26,7 +26,6 @@
 #include "g2blprivated.h"
 #include "g2mblprivated.h"
 #include "g2mblmlprivated.h"
-#include "msgpool.h"
 
 /* ///////////////////////////////////////////////////////////////////////// */
 boolean _g2mbl_MLSetupBlockHessiansd ( mesh_ml_optdata *d )
@@ -39,20 +38,20 @@ boolean _g2mbl_MLSetupBlockHessiansd ( mesh_ml_optdata *d )
     bd = &d->bd[i];
     if ( bd->nvcp <= MAX_NVCP ) {
       if ( !_g2mbl_MLSetupBlockCholHessiand ( d, i ) ) {
-printf ( "%s\n", ERRMSG_12 );
+printf ( "%s\n", ERRMSG_20 );
         return false;
       }
     }
     else {
       if ( !_g2mbl_MLSetupBlockCGHessiand ( d, i ) ) {
-printf ( "%s\n", ERRMSG_13 );
+printf ( "%s\n", ERRMSG_21 );
         return false;
       }
     }
   }
   for ( ; i < nblocks; i++ )
     if ( !_g2mbl_MLSetupBlockCholHessiand ( d, i ) ) {
-printf ( "%s\n", ERRMSG_12 );
+printf ( "%s\n", ERRMSG_20 );
       return false;
     }
   return true;

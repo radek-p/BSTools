@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2011                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2011, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -26,7 +26,6 @@
 #include "g2blprivated.h"
 #include "g2mblprivated.h"
 #include "g2mblmlprivated.h"
-#include "msgpool.h"
 
 /* ///////////////////////////////////////////////////////////////////////// */
 #define AVE_VERTN 64  /* upper estimate for now */
@@ -177,13 +176,13 @@ boolean _g2mbl_MLSetupBlockCGHessiand ( mesh_ml_optdata *d, int bn )
   bd = &d->bd[bn];
   if ( bn == 0 ) {
     if ( !_g2mbl_MLFindVCPNeighboursd ( d, &bd->iHbl, &bd->cHbl ) ) {
-printf ( "%s\n", ERRMSG_10 );
+printf ( "%s\n", ERRMSG_18 );
       goto failure;
     }
     Hblsize = d->Hblsize;
     PKV_MALLOC ( d->Hbl, Hblsize*9*sizeof(double) );
     if ( !d->Hbl ) {
-printf ( "%s\n", ERRMSG_1 );
+printf ( "%s\n", ERRMSG_9 );
       goto failure;
     }
     bd->nHbl = Hblsize;
@@ -203,7 +202,7 @@ printf ( "%s\n", ERRMSG_1 );
     ind  = pkv_GetScratchMemi ( nbcp );
     ind1 = pkv_GetScratchMemi ( nbcp1 );
     if ( !ind || !ind1 ) {
-printf ( "%s\n", ERRMSG_0 );
+printf ( "%s\n", ERRMSG_2 );
       goto failure;
     }
         /* vncpi1 contains an increasing sequence of integers (indices of */
@@ -230,7 +229,7 @@ printf ( "%s\n", ERRMSG_0 );
     PKV_MALLOC ( bd->iHbl, nbcp*sizeof(nzHbl_rowdesc) );
     PKV_MALLOC ( bd->cHbl, 2*Hblsize*sizeof(int) );
     if ( !bd->iHbl || !bd->cHbl ) {
-printf ( "%s\n", ERRMSG_1 );
+printf ( "%s\n", ERRMSG_9 );
       goto failure;
     }
     iHbl = bd->iHbl;

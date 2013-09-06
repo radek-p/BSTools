@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2012                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2012, 2013                             */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -26,7 +26,6 @@
 #include "g2blprivated.h"
 #include "g2mblprivated.h"
 #include "g2mblmlprivated.h"
-#include "msgpool.h"
 
 /* ///////////////////////////////////////////////////////////////////////// */
 #ifdef __DEBUG
@@ -85,14 +84,14 @@ boolean g2mbl_MLSCMPOptInitd ( /* fine mesh */
   PKV_MALLOC ( *data, sizeof(mesh_ml_optdata) );
   d = *data;
   if ( !d ) {
-printf ( "%s\n", ERRMSG_14 );
+printf ( "%s\n", ERRMSG_22 );
     goto failure;
   }
   memset ( d, 0, sizeof(mesh_ml_optdata) );
   if ( !_g2mbl_CMPAssignMeshd ( d, fnv, fmv, fmvhei, fmvcp, fnhe, fmhe,
                                 fnfac, fmfac, fmhei, fmkcp,
                                 cnv, rmnnz, rmnzi, rmnzc ) ) {
-printf ( "%s\n", ERRMSG_15 );
+printf ( "%s\n", ERRMSG_23 );
     goto failure;
   }
   d->nvars = d->nvcp;
@@ -102,7 +101,7 @@ printf ( "nvcp = %d, nvars = %d\n", d->nvcp, d->nvars );
   if ( !_g2mbl_MLSetupBlocksd ( d, nlevels, 1, SUBBLOCK_STEP_CP ) )
     goto failure;
   if ( !_g2mbl_MLFindElementsd ( d, 1, nkn1 != nkn2 ) ) {
-printf ( "%s\n", ERRMSG_15 );
+printf ( "%s\n", ERRMSG_23 );
     goto failure;
   }
   if ( !_g2mbl_MLFindBlockElementsd ( d ) )
@@ -112,7 +111,7 @@ printf ( "%s\n", ERRMSG_15 );
   if ( !_g2mbl_MLOptAllocBFArraysd ( d, nkn1, nkn2, true ) )
     goto failure;
   if ( !_g2mbl_MLSFindCPNormalsd ( d ) ) {
-printf ( "%s\n", ERRMSG_16 );
+printf ( "%s\n", ERRMSG_24 );
     goto failure;
   }
   nel = d->ndomelems;

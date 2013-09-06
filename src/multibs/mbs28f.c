@@ -17,8 +17,6 @@
 #include "pkgeom.h"
 #include "multibs.h"
 
-#include "msgpool.h"
-
 /* ////////////////////////////////////////////////////////////// */
 /* Computing intersections of lines with a trimmed patch boundary */
 
@@ -168,7 +166,7 @@ static void _mbs_pushp ( float t0, float t1, float *ac )
 {
   _sd = pkv_GetScratchMemf ( _deg+3 );
   if ( !_sd ) {
-    pkv_SignalError ( LIB_MULTIBS, 22, ERRMSG_2 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_6, ERRMSG_6 );
     exit ( 1 );
   }
   _sd[0] = t0;
@@ -180,7 +178,7 @@ static void _mbs_pushp ( float t0, float t1, float *ac )
 static void _mbs_popp ( float *t0, float *t1, float *ac )
 {
   if ( !_sp ) {
-    pkv_SignalError ( LIB_MULTIBS, 23, ERRMSG_2 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_6, ERRMSG_6 );
     exit ( 1 );
   }
   _sp--;

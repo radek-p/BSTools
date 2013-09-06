@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -13,8 +13,6 @@
 
 #include "pkvaria.h"
 #include "pknum.h"
-
-#include "msgpool.h"
 
 /* //////////////////////////////////////////////////////////////////// */
 /* the procedures in this file set up the matrices, which appear in the */
@@ -195,7 +193,7 @@ void pkn_Comp2Derivatives1d ( double xu, double yu, double xv, double yv,
   sp = pkv_GetScratchMemTop ();
   A11 = pkv_GetScratchMemd ( 4 );
   if ( !A11 )
-    pkv_SignalError ( LIB_PKNUM, 3, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
 
   pkn_Setup2DerA11Matrixd ( xu, yu, xv, yv, A11 );
 
@@ -226,7 +224,7 @@ void pkn_Comp2Derivatives2d ( double xu, double yu, double xv, double yv,
   sp = pkv_GetScratchMemTop ();
   A21 = pkv_GetScratchMemd ( 15 );
   if ( !A21 )
-    pkv_SignalError ( LIB_PKNUM, 4, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
   A22 = &A21[6];
 
   pkn_Setup2DerA21Matrixd ( xuu, yuu, xuv, yuv, xvv, yvv, A21 );
@@ -265,7 +263,7 @@ void pkn_Comp2Derivatives3d ( double xu, double yu, double xv, double yv,
   sp = pkv_GetScratchMemTop ();
   A31 = pkv_GetScratchMemd ( 36 );
   if ( !A31 )
-    pkv_SignalError ( LIB_PKNUM, 5, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
   A32 = &A31[8];  A33 = &A32[12];
 
   pkn_Setup2DerA31Matrixd ( xuuu, yuuu, xuuv, yuuv,
@@ -320,7 +318,7 @@ void pkn_Comp2Derivatives4d ( double xu, double yu, double xv, double yv,
   sp = pkv_GetScratchMemTop ();
   A41 = pkv_GetScratchMemd ( 70 );
   if ( !A41 )
-    pkv_SignalError ( LIB_PKNUM, 6, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
   A42 = &A41[10];  A43 = &A42[15];  A44 = &A43[20];
 
   pkn_Setup2DerA41Matrixd ( xuuuu, yuuuu, xuuuv, yuuuv, xuuvv, yuuvv,
@@ -379,7 +377,7 @@ void pkn_Comp2iDerivatives1d ( double xu, double yu, double xv, double yv,
   sp = pkv_GetScratchMemTop ();
   A11 = pkv_GetScratchMemd ( 4+2*spdimen );
   if ( !A11 )
-    pkv_SignalError ( LIB_PKNUM, 7, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
   hc = &A11[4];
 
   pkn_Setup2DerA11Matrixd ( xu, yu, xv, yv, A11 );
@@ -412,7 +410,7 @@ void pkn_Comp2iDerivatives2d ( double xu, double yu, double xv, double yv,
 
   A21 = pkv_GetScratchMemd ( 15+3*spdimen );
   if ( !A21 )
-    pkv_SignalError ( LIB_PKNUM, 8, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
   A22 = &A21[6];  hc = &A22[9];
 
   pkn_Setup2DerA21Matrixd ( xuu, yuu, xuv, yuv, xvv, yvv, A21 );
@@ -462,7 +460,7 @@ void pkn_Comp2iDerivatives3d ( double xu, double yu, double xv, double yv,
 
   A31 = pkv_GetScratchMemd ( 36+4*spdimen );
   if ( !A31 )
-    pkv_SignalError ( LIB_PKNUM, 9, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
   A32 = &A31[8];  A33 = &A32[12];  hc = &A33[16];
 
   pkn_Setup2DerA31Matrixd ( xuuu, yuuu, xuuv, yuuv,
@@ -534,7 +532,7 @@ void pkn_Comp2iDerivatives4d ( double xu, double yu, double xv, double yv,
 
   A41 = pkv_GetScratchMemd ( 70+5*spdimen );
   if ( !A41 )
-    pkv_SignalError ( LIB_PKNUM, 10, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
   A42 = &A41[10];  A43 = &A42[15];  A44 = &A43[20];  hc = &A44[25];
 
   pkn_Setup2DerA41Matrixd ( xuuuu, yuuuu, xuuuv, yuuuv, xuuvv, yuuvv,
@@ -594,7 +592,7 @@ void pkn_f2iDerivatives1d ( double xu, double yu, double xv, double yv,
   sp = pkv_GetScratchMemTop ();
   e1e2 = pkv_GetScratchMemd ( 4 );
   if ( !e1e2 )
-    pkv_SignalError ( LIB_PKNUM, 11, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
 
   e1e2[0] = e1e2[3] = 1.0;
   e1e2[1] = e1e2[2] = 0.0;
@@ -617,7 +615,7 @@ void pkn_f2iDerivatives2d ( double xu, double yu, double xv, double yv,
   sp = pkv_GetScratchMemTop ();
   e1e2 = pkv_GetScratchMemd ( 7 );
   if ( !e1e2 )
-    pkv_SignalError ( LIB_PKNUM, 12, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
   zero = &e1e2[4];
 
   memset ( e1e2, 0, 7*sizeof(double) );
@@ -646,7 +644,7 @@ void pkn_f2iDerivatives3d ( double xu, double yu, double xv, double yv,
   sp = pkv_GetScratchMemTop ();
   e1e2 = pkv_GetScratchMemd ( 8 );
   if ( !e1e2 )
-    pkv_SignalError ( LIB_PKNUM, 13, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
   zero = &e1e2[4];
 
   memset ( e1e2, 0, 8*sizeof(double) );
@@ -683,7 +681,7 @@ void pkn_f2iDerivatives4d ( double xu, double yu, double xv, double yv,
   sp = pkv_GetScratchMemTop ();
   e1e2 = pkv_GetScratchMemd ( 9 );
   if ( !e1e2 )
-    pkv_SignalError ( LIB_PKNUM, 14, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
   zero = &e1e2[4];
 
   memset ( e1e2, 0, 9*sizeof(double) );

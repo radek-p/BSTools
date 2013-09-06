@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -16,8 +16,6 @@
 #include "pkvaria.h"
 #include "pkgeom.h"
 #include "multibs.h"
-
-#include "msgpool.h"
 
 /* planar Bezier and rational Bezier curve rasterization */
 
@@ -109,7 +107,7 @@ static void _mbs_RasterizeBCd ( int degree, vector3d *acp )
   sp = pkv_GetScratchMemTop ();
   stack = (stackel*)pkv_GetScratchMem ( STKSIZE*sizeof(stackel) );
   if ( !stack ) {
-    pkv_SignalError ( LIB_MULTIBS, 25, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
 
@@ -193,7 +191,7 @@ static void _mbs_RasterizeBC2Rd ( int degree, const point3d *cpoints )
   acp = (vector3d*)pkv_GetScratchMem ( (degree+1)*sizeof(vector3d) );
   cp = pkv_GetScratchMem ( size = (degree+1)*sizeof(point3d) );
   if ( !acp || !cp ) {
-    pkv_SignalError ( LIB_MULTIBS, 26, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
 
@@ -206,13 +204,13 @@ static void _mbs_RasterizeBC2Rd ( int degree, const point3d *cpoints )
     if ( ((point3d*)cp)[0].z )
       Point3to2d ( &((point3d*)cp)[0], &v );
     else {
-      pkv_SignalError ( LIB_MULTIBS, 27, ERRMSG_3 );
+      PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_7, ERRMSG_7 );
       exit ( 1 );
     }
     if ( ((point3d*)cp)[degree].z )
       Point3to2d ( &((point3d*)cp)[degree], &w );
     else {
-      pkv_SignalError ( LIB_MULTIBS, 28, ERRMSG_3 );
+      PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_7, ERRMSG_7 );
       exit ( 1 );
     }
     SubtractPoints2d ( &w, &v, &v );
@@ -225,7 +223,7 @@ draw_it:
     else {
       cq = pkv_GetScratchMem ( size );
       if ( !cq ) {
-        pkv_SignalError ( LIB_MULTIBS, 29, ERRMSG_0 );
+        PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
         exit ( 1 );
       }
       mbs_BisectBC3d ( degree, cp, cq );
@@ -244,7 +242,7 @@ static void _mbs_RasterizeBC2d ( int degree, const point2d *cpoints )
   sp = pkv_GetScratchMemTop ();
   cp = pkv_GetScratchMem ( (degree+1)*sizeof(point3d) );
   if ( !cp ) {
-    pkv_SignalError ( LIB_MULTIBS, 30, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
   pkv_Selectd ( degree+1, 2, 2, 3, (double*)cpoints, (double*)cp );
@@ -311,7 +309,7 @@ void mbs_RasterizeBS2d ( int degree, int lastknot, const double *knots,
   ku = mbs_NumKnotIntervalsd ( degree, lastknot, knots );
   cp = (point2d*)pkv_GetScratchMem ( ku*(degree+1)*sizeof(point2d) );
   if ( !cp ) {
-    pkv_SignalError ( LIB_MULTIBS, 31, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
   mbs_BSToBezC2d ( degree, lastknot, knots, cpoints, &ku, NULL, NULL, cp );
@@ -343,7 +341,7 @@ void mbs_RasterizeBS2Rd ( int degree, int lastknot, const double *knots,
   ku = mbs_NumKnotIntervalsd ( degree, lastknot, knots );
   cp = (point3d*)pkv_GetScratchMem ( ku*(degree+1)*sizeof(point3d) );
   if ( !cp ) {
-    pkv_SignalError ( LIB_MULTIBS, 31, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
   mbs_BSToBezC3d ( degree, lastknot, knots, cpoints, &ku, NULL, NULL, cp );

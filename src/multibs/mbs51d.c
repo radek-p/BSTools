@@ -22,8 +22,6 @@
 #define CONST_
 #include "multibs.h"
 
-#include "msgpool.h"
-
 boolean mbs_FindBSCommonKnotSequenced ( int *degree, int *lastknot,
             double **knots, int nsequences, ... )
 {
@@ -63,7 +61,7 @@ boolean mbs_FindBSCommonKnotSequenced ( int *degree, int *lastknot,
     knotsc = va_arg ( ap, double* );
     for ( j = degc; j <= lknc-degc; j++ ) {
       if ( k > maxk )
-        pkv_SignalError ( LIB_MULTIBS, 100, ERRMSG_2 );
+        PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_6, ERRMSG_6 );
       kn[k++] = knotsc[j];
     }
         /* verify whether all curves have the same domain */

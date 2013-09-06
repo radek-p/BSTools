@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -20,8 +20,6 @@
 
 #include "multibs.h"
 
-#include "msgpool.h"
-
 /* /////////////////////////////////////////// */
 
 void mbs_FindBezPatchDiagFormd ( int degreeu, int degreev, int spdimen,
@@ -34,14 +32,14 @@ void mbs_FindBezPatchDiagFormd ( int degreeu, int degreev, int spdimen,
   int   i, pitch, ptch;
 
   if ( k > degreeu || l > degreev )
-    pkv_SignalError ( LIB_MULTIBS, 51, ERRMSG_1 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_5, ERRMSG_5 );
   sp = pkv_GetScratchMemTop ();
 
   pitch = (degreev+1)*spdimen;
   if ( k < degreeu ) {
     p = pkv_GetScratchMemd ( (k+1)*pitch );
     if ( !p )
-      pkv_SignalError ( LIB_MULTIBS, 52, ERRMSG_0 );
+      PKV_SIGNALERROR ( LIB_MULTIBS, 52, ERRMSG_0 );
     mbs_multiBCHornerd ( degreeu-k, k+1, pitch, pitch, cpoints, u, p );
   }
   else
@@ -70,7 +68,7 @@ void mbs_BCHornerDer3Pd ( int degreeu, int degreev, int spdimen,
   double s, t;
 
   if ( degreeu < 3 || degreev < 3 )
-    pkv_SignalError ( LIB_MULTIBS, 53, ERRMSG_1 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_5, ERRMSG_5 );
 
   sp = pkv_GetScratchMemTop ();
   dfa = pkv_GetScratchMemd ( 16*spdimen );
@@ -78,7 +76,7 @@ void mbs_BCHornerDer3Pd ( int degreeu, int degreev, int spdimen,
   dfc = pkv_GetScratchMemd ( 8*spdimen );
   dfd = pkv_GetScratchMemd ( 4*spdimen );
   if ( !dfa || !dfb || !dfc || !dfd )
-    pkv_SignalError ( LIB_MULTIBS, 54, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
 
   mbs_FindBezPatchDiagFormd ( degreeu, degreev, spdimen, ctlpoints,
                               3, 3, u, v, dfa );

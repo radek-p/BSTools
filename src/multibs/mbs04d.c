@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -17,11 +17,8 @@
 #include "pkgeom.h"
 #include "multibs.h"
 
-#include "msgpool.h"
-
 /* /////////////////////////////////////////// */
 /* de Boor algorithm                           */
-
 void _mbs_multideBoorKerneld ( int degree, const double *knots,
                                 int ncurves, int spdimen,
                                 int pitch, const double *ctlpoints,
@@ -69,7 +66,7 @@ int mbs_multideBoord ( int degree, int lastknot,
   /* copy control points for the deBoor algorithm */
   dpitch = (degree-r+1)*spdimen;
   if ( !( d = pkv_GetScratchMemd(ncurves*dpitch)) ) {
-    pkv_SignalError ( LIB_MULTIBS, 1, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, 2, ERRMSG_2 );
     exit ( 1 );
   }
   _mbs_multideBoorKerneld ( degree, knots, ncurves, spdimen,

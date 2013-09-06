@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -15,8 +15,6 @@
 
 #include "pkvaria.h"
 #include "pknum.h"
-
-#include "msgpool.h"
 
 
 /* solve a regular linear least squares problem with a band matrix */
@@ -41,7 +39,7 @@ void pkn_multiBandmSolveRLSQd ( int nrows, int ncols,
   ra = pkv_GetScratchMemd ( rsize );
   y = pkv_GetScratchMemd ( nrows*spdimen );
   if ( !qprof || !rprof || !qa || !ra || !y ) {
-    pkv_SignalError ( LIB_PKNUM, 0, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
     exit ( 1 );
   }
 

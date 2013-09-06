@@ -21,7 +21,6 @@
 #include "g1blendingd.h"
 
 #include "g1blprivated.h"
-#include "msgpool.h"
 
 #define _DEBUG
 
@@ -47,7 +46,7 @@ boolean _g1bl_LazyHessiand ( int lastknotu, int lastknotv,
   dd = pkv_GetScratchMemd ( ni );
   scp = pkv_GetScratchMem ( 3*3*sizeof(point3d) );
   if ( !dd || !scp ) {
-    pkv_SignalError ( LIB_G1BLENDING, 13, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_G1BLENDING, ERRCODE_2, ERRMSG_2 );
     goto failure;
   }
 

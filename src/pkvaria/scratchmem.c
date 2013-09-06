@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2012                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -16,7 +16,6 @@
 
 #include "pkvaria.h"
 #include "pkvprivate.h"
-#include "msgpool.h"
 
 
 boolean pkv_critical = false;
@@ -58,7 +57,7 @@ static void *_pkv_GetScratchMem ( size_t size )
       MinFreeScratch = FreeScratchSize;
   }
   else if ( !ScratchPtr ) {
-    pkv_SignalError ( LIB_PKVARIA, 0, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_PKVARIA, ERRCODE_0, ERRMSG_0 );
     exit ( 1 );
   }
   else
@@ -116,7 +115,7 @@ char pkv_InitScratchMem ( size_t size )
   _pkv_AssignDefaultScratchMemProc ();
   PKV_MALLOC ( ScratchPtr, size );
   if ( !ScratchPtr ) {
-    pkv_SignalError ( LIB_PKVARIA, 1, ERRMSG_1 );
+    PKV_SIGNALERROR ( LIB_PKVARIA, ERRCODE_1, ERRMSG_1 );
     exit ( 1 );
   }
   FreeScratch = ScratchPtr;

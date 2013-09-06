@@ -24,7 +24,7 @@ void pkv_SortPermute2 ( unsigned int num_data,
 
   tmp1 = (char*)pkv_GetScratchMem ( item_length1+item_length2 );
   if ( !tmp1 ) {
-    pkv_SignalError ( LIB_PKVARIA, 2, ERRMSG_2 );
+    PKV_SIGNALERROR ( LIB_PKVARIA, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
   tmp2 = &tmp1[item_length1];

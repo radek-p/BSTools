@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2011, 2012                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2011, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -26,7 +26,6 @@
 #include "g2blprivated.h"
 #include "g2mblprivated.h"
 #include "g2mblmlprivated.h"
-#include "msgpool.h"
 
 /*#define __DEBUG*/
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -50,13 +49,13 @@ boolean g2mbl_MLOptInitd ( int nv, BSMvertex *mv, int *mvhei, point3d *mvcp,
   PKV_MALLOC ( *data, sizeof(mesh_ml_optdata) );
   d = *data;
   if ( !d ) {
-printf ( "%s\n", ERRMSG_1 );
+printf ( "%s\n", ERRMSG_9 );
     goto failure;
   }
   memset ( d, 0, sizeof(mesh_ml_optdata) );  /* clear all pointer fields */
   if ( !_g2mbl_MLAssignMeshd ( d, nv, mv, mvhei, mvcp, nhe, mhe,
                                nfac, mfac, mfhei, mkcp ) ) {
-printf ( "%s\n", ERRMSG_14 );
+printf ( "%s\n", ERRMSG_22 );
     goto failure;
   }
   d->nvars = 3*d->nvcp;
@@ -66,7 +65,7 @@ printf ( "nvcp = %d, nvars = %d\n", d->nvcp, d->nvars );
   if ( !_g2mbl_MLSetupBlocksd ( d, nlevels, 3, SUBBLOCK_STEP ) )
     goto failure;
   if ( !_g2mbl_MLFindElementsd ( d, 3, nkn1 != nkn2 ) ) {
-printf ( "%s\n", ERRMSG_15 );
+printf ( "%s\n", ERRMSG_23 );
     goto failure;
   }
   if ( !_g2mbl_MLFindBlockElementsd ( d ) )

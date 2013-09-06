@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2011, 2012                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2011, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -29,7 +29,6 @@
 #include "g2blprivated.h"
 #include "g2mblprivated.h"
 #include "g2mblmlprivated.h"
-#include "msgpool.h"
 
 /* ///////////////////////////////////////////////////////////////////////// */
 static double _g2mbl_MLSAuxNuFuncd ( int nkn, double *qcoeff, double **Nitabs,
@@ -135,14 +134,14 @@ _g2mbl_MLSAuxNuFuncd ( nkn, qcoeff, Nitabs, Jac, nv, mvcp, mvcpn, nvcp, vncpi, \
         /* allocate arrays */
   coeff = pkv_GetScratchMemd ( 3*nvcp );
   if ( !coeff ) {
-printf ( "%s\n", ERRMSG_0 );
+printf ( "%s\n", ERRMSG_2 );
     goto failure;
   }
   dcoeff = &coeff[nvcp];
   grad = &dcoeff[nvcp];
   auxmvcp = pkv_GetScratchMem ( nv*sizeof(point3d) );
   if ( !auxmvcp ) {
-printf ( "%s\n", ERRMSG_0 );
+printf ( "%s\n", ERRMSG_2 );
     goto failure;
   }
   ga = fgc = 0.0;
@@ -171,7 +170,7 @@ printf ( "%s\n", ERRMSG_0 );
         if ( !g2mbl_MLSGetHessianRowsd ( nv, bd1->nvcp, bd1->vncpi,
                         bd1->nHbl, bd1->iHbl, bd1->cHbl, bd1->tHbl, d->Hbl,
                         nvcp, vncpi, hsize, hprof, hrows ) ) {
-printf ( "%s\n", ERRMSG_17 );
+printf ( "%s\n", ERRMSG_25 );
           goto failure;
         }
         bd->fghflag &= ~FLAG_LH;
@@ -189,7 +188,7 @@ printf ( " H" );
                      ndomel, domelind, domelem, domelcpind, nvcp, vncpi,
                      true, ftab1, gtab1, htab,
                      &fga, dcoeff, hsize, hprof, hrows ) ) {
-printf ( "%s\n", ERRMSG_19 );
+printf ( "%s\n", ERRMSG_27 );
           goto failure;
         }
 #ifdef G2MBL_TIME_IT
@@ -217,7 +216,7 @@ printf ( "G" );
       if ( !g2mbl_MLSFuncGradd ( nkn, qcoeff, Nitabs, Jac, nv, mvcp, mvcpn,
                  ndomel, domelind, domelem, domelcpind, nvcp, vncpi,
                  recalc, ftab2, gtab2, &func, grad ) ) {
-printf ( "%s\n", ERRMSG_20 );
+printf ( "%s\n", ERRMSG_28 );
         goto failure;
       }
       bd->fghflag |= FLAG_F | FLAG_G;
@@ -226,7 +225,7 @@ printf ( "%s\n", ERRMSG_20 );
       if ( !g2mbl_MLSFuncGradd ( nkn, qcoeff, Nitabs, Jac, nv, mvcp, mvcpn,
                    ndomel, domelind, domelem, domelcpind, nvcp, vncpi,
                    false, ftab2, gtab2, &func, grad ) ) {
-printf ( "%s\n", ERRMSG_20 );
+printf ( "%s\n", ERRMSG_28 );
           goto failure;
       }
       bd->fghflag |= FLAG_F | FLAG_G;
@@ -277,7 +276,7 @@ printf ( "G" );
     if ( !g2mbl_MLSFuncGradd ( nkn, qcoeff, Nitabs, Jac, nv, auxmvcp, mvcpn,
                ndomel, domelind, domelem, domelcpind, nvcp, vncpi,  
                true, ftab2, gtab2, &fga, dcoeff ) ) {
-printf ( "%s\n", ERRMSG_20 );
+printf ( "%s\n", ERRMSG_28 );
       goto failure;
     }
     bd->fghflag &= ~(FLAG_F | FLAG_G);  /* until acceptance */
@@ -331,7 +330,7 @@ printf ( "G" );
         if ( !g2mbl_MLSFuncGradd ( nkn, qcoeff, Nitabs, Jac, nv, auxmvcp, mvcpn,
                ndomel, domelind, domelem, domelcpind, nvcp, vncpi,  
                true, ftab2, gtab2, &fge, grad ) ) {
-printf ( "%s\n", ERRMSG_20 );
+printf ( "%s\n", ERRMSG_28 );
           goto failure;
         }
         bd->fghflag &= ~(FLAG_F | FLAG_G);  /* until acceptance */

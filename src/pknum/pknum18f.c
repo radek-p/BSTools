@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -14,8 +14,6 @@
 
 #include "pkvaria.h"
 #include "pknum.h"
-
-#include "msgpool.h"
 
 
 /* /////////////////////////////////////////// */
@@ -180,7 +178,7 @@ boolean pkn_multiSolveRLSQf ( int nrows, int ncols, float *a,
   sp = pkv_GetScratchMemTop ();
   aa = pkv_GetScratchMemf ( 2*ncols );
   if ( !aa ) {
-    pkv_SignalError ( LIB_PKNUM, 0, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
     exit ( 1 );
   }
 

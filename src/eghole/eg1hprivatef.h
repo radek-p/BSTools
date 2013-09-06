@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2008                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -14,9 +14,8 @@
 #ifndef EG1HPRIVATEF_H
 #define EG1HPRIVATEF_H
 
-#ifndef EGHPRIVATEF_H
 #include "eghprivatef.h"
-#endif
+#include "eg1hprivate.h"
 
 /* degrees of polynomial junction functions */
 #define G1_BF01DEG 2
@@ -528,7 +527,6 @@ boolean _g1h_Q2TabLaplacianJumpf ( int nkn, const float *tkn,
               const float *eicp1, const float *etrdc10,
               const float *eicp2, const float *etrdd10,
               float *lapjc00, float *lapjc10, float *lapjd10 );
-unsigned short _g1h_ExtendSupport ( int hole_k, unsigned short supp );
 boolean _g1h_TabLaplacianJump00f ( int nkn, const float *tkn, int fni,
                     const float *trdc00, const float *trdc10,
                     const float *trdd00, const float *trdd10,

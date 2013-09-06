@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -16,8 +16,6 @@
 #include "pkvaria.h"
 #include "pkgeom.h"
 #include "multibs.h"
-
-#include "msgpool.h"
 
 /* /////////////////////////////////////////// */
 /* The procedure below removes knots whose multiplicity exceeds  */
@@ -144,7 +142,7 @@ void mbs_multiMaxKnotInsd ( int ncurves, int spdimen, int degree,
   pitch = spdimen*(lkn-degree);
   auxcp = pkv_GetScratchMemd ( pitch*ncurves );
   if ( !auxkn || !auxcp ) {
-    pkv_SignalError ( LIB_MULTIBS, 3, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
   memcpy ( auxkn, inknots, (lkn+1)*sizeof(double) );

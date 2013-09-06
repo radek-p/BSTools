@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2007                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2007, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -14,8 +14,6 @@
 
 #include "pkvaria.h"
 #include "pknum.h"
-
-#include "msgpool.h"
 
 /* //////////////////////////////////////////////// */
 /* solving a linear least squares problem with      */
@@ -46,7 +44,7 @@ void pkn_multiBandmSolveCRLSQd ( int nrows, int ncols,
   da = pkv_GetScratchMemd ( nconstr*spdimen );
   y = pkv_GetScratchMemd ( nrows*spdimen );
   if ( !qprof || !rprof || !qa || !ra || !ea || !eaa || !da || !y ) {
-    pkv_SignalError ( LIB_PKNUM, 16, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
     exit ( 1 );
   }
     /* QR decomposition of the band matrix A */

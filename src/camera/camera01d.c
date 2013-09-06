@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2008                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -12,8 +12,6 @@
 #include <math.h>
 
 #include "camera.h"
-
-#include "msgpool.h"
 
 
 void CameraInitFramed ( CameraRecd *CPos,
@@ -122,7 +120,7 @@ void CameraSetMappingd ( CameraRecd *CPos )
       break;
 
   default:
-      pkv_SignalError ( LIB_CAMERA, 1, ERRMSG_2 );
+      PKV_SIGNALERROR ( LIB_CAMERA, 4, ERRMSG_4 );
     }
     xi0  = CPos->xmin + 0.5*w;
     eta0 = CPos->ymin + 0.5*h;

@@ -51,7 +51,7 @@ default: $(TARGET)
 $(TARGET): $(OBJECTS)
 	$(AR) $(ARFLAGS) $(TARGET) $(OBJECTS)
 
-.c.o: $< ./msgpool.h $(INCDIR)/pkvaria.h $(INCDIR)/pknum.h \
+.c.o: $< $(INCDIR)/msgpool.h $(INCDIR)/pkvaria.h $(INCDIR)/pknum.h \
   $(INCDIR)/pknumf.h $(INCDIR)/pknumd.h
 	$(CC) $(CFLAGS) -I$(INCDIR) -c $< -o $*.o
 

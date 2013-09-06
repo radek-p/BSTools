@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -19,8 +19,6 @@
 #define CONST_
 
 #include "multibs.h"
-
-#include "msgpool.h"
 
 /* /////////////////////////////////////////// */
 /* adding B-spline curves */
@@ -42,26 +40,26 @@ void mbs_multiAddBSCurvesf ( int ncurves, int spdimen,
   _sumdeg = 0;
   if ( !mbs_FindBSCommonKnotSequencef ( &_sumdeg, &_sumlastknot, &_sumknots,
              2, degree1, lastknot1, knots1, degree2, lastknot2, knots2 ) ) {
-    pkv_SignalError ( LIB_MULTIBS, 34, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
   minpitch = spdimen*(_sumlastknot-_sumdeg);
   ctlp1 = pkv_GetScratchMemf ( ncurves*minpitch );
   ctlp2 = pkv_GetScratchMemf ( ncurves*minpitch );
   if ( !ctlp1 || !ctlp2 ) {
-    pkv_SignalError ( LIB_MULTIBS, 35, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
   if ( !mbs_multiAdjustBSCRepf ( ncurves, spdimen,
            degree1, lastknot1, knots1, pitch1, ctlpoints1,
            _sumdeg, _sumlastknot, _sumknots, minpitch, ctlp1 ) ) {
-    pkv_SignalError ( LIB_MULTIBS, 36, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
   if ( !mbs_multiAdjustBSCRepf ( ncurves, spdimen,
            degree2, lastknot2, knots2, pitch2, ctlpoints2,
            _sumdeg, _sumlastknot, _sumknots, minpitch, ctlp2 ) ) {
-    pkv_SignalError ( LIB_MULTIBS, 36, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
   pkn_AddMatrixf ( ncurves, minpitch,
@@ -93,26 +91,26 @@ void mbs_multiSubtractBSCurvesf ( int ncurves, int spdimen,
   _sumdeg = 0;
   if ( !mbs_FindBSCommonKnotSequencef ( &_sumdeg, &_sumlastknot, &_sumknots,
              2, degree1, lastknot1, knots1, degree2, lastknot2, knots2 ) ) {
-    pkv_SignalError ( LIB_MULTIBS, 34, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
   minpitch = spdimen*(_sumlastknot-_sumdeg);
   ctlp1 = pkv_GetScratchMemf ( ncurves*minpitch );
   ctlp2 = pkv_GetScratchMemf ( ncurves*minpitch );
   if ( !ctlp1 || !ctlp2 ) {
-    pkv_SignalError ( LIB_MULTIBS, 35, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
   if ( !mbs_multiAdjustBSCRepf ( ncurves, spdimen,
            degree1, lastknot1, knots1, pitch1, ctlpoints1,
            _sumdeg, _sumlastknot, _sumknots, minpitch, ctlp1 ) ) {
-    pkv_SignalError ( LIB_MULTIBS, 36, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
   if ( !mbs_multiAdjustBSCRepf ( ncurves, spdimen,
            degree2, lastknot2, knots2, pitch2, ctlpoints2,
            _sumdeg, _sumlastknot, _sumknots, minpitch, ctlp2 ) ) {
-    pkv_SignalError ( LIB_MULTIBS, 36, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
   pkn_SubtractMatrixf ( ncurves, minpitch,

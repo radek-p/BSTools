@@ -3,7 +3,7 @@
 # This file is a part of the BSTools package
 # written by Przemyslaw Kiciak
 # /////////////////////////////////////////////////////////////////////
-# (C) Copyright by Przemyslaw Kiciak, 2005, 2009
+# (C) Copyright by Przemyslaw Kiciak, 2005, 2013
 # this package is distributed under the terms of the
 # Lesser GNU Public License, see the file COPYING.LIB
 # /////////////////////////////////////////////////////////////////////
@@ -40,7 +40,7 @@ default: $(TARGET)
 $(TARGET): $(OBJECTS)
 	$(AR) $(ARFLAGS) $(TARGET) $(OBJECTS)
 
-.c.o: $< $(SRCDIR)/msgpool.h $(INCDIR)/pkvaria.h $(INCDIR)/pknum.h \
+.c.o: $< $(INCDIR)/msgpool.h $(INCDIR)/pkvaria.h $(INCDIR)/pknum.h \
   $(INCDIR)/pkgeom.h $(INCDIR)/pkgeomf.h $(INCDIR)/pkgeomd.h \
   $(INCDIR)/multibs.h $(INCDIR)/multibsf.h $(INCDIR)/multibsd.h
 	$(CC) $(CFLAGS) -I$(INCDIR) -c $< -o $*.o

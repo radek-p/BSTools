@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -18,11 +18,8 @@
 #include "pkgeom.h"
 #include "multibs.h"
 
-#include "msgpool.h"
-
 /* ////////////////////////////////////////// */
 /* degree elevation of Bezier patches         */
-
 void mbs_BCDegElevPf ( int spdimen,
                        int indegreeu, int indegreev, const float *inctlp,
                        int deltadegu, int deltadegv,
@@ -35,7 +32,7 @@ void mbs_BCDegElevPf ( int spdimen,
   stp = pkv_GetScratchMemTop ();
   acp = pkv_GetScratchMemf ( (indegreeu+deltadegu+1)*(indegreev+1)*spdimen );
   if ( !acp ) {
-    pkv_SignalError ( LIB_MULTIBS, 21, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
   mbs_multiBCDegElevf ( 1, spdimen*(indegreev+1), 0, indegreeu, (float*)inctlp,

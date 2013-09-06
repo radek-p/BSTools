@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2008                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -14,9 +14,8 @@
 #ifndef EG1HPRIVATED_H
 #define EG1HPRIVATED_H
 
-#ifndef EGHPRIVATED_H
 #include "eghprivated.h"
-#endif
+#include "eg1hprivate.h"
 
 /* degrees of polynomial junction functions */
 #define G1_BF01DEG 2

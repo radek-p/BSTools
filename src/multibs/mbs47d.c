@@ -16,8 +16,6 @@
 #include "pkgeom.h"
 #include "multibs.h"
 
-#include "msgpool.h"
-
 
 int mbs_SetKnotd ( int lastknot, double *knots,
                    int knotnum, int mult, double t )
@@ -25,7 +23,7 @@ int mbs_SetKnotd ( int lastknot, double *knots,
   int i;
 
   if ( knotnum < 0 || knotnum > lastknot ) {
-    pkv_SignalError ( LIB_MULTIBS, 58, ERRMSG_1 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_5, ERRMSG_5 );
     return -1;
   }
   for ( i = 0; i < mult && knotnum > i; i++ )

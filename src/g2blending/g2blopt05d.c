@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2009, 2010                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2009, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -20,7 +20,6 @@
 #include "g2blendingd.h"
 
 #include "g2blprivated.h"
-#include "msgpool.h"
 
 #define _DEBUG
 
@@ -41,7 +40,7 @@ double g2bl_ClosedSurfNetDiameterSqd ( int lastknotu, int lastknotv,
   knotsa = pkv_GetScratchMemd ( 4 );
   ccp = pkv_GetScratchMemd ( (lastknotu-6)*(lastknotv-3)*3 );
   if ( !knotsv || !knotsa || !ccp ) {
-    pkv_SignalError ( LIB_G2BLENDING, 4, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_2, ERRMSG_2 );
     goto failure;
   }
   for ( i = 0; i <= lastknotv; i++ )

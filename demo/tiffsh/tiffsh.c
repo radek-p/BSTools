@@ -31,7 +31,7 @@ const char slopt_file[] = "tiffsh.pr";
 const char chapter_file[] = "tiffsh.ch";
 int        nchapters;
 int        ch[MAXCHAPTERS];
-int        nsl;
+int        nsl, speed;
 char       slopt[MAXSLIDES];
 
 const char  file_filter[] = "*.tif";
@@ -55,6 +55,7 @@ void ReadSlOptFile ( void )
 {
   FILE *f;
   int  r, i;
+  char c;
 
   memset ( slopt, 1, MAXSLIDES );
   f = fopen ( slopt_file, "r+" );
@@ -63,8 +64,20 @@ void ReadSlOptFile ( void )
       r = fscanf ( f, "%d", &i );
       if ( r == 1 && i >= 0 && i < MAXSLIDES )
         slopt[i] = 0;
-      else
+      else if ( r == EOF )
         break;
+      else {
+        do
+          r = fscanf ( f, "%c", &c );
+        while ( r == 1 && c != ':' );
+        if ( r != 1 )
+          break;
+        r = fscanf ( f, "%d", &i );
+        if ( r == 1 && i >= 0 && i < MAXSLIDES )
+          slopt[i] = 3;
+        else
+          break;
+      }
     }
     fclose ( f );
   }
@@ -188,12 +201,13 @@ case 4:
     xgeCopyRectOnScreen ( er->w, er->h, er->x, er->y );
 } /*DrawImageWin*/
 
-void InitAnimation ( int dir )
+void InitAnimation ( int dir, int _speed )
 {
   struct tms tt;
 
   ReadImage ( filename );
   animadir = dir;
+  speed = _speed;
   if ( dir == 0 ) {
     animapos = 0;
     memcpy ( imagedata1, imagedata2, IMHEIGHT*xim1->bytes_per_line );
@@ -213,9 +227,13 @@ void ContinueAnimation ( void )
   double     time_var, pos;
 
   ct = times ( &tt );
-  time_var = ((double)(ct-time_cnt))/(ATIME*(double)sysconf(_SC_CLK_TCK));
-  time_var = max ( time_var, 0.0 );
-  time_var = min ( time_var, 1.0 );
+  if ( speed ) {
+    time_var = ((double)(ct-time_cnt))/(speed*ATIME*(double)sysconf(_SC_CLK_TCK));
+    time_var = max ( time_var, 0.0 );
+    time_var = min ( time_var, 1.0 );
+  }
+  else
+    time_var = 1.0;
   mbs_BCHornerC1d ( 3, acp, time_var, &pos );
 /*  animapos += ANIMASTEP; */
   switch ( animadir ) {
@@ -255,10 +273,10 @@ void ShowNextPicture ( boolean anim )
     xge_MoveInListBox ( &flbox, 1 );
     xge_GetCurrentListBoxString ( &flbox, filename );
     ReadImage ( filename );
-    if ( anim && slopt[i] )
-      InitAnimation ( 1 );
+    if ( anim )
+      InitAnimation ( 1, slopt[i] );
     else
-      InitAnimation ( 0 );
+      InitAnimation ( 0, 0 );
   }
 } /*ShowNextPicture*/
 
@@ -271,10 +289,10 @@ void ShowPreviousPicture ( boolean anim )
     i = flbox.currentitem;
     xge_GetCurrentListBoxString ( &flbox, filename );
     ReadImage ( filename );
-    if ( anim && slopt[i] )
-      InitAnimation ( 2 );
+    if ( anim )
+      InitAnimation ( 2, slopt[i] );
     else
-      InitAnimation ( 0 );
+      InitAnimation ( 0, 0 );
   }
 } /*ShowPreviousPicture*/
 
@@ -292,7 +310,7 @@ void ShowNextChapter ( void )
       xge_MoveInListBox ( &flbox, ch[i]-flbox.currentitem );
       xge_GetCurrentListBoxString ( &flbox, filename );
       ReadImage ( filename );
-      InitAnimation ( 3 );
+      InitAnimation ( 3, 1 );
     }
   }
 } /*ShowNextChapter*/
@@ -315,7 +333,7 @@ void ShowPreviousChapter ( void )
       xge_MoveInListBox ( &flbox, ch[i]-flbox.currentitem );
       xge_GetCurrentListBoxString ( &flbox, filename );
       ReadImage ( filename );
-      InitAnimation ( 4 );
+      InitAnimation ( 4, 1 );
     }
   }
 } /*ShowPreviousChapter*/
@@ -337,25 +355,53 @@ void DrawBackground ( void )
                  ZPixmap, xim1, 0, 0 );
 } /*DrawBackground*/
 
-void ChangeDir ( void )
+void SetCurrentDir ( void )
 {
   int l;
 
+  getcwd ( current_directory, MAX_PATH_LGT+1 );
+  l = strlen ( current_directory );
+  if ( l < MAX_PATH_SHRT )
+    strcpy ( current_dir, current_directory );
+  else {
+    strcpy ( current_dir, "..." );
+    strcpy ( &current_dir[3], &current_directory[l-MAX_PATH_SHRT+3] );
+  }
+} /*SetCurrentDir*/
+
+void ChangeDir ( void )
+{
   if ( !chdir ( &dlbox.itemstr[dlbox.itemind[dlbox.currentitem]] ) ) {
     xge_SetupFileList ( &flbox, ".", file_filter );
     xge_SetupDirList ( &dlbox, ".", NULL, current_directory );
-    getcwd ( current_directory, MAX_PATH_LGT+1 );
-    l = strlen ( current_directory );
-    if ( l < MAX_PATH_SHRT )
-      strcpy ( current_dir, current_directory );
-    else {
-      strcpy ( current_dir, "..." );
-      strcpy ( &current_dir[3], &current_directory[l-MAX_PATH_SHRT+3] );
-    }
+    SetCurrentDir ();
     DrawBackground ();
     xge_Redraw ();
   }
 } /*ChangeDir*/
+
+void AltChangeDir ( short x )
+{
+  short l1, l2;
+
+  l1 = strlen ( current_directory );
+  l2 = strlen ( current_dir );
+  x += l2 - l1;
+  while ( x < l1 && current_directory[x] != '/' )
+    x ++;
+  if ( x < l1 ) {
+    current_directory[x] = 0;
+    if ( chdir ( current_directory ) )
+      current_directory[x] = '/';
+    else {
+      xge_SetupFileList ( &flbox, ".", file_filter );
+      xge_SetupDirList ( &dlbox, ".", NULL, current_directory );
+      SetCurrentDir ();
+      DrawBackground ();
+      xge_Redraw ();
+    }
+  }
+} /*AltChangeDir*/
 
 boolean ProcessKey ( int key )
 {
@@ -435,7 +481,7 @@ case xgemsg_MCLICK:
         xge_RemovePopup ( true );
         popup_is_on = cursor_is_on = false;
         xge_SetCurrentWindowCursor ( xgeCURSOR_INVISIBLE );
-        InitAnimation ( 0 );
+        InitAnimation ( 0, 0 );
       }
       return 1;
     }
@@ -469,10 +515,19 @@ case xgemsg_BUTTON_COMMAND:
       xge_RemovePopup ( true );
       popup_is_on = cursor_is_on = false;
       xge_SetCurrentWindowCursor ( xgeCURSOR_INVISIBLE );
-      InitAnimation ( 0 );
+      InitAnimation ( 0, 0 );
       return 1;
   case btnP01EXIT:
       xge_done = 1;
+      return 1;
+  default:
+      return 0;
+    }
+
+case xgemsg_TEXT_WIDGET_CLICK:
+    switch ( er->id ) {
+  case txtDIRSTR:
+      AltChangeDir ( x );
       return 1;
   default:
       return 0;
@@ -489,7 +544,7 @@ case xgemsg_LISTBOX_ITEM_PICK:
       xge_RemovePopup ( true );
       popup_is_on = cursor_is_on = false;
       xge_SetCurrentWindowCursor ( xgeCURSOR_INVISIBLE );
-      InitAnimation ( 0 );
+      InitAnimation ( 0, 0 );
       return 1;
   default:
       return 0;
@@ -534,7 +589,7 @@ void init_win ( void )
   DrawBackground ();
 
     /* setup the popup menu */
-  w = xge_NewTextWidget ( 0, NULL, 0, 380, 16, 20+10, 40+10, current_dir );
+  w = xge_NewTextWidget ( 0, NULL, txtDIRSTR, 380, 16, 20+10, 40+10, current_dir );
   w = xge_NewButton ( 0, w, btnP01LOAD, 58, 19, 20+91, 40+340-30, txtLoad );
   w = xge_NewButton ( 0, w, btnP01EXIT, 58, 19, 20+251, 40+340-30, txtExit );
   dlist = xge_NewListBox ( 0, w, lb01DIRLIST, 180, 259, 20+10, 40+40, &dlbox );

@@ -31,7 +31,6 @@
 #include "g2blprivated.h"
 #include "g2mblprivated.h"
 #include "g2mblmlprivated.h"
-#include "msgpool.h"
 
 /* ///////////////////////////////////////////////////////////////////////// */
 boolean _g2mbl_CMPSSetupCoarseHessiand ( mesh_ml_optdata *d, int bl, double nu )
@@ -504,7 +503,7 @@ static boolean _g2mbl_MLSDecompSmallBlockd ( void *usrdata, int3 *jobnum )
     if ( !g2mbl_MLSGetHessianRowsd ( nv, bd0->nvcp, bd0->vncpi,
                           bd0->nHbl, bd0->iHbl, bd0->cHbl, bd0->tHbl, d->Hbl,
                           nvcp, vncpi, hsize, hprof, hrows ) ) {
-printf ( "%s\n", ERRMSG_17 );
+printf ( "%s\n", ERRMSG_25 );
       goto failure;
     }
     bd->fghflag |= FLAG_H;

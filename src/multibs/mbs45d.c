@@ -17,8 +17,6 @@
 #include "pkgeom.h"
 #include "multibs.h"
 
-#include "msgpool.h"
-
 /* /////////////////////////////////////////// */
 static int nsigns ( int n, const double *a )
 {

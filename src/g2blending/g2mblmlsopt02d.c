@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2011                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2011, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -29,7 +29,6 @@
 #include "g2blprivated.h"
 #include "g2mblprivated.h"
 #include "g2mblmlprivated.h"
-#include "msgpool.h"
 
 /* ///////////////////////////////////////////////////////////////////////// */
 static void _g2mbl_MLSFindCPNormal ( int d, int *vertnum, int *mtab,
@@ -112,7 +111,7 @@ boolean _g2mbl_MLSFindCPNormalsd ( mesh_ml_optdata *d )
 
   PKV_MALLOC ( d->mvcpn, nv*sizeof(vector3d) );
   if ( !d->mvcpn ) {
-printf ( "%s\n", ERRMSG_1 );
+printf ( "%s\n", ERRMSG_9 );
     goto failure;
   }
   memset ( d->mvcpn, 0, nv*sizeof(vector3d) );

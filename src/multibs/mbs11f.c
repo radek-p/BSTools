@@ -17,8 +17,6 @@
 #include "pkgeom.h"
 #include "multibs.h"
 
-#include "msgpool.h"
-
 /* /////////////////////////////////////////// */
 /* degree elevation of Bezier curves */
 
@@ -31,7 +29,7 @@ void mbs_multiBCDegElevf ( int ncurves, int spdimen,
   float *p, *q;
 
   if ( deltadeg < 0 ) {/* We can do the degree elevation, not reduction here. */
-    pkv_SignalError ( LIB_MULTIBS, 47, ERRMSG_1 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_5, ERRMSG_5 );
     exit ( 1 );
   }
     
@@ -98,7 +96,7 @@ void mbs_multiBSDegElevf ( int ncurves, int spdimen,
     return;
   }
   if ( deltadeg < 0 ) {/* We can do the degree elevation, not reduction here. */
-    pkv_SignalError ( LIB_MULTIBS, 48, ERRMSG_1 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_5, ERRMSG_5 );
     exit ( 1 );
   }
 
@@ -109,7 +107,7 @@ void mbs_multiBSDegElevf ( int ncurves, int spdimen,
   ap = (deg+1)*spdimen;
   akns = mbs_LastknotMaxInsf ( indegree, lkn, inknots, &ki );
   if ( ki <= 0 ) {
-    pkv_SignalError ( LIB_MULTIBS, 59, ERRMSG_1 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_5, ERRMSG_5 );
     exit ( 1 );
   }
   auxpitch = max ( ki*ap, (akns-indegree)*spdimen );
@@ -117,7 +115,7 @@ void mbs_multiBSDegElevf ( int ncurves, int spdimen,
   akn = pkv_GetScratchMemf ( (ki+3)*(deg+1) - 2 );
 
   if ( !auxcp || !akn ) {
-    pkv_SignalError ( LIB_MULTIBS, 10, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
 

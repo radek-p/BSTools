@@ -18,6 +18,10 @@
 #include <sys/times.h>
 #endif
 
+#ifndef MSGPOOL_H
+#include "msgpool.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -51,7 +55,6 @@ typedef unsigned char boolean;
 typedef unsigned char byte;
 
 /* point and vector types, for general use */
-
 typedef struct { signed char x, y; }     char2,   point2c, vector2c;
 typedef struct { signed short x, y; }    short2,  point2s, vector2s;
 typedef struct { signed short x, y, z; } short3,  point3s, vector3s;
@@ -65,21 +68,6 @@ typedef struct { float x, y, z, w; }     float4,  point4f, vector4f;
 typedef struct { double x, y, z, w; }    double4, point4d, vector4d;
 
 
-/* BSTools library identifiers (for error handling) */
-#define LIB_PKVARIA     0
-#define LIB_PKNUM       1
-#define LIB_GEOM        2
-#define LIB_CAMERA      3
-#define LIB_PSOUT       4
-#define LIB_MULTIBS     5
-#define LIB_RAYBEZ      6
-#define LIB_EGHOLE      7
-#define LIB_G1BLENDING  8
-#define LIB_G2BLENDING  9
-#define LIB_BSFILE     10
-#define LIB_BSMESH     11
-#define LIB_XGEDIT     12
-
 /* 2d boxes, for various purposes */
 typedef struct Box2i {
     int  x0, x1, y0, y1;
@@ -91,14 +79,17 @@ typedef struct Box2s {
 
 
 /* error message handlers */
+void pkv_SignalError ( int module, const char *file, int line,
+                       int errcode, const char *errstr );
+#define PKV_SIGNALERROR(module,errcode,errstr) \
+  pkv_SignalError ( module, __FILE__, __LINE__, errcode, errstr )
 
-void pkv_SignalError ( int module, int errno, const char *errstr );
 void pkv_SetErrorHandler (
-        void (*ehandler)( int module, int errno, const char *errstr ) );
+        void (*ehandler)( int module, const char *file, int line,
+                          int errcode, const char *errstr ) );
 
 
 /* scratch memory management procedures */
-
 char pkv_InitScratchMem ( size_t size );
 void pkv_DestroyScratchMem ( void );
 void PrintScratchMemData ( void );

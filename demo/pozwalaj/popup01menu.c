@@ -95,16 +95,14 @@ void Popup01OpenFile ( void )
   save_current = current_go;
   if ( !GeomObjectReadFile ( filename ) )
     xge_DisplayErrorMessage ( ErrorMsgCannotOpen, 0 );
-  else {
-    if ( save_current )
-      current_go = save_current;
-    else
-      current_go = first_go;
-    SetupObjectSpecificMenus ( current_go );
-    if ( xge_IsPopupOn ( popup12 ) )
-      UpdateObjectNameList ();
-    xge_RedrawAll ();
-  }
+  if ( save_current )
+    current_go = save_current;
+  else
+    current_go = first_go;
+  SetupObjectSpecificMenus ( current_go );
+  if ( xge_IsPopupOn ( popup12 ) )
+    UpdateObjectNameList ();
+  xge_RedrawAll ();
 } /*Popup01OpenFile*/
 
 int Popup01CallBack ( xge_widget *er, int msg, int key, short x, short y )

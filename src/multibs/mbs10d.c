@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -16,8 +16,6 @@
 #include "pkvaria.h"
 #include "pkgeom.h"
 #include "multibs.h"
-
-#include "msgpool.h"
 
 /* /////////////////////////////////////////// */
 /* multiplication of curves by scalar spline functions */
@@ -77,7 +75,7 @@ void mbs_multiMultBezCd ( int nscf, int degscf, int scfpitch,
   auxscf  = pkv_GetScratchMemd ( nscf*(degscf+1) );
   auxvecf = pkv_GetScratchMemd ( nvecf*(degvecf+1)*spdimen );
   if ( !auxscf || !auxvecf ) {
-    pkv_SignalError ( LIB_MULTIBS, 4, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
   pkv_Selectd ( nscf, degscf+1, scfpitch, degscf+1, scfcoef, auxscf );
@@ -134,7 +132,7 @@ void mbs_multiMultBSCd ( int nscf, int degscf,
                         degvecf, vecflastknot, vecfknots,
                         degprod, &lastpknot, prodknots );
   if ( lastpknot > *prodlastknot ) {
-    pkv_SignalError ( LIB_MULTIBS, 46, ERRMSG_1 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_5, ERRMSG_5 );
     exit ( 1 );  /* apparently the array for the result knots is too short */
   }
   *prodlastknot = lastpknot;
@@ -144,7 +142,7 @@ void mbs_multiMultBSCd ( int nscf, int degscf,
   auxkn = pkv_GetScratchMemd ( (npp+1)*(degpr+1) );
   aakn = pkv_GetScratchMemd ( degpr+1 );
   if ( !auxkn || !aakn ) {
-    pkv_SignalError ( LIB_MULTIBS, 5, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
 
@@ -156,7 +154,7 @@ void mbs_multiMultBSCd ( int nscf, int degscf,
   j = (vecflastknot-degvecf)*nvecf*spdimen;
   acp = pkv_GetScratchMemd ( max(i,j) );
   if ( !akn || !acp ) {
-    pkv_SignalError ( LIB_MULTIBS, 6, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
 
@@ -187,7 +185,7 @@ void mbs_multiMultBSCd ( int nscf, int degscf,
   ascpitch = auxlastkn-degscf;
   sauxc = pkv_GetScratchMemd ( ascpitch*nscf );
   if ( !sauxc ) {
-    pkv_SignalError ( LIB_MULTIBS, 7, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
   mbs_multiOsloInsertKnotsd ( nscf, 1, degscf, scflastknot, akn,
@@ -224,7 +222,7 @@ void mbs_multiMultBSCd ( int nscf, int degscf,
   avecpitch = (auxlastkn-degvecf)*spdimen;
   vauxc = pkv_GetScratchMemd ( avecpitch*nvecf );
   if ( !vauxc ) {
-    pkv_SignalError ( LIB_MULTIBS, 8, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
   mbs_multiOsloInsertKnotsd ( nvecf, spdimen, degvecf, vecflastknot, akn,
@@ -237,7 +235,7 @@ void mbs_multiMultBSCd ( int nscf, int degscf,
   mbs_multiBezScaled ( degvecf, npp, nvecf, spdimen, vecfpitch, vauxc );
   auxprod = pkv_GetScratchMemd ( nprod*npp*(degpr+1)*spdimen );
   if ( !auxprod ) {
-    pkv_SignalError ( LIB_MULTIBS, 9, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     exit ( 1 );
   }
   for ( i = 0, auxpr = auxprod;

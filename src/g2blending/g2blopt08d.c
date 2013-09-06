@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2009, 2012                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2009, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -20,7 +20,6 @@
 #include "g2blendingd.h"
 
 #include "g2blprivated.h"
-#include "msgpool.h"
 
 #define DEBUG
 #define _DEBUG
@@ -108,22 +107,22 @@ boolean g2bl_ClosedInitBlSurfaceConstrOptLMTd (
   sp = pkv_GetScratchMemTop ();
   *data = d = NULL;
   if ( lastknotu < 10 || lastknotv < 10 ) {
-    pkv_SignalError ( LIB_G2BLENDING, 26, ERRMSG_2 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_5, ERRMSG_5 );
     goto failure;
   }
   if ( nkn1 < 3 || nkn1 > 10 || nkn2 < nkn1 || nkn2 > 10 ) {
-    pkv_SignalError ( LIB_G2BLENDING, 27, ERRMSG_2 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_5, ERRMSG_5 );
     goto failure;
   }
   if ( nconstr < 1 ) {
-    pkv_SignalError ( LIB_G2BLENDING, 28, ERRMSG_2 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_5, ERRMSG_5 );
     goto failure;
   }
 
   PKV_MALLOC ( *data, sizeof(lmt_clconstroptdata) )
   d = *data;
   if ( !d ) {
-    pkv_SignalError ( LIB_G2BLENDING, 29, ERRMSG_1 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_9, ERRMSG_9 );
     goto failure;
   }
   memset ( d, 0, sizeof(lmt_clconstroptdata) );  /* clear all pointer fields */
@@ -151,7 +150,7 @@ boolean g2bl_ClosedInitBlSurfaceConstrOptLMTd (
          (nconstr*(nvars+2) + nvars + (nconstr*(nconstr+1))/2)*sizeof(double);
   PKV_MALLOC ( dirtypt, size )
   if ( !dirtypt ) {
-    pkv_SignalError ( LIB_G2BLENDING, 30, ERRMSG_1 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_9, ERRMSG_9 );
     goto failure;
   }
   d->dirtypt = dirtypt;
@@ -174,7 +173,7 @@ printf ( "nkn1 = %d, nkn2 = %d\n", nkn1, nkn2 );
          nvars*sizeof(double*);
   PKV_MALLOC ( ftab, size );
   if ( !ftab ) {
-    pkv_SignalError ( LIB_G2BLENDING, 31, ERRMSG_1 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_9, ERRMSG_9 );
     goto failure;
   }
   d->ftab = ftab;
@@ -192,7 +191,7 @@ printf ( "nkn1 = %d, nkn2 = %d\n", nkn1, nkn2 );
   size = (nkn1 + s1 + s2 + s3 + nkn2 + s4)*sizeof(double);
   PKV_MALLOC ( aqcoeff, size );
   if ( !aqcoeff ) {
-    pkv_SignalError ( LIB_G2BLENDING, 32, ERRMSG_1 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_9, ERRMSG_9 );
     goto failure;
   }
   d->aqcoeff = aqcoeff;
@@ -204,7 +203,7 @@ printf ( "nkn1 = %d, nkn2 = %d\n", nkn1, nkn2 );
           /* at the knots of the quadrature of lower order */
   if ( !_g2bl_TabBasisFuncd ( nkn1, &aqknots, &aqcoeff,
                               &abf, &adbf, &addbf, &adddbf ) ) {
-    pkv_SignalError ( LIB_G2BLENDING, 33, ERRMSG_3 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_11, ERRMSG_11 );
     goto failure;
   }
   memcpy ( d->aqcoeff, aqcoeff, nkn1*sizeof(double) );
@@ -214,7 +213,7 @@ printf ( "nkn1 = %d, nkn2 = %d\n", nkn1, nkn2 );
           /* at the knots of the quadrature of higher order */
   if ( !_g2bl_TabBasisFuncd ( nkn2, &bqknots, &bqcoeff,
                               &bbf, &bdbf, &bddbf, &bdddbf ) ) {
-    pkv_SignalError ( LIB_G2BLENDING, 34, ERRMSG_3 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_11, ERRMSG_11 );
     goto failure;
   }
   memcpy ( d->bqcoeff, bqcoeff, nkn2*sizeof(double) );
@@ -239,7 +238,7 @@ printf ( "C = %f\n", d->C );
         /* decompose the matrix of constraint equations */
   pkv_TransposeMatrixd ( nconstr, nvars, nvars, constrmat, nconstr, cmat );
   if ( !pkn_QRDecomposeMatrixd ( nvars, nconstr, cmat, acmat ) ) {
-    pkv_SignalError ( LIB_G2BLENDING, 35, ERRMSG_7 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_15, ERRMSG_15 );
     goto failure;
   }
   for ( i = 0; i < nconstr; i++ )
@@ -253,7 +252,7 @@ printf ( "C = %f\n", d->C );
         /* from the control net */
   coeff = pkv_GetScratchMemd ( nvars );
   if ( !coeff ) {
-    pkv_SignalError ( LIB_G2BLENDING, 36, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_2, ERRMSG_2 );
     goto failure;
   }
   pkv_Selectd ( lastknotu-6, pitch2, pitch, pitch2, &cp[3], coeff );
@@ -451,7 +450,7 @@ printf ( "%2d: ", d->itn );
   LM22rows = pkv_GetScratchMem ( neqsw*sizeof(double*) );
   if ( !acp || !grad || !g || !coeff || !dcoeff || !mcoeff ||
        !QA11rows || !qa11prof || !LM22rows ) {
-    pkv_SignalError ( LIB_G2BLENDING, 37, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_2, ERRMSG_2 );
     goto failure;
   }
   coeff2 = &coeff[nconstr];
@@ -499,7 +498,7 @@ printf ( "H" );
   }
   else {
     if ( d->accurate ) {
-      pkv_SignalError ( LIB_G2BLENDING, 23, ERRMSG_6 );
+      PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_14, ERRMSG_14 );
 #ifdef _DEBUG
 func = d->func;
 gn = 1.0/0.0;  
@@ -518,7 +517,7 @@ printf ( "e" );
                                 nconstr, cmat, acmat,
                                 qa11prof, QA11rows, qa22prof, QA22rows,
                                 &QA21  ) ) {
-    pkv_SignalError ( LIB_G2BLENDING, 39, ERRMSG_8 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_16, ERRMSG_16 );
     goto failure;
   }
   qsize = pkn_NRBArraySize ( neqsw, qa22prof );
@@ -541,11 +540,11 @@ printf ( " func = %12.7e, gn = %12.7e\n", func, gn );
         /* first, try the Newton method */
   LM22 = pkv_GetScratchMemd ( qsize );
   if ( !LM22 ) {
-    pkv_SignalError ( LIB_G2BLENDING, 40, ERRMSG_0 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_2, ERRMSG_2 );
     goto failure;
   }
   if ( !pkn_NRBFindRowsd ( neqsw, qa22prof, LM22, LM22rows ) ) {
-    pkv_SignalError ( LIB_G2BLENDING, 41, ERRMSG_9 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_17, ERRMSG_17 );
     goto failure;
   }
   memcpy ( LM22, QA22rows[0], qsize*sizeof(double) );

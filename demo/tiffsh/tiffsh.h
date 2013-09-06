@@ -12,10 +12,11 @@
 #define MAX_FILENAME_LGT   64
 
 #define POPUP01      100
-#define btnP01LOAD   101
-#define btnP01EXIT   102
-#define lb01DIRLIST  103
-#define lb01FILELIST 104
+#define txtDIRSTR    101
+#define btnP01LOAD   102
+#define btnP01EXIT   103
+#define lb01DIRLIST  104
+#define lb01FILELIST 105
 
 #define MAXSLIDES   1001
 #define MAXCHAPTERS  101
@@ -32,7 +33,7 @@ boolean ReadImage ( char *fn );
 
 void DrawImageWin ( xge_widget *er, boolean onscreen );
 
-void InitAnimation ( int dir );
+void InitAnimation ( int dir, int _speed );
 void ContinueAnimation ( void );
 void ShowNextPicture ( boolean anim );
 void ShowPreviousPicture ( boolean anim );
