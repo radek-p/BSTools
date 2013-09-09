@@ -58,7 +58,7 @@ static void *_pkv_GetScratchMem ( size_t size )
   }
   else if ( !ScratchPtr ) {
     PKV_SIGNALERROR ( LIB_PKVARIA, ERRCODE_0, ERRMSG_0 );
-    exit ( 1 );
+    return NULL;
   }
   else
     p = NULL;
@@ -110,13 +110,13 @@ void _pkv_AssignDefaultScratchMemProc ( void )
   pkv_MaxScratchTaken  = _pkv_MaxScratchTaken;
 } /*_pkv_AssignDefaultScratchMemProc*/
 
-char pkv_InitScratchMem ( size_t size )
+boolean pkv_InitScratchMem ( size_t size )
 {
   _pkv_AssignDefaultScratchMemProc ();
   PKV_MALLOC ( ScratchPtr, size );
   if ( !ScratchPtr ) {
     PKV_SIGNALERROR ( LIB_PKVARIA, ERRCODE_1, ERRMSG_1 );
-    exit ( 1 );
+    return false;
   }
   FreeScratch = ScratchPtr;
   MinFreeScratch = FreeScratchSize = ScratchSize = size;

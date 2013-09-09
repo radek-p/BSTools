@@ -3338,7 +3338,68 @@ Wersja 0.32:
 788. Poprawki w procedurze pkn_NLMIterf - dopracowywanie kryterium stopu
     (pewnie jeszcze niejedno trzeba bedzie zmienic).
 
-31.07.2013. Poprawki zmierzajace do usuniecia ostrzezen kompilatora - przy
+31.07.2013.
+789. Poprawki zmierzajace do usuniecia ostrzezen kompilatora - przy
     okazji poprawienie paru bledow typu niezainicjowana zmienna.
+
+
+16.08.2013
+780. Usuniecie drobnych usterek w plikach naglowkowych (te zmiany
+    zaproponowal Roman Putanowicz).
+
+781. W libeghole przeniesienie procedury _g1h_ExtendSupport do osobnego
+    pliku zrodlowego, w celu usuniecia dwoch kopii (procedura jest wspolna
+    dla obu wersji numerycznych, float i double, tezmiane zaproponowal Roman
+    Putanowicz).
+
+782. W libxgedit zmiana blednej nazwy procedury xge_T2KnotWinfDrawCursorPos
+    na xgle_T2KnotWinfDrawCursorPos w wersji dla aplikacji OpenGL (te zmiane
+    zaproponowal Roman Putanowicz).
+
+783. Usuniecie (kilku) nieuzywanych plikow zrodlowych.
+
+784. Dodanie obrazka - logo pakietu w wersji angielskiej.
+
+
+18.08.2013.
+785. W programie demonstracyjnym pozwalaj poprawiona procedura
+    Popup01OpenFile - w razie bledu czytania z pliku nie uaktualniala sie
+    lista obiektow wyswietlana w drugim oknie, mimo ze czesc obiektow mogla
+    byc wczytana poprawnie.
+
+3.09.2013.
+786. Modyfikacje programu tiffsh: ulatwienie zmiany katalogu (rozwiazanie
+    podobne do istniejacego w programie pozwalaj) oraz umozliwienie
+    przewijania slajdow w zwolnionym tempie.
+
+6.09.2013.
+787. Poczatek powaznych zmian w sposobie sygnalizowania i obslugi bledow
+    wykonania. Procedura pkv_SignalError ma zmieniona liste parametrow i jej
+    wywolania powinny byc wykonywane za pomoca makra PKV_SIGNALERROR.
+    Procedura ta zatrzymuje dzialanie programu (przy uzyciu exit) albo
+    wywoluje procedure obslugi bledow aplikacji, zarejestrowana przy uzyciu
+    pkv_SetErrorHandler. Procedura obslugi bledow w aplikacji ma obowiazek
+    zatrzymac wykonanie lub wykonac daleki skok (longjmp), natomiast na
+    razie nie moze wykonac powrotu (to sie nie zmienilo w porownaniu ze
+    stanem poprzednim). Zezwolenie na wykonanie powrotu bedzie wydane po
+    przejrzeniu wszystkich wywolan pkv_SignalError w procedurach
+    bibliotecznych i dopisaniu kodu umozliwiajacego kontynuacje dzialania
+    tych procedur (polegajaca na sprzatnieciu i powrocie z kodem bledu).
+
+    Dodatkowa zmiana polega na usunieciu "prywatnych" plikow msgpool.h
+    z napisami opisujacymi bledy i utworzenie jednego wspolnego pliku,
+    wlaczanego w pkvaria.h.
+
+    Zmiana listy parametrow wymagala zmodyfikowania w sumie 126 plikow
+    zrodlowych i Makefile.
+
+9.09.2013.
+788. Poprawiony handler bledow w programie pomnij; trzeba bylo zmienic
+    naglowek i tekst wypisywany na podstawie nowych parametrow.
+
+789. Zmiany w bibliotece libpkvaria: przygotowanie do tego, aby procedura
+    obslugi bledu (pkv_SignalError lub napisana w aplikacji) mogla wykonac
+    instrukcje powrotu (to samo trzeba bedzie zrobic w pozostalych
+     bibliotekach).
 
 

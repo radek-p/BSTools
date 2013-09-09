@@ -21,9 +21,11 @@
 #include "spl3d.h"
 
 /* ///////////////////////////////////////////////////////////////////////// */
-void ErrorHandler ( int module, int errno, const char *errstr )
+void ErrorHandler ( int module, const char *file, int line,
+                    int errcode, const char *errstr )
 {
-  printf ( "Error %d in %d: %s\n", errno, module, errstr );
+  fprintf ( stderr, "Error in module %d, file %s, line %d: %s\n",
+                     module, file, line, errstr );
   DumpData ();
   exit ( 1 );
 } /*ErrorHandler*/

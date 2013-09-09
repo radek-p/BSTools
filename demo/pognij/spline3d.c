@@ -51,12 +51,14 @@ boolean clpoints[4][8*MAX_KNOTS];  /* true if fits into the frame */
 double   knots[8*MAX_KNOTS+1];
 
 /* ///////////////////////////////////////////////////////////////////////// */
-static void ErrorHandler ( int module, int errno, const char *errstr )
+static void ErrorHandler ( int module, const char *file, int line,
+                           int errcode, const char *errstr )
 {
   FILE *f;
   int  i;
 
-  printf ( "Error %d in %d: %s,\n", errno, module, errstr );
+  printf ( "Error in module %d, file %s, line %d: %s\n",
+           module, file, line, errstr );
   printf ( "  writing file 'pognij.dat'\n" );
   f = fopen ( "pognij.dat", "w+" );
   fprintf ( f, "degree = %d\n", kwind.degree );

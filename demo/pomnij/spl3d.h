@@ -175,7 +175,8 @@ void SelectDomPoints ( const Box2s *sbox, boolean mk );
 void SaveControlPoints ( void );
 void TransformMarkedControlPoints ( trans3d *tr );
 
-void ErrorHandler ( int module, int errno, const char *errstr );
+void ErrorHandler ( int module, const char *file, int line,
+                    int errcode, const char *errstr );
 void DumpData ( void );
 
 /* ////////////////////////////////////////////////////////////////////////// */

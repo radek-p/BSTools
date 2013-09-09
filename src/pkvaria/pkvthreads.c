@@ -42,7 +42,7 @@ static void *_pkv_PTHRGetScratchMem ( size_t size )
   if ( my_pos >= 0 ) {
     if ( !pkvthread[my_pos].ScratchPtr ) {
       PKV_SIGNALERROR ( LIB_PKVARIA, ERRCODE_0, ERRMSG_0 );
-      exit ( 1 );
+      return NULL;
     }
     else if ( size <= pkvthread[my_pos].FreeScratchSize ) {
       p = pkvthread[my_pos].FreeScratchPtr;
@@ -57,7 +57,7 @@ static void *_pkv_PTHRGetScratchMem ( size_t size )
   else {
     if ( !ScratchPtr ) {
       PKV_SIGNALERROR ( LIB_PKVARIA, ERRCODE_0, ERRMSG_0 );
-      exit ( 1 );
+      return NULL;
     }
     else if ( size <= FreeScratchSize ) {
       p = FreeScratch;

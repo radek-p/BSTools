@@ -66,9 +66,11 @@ void DumpData ( void )
   fclose ( f );
 } /*DumpData*/
 
-static void ErrorHandler ( int module, int errno, const char *errstr )
+static void ErrorHandler ( int module, const char *file, int line,
+                           int errcode, const char *errstr )
 {
-  printf ( "Error %d in %d: %s,\n", errno, module, errstr );
+  printf ( "Error in module %d, file %s, line %d: %s\n",
+           module, file, line, errstr );
   DumpData ();
   exit ( 1 );
 } /*ErrorHandler*/

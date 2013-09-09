@@ -245,9 +245,11 @@ default:
   }
 } /*pomnij_proc_signal_handler*/
 
-void lib_error_handler ( int module, int errno, const char *errstr )
+void lib_error_handler ( int module, const char *file, int line,
+                         int errcode, const char *errstr )
 {
-  fprintf ( stdout, "Error %d in module %d: %s\n", errno, module, errstr );
+  fprintf ( stderr, "Error in module %d, file %s, line %d: %s\n",
+                    module, file, line, errstr );
   switch ( module ) {
 case LIB_G2BLENDING:
     break;

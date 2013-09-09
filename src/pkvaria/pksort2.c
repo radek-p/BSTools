@@ -14,18 +14,20 @@
 #include "pkvaria.h"
 #include "msgpool.h"
 
-void pkv_SortPermute2 ( unsigned int num_data,
+char pkv_SortPermute2 ( unsigned int num_data,
                         size_t item_length1, void *data1,
                         size_t item_length2, void *data2,
                         unsigned int *permut )
 {
-  unsigned int  i, k, m;
-  char *tmp1, *tmp2, *data1a, *data1b, *data2a, *data2b;
+  void         *sp;
+  unsigned int i, k, m;
+  char         *tmp1, *tmp2, *data1a, *data1b, *data2a, *data2b;
 
+  sp = pkv_GetScratchMemTop ();
   tmp1 = (char*)pkv_GetScratchMem ( item_length1+item_length2 );
   if ( !tmp1 ) {
     PKV_SIGNALERROR ( LIB_PKVARIA, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
   tmp2 = &tmp1[item_length1];
 
@@ -53,6 +55,11 @@ void pkv_SortPermute2 ( unsigned int num_data,
       permut[k] = k;
     }
   }
-  pkv_FreeScratchMem ( item_length1+item_length2 );
+  pkv_SetScratchMemTop ( sp );
+  return SORT_OK;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return SORT_NO_MEMORY;
 } /*pkv_SortPermute2*/
 

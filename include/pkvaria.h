@@ -90,7 +90,7 @@ void pkv_SetErrorHandler (
 
 
 /* scratch memory management procedures */
-char pkv_InitScratchMem ( size_t size );
+boolean pkv_InitScratchMem ( size_t size );
 void pkv_DestroyScratchMem ( void );
 void PrintScratchMemData ( void );
 
@@ -165,7 +165,7 @@ char pkv_SortKernel ( size_t key_size, char key_type,
                       unsigned int *permut );
 char pkv_SortPermute ( size_t item_length, unsigned int num_data, void *data,
                        unsigned int *permut );
-void pkv_SortPermute2 ( unsigned int num_data,
+char pkv_SortPermute2 ( unsigned int num_data,
                         size_t item_length1, void *data1,
                         size_t item_length2, void *data2,
                         unsigned int *permut );

@@ -68,7 +68,8 @@ boolean G2OptimizeLMTIter ( void );
 void pomnij_proc_callback ( int msg, int size );
 void my_signal_handler ( void );
 void pomnij_proc_signal_handler ( int sig );
-void lib_error_handler ( int module, int errno, const char *errstr );
+void lib_error_handler ( int module, const char *file, int line,
+                         int errcode, const char *errstr );
 #ifdef _FPU_CONTROL_H
 void SetupFPEInterrupt ( void );
 #endif
