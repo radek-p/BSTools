@@ -20,7 +20,6 @@
 #include <string.h>
 
 #include "pkvaria.h"
-/*#include "msgpool.h"*/
 
 /* The code is written with assumption that sizeof(int) is 4 and sizeof(short) is 2 */
 

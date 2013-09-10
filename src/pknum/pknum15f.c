@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2007                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -16,17 +16,15 @@
 #include "pkvaria.h"
 #include "pknum.h"
 
-#include "msgpool.h"
-
 
 /* solve a single dual linear least squares problem with a band matrix */
 
-void pkn_multiBandmSolveDLSQf ( int nrows, int ncols,
-                                const bandm_profile *atprof, const float *at,
-                                int nrsides, int spdimen,
-                                int bpitch, const float *b,
-                                int x0pitch, const float *x0,
-                                int xpitch, float *x )
+boolean pkn_multiBandmSolveDLSQf ( int nrows, int ncols,
+                                   const bandm_profile *atprof, const float *at,
+                                   int nrsides, int spdimen,
+                                   int bpitch, const float *b,
+                                   int x0pitch, const float *x0,
+                                   int xpitch, float *x )
 {
   void          *sp;
   int           qsize, rsize, i;
@@ -42,7 +40,7 @@ void pkn_multiBandmSolveDLSQf ( int nrows, int ncols,
   ra = pkv_GetScratchMemf ( rsize );
   if ( !qprof || !rprof || !qa || !ra ) {
     PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
 
   pkn_BandmQRDecomposeMatrixf ( nrows, ncols, atprof, at, qprof, qa, rprof, ra );
@@ -62,5 +60,10 @@ void pkn_multiBandmSolveDLSQf ( int nrows, int ncols,
   }
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*pkn_multiBandmSolveDLSQf*/
 

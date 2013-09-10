@@ -202,9 +202,9 @@ void pkn_Block1UpperTrMSolvef ( int k, int r, int s, CONST_ float *A,
   }
 } /*pkn_Block1UpperTrMSolvef*/
 
-void pkn_Block1SymMatrixMultf ( int k, int r, int s, CONST_ float *A,
-                                int spdimen, int xpitch, float *x,
-                                int ypitch, float *y )
+boolean pkn_Block1SymMatrixMultf ( int k, int r, int s, CONST_ float *A,
+                                   int spdimen, int xpitch, float *x,
+                                   int ypitch, float *y )
 {
   void  *sp; 
   int   i, t;
@@ -212,8 +212,10 @@ void pkn_Block1SymMatrixMultf ( int k, int r, int s, CONST_ float *A,
 
   sp = pkv_GetScratchMemTop ();
   z = pkv_GetScratchMemf ( max(r,s)*spdimen );
-  if ( !z )
-    exit ( 1 ); 
+  if ( !z ) {
+    PKV_SIGNALERROR ( LIB_PKNUM, ERRCODE_2, ERRMSG_2 );
+    goto failure;
+  }
   Akk = &A[pkn_Block1FindBlockPos ( k, r, s, k, k )];
   Aki = &A[pkn_Block1FindBlockPos ( k, r, s, k, 0 )];
   t = r*(r+1)/2;
@@ -234,5 +236,10 @@ void pkn_Block1SymMatrixMultf ( int k, int r, int s, CONST_ float *A,
   }
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*pkn_Block1SymMatrixMultf*/
 

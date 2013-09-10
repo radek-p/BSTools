@@ -3,31 +3,18 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2013                                  */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
 
-/* Header file for the libpkgeom library of C procedures - */
-/* finding convex hull                                     */
+/* this header file is private for g1hole library functions; */
+/* it is NOT intended to be #included in application source files */
 
-#ifndef CONVH_H
-#define CONVH_H
+#ifndef EG1HPRIVATE_H
+#define EG1HPRIVATE_H
 
-#ifndef PKGEOM_H
-#include "pkgeom.h"
+unsigned short _g1h_ExtendSupport ( int hole_k, unsigned short supp );
+
 #endif
-
-#ifdef __cplusplus   
-extern "C" {
-#endif
-
-boolean FindConvexHull2f ( int *n, point2f *p );
-boolean FindConvexHull2d ( int *n, point2d *p );
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /*CONVH_H*/
 

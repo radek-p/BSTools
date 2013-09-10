@@ -104,7 +104,7 @@ void CameraInitFramef ( CameraRecf *CPos,
                         float aspect, int ncplanes );
 void CameraSetMagf ( CameraRecf *CPos, byte mag );
 void CameraSetDepthRangef ( CameraRecf *CPos, float zmin, float zmax );
-void CameraSetMappingf ( CameraRecf *CPos );
+boolean CameraSetMappingf ( CameraRecf *CPos );
 
 void CameraProjectPoint3f ( CameraRecf *CPos, const point3f *p, point3f *q );
 void CameraUnProjectPoint3f ( CameraRecf *CPos, const point3f *p, point3f *q );

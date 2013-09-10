@@ -19,12 +19,12 @@
 
 /* solve a single dual linear least squares problem with a band matrix */
 
-void pkn_multiBandmSolveDLSQd ( int nrows, int ncols,
-                                const bandm_profile *atprof, const double *at,
-                                int nrsides, int spdimen,
-                                int bpitch, const double *b,
-                                int x0pitch, const double *x0,
-                                int xpitch, double *x )
+boolean pkn_multiBandmSolveDLSQd ( int nrows, int ncols,
+                                   const bandm_profile *atprof, const double *at,
+                                   int nrsides, int spdimen,
+                                   int bpitch, const double *b,
+                                   int x0pitch, const double *x0,
+                                   int xpitch, double *x )
 {
   void          *sp;
   int           qsize, rsize, i;
@@ -40,7 +40,7 @@ void pkn_multiBandmSolveDLSQd ( int nrows, int ncols,
   ra = pkv_GetScratchMemd ( rsize );
   if ( !qprof || !rprof || !qa || !ra ) {
     PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
 
   pkn_BandmQRDecomposeMatrixd ( nrows, ncols, atprof, at, qprof, qa, rprof, ra );
@@ -60,5 +60,10 @@ void pkn_multiBandmSolveDLSQd ( int nrows, int ncols,
   }
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*pkn_multiBandmSolveDLSQd*/
 

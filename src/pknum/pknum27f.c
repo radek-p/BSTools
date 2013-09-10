@@ -16,9 +16,9 @@
 #include "pkvaria.h"
 #include "pknum.h"
 
-void pkn_ComputeQTSQf ( int m, const float *s,
-                        int n, const float *a, const float *aa,
-                        float *b )
+boolean pkn_ComputeQTSQf ( int m, const float *s,
+                           int n, const float *a, const float *aa,
+                           float *b )
 {
   void   *sp;
   float  *v, *p, gamma;
@@ -28,8 +28,10 @@ void pkn_ComputeQTSQf ( int m, const float *s,
   sp = pkv_GetScratchMemTop ();
   v = pkv_GetScratchMemf ( m );
   p = pkv_GetScratchMemf ( m );
-  if ( !v || !p )
+  if ( !v || !p ) {
     PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
+    goto failure;
+  }
 
   if ( s != b )
     memcpy ( b, s, (m*(m+1)/2)*sizeof(float) );
@@ -57,11 +59,16 @@ void pkn_ComputeQTSQf ( int m, const float *s,
   }
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*pkn_ComputeQTSQf*/
 
-void pkn_ComputeQSQTf ( int m, const float *s,
-                        int n, const float *a, const float *aa,
-                        float *b )
+boolean pkn_ComputeQSQTf ( int m, const float *s,
+                           int n, const float *a, const float *aa,
+                           float *b )
 {
   void   *sp;
   float  *v, *p, gamma;
@@ -71,8 +78,10 @@ void pkn_ComputeQSQTf ( int m, const float *s,
   sp = pkv_GetScratchMemTop ();
   v = pkv_GetScratchMemf ( m );
   p = pkv_GetScratchMemf ( m );
-  if ( !v || !p )
+  if ( !v || !p ) {
     PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
+    goto failure;
+  }
 
   if ( s != b )
     memcpy ( b, s, (m*(m+1)/2)*sizeof(float) );
@@ -100,5 +109,10 @@ void pkn_ComputeQSQTf ( int m, const float *s,
   }
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*pkn_ComputeQSQTf*/
 

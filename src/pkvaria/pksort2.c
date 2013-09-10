@@ -12,7 +12,6 @@
 #include <string.h>
 
 #include "pkvaria.h"
-#include "msgpool.h"
 
 char pkv_SortPermute2 ( unsigned int num_data,
                         size_t item_length1, void *data1,

@@ -16,9 +16,9 @@
 #include "pkvaria.h"
 #include "pknum.h"
 
-void pkn_ComputeQTSQd ( int m, const double *s,
-                        int n, const double *a, const double *aa,
-                        double *b )
+boolean pkn_ComputeQTSQd ( int m, const double *s,
+                           int n, const double *a, const double *aa,
+                           double *b )
 {
   void   *sp;
   double *v, *p, gamma;
@@ -28,8 +28,10 @@ void pkn_ComputeQTSQd ( int m, const double *s,
   sp = pkv_GetScratchMemTop ();
   v = pkv_GetScratchMemd ( m );
   p = pkv_GetScratchMemd ( m );
-  if ( !v || !p )
+  if ( !v || !p ) {
     PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
+    goto failure;
+  }
 
   if ( s != b )
     memcpy ( b, s, (m*(m+1)/2)*sizeof(double) );
@@ -57,11 +59,16 @@ void pkn_ComputeQTSQd ( int m, const double *s,
   }
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*pkn_ComputeQTSQd*/
 
-void pkn_ComputeQSQTd ( int m, const double *s,
-                        int n, const double *a, const double *aa,
-                        double *b )
+boolean pkn_ComputeQSQTd ( int m, const double *s,
+                           int n, const double *a, const double *aa,
+                           double *b )
 {
   void   *sp;
   double  *v, *p, gamma;
@@ -71,8 +78,10 @@ void pkn_ComputeQSQTd ( int m, const double *s,
   sp = pkv_GetScratchMemTop ();
   v = pkv_GetScratchMemd ( m );
   p = pkv_GetScratchMemd ( m );
-  if ( !v || !p )
+  if ( !v || !p ) {
     PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
+    goto failure;
+  }
 
   if ( s != b )
     memcpy ( b, s, (m*(m+1)/2)*sizeof(double) );
@@ -100,5 +109,10 @@ void pkn_ComputeQSQTd ( int m, const double *s,
   }
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*pkn_ComputeQSQTd*/
 

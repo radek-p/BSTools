@@ -3402,4 +3402,10 @@ Wersja 0.32:
     instrukcje powrotu (to samo trzeba bedzie zrobic w pozostalych
      bibliotekach).
 
+10.09.2013.
+790. Zmiany w bibliotekach libpkgeom, libcamera i libpknum: procedury, jesli
+    procedura sygnalizacji bledu wykona powrot, zwroca sterowanie. Zamiast
+    typu void, zmienione procedury maja typ wyniku boolean i zwracaja true,
+    jesli zaden blad nie zostal wykryty, albo false, jesli jakis zostal.
+
 

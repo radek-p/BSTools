@@ -58,7 +58,8 @@ void pkn_Setup2DerA32Matrixf ( float xu, float yu, float xv, float yv,
                                float yuv, float xvv, float yvv,
                                float *A32 )
 {
-  A32[0] = (float)3.0*xu*xuu;  A32[1] = (float)3.0*(xuu*yu+xu*yuu);
+  A32[0] = (float)3.0*xu*xuu;
+  A32[1] = (float)3.0*(xuu*yu+xu*yuu);
   A32[2] = (float)3.0*yu*yuu;
 
   A32[3] = xuu*xv+(float)2.0*xu*xuv;
@@ -189,9 +190,9 @@ void pkn_Setup2DerA44Matrixf ( float xu, float yu, float xv, float yv,
 /* the scalar functions x, y with a function g: R^2 -> R^d.             */
 /* The parameter spdimen specifies d.                                   */
 
-void pkn_Comp2Derivatives1f ( float xu, float yu, float xv, float yv,
-                              int spdimen, const float *gx, const float *gy,
-                              float *hu, float *hv )
+boolean pkn_Comp2Derivatives1f ( float xu, float yu, float xv, float yv,
+                                 int spdimen, const float *gx, const float *gy,
+                                 float *hu, float *hv )
 {
   void  *sp;
   float *A11;
@@ -199,8 +200,10 @@ void pkn_Comp2Derivatives1f ( float xu, float yu, float xv, float yv,
 
   sp = pkv_GetScratchMemTop ();
   A11 = pkv_GetScratchMemf ( 4 );
-  if ( !A11 )
+  if ( !A11 ) {
     PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
+    goto failure;
+  }
 
   pkn_Setup2DerA11Matrixf ( xu, yu, xv, yv, A11 );
 
@@ -213,16 +216,21 @@ void pkn_Comp2Derivatives1f ( float xu, float yu, float xv, float yv,
   }
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*pkn_Comp2Derivatives1f*/
 
-void pkn_Comp2Derivatives2f ( float xu, float yu, float xv, float yv,
-                              float xuu, float yuu, float xuv,
-                              float yuv, float xvv, float yvv,
-                              int spdimen,
-                              const float *gx, const float *gy,
-                              const float *gxx, const float *gxy,
-                              const float *gyy,
-                              float *huu, float *huv, float *hvv )
+boolean pkn_Comp2Derivatives2f ( float xu, float yu, float xv, float yv,
+                                 float xuu, float yuu, float xuv,
+                                 float yuv, float xvv, float yvv,
+                                 int spdimen,
+                                 const float *gx, const float *gy,
+                                 const float *gxx, const float *gxy,
+                                 const float *gyy,
+                                 float *huu, float *huv, float *hvv )
 {
   void  *sp;
   float *A21, *A22;
@@ -230,8 +238,10 @@ void pkn_Comp2Derivatives2f ( float xu, float yu, float xv, float yv,
 
   sp = pkv_GetScratchMemTop ();
   A21 = pkv_GetScratchMemf ( 15 );
-  if ( !A21 )
+  if ( !A21 ) {
     PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
+    goto failure;
+  }
   A22 = &A21[6];
 
   pkn_Setup2DerA21Matrixf ( xuu, yuu, xuv, yuv, xvv, yvv, A21 );
@@ -247,21 +257,26 @@ void pkn_Comp2Derivatives2f ( float xu, float yu, float xv, float yv,
   }
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*pkn_Comp2Derivatives2f*/
 
-void pkn_Comp2Derivatives3f ( float xu, float yu, float xv, float yv,
-                              float xuu, float yuu, float xuv,
-                              float yuv, float xvv, float yvv,
-                              float xuuu, float yuuu, float xuuv, float yuuv,
-                              float xuvv, float yuvv, float xvvv, float yvvv,
-                              int spdimen,
-                              const float *gx, const float *gy,
-                              const float *gxx, const float *gxy,
-                              const float *gyy,
-                              const float *gxxx, const float *gxxy,
-                              const float *gxyy, const float *gyyy,
-                              float *huuu, float *huuv,
-                              float *huvv, float *hvvv )
+boolean pkn_Comp2Derivatives3f ( float xu, float yu, float xv, float yv,
+                                 float xuu, float yuu, float xuv,
+                                 float yuv, float xvv, float yvv,
+                                 float xuuu, float yuuu, float xuuv, float yuuv,
+                                 float xuvv, float yuvv, float xvvv, float yvvv,
+                                 int spdimen,
+                                 const float *gx, const float *gy,
+                                 const float *gxx, const float *gxy,
+                                 const float *gyy,
+                                 const float *gxxx, const float *gxxy,
+                                 const float *gxyy, const float *gyyy,
+                                 float *huuu, float *huuv,
+                                 float *huvv, float *hvvv )
 {
   void  *sp;
   float *A31, *A32, *A33;
@@ -269,8 +284,10 @@ void pkn_Comp2Derivatives3f ( float xu, float yu, float xv, float yv,
 
   sp = pkv_GetScratchMemTop ();
   A31 = pkv_GetScratchMemf ( 36 );
-  if ( !A31 )
+  if ( !A31 ) {
     PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
+    goto failure;
+  }
   A32 = &A31[8];  A33 = &A32[12];
 
   pkn_Setup2DerA31Matrixf ( xuuu, yuuu, xuuv, yuuv,
@@ -295,28 +312,33 @@ void pkn_Comp2Derivatives3f ( float xu, float yu, float xv, float yv,
   }
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*pkn_Comp2Derivatives3f*/
 
-void pkn_Comp2Derivatives4f ( float xu, float yu, float xv, float yv,
-                              float xuu, float yuu, float xuv,
-                              float yuv, float xvv, float yvv,
-                              float xuuu, float yuuu, float xuuv, float yuuv,
-                              float xuvv, float yuvv, float xvvv, float yvvv,
-                              float xuuuu, float yuuuu, float xuuuv,
-                              float yuuuv, float xuuvv, float yuuvv,
-                              float xuvvv, float yuvvv,
-                              float xvvvv, float yvvvv,
-                              int spdimen,
-                              const float *gx, const float *gy,
-                              const float *gxx, const float *gxy,
-                              const float *gyy,
-                              const float *gxxx, const float *gxxy,
-                              const float *gxyy, const float *gyyy,
-                              const float *gxxxx, const float *gxxxy,
-                              const float *gxxyy, const float *gxyyy,
-                              const float *gyyyy,
-                              float *huuuu, float *huuuv, float *huuvv,
-                              float *huvvv, float *hvvvv )
+boolean pkn_Comp2Derivatives4f ( float xu, float yu, float xv, float yv,
+                                 float xuu, float yuu, float xuv,
+                                 float yuv, float xvv, float yvv,
+                                 float xuuu, float yuuu, float xuuv, float yuuv,
+                                 float xuvv, float yuvv, float xvvv, float yvvv,
+                                 float xuuuu, float yuuuu, float xuuuv,
+                                 float yuuuv, float xuuvv, float yuuvv,
+                                 float xuvvv, float yuvvv,
+                                 float xvvvv, float yvvvv,
+                                 int spdimen,
+                                 const float *gx, const float *gy,
+                                 const float *gxx, const float *gxy,
+                                 const float *gyy,
+                                 const float *gxxx, const float *gxxy,
+                                 const float *gxyy, const float *gyyy,
+                                 const float *gxxxx, const float *gxxxy,
+                                 const float *gxxyy, const float *gxyyy,
+                                 const float *gyyyy,
+                                 float *huuuu, float *huuuv, float *huuvv,
+                                 float *huvvv, float *hvvvv )
 {
   void  *sp;
   float *A41, *A42, *A43, *A44;
@@ -324,8 +346,10 @@ void pkn_Comp2Derivatives4f ( float xu, float yu, float xv, float yv,
 
   sp = pkv_GetScratchMemTop ();
   A41 = pkv_GetScratchMemf ( 70 );
-  if ( !A41 )
+  if ( !A41 ) {
     PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
+    goto failure;
+  }
   A42 = &A41[10];  A43 = &A42[15];  A44 = &A43[20];
 
   pkn_Setup2DerA41Matrixf ( xuuuu, yuuuu, xuuuv, yuuuv, xuuvv, yuuvv,
@@ -366,6 +390,11 @@ void pkn_Comp2Derivatives4f ( float xu, float yu, float xv, float yv,
   }
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*pkn_Comp2Derivatives4f*/
 
 /* //////////////////////////////////////////////////////////////////// */
@@ -374,39 +403,47 @@ void pkn_Comp2Derivatives4f ( float xu, float yu, float xv, float yv,
 /* described with the scalar functions x, y with a function             */
 /* h: R^2 -> R^d. The parameter spdimen specifies d.                    */
 
-void pkn_Comp2iDerivatives1f ( float xu, float yu, float xv, float yv,
-                               int spdimen, const float *hu, const float *hv,
-                               float *gx, float *gy )
+boolean pkn_Comp2iDerivatives1f ( float xu, float yu, float xv, float yv,
+                                  int spdimen, const float *hu, const float *hv,
+                                  float *gx, float *gy )
 {
   void  *sp;
   float *A11, *hc;
 
   sp = pkv_GetScratchMemTop ();
   A11 = pkv_GetScratchMemf ( 4+2*spdimen );
-  if ( !A11 )
+  if ( !A11 ) {
     PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
+    goto failure;
+  }
   hc = &A11[4];
 
   pkn_Setup2DerA11Matrixf ( xu, yu, xv, yv, A11 );
   memcpy ( hc, hu, spdimen*sizeof(float) );
   memcpy ( &hc[spdimen], hv, spdimen*sizeof(float) );
 
-  pkn_multiGaussSolveLinEqf ( 2, A11, spdimen, spdimen, hc );
+  if ( !pkn_multiGaussSolveLinEqf ( 2, A11, spdimen, spdimen, hc ) )
+    goto failure;
   memcpy ( gx, hc, spdimen*sizeof(float) );
   memcpy ( gy, &hc[spdimen], spdimen*sizeof(float) );
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*pkn_Comp2iDerivatives1f*/
 
-void pkn_Comp2iDerivatives2f ( float xu, float yu, float xv, float yv,
-                               float xuu, float yuu, float xuv,
-                               float yuv, float xvv, float yvv,
-                               int spdimen,
-                               const float *hu, const float *hv,
-                               const float *huu, const float *huv,
-                               const float *hvv,
-                               float *gx, float *gy,
-                               float *gxx, float *gxy, float *gyy )
+boolean pkn_Comp2iDerivatives2f ( float xu, float yu, float xv, float yv,
+                                  float xuu, float yuu, float xuv,
+                                  float yuv, float xvv, float yvv,
+                                  int spdimen,
+                                  const float *hu, const float *hv,
+                                  const float *huu, const float *huv,
+                                  const float *hvv,
+                                  float *gx, float *gy,
+                                  float *gxx, float *gxy, float *gyy )
 {
   void  *sp;
   float *A21, *A22, *hc;
@@ -416,8 +453,10 @@ void pkn_Comp2iDerivatives2f ( float xu, float yu, float xv, float yv,
   pkn_Comp2iDerivatives1f ( xu, yu, xv, yv, spdimen, hu, hv, gx, gy );
 
   A21 = pkv_GetScratchMemf ( 15+3*spdimen );
-  if ( !A21 )
+  if ( !A21 ) {
     PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
+    goto failure;
+  }
   A22 = &A21[6];  hc = &A22[9];
 
   pkn_Setup2DerA21Matrixf ( xuu, yuu, xuv, yuv, xvv, yvv, A21 );
@@ -432,29 +471,35 @@ void pkn_Comp2iDerivatives2f ( float xu, float yu, float xv, float yv,
     hc[2*spdimen+i] -= A21[4]*gx[i] + A21[5]*gy[i];
   }
 
-  pkn_multiGaussSolveLinEqf ( 3, A22, spdimen, spdimen, hc );
+  if ( !pkn_multiGaussSolveLinEqf ( 3, A22, spdimen, spdimen, hc ) )
+    goto failure;
   memcpy ( gxx, hc, spdimen*sizeof(float) );
   memcpy ( gxy, &hc[spdimen], spdimen*sizeof(float) );
   memcpy ( gyy, &hc[2*spdimen], spdimen*sizeof(float) );
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*pkn_Comp2iDerivatives2f*/
 
-void pkn_Comp2iDerivatives3f ( float xu, float yu, float xv, float yv,
-                               float xuu, float yuu, float xuv,
-                               float yuv, float xvv, float yvv,
-                               float xuuu, float yuuu, float xuuv, float yuuv,
-                               float xuvv, float yuvv, float xvvv, float yvvv,
-                               int spdimen,
-                               const float *hu, const float *hv,
-                               const float *huu, const float *huv,
-                               const float *hvv,
-                               const float *huuu, const float *huuv,
-                               const float *huvv, const float *hvvv,
-                               float *gx, float *gy,
-                               float *gxx, float *gxy, float *gyy,
-                               float *gxxx, float *gxxy,
-                               float *gxyy, float *gyyy )
+boolean pkn_Comp2iDerivatives3f ( float xu, float yu, float xv, float yv,
+                                  float xuu, float yuu, float xuv,
+                                  float yuv, float xvv, float yvv,
+                                  float xuuu, float yuuu, float xuuv, float yuuv,
+                                  float xuvv, float yuvv, float xvvv, float yvvv,
+                                  int spdimen,
+                                  const float *hu, const float *hv,
+                                  const float *huu, const float *huv,
+                                  const float *hvv,
+                                  const float *huuu, const float *huuv,
+                                  const float *huvv, const float *hvvv,
+                                  float *gx, float *gy,
+                                  float *gxx, float *gxy, float *gyy,
+                                  float *gxxx, float *gxxy,
+                                  float *gxyy, float *gyyy )
 {
   void  *sp;
   float *A31, *A32, *A33, *hc;
@@ -466,8 +511,10 @@ void pkn_Comp2iDerivatives3f ( float xu, float yu, float xv, float yv,
                             gx, gy, gxx, gxy, gyy );
 
   A31 = pkv_GetScratchMemf ( 36+4*spdimen );
-  if ( !A31 )
+  if ( !A31 ) {
     PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
+    goto failure;
+  }
   A32 = &A31[8];  A33 = &A32[12];  hc = &A33[16];
 
   pkn_Setup2DerA31Matrixf ( xuuu, yuuu, xuuv, yuuv,
@@ -491,40 +538,45 @@ void pkn_Comp2iDerivatives3f ( float xu, float yu, float xv, float yv,
                        A32[9]*gxx[i] + A32[10]*gxy[i] + A32[11]*gyy[i];
   }
 
-  pkn_multiGaussSolveLinEqf ( 4, A33, spdimen, spdimen, hc );
-
+  if ( !pkn_multiGaussSolveLinEqf ( 4, A33, spdimen, spdimen, hc ) )
+    goto failure;
   memcpy ( gxxx, hc, spdimen*sizeof(float) );
   memcpy ( gxxy, &hc[spdimen], spdimen*sizeof(float) );
   memcpy ( gxyy, &hc[2*spdimen], spdimen*sizeof(float) );
   memcpy ( gyyy, &hc[3*spdimen], spdimen*sizeof(float) );
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*pkn_Comp2iDerivatives3f*/
 
-void pkn_Comp2iDerivatives4f ( float xu, float yu, float xv, float yv,
-                               float xuu, float yuu, float xuv,
-                               float yuv, float xvv, float yvv,
-                               float xuuu, float yuuu, float xuuv, float yuuv,
-                               float xuvv, float yuvv, float xvvv, float yvvv,
-                               float xuuuu, float yuuuu, float xuuuv,
-                               float yuuuv, float xuuvv, float yuuvv,
-                               float xuvvv, float yuvvv,
-                               float xvvvv, float yvvvv,
-                               int spdimen,
-                               const float *hu, const float *hv,
-                               const float *huu, const float *huv,
-                               const float *hvv,
-                               const float *huuu, const float *huuv,
-                               const float *huvv, const float *hvvv,
-                               const float *huuuu, const float *huuuv,
-                               const float *huuvv, const float *huvvv,
-                               const float *hvvvv,
-                               float *gx, float *gy,
-                               float *gxx, float *gxy, float *gyy,
-                               float *gxxx, float *gxxy,
-                               float *gxyy, float *gyyy,
-                               float *gxxxx, float *gxxxy, float *gxxyy,
-                               float *gxyyy, float *gyyyy )
+boolean pkn_Comp2iDerivatives4f ( float xu, float yu, float xv, float yv,
+                                  float xuu, float yuu, float xuv,
+                                  float yuv, float xvv, float yvv,
+                                  float xuuu, float yuuu, float xuuv, float yuuv,
+                                  float xuvv, float yuvv, float xvvv, float yvvv,
+                                  float xuuuu, float yuuuu, float xuuuv,
+                                  float yuuuv, float xuuvv, float yuuvv,
+                                  float xuvvv, float yuvvv,
+                                  float xvvvv, float yvvvv,
+                                  int spdimen,
+                                  const float *hu, const float *hv,
+                                  const float *huu, const float *huv,
+                                  const float *hvv,
+                                  const float *huuu, const float *huuv,
+                                  const float *huvv, const float *hvvv,
+                                  const float *huuuu, const float *huuuv,
+                                  const float *huuvv, const float *huvvv,
+                                  const float *hvvvv,
+                                  float *gx, float *gy,
+                                  float *gxx, float *gxy, float *gyy,
+                                  float *gxxx, float *gxxy,
+                                  float *gxyy, float *gyyy,
+                                  float *gxxxx, float *gxxxy, float *gxxyy,
+                                  float *gxyyy, float *gyyyy )
 {
   void  *sp;
   float *A41, *A42, *A43, *A44, *hc;
@@ -539,8 +591,10 @@ void pkn_Comp2iDerivatives4f ( float xu, float yu, float xv, float yv,
                             gxxx, gxxy, gxyy, gyyy );
 
   A41 = pkv_GetScratchMemf ( 70+5*spdimen );
-  if ( !A41 )
+  if ( !A41 ) {
     PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
+    goto failure;
+  }
   A42 = &A41[10];  A43 = &A42[15];  A44 = &A43[20];  hc = &A44[25];
 
   pkn_Setup2DerA41Matrixf ( xuuuu, yuuuu, xuuuv, yuuuv, xuuvv, yuuvv,
@@ -583,6 +637,11 @@ void pkn_Comp2iDerivatives4f ( float xu, float yu, float xv, float yv,
   memcpy ( gyyyy, &hc[4*spdimen], spdimen*sizeof(float) );
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*pkn_Comp2iDerivatives4f*/
 
 /* //////////////////////////////////////////////////////////////////// */
@@ -591,111 +650,137 @@ void pkn_Comp2iDerivatives4f ( float xu, float yu, float xv, float yv,
 /* y(u,v). The partial derivatives of f of the first order must be      */
 /* linearly independent.                                                */
 
-void pkn_f2iDerivatives1f ( float xu, float yu, float xv, float yv,
-                            float *gx, float *gy )
+boolean pkn_f2iDerivatives1f ( float xu, float yu, float xv, float yv,
+                               float *gx, float *gy )
 {
   void  *sp;
   float *e1e2;
 
   sp = pkv_GetScratchMemTop ();
   e1e2 = pkv_GetScratchMemf ( 4 );
-  if ( !e1e2 )
+  if ( !e1e2 ) {
     PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
+    goto failure;
+  }
 
   e1e2[0] = e1e2[3] = 1.0;
   e1e2[1] = e1e2[2] = 0.0;
 
-  pkn_Comp2iDerivatives1f ( xu, yu, xv, yv, 2, e1e2, &e1e2[2],
-                            gx, gy );
+  if ( !pkn_Comp2iDerivatives1f ( xu, yu, xv, yv, 2, e1e2, &e1e2[2],
+                            gx, gy ) )
+    goto failure;
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*pkn_f2iDerivatives1f*/
 
-void pkn_f2iDerivatives2f ( float xu, float yu, float xv, float yv,
-                            float xuu, float yuu, float xuv,
-                            float yuv, float xvv, float yvv,
-                            float *gx, float *gy,
-                            float *gxx, float *gxy, float *gyy )
+boolean pkn_f2iDerivatives2f ( float xu, float yu, float xv, float yv,
+                               float xuu, float yuu, float xuv,
+                               float yuv, float xvv, float yvv,
+                               float *gx, float *gy,
+                               float *gxx, float *gxy, float *gyy )
 {
   void  *sp;
   float *e1e2, *zero;
 
   sp = pkv_GetScratchMemTop ();
   e1e2 = pkv_GetScratchMemf ( 7 );
-  if ( !e1e2 )
+  if ( !e1e2 ) {
     PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
+    goto failure;
+  }
   zero = &e1e2[4];
 
   memset ( e1e2, 0, 7*sizeof(float) );
   e1e2[0] = e1e2[3] = 1.0;
 
-  pkn_Comp2iDerivatives2f ( xu, yu, xv, yv, xuu, yuu, xuv, yuv, xvv, yvv,
+  if ( !pkn_Comp2iDerivatives2f ( xu, yu, xv, yv, xuu, yuu, xuv, yuv, xvv, yvv,
                             2, e1e2, &e1e2[2], zero, zero, zero,
-                            gx, gy, gxx, gxy, gyy );
+                            gx, gy, gxx, gxy, gyy ) )
+    goto failure;
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*pkn_f2iDerivatives2f*/
 
-void pkn_f2iDerivatives3f ( float xu, float yu, float xv, float yv,
-                            float xuu, float yuu, float xuv,
-                            float yuv, float xvv, float yvv,
-                            float xuuu, float yuuu, float xuuv, float yuuv,
-                            float xuvv, float yuvv, float xvvv, float yvvv,
-                            float *gx, float *gy,
-                            float *gxx, float *gxy, float *gyy,
-                            float *gxxx, float *gxxy,
-                            float *gxyy, float *gyyy )
+boolean pkn_f2iDerivatives3f ( float xu, float yu, float xv, float yv,
+                               float xuu, float yuu, float xuv,
+                               float yuv, float xvv, float yvv,
+                               float xuuu, float yuuu, float xuuv, float yuuv,
+                               float xuvv, float yuvv, float xvvv, float yvvv,
+                               float *gx, float *gy,
+                               float *gxx, float *gxy, float *gyy,
+                               float *gxxx, float *gxxy,
+                               float *gxyy, float *gyyy )
 {
   void  *sp;
   float *e1e2, *zero;
 
   sp = pkv_GetScratchMemTop ();
   e1e2 = pkv_GetScratchMemf ( 8 );
-  if ( !e1e2 )
+  if ( !e1e2 ) {
     PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
+    goto failure;
+  }
   zero = &e1e2[4];
 
   memset ( e1e2, 0, 8*sizeof(float) );
   e1e2[0] = e1e2[3] = 1.0;
 
-  pkn_Comp2iDerivatives3f ( xu, yu, xv, yv, xuu, yuu, xuv, yuv, xvv, yvv,
+  if ( !pkn_Comp2iDerivatives3f ( xu, yu, xv, yv, xuu, yuu, xuv, yuv, xvv, yvv,
                             xuuu, yuuu, xuuv, yuuv, xuvv, yuvv, xvvv, yvvv,
                             2, e1e2, &e1e2[2], zero, zero, zero,
                             zero, zero, zero, zero,
-                            gx, gy, gxx, gxy, gyy, gxxx, gxxy, gxyy, gyyy );
+                            gx, gy, gxx, gxy, gyy, gxxx, gxxy, gxyy, gyyy ) )
+    goto failure;
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*pkn_f2iDerivatives3f*/
 
-void pkn_f2iDerivatives4f ( float xu, float yu, float xv, float yv,
-                            float xuu, float yuu, float xuv,
-                            float yuv, float xvv, float yvv,
-                            float xuuu, float yuuu, float xuuv, float yuuv,
-                            float xuvv, float yuvv, float xvvv, float yvvv,
-                            float xuuuu, float yuuuu, float xuuuv,
-                            float yuuuv, float xuuvv, float yuuvv,
-                            float xuvvv, float yuvvv,
-                            float xvvvv, float yvvvv,
-                            float *gx, float *gy,
-                            float *gxx, float *gxy, float *gyy,
-                            float *gxxx, float *gxxy,
-                            float *gxyy, float *gyyy,
-                            float *gxxxx, float *gxxxy, float *gxxyy,
-                            float *gxyyy, float *gyyyy )
+boolean pkn_f2iDerivatives4f ( float xu, float yu, float xv, float yv,
+                               float xuu, float yuu, float xuv,
+                               float yuv, float xvv, float yvv,
+                               float xuuu, float yuuu, float xuuv, float yuuv,
+                               float xuvv, float yuvv, float xvvv, float yvvv,
+                               float xuuuu, float yuuuu, float xuuuv,
+                               float yuuuv, float xuuvv, float yuuvv,
+                               float xuvvv, float yuvvv,
+                               float xvvvv, float yvvvv,
+                               float *gx, float *gy,
+                               float *gxx, float *gxy, float *gyy,
+                               float *gxxx, float *gxxy,
+                               float *gxyy, float *gyyy,
+                               float *gxxxx, float *gxxxy, float *gxxyy,
+                               float *gxyyy, float *gyyyy )
 {
   void  *sp;
   float *e1e2, *zero;
 
   sp = pkv_GetScratchMemTop ();
   e1e2 = pkv_GetScratchMemf ( 9 );
-  if ( !e1e2 )
+  if ( !e1e2 ) {
     PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
+    goto failure;
+  }
   zero = &e1e2[4];
 
   memset ( e1e2, 0, 9*sizeof(float) );
   e1e2[0] = e1e2[3] = 1.0;
 
-  pkn_Comp2iDerivatives4f ( xu, yu, xv, yv, xuu, yuu, xuv, yuv, xvv, yvv,
+  if ( !pkn_Comp2iDerivatives4f ( xu, yu, xv, yv, xuu, yuu, xuv, yuv, xvv, yvv,
                             xuuu, yuuu, xuuv, yuuv, xuvv, yuvv, xvvv, yvvv,
                             xuuuu, yuuuu, xuuuv, yuuuv, xuuvv, yuuvv,
                             xuvvv, yuvvv, xvvvv, yvvvv,
@@ -703,8 +788,14 @@ void pkn_f2iDerivatives4f ( float xu, float yu, float xv, float yv,
                             zero, zero, zero, zero, zero, zero,
                             zero, zero, zero,
                             gx, gy, gxx, gxy, gyy, gxxx, gxxy, gxyy, gyyy,
-                            gxxxx, gxxxy, gxxyy, gxyyy, gyyyy );
+                            gxxxx, gxxxy, gxxyy, gxyyy, gyyyy ) )
+    goto failure;
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*pkn_f2iDerivatives4f*/
 

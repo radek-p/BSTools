@@ -179,18 +179,20 @@ boolean pkn_multiSolveRLSQd ( int nrows, int ncols, double *a,
   aa = pkv_GetScratchMemd ( 2*ncols );
   if ( !aa ) {
     PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
 
-  if ( !pkn_QRDecomposeMatrixd ( nrows, ncols, a, aa ) ) {
-    pkv_SetScratchMemTop ( sp );
-    return false;
-  }
+  if ( !pkn_QRDecomposeMatrixd ( nrows, ncols, a, aa ) )
+    goto failure;
   pkn_multiReflectVectord ( nrows, ncols, a, aa, spdimen, bpitch, b );
   pkn_multiMultInvUTVectord ( ncols, a, spdimen, bpitch, b, xpitch, x );
 
   pkv_SetScratchMemTop ( sp );
   return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*pkn_multiSolveRLSQd*/
 
 void pkn_QRGetReflectiond ( int nrows, int ncols,

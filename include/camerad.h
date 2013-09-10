@@ -104,7 +104,7 @@ void CameraInitFramed ( CameraRecd *CPos,
                         double aspect, int ncplanes );
 void CameraSetMagd ( CameraRecd *CPos, byte mag );
 void CameraSetDepthRanged ( CameraRecd *CPos, double zmin, double zmax );
-void CameraSetMappingd ( CameraRecd *CPos );
+boolean CameraSetMappingd ( CameraRecd *CPos );
 
 void CameraProjectPoint3d ( CameraRecd *CPos, const point3d *p, point3d *q );
 void CameraUnProjectPoint3d ( CameraRecd *CPos, const point3d *p, point3d *q );

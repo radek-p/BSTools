@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2012                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2013                                  */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -14,7 +14,6 @@
 
 #include "pkvaria.h"
 #include "pkvthreads.h"
-#include "msgpool.h"
 
 /* this procedure tries to find the number of CPUs in the system, by reading */
 /* the file /proc/cpuinfo and counting the number of appearances of the word */

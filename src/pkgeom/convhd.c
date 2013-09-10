@@ -16,9 +16,7 @@
 #include "pkgeom.h"
 #include "convh.h"
 
-#include "msgpool.h"
-
-void FindConvexHull2d ( int *n, point2d *p )
+boolean FindConvexHull2d ( int *n, point2d *p )
 {
   double       *q;
   unsigned int *permut;
@@ -27,17 +25,16 @@ void FindConvexHull2d ( int *n, point2d *p )
   double       b, c;
   void         *top;
 
+  top = pkv_GetScratchMemTop ();
   nn = *n;
   if (nn <= 2)
-    return;
-  top = pkv_GetScratchMemTop ();
+    goto failure;
   q = pkv_GetScratchMem ( nn*sizeof(double) );
   permut = pkv_GetScratchMem ( nn*sizeof(int) );
 
   if ( !q || !permut ) {
-klops:
     PKV_SIGNALERROR ( LIB_GEOM, 2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
   for (i = 1; i < nn; i++) {
     if (p[i].y < p[0].y || (p[i].y == p[0].y && p[i].x > p[0].x))
@@ -53,7 +50,7 @@ klops:
   if ( pkv_SortKernel ( sizeof(double), ID_IEEE754_DOUBLE, sizeof(double),
                         0, nn, q, permut ) )
     pkv_SortPermute ( sizeof(point2d), nn, p, permut );
-  else goto klops;
+  else goto failure;
 /* */
 
 /*
@@ -83,7 +80,12 @@ klops:
       b = pkv_SqAngle ( p[j-1].x - p[j-2].x, p[j-1].y - p[j-2].y );
     }
   }
-  pkv_SetScratchMemTop ( top );
   *n = nn;
+  pkv_SetScratchMemTop ( top );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( top );
+  return false;
 } /*FindConvexHull2d*/
 

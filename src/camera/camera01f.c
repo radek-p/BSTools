@@ -82,7 +82,7 @@ static void SetupClipPlanef ( float nvx, float nvy, float nvz,
   plane->w = (float)(-DotProduct3f ( pp, nv ));
 } /*SetupClipPlanef*/
 
-void CameraSetMappingf ( CameraRecf *CPos )
+boolean CameraSetMappingf ( CameraRecf *CPos )
 {
   /* this procedure calculates the transformations and other parameters   */
   /* in a position specified in the CameraRec record fields. It is called */
@@ -121,6 +121,7 @@ void CameraSetMappingf ( CameraRecf *CPos )
 
   default:
       PKV_SIGNALERROR ( LIB_CAMERA, 4, ERRMSG_4 );
+      return false;
     }
     xi0  = (float)(CPos->xmin + 0.5*w);
     eta0 = (float)(CPos->ymin + 0.5*h);
@@ -201,5 +202,6 @@ void CameraSetMappingf ( CameraRecf *CPos )
     SetupClipPlanef ( 0.0, 0.0, -1.0, &CPos->CTr, &clp,
                       &CPos->cplane[CPLANE_FAR] );
   }
+  return true;
 } /*CameraSetMappingf*/
 

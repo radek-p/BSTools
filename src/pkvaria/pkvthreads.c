@@ -17,8 +17,6 @@
 #include "pkvthreads.h"
 
 #include "pkvprivate.h"
-#include "msgpool.h"
-
 
 /* ////////////////////////////////////////////////////////////////////////// */
 boolean          pkv_threads_in_use = false;

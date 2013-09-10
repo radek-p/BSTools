@@ -19,13 +19,13 @@
 /* solving a linear least squares problem with      */
 /* a band matrix and constraints                    */
 
-void pkn_multiBandmSolveCRLSQf ( int nrows, int ncols,
-                                 const bandm_profile *aprof, const float *a,
-                                 int nconstr, int cpitch, const float *c,
-                                 int nrsides, int spdimen,
-                                 int bpitch, const float *b,
-                                 int dpitch, const float *d,
-                                 int xpitch, float *x )
+boolean pkn_multiBandmSolveCRLSQf ( int nrows, int ncols,
+                                    const bandm_profile *aprof, const float *a,
+                                    int nconstr, int cpitch, const float *c,
+                                    int nrsides, int spdimen,
+                                    int bpitch, const float *b,
+                                    int dpitch, const float *d,
+                                    int xpitch, float *x )
 {
   void          *sp;
   int           qsize, rsize, i;
@@ -45,7 +45,7 @@ void pkn_multiBandmSolveCRLSQf ( int nrows, int ncols,
   y = pkv_GetScratchMemf ( nrows*spdimen );
   if ( !qprof || !rprof || !qa || !ra || !ea || !eaa || !da || !y ) {
     PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
     /* QR decomposition of the band matrix A */
   pkn_BandmQRDecomposeMatrixf ( nrows, ncols, aprof, a, qprof, qa, rprof, ra );
@@ -83,5 +83,10 @@ void pkn_multiBandmSolveCRLSQf ( int nrows, int ncols,
   }
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*pkn_multiBandmSolveCRLSQf*/
 
