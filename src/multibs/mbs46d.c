@@ -16,7 +16,7 @@
 #include "pkgeom.h"
 #include "multibs.h"
 
-void mbs_multiBSDegElevClosedd ( int ncurves, int spdimen,
+boolean mbs_multiBSDegElevClosedd ( int ncurves, int spdimen,
                          int indegree, int inlastknot, const double *inknots,
                          int inpitch, const double *inctlpoints,
                          int deltadeg,
@@ -33,8 +33,10 @@ void mbs_multiBSDegElevClosedd ( int ncurves, int spdimen,
                         inpitch, inctlpoints, deltadeg, outdegree, &lkn,
                         outknots, outpitch, outctlpoints, false );
   deg = *outdegree;
-  if ( !(nlkn = pkv_GetScratchMemd ( deg+1 )) )
+  if ( !(nlkn = pkv_GetScratchMemd ( deg+1 )) ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
+    goto failure;
+  }
   r = 2*indegree+1;  r = min ( r, inlastknot );
   r = mbs_KnotMultiplicityd ( r, inknots, (u = inknots[indegree]) );
   *outlastknot = lkn += r;
@@ -50,5 +52,10 @@ void mbs_multiBSDegElevClosedd ( int ncurves, int spdimen,
   for ( i = deg+1; i+K <= lkn; i++ )
     outknots[i+K] = outknots[i]+T;
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*mbs_multiBSDegElevClosedd*/
 

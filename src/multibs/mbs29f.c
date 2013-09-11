@@ -30,15 +30,15 @@ static int _mbs_densf ( int n0, float a, float b, float h )
   return max ( n0, 1 );
 } /*_mbs_densf*/
 
-void mbs_DrawTrimBSPatchDomf ( int degu, int lastuknot, const float *uknots,
-                               int degv, int lastvknot, const float *vknots,
-                               int nelem, const polycurvef *bound,
-                               int nu, float au, float bu,
-                               int nv, float av, float bv,
-                               int maxinters,
-                               void (*NotifyLine)(char,int,point2f*,point2f*),
-                               void (*DrawLine)(point2f*,point2f*,int),
-                               void (*DrawCurve)(int,int,const float*) )
+boolean mbs_DrawTrimBSPatchDomf ( int degu, int lastuknot, const float *uknots,
+                                  int degv, int lastvknot, const float *vknots,
+                                  int nelem, const polycurvef *bound,
+                                  int nu, float au, float bu,
+                                  int nv, float av, float bv,
+                                  int maxinters,
+                                  void (*NotifyLine)(char,int,point2f*,point2f*),
+                                  void (*DrawLine)(point2f*,point2f*,int),
+                                  void (*DrawCurve)(int,int,const float*) )
 {
   void    *buf, *sp;
   char    *bufp;
@@ -53,7 +53,7 @@ void mbs_DrawTrimBSPatchDomf ( int degu, int lastuknot, const float *uknots,
   inters = (signpoint1f*)pkv_GetScratchMem ( maxinters*sizeof(signpoint1f) );
   if ( !buf || !inters ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 0 );
+    goto failure;
   }
 
   if ( DrawLine != NULL ) {
@@ -130,13 +130,16 @@ void mbs_DrawTrimBSPatchDomf ( int degu, int lastuknot, const float *uknots,
         break;
  
       default:
-        goto out;
+        goto failure;
       }
       bufp = &bufp[2+sizeof(short)+(N+1)*dim*sizeof(float)];
     }
   }
-
-out:
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*mbs_DrawTrimBSPatchDomf*/
 

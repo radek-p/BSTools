@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2011                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -269,12 +269,12 @@ void mbs_multiRemoveSuperfluousKnotsd ( int ncurves, int spdimen, int degree,
                                         double *ctlpoints );
 
 
-void mbs_multiMaxKnotInsd ( int ncurves, int spdimen, int degree,
-                            int inlastknot, const double *inknots,
-                            int inpitch, const double *inctlpoints,
-                            int *outlastknot, double *outknots,
-                            int outpitch, double *outctlpoints,
-                            int *skipl, int *skipr );
+boolean mbs_multiMaxKnotInsd ( int ncurves, int spdimen, int degree,
+                               int inlastknot, const double *inknots,
+                               int inpitch, const double *inctlpoints,
+                               int *outlastknot, double *outknots,
+                               int outpitch, double *outctlpoints,
+                               int *skipl, int *skipr );
 
 #define mbs_MaxKnotInsC1d(degree,inlastknot,inknots,incoeff, \
                           outlastknot,outknots,outcoeff,skipl,skipr) \
@@ -351,28 +351,28 @@ void mbs_multiBezScaled ( int degree, int narcs, int ncurves, int spdimen,
 void mbs_multiBezUnscaled ( int degree, int narcs, int ncurves, int spdimen,  
                             int pitch, double *ctlpoints );
 
-void mbs_multiMultBezCd ( int nscf, int degscf, int scfpitch,
-                          const double *scfcoef,
-                          int spdimen,
-                          int nvecf, int degvecf, int vecfpitch,
-                          const double *vecfcp,
-                          int *degprod, int prodpitch, double *prodcp );
+boolean mbs_multiMultBezCd ( int nscf, int degscf, int scfpitch,
+                             const double *scfcoef,
+                             int spdimen,
+                             int nvecf, int degvecf, int vecfpitch,
+                             const double *vecfcp,
+                             int *degprod, int prodpitch, double *prodcp );
 
-void mbs_multiMultBSCd ( int nscf, int degscf,
-                         int scflastknot, const double *scfknots,
-                         int scfpitch, const double *scfcoef,
-                         int spdimen,
-                         int nvecf, int degvecf,
-                         int vecflastknot, const double *vecfknots,
-                         int vecfpitch, const double *vecfcp,
-                         int *degprod, int *prodlastknot, double *prodknots,
-                         int prodpitch, double *prodcp );
+boolean mbs_multiMultBSCd ( int nscf, int degscf,
+                            int scflastknot, const double *scfknots,
+                            int scfpitch, const double *scfcoef,
+                            int spdimen,
+                            int nvecf, int degvecf,
+                            int vecflastknot, const double *vecfknots,
+                            int vecfpitch, const double *vecfcp,
+                            int *degprod, int *prodlastknot, double *prodknots,
+                            int prodpitch, double *prodcp );
 
 
-void mbs_multiBCDegElevd ( int ncurves, int spdimen,
-                           int inpitch, int indegree, const double *inctlpoints,
-                           int deltadeg,
-                           int outpitch, int *outdegree, double *outctlpoints );
+boolean mbs_multiBCDegElevd ( int ncurves, int spdimen,
+                              int inpitch, int indegree, const double *inctlpoints,
+                              int deltadeg,
+                              int outpitch, int *outdegree, double *outctlpoints );
 
 #define mbs_BCDegElevC1d(indegree,incoeff,deltadeg,outdegree,outcoeff) \
   mbs_multiBCDegElevd ( 1, 1, 0, indegree, incoeff, deltadeg, \
@@ -388,11 +388,11 @@ void mbs_multiBCDegElevd ( int ncurves, int spdimen,
     0, outdegree, (double*)outctlpoints )
 
 
-void mbs_BCDegElevPd ( int spdimen,
-                       int indegreeu, int indegreev, const double *inctlp,
-                       int deltadegu, int deltadegv,
-                       int *outdegreeu, int *outdegreev,
-                       double *outctlp );
+boolean mbs_BCDegElevPd ( int spdimen,
+                          int indegreeu, int indegreev, const double *inctlp,
+                          int deltadegu, int deltadegv,
+                          int *outdegreeu, int *outdegreev,
+                          double *outctlp );
 
 #define mbs_BCDegElevP1d(indegreeu,indegreev,incoeff,deltadegu,deltadegv, \
     outdegreeu,outdegreev,outcoeff) \
@@ -431,11 +431,11 @@ void mbs_multiBCDegRedd ( int ncurves, int spdimen,
     0, outdegree, (double*)outctlpoints )
 
 
-void mbs_BCDegRedPd ( int spdimen,
-                      int indegreeu, int indegreev, const double *inctlp,
-                      int deltadegu, int deltadegv,
-                      int *outdegreeu, int *outdegreev,
-                      double *outctlp );
+boolean mbs_BCDegRedPd ( int spdimen,
+                         int indegreeu, int indegreev, const double *inctlp,
+                         int deltadegu, int deltadegv,
+                         int *outdegreeu, int *outdegreev,
+                         double *outctlp );
 
 #define mbs_BCDegRedP1d(indegreeu,indegreev,incoeff,deltadegu,deltadegv, \
     outdegreeu,outdegreev,outcoeff) \
@@ -455,13 +455,13 @@ void mbs_BCDegRedPd ( int spdimen,
     deltadegu, deltadegv, outdegreeu, outdegreev, (double*)outctlp )
 
 
-void mbs_multiBSDegElevd ( int ncurves, int spdimen,
-                           int indegree, int inlastknot, const double *inknots,
-                           int inpitch, const double *inctlpoints,
-                           int deltadeg,
-                           int *outdegree, int *outlastknot,
-                           double *outknots, int outpitch, double *outctlpoints,
-                           boolean freeend );
+boolean mbs_multiBSDegElevd ( int ncurves, int spdimen,
+                              int indegree, int inlastknot, const double *inknots,
+                              int inpitch, const double *inctlpoints,
+                              int deltadeg,
+                              int *outdegree, int *outlastknot,
+                              double *outknots, int outpitch, double *outctlpoints,
+                              boolean freeend );
 
 #define mbs_BSDegElevC1d(indegree,inlastknot,inknots,incoeff, \
     deltadeg,outdegree,outlastknot,outknots,outcoeff,freeend) \
@@ -480,7 +480,7 @@ void mbs_multiBSDegElevd ( int ncurves, int spdimen,
   mbs_multiBSDegElevd(1,4,indegree,inlastknot,inknots,0,(double*)inctlpoints, \
     deltadeg,outdegree,outlastknot,outknots,0,(double*)outctlpoints,freeend)
 
-void mbs_multiBSDegElevClosedd ( int ncurves, int spdimen,
+boolean mbs_multiBSDegElevClosedd ( int ncurves, int spdimen,
                          int indegree, int inlastknot, const double *inknots,
                          int inpitch, const double *inctlpoints,
                          int deltadeg,
@@ -555,8 +555,8 @@ boolean mbs_multiBSDegRedClosedd ( int ncurves, int spdimen,
     deltadeg,outdegree,outlastknot,outknots,0,(double*)outcpoints)
 
 
-void mbs_multiBCHornerd ( int degree, int ncurves, int spdimen, int pitch,
-                          const double *ctlpoints, double t, double *cpoints );
+boolean mbs_multiBCHornerd ( int degree, int ncurves, int spdimen, int pitch,
+                             const double *ctlpoints, double t, double *cpoints );
 
 #define mbs_BCHornerC1d(degree,coeff,t,value) \
   mbs_multiBCHornerd ( degree, 1, 1, 0, coeff, t, value )
@@ -567,16 +567,16 @@ void mbs_multiBCHornerd ( int degree, int ncurves, int spdimen, int pitch,
 #define mbs_BCHornerC4d(degree,ctlpoints,t,cpoint) \
   mbs_multiBCHornerd ( degree, 1, 4, 0, (double*)ctlpoints, t, (double*)cpoint )
 
-void mbs_BCHornerC2Rd ( int degree, const point3d *ctlpoints, double t,
-                        point2d *cpoint );
+boolean mbs_BCHornerC2Rd ( int degree, const point3d *ctlpoints, double t,
+                           point2d *cpoint );
 
-void mbs_BCHornerC3Rd ( int degree, const point4d *ctlpoints, double t,
-                        point3d *cpoint );
+boolean mbs_BCHornerC3Rd ( int degree, const point4d *ctlpoints, double t,
+                           point3d *cpoint );
 
 
-void mbs_BCHornerPd ( int degreeu, int degreev, int spdimen,
-                      const double *ctlpoints,
-                      double u, double v, double *ppoint );
+boolean mbs_BCHornerPd ( int degreeu, int degreev, int spdimen,
+                         const double *ctlpoints,
+                         double u, double v, double *ppoint );
 
 #define mbs_BCHornerP1d(degreeu,degreev,coeff,u,v,ppoint) \
   mbs_BCHornerPd ( degreeu, degreev, 1, coeff, u, v, ppoint )
@@ -590,8 +590,8 @@ void mbs_BCHornerPd ( int degreeu, int degreev, int spdimen,
   mbs_BCHornerPd ( degreeu, degreev, 4, (double*)ctlpoints, \
     u, v, (double*)ppoint )
 
-void mbs_BCHornerP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
-                        double u, double v, point3d *p );
+boolean mbs_BCHornerP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
+                           double u, double v, point3d *p );
 
 
 void mbs_multiBCHornerDerd ( int degree, int ncurves, int spdimen, int pitch,
@@ -616,10 +616,10 @@ void mbs_BCHornerDerC3Rd ( int degree, const point4d *ctlpoints, double t,
                            point3d *p, vector3d *d );
 
 
-void mbs_BCHornerDerPd ( int degreeu, int degreev, int spdimen,
-                         const double *ctlpoints,
-                         double u, double v,  
-                         double *p, double *du, double *dv );
+boolean mbs_BCHornerDerPd ( int degreeu, int degreev, int spdimen,
+                            const double *ctlpoints,
+                            double u, double v,  
+                            double *p, double *du, double *dv );
 
 #define mbs_BCHornerDerP1d(degreeu,degreev,coeff,u,v,p,du,dv) \
   mbs_BCHornerDerPd ( degreeu, degreev, 1, coeff, u, v, p, du, dv )
@@ -633,18 +633,18 @@ void mbs_BCHornerDerPd ( int degreeu, int degreev, int spdimen,
   mbs_BCHornerDerPd ( degreeu, degreev, 4, (double*)ctlpoints, u, v, \
     (double*)p, (double*)du, (double*)dv )
 
-void mbs_BCHornerDerP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
-                           double u, double v,
-                           point3d *p, vector3d *du, vector3d *dv );
+boolean mbs_BCHornerDerP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
+                              double u, double v,
+                              point3d *p, vector3d *du, vector3d *dv );
 
 
-void mbs_BCHornerNvP3d ( int degreeu, int degreev, const point3d *ctlpoints,
-                         double u, double v,
-                         point3d *p, vector3d *nv );
+boolean mbs_BCHornerNvP3d ( int degreeu, int degreev, const point3d *ctlpoints,
+                            double u, double v,
+                            point3d *p, vector3d *nv );
 
-void mbs_BCHornerNvP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
-                          double u, double v,
-                          point3d *p, vector3d *nv );
+boolean mbs_BCHornerNvP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
+                             double u, double v,
+                             point3d *p, vector3d *nv );
 
 
 void mbs_multiBCHornerDer2d ( int degree, int ncurves, int spdimen, int pitch,
@@ -710,17 +710,17 @@ void mbs_multiBCHornerDer3d ( int degree, int ncurves, int spdimen, int pitch,
     (double*)p, (double*)d1, (double*)d2, (double*)d3 )
 
 
-void mbs_FindBezPatchDiagFormd ( int degreeu, int degreev, int spdimen,
-                                 CONST_ double *cpoints,
-                                 int k, int l, double u, double v,
-                                 double *dfcp );
+boolean mbs_FindBezPatchDiagFormd ( int degreeu, int degreev, int spdimen,
+                                    CONST_ double *cpoints,
+                                    int k, int l, double u, double v,
+                                    double *dfcp );
 
-void mbs_BCHornerDer3Pd ( int degreeu, int degreev, int spdimen,
-                          CONST_ double *ctlpoints,
-                          double u, double v,
-                          double *p, double *pu, double *pv,
-                          double *puu, double *puv, double *pvv,
-                          double *puuu, double *puuv, double *puvv, double *pvvv );
+boolean mbs_BCHornerDer3Pd ( int degreeu, int degreev, int spdimen,
+                             CONST_ double *ctlpoints,
+                             double u, double v,
+                             double *p, double *pu, double *pv,
+                             double *puu, double *puv, double *pvv,
+                             double *puuu, double *puuv, double *puvv, double *pvvv );
 
 #define mbs_BCHornerDer3P1d(degreeu,degreev,coeff,u,v, \
     p,pu,pv,puu,puv,pvv,puuu,puuv,puvv,pvvv) \
@@ -747,16 +747,16 @@ void mbs_deBoorBasisd ( int degree, int lastknot, const double *knots,
                         double t, int *fnz, int *nnz, double *bfv );
 
 
-void mbs_multiBSCubicInterpd ( int lastinterpknot, double *interpknots,
-                               int ncurves, int spdimen, int xpitch,
-                               const double *x,
-                               int ypitch,
-                               char bcl, const double *ybcl,
-                               char bcr, const double *ybcr,
-                               int *lastbsknot, double *bsknots,
-                               int bspitch, double *ctlpoints );
+boolean mbs_multiBSCubicInterpd ( int lastinterpknot, double *interpknots,
+                                  int ncurves, int spdimen, int xpitch,
+                                  const double *x,
+                                  int ypitch,
+                                  char bcl, const double *ybcl,
+                                  char bcr, const double *ybcr,
+                                  int *lastbsknot, double *bsknots,
+                                  int bspitch, double *ctlpoints );
 
-void mbs_multiBSCubicClosedInterpd ( int lastinterpknot, double *interpknots,
+boolean mbs_multiBSCubicClosedInterpd ( int lastinterpknot, double *interpknots,
                                int ncurves, int spdimen, int xpitch,
                                const double *x,
                                int *lastbsknot, double *bsknots,
@@ -946,27 +946,27 @@ void mbs_BuildOsloMatrixd ( int degree, int lastuknot, const double *uknots,
                             const bandm_profile *prof, double *a );
 
 
-void mbs_multiOsloInsertKnotsd ( int ncurves, int spdimen, int degree,
-                                 int inlastknot, const double *inknots,
-                                 int inpitch, double *inctlpoints,
-                                 int outlastknot, const double *outknots,
-                                 int outpitch, double *outctlpoints );
-
-void mbs_multiOsloRemoveKnotsLSQd ( int ncurves, int spdimen, int degree,
+boolean mbs_multiOsloInsertKnotsd ( int ncurves, int spdimen, int degree,
                                     int inlastknot, const double *inknots,
                                     int inpitch, double *inctlpoints,
                                     int outlastknot, const double *outknots,
                                     int outpitch, double *outctlpoints );
 
+boolean mbs_multiOsloRemoveKnotsLSQd ( int ncurves, int spdimen, int degree,
+                                       int inlastknot, const double *inknots,
+                                       int inpitch, double *inctlpoints,
+                                       int outlastknot, const double *outknots,
+                                       int outpitch, double *outctlpoints );
 
-void mbs_multiBSChangeLeftKnotsd ( int ncurves, int spdimen, int degree,
-                                   double *knots, int pitch, double *ctlpoints,
-                                   double *newknots );
 
-void mbs_multiBSChangeRightKnotsd ( int ncurves, int spdimen, int degree, 
-                                    int lastknot, double *knots,  
-                                    int pitch, double *ctlpoints, 
-                                    double *newknots );
+boolean mbs_multiBSChangeLeftKnotsd ( int ncurves, int spdimen, int degree,
+                                      double *knots, int pitch, double *ctlpoints,
+                                      double *newknots );
+
+boolean mbs_multiBSChangeRightKnotsd ( int ncurves, int spdimen, int degree, 
+                                       int lastknot, double *knots,  
+                                       int pitch, double *ctlpoints, 
+                                       double *newknots );
 
 #define mbs_BSChangeLeftKnotsC1d(degree,knots,coeff,newknots) \
   mbs_multiBSChangeLeftKnotsd(1,1,degree,knots,0,coeff,newknots)
@@ -1010,15 +1010,15 @@ void mbs_FindBoundLineIntersectionsd ( const void *bound,
                                        const point2d* p1, double t1,
                                        signpoint1d *inters, int *ninters );
 
-void mbs_DrawTrimBSPatchDomd ( int degu, int lastuknot, const double *uknots,
-                               int degv, int lastvknot, const double *vknots,
-                               int nelem, const polycurved *bound,
-                               int nu, double au, double bu,
-                               int nv, double av, double bv,
-                               int maxinters,
-                               void (*NotifyLine)(char,int,point2d*,point2d*),
-                               void (*DrawLine)(point2d*,point2d*,int),
-                               void (*DrawCurve)(int,int,const double*) );
+boolean mbs_DrawTrimBSPatchDomd ( int degu, int lastuknot, const double *uknots,
+                                  int degv, int lastvknot, const double *vknots,
+                                  int nelem, const polycurved *bound,
+                                  int nu, double au, double bu,
+                                  int nv, double av, double bv,
+                                  int maxinters,
+                                  void (*NotifyLine)(char,int,point2d*,point2d*),
+                                  void (*DrawLine)(point2d*,point2d*,int),
+                                  void (*DrawCurve)(int,int,const double*) );
 
 
 boolean mbs_MonotonicPolylined ( int spdimen, int npoints, int pitch,
@@ -1028,35 +1028,35 @@ boolean mbs_MonotonicPolylineRd ( int spdimen, int npoints, int pitch,
                                   const double *points, const double *v );
 
 
-void mbs_RasterizeBC2d ( int degree, const point2d *cpoints,
-                         void (*output)(const xpoint *buf, int n),
-                         boolean outlast );
+boolean mbs_RasterizeBC2d ( int degree, const point2d *cpoints,
+                            void (*output)(const xpoint *buf, int n),
+                            boolean outlast );
 
-void mbs_RasterizeBC2Rd ( int degree, const point3d *cpoints,
-                          void (*output)(const xpoint *buf, int n),
-                          boolean outlast );
+boolean mbs_RasterizeBC2Rd ( int degree, const point3d *cpoints,
+                             void (*output)(const xpoint *buf, int n),
+                             boolean outlast );
 
-void mbs_RasterizeBS2d ( int degree, int lastknot, const double *knots,
-                         const point2d *cpoints,
-                         void (*output)(const xpoint *buf, int n),
-                         boolean outlast );
+boolean mbs_RasterizeBS2d ( int degree, int lastknot, const double *knots,
+                            const point2d *cpoints,
+                            void (*output)(const xpoint *buf, int n),
+                            boolean outlast );
 
-void mbs_RasterizeBS2Rd ( int degree, int lastknot, const double *knots,
-                          const point3d *cpoints,
-                          void (*output)(const xpoint *buf, int n),
-                          boolean outlast );
+boolean mbs_RasterizeBS2Rd ( int degree, int lastknot, const double *knots,
+                             const point3d *cpoints,
+                             void (*output)(const xpoint *buf, int n),
+                             boolean outlast );
 
 
-void mbs_multiInterp2knHermiteBezd ( int ncurves, int spdimen, int degree,
-                                     int nlbc, int lbcpitch, const double *lbc,
-                                     int nrbc, int rbcpitch, const double *rbc,
-                                     int pitch, double *ctlpoints );
+boolean mbs_multiInterp2knHermiteBezd ( int ncurves, int spdimen, int degree,
+                                        int nlbc, int lbcpitch, const double *lbc,
+                                        int nrbc, int rbcpitch, const double *rbc,
+                                        int pitch, double *ctlpoints );
 
-void mbs_multiInterp2knHermiteBSd ( int ncurves, int spdimen, int degree,
-                                    int lastknot, const double *knots,
-                                    int nlbc, int lbcpitch, const double *lbc, 
-                                    int nrbc, int rbcpitch, const double *rbc, 
-                                    int pitch, double *ctlpoints );
+boolean mbs_multiInterp2knHermiteBSd ( int ncurves, int spdimen, int degree,
+                                       int lastknot, const double *knots,
+                                       int nlbc, int lbcpitch, const double *lbc, 
+                                       int nrbc, int rbcpitch, const double *rbc, 
+                                       int pitch, double *ctlpoints );
 
 
 void mbs_multiFindBezDerivatived ( int degree, int ncurves, int spdimen,
@@ -1126,7 +1126,7 @@ boolean mbs_multiAdjustBSCRepd ( int ncurves, int spdimen,
     (double*)inctlpoints,outdegree,outlastknot,outknots,0,(double*)outctlpoints)
 
 
-void mbs_multiAddBSCurvesd ( int ncurves, int spdimen,
+boolean mbs_multiAddBSCurvesd ( int ncurves, int spdimen,
                              int degree1, int lastknot1, CONST_ double *knots1,
                              int pitch1, CONST_ double *ctlpoints1,
                              int degree2, int lastknot2, CONST_ double *knots2,
@@ -1160,7 +1160,7 @@ void mbs_multiAddBSCurvesd ( int ncurves, int spdimen,
     sumdeg,sumlastknot,sumknots,0,(double*)sumctlpoints)
 
 
-void mbs_multiSubtractBSCurvesd ( int ncurves, int spdimen,
+boolean mbs_multiSubtractBSCurvesd ( int ncurves, int spdimen,
                              int degree1, int lastknot1, CONST_ double *knots1,
                              int pitch1, CONST_ double *ctlpoints1,
                              int degree2, int lastknot2, CONST_ double *knots2,
@@ -1198,18 +1198,18 @@ boolean mbs_FindPolynomialZerosd ( int degree, const double *coeff,
                                    int *nzeros, double *zeros, double eps );
 
 
-void mbs_ClipBC2d ( int ncplanes, const vector3d *cplanes,
-                    int degree, const point2d *cpoints,
-                    void (*output) (int degree, const point2d *cpoints) );               
-void mbs_ClipBC2Rd ( int ncplanes, const vector3d *cplanes,
-                     int degree, const point3d *cpoints,   
-                     void (*output) (int degree, const point3d *cpoints) );
-void mbs_ClipBC3d ( int ncplanes, const vector4d *cplanes,
-                    int degree, const point3d *cpoints,   
-                    void (*output) (int degree, const point3d *cpoints) );
-void mbs_ClipBC3Rd ( int ncplanes, const vector4d *cplanes,
-                     int degree, const point4d *cpoints,
-                     void (*output) (int degree, const point4d *cpoints) );
+boolean mbs_ClipBC2d ( int ncplanes, const vector3d *cplanes,
+                       int degree, const point2d *cpoints,
+                       void (*output) (int degree, const point2d *cpoints) );               
+boolean mbs_ClipBC2Rd ( int ncplanes, const vector3d *cplanes,
+                        int degree, const point3d *cpoints,   
+                        void (*output) (int degree, const point3d *cpoints) );
+boolean mbs_ClipBC3d ( int ncplanes, const vector4d *cplanes,
+                       int degree, const point3d *cpoints,   
+                       void (*output) (int degree, const point3d *cpoints) );
+boolean mbs_ClipBC3Rd ( int ncplanes, const vector4d *cplanes,
+                        int degree, const point4d *cpoints,
+                        void (*output) (int degree, const point4d *cpoints) );
 
 /* ///////////////////////////////////////////////////////////////////////// */
 /* Bicubic polynomial Coons patches */

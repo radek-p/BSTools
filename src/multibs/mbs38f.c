@@ -23,13 +23,13 @@
 /* /////////////////////////////////////////// */
 /* adding B-spline curves */
 
-void mbs_multiAddBSCurvesf ( int ncurves, int spdimen,
-                             int degree1, int lastknot1, CONST_ float *knots1,
-                             int pitch1, CONST_ float *ctlpoints1,
-                             int degree2, int lastknot2, CONST_ float *knots2,
-                             int pitch2, CONST_ float *ctlpoints2,
-                             int *sumdeg, int *sumlastknot, float *sumknots,
-                             int sumpitch, float *sumctlpoints )
+boolean mbs_multiAddBSCurvesf ( int ncurves, int spdimen,
+                                int degree1, int lastknot1, CONST_ float *knots1,
+                                int pitch1, CONST_ float *ctlpoints1,
+                                int degree2, int lastknot2, CONST_ float *knots2,
+                                int pitch2, CONST_ float *ctlpoints2,
+                                int *sumdeg, int *sumlastknot, float *sumknots,
+                                int sumpitch, float *sumctlpoints )
 {
   void  *sp;
   int   _sumdeg, _sumlastknot, minpitch;
@@ -41,26 +41,26 @@ void mbs_multiAddBSCurvesf ( int ncurves, int spdimen,
   if ( !mbs_FindBSCommonKnotSequencef ( &_sumdeg, &_sumlastknot, &_sumknots,
              2, degree1, lastknot1, knots1, degree2, lastknot2, knots2 ) ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
   minpitch = spdimen*(_sumlastknot-_sumdeg);
   ctlp1 = pkv_GetScratchMemf ( ncurves*minpitch );
   ctlp2 = pkv_GetScratchMemf ( ncurves*minpitch );
   if ( !ctlp1 || !ctlp2 ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
   if ( !mbs_multiAdjustBSCRepf ( ncurves, spdimen,
            degree1, lastknot1, knots1, pitch1, ctlpoints1,
            _sumdeg, _sumlastknot, _sumknots, minpitch, ctlp1 ) ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
   if ( !mbs_multiAdjustBSCRepf ( ncurves, spdimen,
            degree2, lastknot2, knots2, pitch2, ctlpoints2,
            _sumdeg, _sumlastknot, _sumknots, minpitch, ctlp2 ) ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
   pkn_AddMatrixf ( ncurves, minpitch,
                    minpitch, ctlp1, minpitch, ctlp2, sumpitch, sumctlpoints );
@@ -69,12 +69,17 @@ void mbs_multiAddBSCurvesf ( int ncurves, int spdimen,
   memcpy ( sumknots, _sumknots, (_sumlastknot+1)*sizeof(float) );
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*mbs_multiAddBSCurvesf*/
 
 /* /////////////////////////////////////////// */
 /* subtracting B-spline curves */
 
-void mbs_multiSubtractBSCurvesf ( int ncurves, int spdimen,
+boolean mbs_multiSubtractBSCurvesf ( int ncurves, int spdimen,
                              int degree1, int lastknot1, CONST_ float *knots1,
                              int pitch1, CONST_ float *ctlpoints1,
                              int degree2, int lastknot2, CONST_ float *knots2,
@@ -92,26 +97,26 @@ void mbs_multiSubtractBSCurvesf ( int ncurves, int spdimen,
   if ( !mbs_FindBSCommonKnotSequencef ( &_sumdeg, &_sumlastknot, &_sumknots,
              2, degree1, lastknot1, knots1, degree2, lastknot2, knots2 ) ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
   minpitch = spdimen*(_sumlastknot-_sumdeg);
   ctlp1 = pkv_GetScratchMemf ( ncurves*minpitch );
   ctlp2 = pkv_GetScratchMemf ( ncurves*minpitch );
   if ( !ctlp1 || !ctlp2 ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
   if ( !mbs_multiAdjustBSCRepf ( ncurves, spdimen,
            degree1, lastknot1, knots1, pitch1, ctlpoints1,
            _sumdeg, _sumlastknot, _sumknots, minpitch, ctlp1 ) ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
   if ( !mbs_multiAdjustBSCRepf ( ncurves, spdimen,
            degree2, lastknot2, knots2, pitch2, ctlpoints2,
            _sumdeg, _sumlastknot, _sumknots, minpitch, ctlp2 ) ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
   pkn_SubtractMatrixf ( ncurves, minpitch,
                    minpitch, ctlp1, minpitch, ctlp2, sumpitch, sumctlpoints );
@@ -120,5 +125,10 @@ void mbs_multiSubtractBSCurvesf ( int ncurves, int spdimen,
   memcpy ( sumknots, _sumknots, (_sumlastknot+1)*sizeof(float) );
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*mbs_multiSubtractBSCurvesf*/
 

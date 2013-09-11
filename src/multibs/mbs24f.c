@@ -21,9 +21,9 @@
 /* ////////////////////////////////////////// */
 /* change of n+1 leftmost knots in a B-spline representation of curves, */
 /* using the Oslo algorithm */
-void mbs_multiBSChangeLeftKnotsf ( int ncurves, int spdimen, int degree,
-                                   float *knots, int pitch, float *ctlpoints,
-                                   float *newknots )
+boolean mbs_multiBSChangeLeftKnotsf ( int ncurves, int spdimen, int degree,
+                                      float *knots, int pitch, float *ctlpoints,
+                                      float *newknots )
 {
   void   *sp;
   int    i, j, k;
@@ -34,8 +34,10 @@ void mbs_multiBSChangeLeftKnotsf ( int ncurves, int spdimen, int degree,
   t = pkv_GetScratchMemf ( 2*degree );
   d = pkv_GetScratchMemf ( ncurves*spdimen*(degree+1) );
   e = pkv_GetScratchMemf ( ncurves*spdimen*(degree+1) );
-  if ( !t || !d || !e )
-    PKV_SIGNALERROR ( LIB_MULTIBS, 2, ERRMSG_2 );
+  if ( !t || !d || !e ) {
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
+    goto failure;
+  }
   memcpy ( t, newknots, (degree+1)*sizeof(float) );
   memcpy ( &t[degree+1], &knots[degree+1], (degree-1)*sizeof(float) );
   pkv_Selectf ( ncurves, spdimen*(degree+1), pitch, spdimen*(degree+1),
@@ -56,15 +58,20 @@ void mbs_multiBSChangeLeftKnotsf ( int ncurves, int spdimen, int degree,
   }
   memcpy ( knots, newknots, (degree+1)*sizeof(float) );
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*mbs_multiBSChangeLeftKnotsf*/
 
 /* ////////////////////////////////////////// */
 /* change of n+1 rightmost knots in a B-spline representation of curves */
 
-void mbs_multiBSChangeRightKnotsf ( int ncurves, int spdimen, int degree,
-                                    int lastknot, float *knots,
-                                    int pitch, float *ctlpoints,
-                                    float *newknots )
+boolean mbs_multiBSChangeRightKnotsf ( int ncurves, int spdimen, int degree,
+                                       int lastknot, float *knots,
+                                       int pitch, float *ctlpoints,
+                                       float *newknots )
 {
   void   *sp;
   int    i, j, k;
@@ -75,8 +82,10 @@ void mbs_multiBSChangeRightKnotsf ( int ncurves, int spdimen, int degree,
   t = pkv_GetScratchMemf ( 2*degree );
   d = pkv_GetScratchMemf ( ncurves*spdimen*(degree+1) );
   e = pkv_GetScratchMemf ( ncurves*spdimen*(degree+1) );
-  if ( !t || !d || !e )
-    PKV_SIGNALERROR ( LIB_MULTIBS, 2, ERRMSG_2 );
+  if ( !t || !d || !e ) {
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
+    goto failure;
+  }
   memcpy ( t, &knots[lastknot-2*degree+1], (degree-1)*sizeof(float) );
   memcpy ( &t[degree-1], newknots, (degree+1)*sizeof(float) );
   pkv_Selectf ( ncurves, spdimen*(degree+1), pitch, spdimen*(degree+1),
@@ -97,5 +106,10 @@ void mbs_multiBSChangeRightKnotsf ( int ncurves, int spdimen, int degree,
   }
   memcpy ( &knots[lastknot-degree], newknots, (degree+1)*sizeof(float) );
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*mbs_multiBSChangeRightKnotsf*/
 

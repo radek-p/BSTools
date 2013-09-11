@@ -67,7 +67,7 @@ int mbs_multideBoorf ( int degree, int lastknot,
   dpitch = (degree-r+1)*spdimen;
   if ( !( d = pkv_GetScratchMemf(ncurves*dpitch)) ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, 2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
   _mbs_multideBoorKernelf ( degree, knots, ncurves, spdimen,
                              pitch, ctlpoints, t, k, r, 0, dpitch, d );
@@ -75,6 +75,10 @@ int mbs_multideBoorf ( int degree, int lastknot,
   pkv_Selectf ( ncurves, spdimen, dpitch, spdimen, &d[0], &cpoints[0] );
   pkv_SetScratchMemTop ( sp );
   return degree-r;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return -1;
 } /*mbs_multideBoorf*/
 
 void mbs_deBoorC2Rf ( int degree, int lastknot,   

@@ -28,8 +28,9 @@ int mbs_SetKnotd ( int lastknot, double *knots,
   }
   for ( i = 0; i < mult && knotnum > i; i++ )
     knots[knotnum-i] = t;
-  pkv_SortFast ( sizeof(double), ID_IEEE754_DOUBLE, sizeof(double),
-                 0, lastknot-1, &knots[1] );
+  if ( pkv_SortFast ( sizeof(double), ID_IEEE754_DOUBLE, sizeof(double),
+                      0, lastknot-1, &knots[1] ) != SORT_OK )
+    return -1;
   if ( knots[0] > knots[1] )
     knots[0] = knots[1];
   if ( knots[lastknot] < knots[lastknot-1] )

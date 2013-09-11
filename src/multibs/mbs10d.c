@@ -55,12 +55,12 @@ static void _mbs_multiMultScaledBezd ( int nproducts, int spdimen,
 /* of the degrees of the arguments, so outpitch should not be less than      */
 /* spdimen*(degscf+degvecf). The arguments are represented in Bernstein   */
 /* polynomial bases of degrees specified by the parameters discussed above.  */
-void mbs_multiMultBezCd ( int nscf, int degscf, int scfpitch,
-                          const double *scfcoef,
-                          int spdimen,
-                          int nvecf, int degvecf, int vecfpitch,
-                          const double *vecfcp,
-                          int *degprod, int prodpitch, double *prodcp )
+boolean mbs_multiMultBezCd ( int nscf, int degscf, int scfpitch,
+                             const double *scfcoef,
+                             int spdimen,
+                             int nvecf, int degvecf, int vecfpitch,
+                             const double *vecfcp,
+                             int *degprod, int prodpitch, double *prodcp )
 {
   void  *stp;
   double *auxscf, *auxvecf;
@@ -76,7 +76,7 @@ void mbs_multiMultBezCd ( int nscf, int degscf, int scfpitch,
   auxvecf = pkv_GetScratchMemd ( nvecf*(degvecf+1)*spdimen );
   if ( !auxscf || !auxvecf ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
   pkv_Selectd ( nscf, degscf+1, scfpitch, degscf+1, scfcoef, auxscf );
   pkv_Selectd ( nvecf, (degvecf+1)*spdimen, vecfpitch,
@@ -95,6 +95,11 @@ void mbs_multiMultBezCd ( int nscf, int degscf, int scfpitch,
   mbs_multiBezUnscaled ( *degprod, 1, nprod, spdimen, prodpitch, prodcp );
 
   pkv_SetScratchMemTop ( stp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( stp );
+  return false;
 } /*mbs_multiMultBezCd*/
 
 /* The value of the prodlastknot parameter must be computed before calling  */
@@ -104,15 +109,15 @@ void mbs_multiMultBezCd ( int nscf, int degscf, int scfpitch,
 /* The caller must ensure that the length of the array pointed by prodknots */
 /* is at least prodlastknot+1. The procedure below does not repeat this     */
 /* computation.                                                             */
-void mbs_multiMultBSCd ( int nscf, int degscf,
-                         int scflastknot, const double *scfknots,
-                         int scfpitch, const double *scfcoef,
-                         int spdimen,
-                         int nvecf, int degvecf,
-                         int vecflastknot, const double *vecfknots,
-                         int vecfpitch, const double *vecfcp,
-                         int *degprod, int *prodlastknot, double *prodknots,
-                         int prodpitch, double *prodcp )
+boolean mbs_multiMultBSCd ( int nscf, int degscf,
+                            int scflastknot, const double *scfknots,
+                            int scfpitch, const double *scfcoef,
+                            int spdimen,
+                            int nvecf, int degvecf,
+                            int vecflastknot, const double *vecfknots,
+                            int vecfpitch, const double *vecfcp,
+                            int *degprod, int *prodlastknot, double *prodknots,
+                            int prodpitch, double *prodcp )
 {
   void  *stp;
   int   nprod, lastpknot, auxlastkn, npp, degpr, ascpitch, avecpitch;
@@ -133,7 +138,7 @@ void mbs_multiMultBSCd ( int nscf, int degscf,
                         degprod, &lastpknot, prodknots );
   if ( lastpknot > *prodlastknot ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_5, ERRMSG_5 );
-    exit ( 1 );  /* apparently the array for the result knots is too short */
+    goto failure;  /* apparently the array for the result knots is too short */
   }
   *prodlastknot = lastpknot;
 
@@ -143,7 +148,7 @@ void mbs_multiMultBSCd ( int nscf, int degscf,
   aakn = pkv_GetScratchMemd ( degpr+1 );
   if ( !auxkn || !aakn ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
 
 /* Find piecewise Bezier representations of the arguments, with use of the  */
@@ -155,7 +160,7 @@ void mbs_multiMultBSCd ( int nscf, int degscf,
   acp = pkv_GetScratchMemd ( max(i,j) );
   if ( !akn || !acp ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
 
   memcpy ( akn, scfknots, (scflastknot+1)*sizeof(double) );
@@ -186,7 +191,7 @@ void mbs_multiMultBSCd ( int nscf, int degscf,
   sauxc = pkv_GetScratchMemd ( ascpitch*nscf );
   if ( !sauxc ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
   mbs_multiOsloInsertKnotsd ( nscf, 1, degscf, scflastknot, akn,
                               scfpitch, acp, auxlastkn, auxkn,
@@ -223,7 +228,7 @@ void mbs_multiMultBSCd ( int nscf, int degscf,
   vauxc = pkv_GetScratchMemd ( avecpitch*nvecf );
   if ( !vauxc ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
   mbs_multiOsloInsertKnotsd ( nvecf, spdimen, degvecf, vecflastknot, akn,
                               vecfpitch, acp, auxlastkn, auxkn,
@@ -236,7 +241,7 @@ void mbs_multiMultBSCd ( int nscf, int degscf,
   auxprod = pkv_GetScratchMemd ( nprod*npp*(degpr+1)*spdimen );
   if ( !auxprod ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
   for ( i = 0, auxpr = auxprod;
         i < nprod;
@@ -261,5 +266,10 @@ void mbs_multiMultBSCd ( int nscf, int degscf,
                                  prodpitch, prodcp );
 
   pkv_SetScratchMemTop ( stp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( stp );
+  return false;
 } /*mbs_multiMultBSCd*/
 

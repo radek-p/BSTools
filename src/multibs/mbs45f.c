@@ -17,6 +17,8 @@
 #include "pkgeom.h"
 #include "multibs.h"
 
+#include "msgpool.h"
+
 /* /////////////////////////////////////////// */
 static int nsigns ( int n, const float *a )
 {
@@ -113,9 +115,9 @@ failure:
 /* /////////////////////////////////////////// */
 #define EPS 1.0e-6
 
-void mbs_ClipBC2f ( int ncplanes, const vector3f *cplanes,
-                    int degree, const point2f *cpoints,
-                    void (*output) (int degree, const point2f *cpoints) )
+boolean mbs_ClipBC2f ( int ncplanes, const vector3f *cplanes,
+                       int degree, const point2f *cpoints,
+                       void (*output) (int degree, const point2f *cpoints) )
 {
   void    *sp;
   point2f *p, *q;
@@ -170,18 +172,20 @@ for ( i = 0; i <= nt; i++ )
         output ( degree, q );
       }
     }
-
   }
-  else {
-failure:
-    exit ( 1 );
-  }
+  else
+    goto failure;
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*mbs_ClipBC2f*/
 
-void mbs_ClipBC2Rf ( int ncplanes, const vector3f *cplanes,
-                     int degree, const point3f *cpoints,
-                     void (*output) (int degree, const point3f *cpoints) )
+boolean mbs_ClipBC2Rf ( int ncplanes, const vector3f *cplanes,
+                        int degree, const point3f *cpoints,
+                        void (*output) (int degree, const point3f *cpoints) )
 {
   void    *sp;
   point3f *p, *q;
@@ -235,18 +239,20 @@ for ( i = 0; i <= nt; i++ )
         output ( degree, q );
       }
     }
-
   }
-  else {
-failure:
-    exit ( 1 );
-  }
+  else
+    goto failure;
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*mbs_ClipBC2Rf*/
 
-void mbs_ClipBC3f ( int ncplanes, const vector4f *cplanes,
-                    int degree, const point3f *cpoints,
-                    void (*output) (int degree, const point3f *cpoints) )
+boolean mbs_ClipBC3f ( int ncplanes, const vector4f *cplanes,
+                       int degree, const point3f *cpoints,
+                       void (*output) (int degree, const point3f *cpoints) )
 {
   void    *sp;
   point3f *p, *q;
@@ -301,18 +307,20 @@ for ( i = 0; i <= nt; i++ )
         output ( degree, q );
       }
     }
-
   }
-  else {
-failure:
-    exit ( 1 );
-  }
+  else
+    goto failure;
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*mbs_ClipBC3f*/
 
-void mbs_ClipBC3Rf ( int ncplanes, const vector4f *cplanes,
-                     int degree, const point4f *cpoints,
-                     void (*output) (int degree, const point4f *cpoints) )
+boolean mbs_ClipBC3Rf ( int ncplanes, const vector4f *cplanes,
+                        int degree, const point4f *cpoints,
+                        void (*output) (int degree, const point4f *cpoints) )
 {
   void    *sp;
   point4f *p, *q;
@@ -366,12 +374,14 @@ for ( i = 0; i <= nt; i++ )
         output ( degree, q );
       }
     }
-
   }
-  else {
-failure:
-    exit ( 1 );
-  }
+  else
+    goto failure;
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*mbs_ClipBC3Rf*/
 

@@ -25,12 +25,14 @@
 boolean mbs_FindBSCommonKnotSequencef ( int *degree, int *lastknot,
             float **knots, int nsequences, ... )
 {
+  void    *sp;
   va_list ap;
   int     i, j, k, l, r;
   int     deg, nki, maxk, degc, lknc;
   float   *knotsc, *kn, a, b;
   int     *knmult;
 
+  sp = pkv_GetScratchMemTop ();
   if ( nsequences < 1 )
     return false;
 
@@ -52,22 +54,26 @@ boolean mbs_FindBSCommonKnotSequencef ( int *degree, int *lastknot,
 
         /* allocate an array and copy the knots */
   *knots = kn = pkv_GetScratchMemf ( (maxk = nki*deg+2) );
-  if ( !kn )
-    return false;
+  if ( !kn ) {
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
+    goto failure;
+  }
   va_start ( ap, nsequences );
   for ( i = k = 0; i < nsequences; i++ ) {
     degc = va_arg ( ap, int );
     lknc = va_arg ( ap, int );
     knotsc = va_arg ( ap, float* );
     for ( j = degc; j <= lknc-degc; j++ ) {
-      if ( k > maxk )
+      if ( k > maxk ) {
         PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_6, ERRMSG_6 );
+        goto failure;
+      }
       kn[k++] = knotsc[j];
     }
         /* verify whether all curves have the same domain */
     if ( knotsc[degc] != a || knotsc[lknc-degc] != b ) {
       va_end ( ap );
-      return false;
+      goto failure;
     }
   }
   va_end ( ap );
@@ -77,14 +83,16 @@ boolean mbs_FindBSCommonKnotSequencef ( int *degree, int *lastknot,
       kn[k++] = kn[i];
   if ( pkv_SortFast ( sizeof(float), ID_IEEE754_FLOAT, sizeof(float),
                       0, k, kn ) != SORT_OK )
-    return false;
+    goto failure;
   for ( j = k, i = k = 1; i < j; i++ )
     if ( kn[i] != kn[i-1] )
       kn[k++] = kn[i];
 
         /* now find the proper knot multiplicities */
-  if ( !(knmult = pkv_GetScratchMem ( k*sizeof(int) )) )
-    return false;
+  if ( !(knmult = pkv_GetScratchMem ( k*sizeof(int) )) ) {
+    PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
+    goto failure;
+  }
   for ( j = 0; j < k; j++ )
     knmult[j] = 1;
   knmult[0] = knmult[k-1] = deg+1;
@@ -115,6 +123,10 @@ boolean mbs_FindBSCommonKnotSequencef ( int *degree, int *lastknot,
   *lastknot = j-1;
   pkv_SetScratchMemTop ( &kn[j] );
   return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*mbs_FindBSCommonKnotSequencef*/
 
 boolean mbs_multiAdjustBSCRepf ( int ncurves, int spdimen,

@@ -22,16 +22,16 @@
 /* interpolation problem with knots of interpolation 0 and 1, */
 /* with arbitrary multiplicities. */
 
-void mbs_multiInterp2knHermiteBezd ( int ncurves, int spdimen, int degree,
-                                     int nlbc, int lbcpitch, const double *lbc,
-                                     int nrbc, int rbcpitch, const double *rbc,
-                                     int pitch, double *ctlpoints )
+boolean mbs_multiInterp2knHermiteBezd ( int ncurves, int spdimen, int degree,
+                                        int nlbc, int lbcpitch, const double *lbc,
+                                        int nrbc, int rbcpitch, const double *rbc,
+                                        int pitch, double *ctlpoints )
 {
   int i, j;
 
   if ( nlbc+nrbc != degree+1 ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_5, ERRMSG_5 );
-    exit ( 1 );
+    return false;
   }
 
         /* get the interpolation conditions */
@@ -54,5 +54,6 @@ void mbs_multiInterp2knHermiteBezd ( int ncurves, int spdimen, int degree,
       pkn_AddMatrixMd ( ncurves, spdimen, pitch, &ctlpoints[i*spdimen],
                    pitch, &ctlpoints[(i-1)*spdimen], -1.0/(double)(degree-j),
                    pitch, &ctlpoints[(i-1)*spdimen] );
+  return true;
 } /*mbs_multiInterp2knHermiteBezd*/
 

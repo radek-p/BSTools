@@ -120,12 +120,12 @@ int mbs_LastknotMaxInsf ( int degree, int lastknot, const float *knots,
 /* /////////////////////////////////////////// */
 /* maximal knot insertion - conversion to piecewise Bezier form */
 
-void mbs_multiMaxKnotInsf ( int ncurves, int spdimen, int degree,
-                            int inlastknot, const float *inknots,
-                            int inpitch, const float *inctlpoints,
-                            int *outlastknot, float *outknots,
-                            int outpitch, float *outctlpoints,
-                            int *skipl, int *skipr )
+boolean mbs_multiMaxKnotInsf ( int ncurves, int spdimen, int degree,
+                               int inlastknot, const float *inknots,
+                               int inpitch, const float *inctlpoints,
+                               int *outlastknot, float *outknots,
+                               int outpitch, float *outctlpoints,
+                               int *skipl, int *skipr )
 {
   int   i, j, k, l, r, pitch, lkn;
   float *auxkn, *auxcp;
@@ -142,7 +142,7 @@ void mbs_multiMaxKnotInsf ( int ncurves, int spdimen, int degree,
   auxcp = pkv_GetScratchMemf ( pitch*ncurves );
   if ( !auxkn || !auxcp ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
   memcpy ( auxkn, inknots, (lkn+1)*sizeof(float) );
   pkv_Selectf ( ncurves, pitch, inpitch, pitch, inctlpoints, auxcp );
@@ -195,5 +195,10 @@ void mbs_multiMaxKnotInsf ( int ncurves, int spdimen, int degree,
 
 /* Cleanup. */
   pkv_SetScratchMemTop ( stp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( stp );
+  return false;
 } /*mbs_multiMaxKnotInsf*/
 

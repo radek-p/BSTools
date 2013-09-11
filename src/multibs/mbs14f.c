@@ -238,16 +238,16 @@ static void _mbs_BSCubicNotAKnotRightf ( int n,
       d[(n-1)*spdimen+i] -= w*d[(n-2)*spdimen+i];
 } /*_mbs_BSCubicNotAKnotRightf*/
 
-
-void mbs_multiBSCubicInterpf ( int lastinterpknot, float *interpknots,
-                               int ncurves, int spdimen, int xpitch,
-                               const float *x,
-                               int ypitch,
-                               char bcl, const float *ybcl,
-                               char bcr, const float *ybcr,
-                               int *lastbsknot, float *bsknots,
-                               int bspitch, float *ctlpoints )
+boolean mbs_multiBSCubicInterpf ( int lastinterpknot, float *interpknots,
+                                  int ncurves, int spdimen, int xpitch,
+                                  const float *x,
+                                  int ypitch,
+                                  char bcl, const float *ybcl,
+                                  char bcr, const float *ybcr,
+                                  int *lastbsknot, float *bsknots,
+                                  int bspitch, float *ctlpoints )
 {
+  void  *sp;
   int   i, j, l, n, nnz;
   int   lastknot;
   float bfv[4], m;
@@ -256,6 +256,7 @@ void mbs_multiBSCubicInterpf ( int lastinterpknot, float *interpknots,
   int   notaknot;
   float d1 = 0.0, dn1 = 0.0;  /* to suppress a warning */
   
+  sp = pkv_GetScratchMemTop ();
   notaknot = 0;
   if ( bcl != BS3_BC_NOT_A_KNOT && bcr != BS3_BC_NOT_A_KNOT ) {
                                        /* setup curve knot sequence */
@@ -274,7 +275,7 @@ void mbs_multiBSCubicInterpf ( int lastinterpknot, float *interpknots,
     c = pkv_GetScratchMemf ( size_a );
     if ( !a || !b || !c ) {
       PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-      exit ( 1 );
+      goto failure;
     }
 
     b[0] = 1.0;  c[0] = 0.0;
@@ -313,7 +314,7 @@ void mbs_multiBSCubicInterpf ( int lastinterpknot, float *interpknots,
     c = pkv_GetScratchMemf ( size_a );
     if ( !a || !b || !c ) {
       PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-      exit ( 1 );
+      goto failure;
     }
 
     b[0] = 1.0;  c[0] = 0.0;
@@ -355,7 +356,7 @@ void mbs_multiBSCubicInterpf ( int lastinterpknot, float *interpknots,
     c = pkv_GetScratchMemf ( size_a );
     if ( !a || !b || !c ) {
       PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-      exit ( 1 );
+      goto failure;
     }
 
     b[0] = 1.0;  c[0] = 0.0;
@@ -395,7 +396,7 @@ void mbs_multiBSCubicInterpf ( int lastinterpknot, float *interpknots,
     c = pkv_GetScratchMemf ( size_a );
     if ( !a || !b || !c ) {
       PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-      exit ( 1 );
+      goto failure;
     }
 
     b[0] = 1.0;  c[0] = 0.0;
@@ -451,7 +452,7 @@ case BS3_BC_NOT_A_KNOT:          /* not a knot condition */
 
 default:
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_5, ERRMSG_5 );
-    exit ( 1 );   /* unknown boundary condition */
+    goto failure;   /* unknown boundary condition */
   }
 
   switch ( bcr ) {
@@ -486,7 +487,7 @@ case BS3_BC_NOT_A_KNOT:         /* not a knot condition */
 
 default:
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_5, ERRMSG_5 );
-    exit ( 1 );   /* unknown boundary condition */
+    goto failure;   /* unknown boundary condition */
   }
 
               /* solve the system with the three-diagonal matrix; */
@@ -508,6 +509,11 @@ default:
       for ( j = 0; j < spdimen; j++ )
         d[j] = (d[j]-c[i]*d[j+spdimen])/b[i];
 
-  pkv_FreeScratchMemf ( 3*size_a );
+  pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*mbs_multiBSCubicInterpf*/
 

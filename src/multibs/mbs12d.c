@@ -18,8 +18,8 @@
 
 /* /////////////////////////////////////////// */
 /* Horner scheme for Bezier curves and patches */
-void mbs_multiBCHornerd ( int degree, int ncurves, int spdimen, int pitch,
-                          const double *ctlpoints, double t, double *cpoints )
+boolean mbs_multiBCHornerd ( int degree, int ncurves, int spdimen, int pitch,
+                             const double *ctlpoints, double t, double *cpoints )
 {
   int         i, j, k;
   long double s, e, be;
@@ -44,6 +44,7 @@ void mbs_multiBCHornerd ( int degree, int ncurves, int spdimen, int pitch,
       e *= t;
       binom = (binom*(degree-i))/(i+1);
     }
+    return true;
   }
   else if ( degree <= 61 ) {
           /* for high degrees 64 bit integers are needed to avoid */
@@ -67,53 +68,77 @@ void mbs_multiBCHornerd ( int degree, int ncurves, int spdimen, int pitch,
       e *= t;
       binom = (binom*(degree-i))/(i+1);
     }
+    return true;
   }
-  else
+  else {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_8, ERRMSG_8 );
+    return false;
+  }
 } /*mbs_multiBCHornerd*/
 
-void mbs_BCHornerC2Rd ( int degree, const point3d *ctlpoints, double t,
-                        point2d *cpoint )
+boolean mbs_BCHornerC2Rd ( int degree, const point3d *ctlpoints, double t,
+                           point2d *cpoint )
 {
   point3d hcpoint;
 
-  mbs_multiBCHornerd ( degree, 1, 3, 0, (double*)ctlpoints, t,
-                       (double*)&hcpoint );
-  Point3to2d ( &hcpoint, cpoint );
+  if ( mbs_multiBCHornerd ( degree, 1, 3, 0, (double*)ctlpoints, t,
+                           (double*)&hcpoint ) ) {
+    Point3to2d ( &hcpoint, cpoint );
+    return true;
+  }
+  else
+    return false;
 } /*mbs_BCHornerC2Rd*/
 
-void mbs_BCHornerC3Rd ( int degree, const point4d *ctlpoints, double t,
-                        point3d *cpoint )
+boolean mbs_BCHornerC3Rd ( int degree, const point4d *ctlpoints, double t,
+                           point3d *cpoint )
 {
   point4d hcpoint;
 
-  mbs_multiBCHornerd ( degree, 1, 4, 0, (double*)ctlpoints, t,
-                       (double*)&hcpoint );
-  Point4to3d ( &hcpoint, cpoint );
+  if ( mbs_multiBCHornerd ( degree, 1, 4, 0, (double*)ctlpoints, t,
+                            (double*)&hcpoint ) ) {
+    Point4to3d ( &hcpoint, cpoint );
+    return true;
+  }
+  else
+    return false;
 } /*mbs_BCHornerC3Rd*/
 
-void mbs_BCHornerPd ( int degreeu, int degreev, int spdimen,
-                      const double *ctlpoints,
-                      double u, double v, double *ppoint )
+boolean mbs_BCHornerPd ( int degreeu, int degreev, int spdimen,
+                         const double *ctlpoints,
+                         double u, double v, double *ppoint )
 {
+  void   *sp;
   double *auxc;
-  int   auxc_size;
+  int    auxc_size;
 
+  sp = pkv_GetScratchMemTop ();
   auxc_size = (degreev+1)*spdimen*sizeof(double);
   if ( (auxc = pkv_GetScratchMem ( auxc_size )) ) {
-    mbs_multiBCHornerd ( degreeu, 1, spdimen*(degreev+1), 0, ctlpoints,
-                         u, auxc );
-    mbs_multiBCHornerd ( degreev, 1, spdimen, 0, auxc, v, ppoint );
-    pkv_FreeScratchMem ( auxc_size );
+    if ( !mbs_multiBCHornerd ( degreeu, 1, spdimen*(degreev+1), 0, ctlpoints,
+                               u, auxc ) )
+      goto failure;
+    if ( !mbs_multiBCHornerd ( degreev, 1, spdimen, 0, auxc, v, ppoint ) )
+      goto failure;
   }
+  pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*mbs_BCHornerPd*/
 
-void mbs_BCHornerP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
-                        double u, double v, point3d *ppoint )
+boolean mbs_BCHornerP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
+                            double u, double v, point3d *ppoint )
 {
   point4d auxp;
 
-  mbs_BCHornerP4d ( degreeu, degreev, ctlpoints, u, v, &auxp );
-  Point4to3d ( &auxp, ppoint );
+  if ( mbs_BCHornerP4d ( degreeu, degreev, ctlpoints, u, v, &auxp ) ) {
+    Point4to3d ( &auxp, ppoint );
+    return true;
+  }
+  else
+    return false;
 } /*mbs_BCHornerP3Rd*/
 

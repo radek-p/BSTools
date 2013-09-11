@@ -21,11 +21,11 @@
 /* ////////////////////////////////////////// */
 /* multiple knots insertion/removal with use  */
 /* of the Oslo algorithm                      */
-void mbs_multiOsloInsertKnotsf ( int ncurves, int spdimen, int degree,
-                                 int inlastknot, const float *inknots,
-                                 int inpitch, float *inctlpoints,
-                                 int outlastknot, const float *outknots,
-                                 int outpitch, float *outctlpoints )
+boolean mbs_multiOsloInsertKnotsf ( int ncurves, int spdimen, int degree,
+                                    int inlastknot, const float *inknots,
+                                    int inpitch, float *inctlpoints,
+                                    int outlastknot, const float *outknots,
+                                    int outpitch, float *outctlpoints )
 {
   void          *stp;
   int           k, nc, nr, as;
@@ -35,7 +35,7 @@ void mbs_multiOsloInsertKnotsf ( int ncurves, int spdimen, int degree,
   if ( inlastknot == outlastknot ) { /* nothing really to do, just copy data */
      pkv_Selectf ( ncurves, spdimen*(inlastknot-degree), inpitch, outpitch,
                    inctlpoints, outctlpoints );
-    return;
+    return true;
   }
 
   stp = pkv_GetScratchMemTop ();
@@ -46,14 +46,14 @@ void mbs_multiOsloInsertKnotsf ( int ncurves, int spdimen, int degree,
   aprof = (bandm_profile*)pkv_GetScratchMem ( (nc+1)*sizeof(bandm_profile) );
   if ( !aprof ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
   as = mbs_BuildOsloMatrixProfilef ( degree, inlastknot, inknots,
                                      outlastknot, outknots, aprof );
   aa = pkv_GetScratchMemf ( as );
   if ( !aa ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
   mbs_BuildOsloMatrixf ( degree, inlastknot, inknots, outknots, aprof, aa );
 
@@ -64,13 +64,18 @@ void mbs_multiOsloInsertKnotsf ( int ncurves, int spdimen, int degree,
                                 &outctlpoints[k*outpitch] );
 
   pkv_SetScratchMemTop ( stp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( stp );
+  return false;
 } /*mbs_multiOsloInsertKnotsf*/
 
-void mbs_multiOsloRemoveKnotsLSQf ( int ncurves, int spdimen, int degree,
-                                    int inlastknot, const float *inknots,
-                                    int inpitch, float *inctlpoints,
-                                    int outlastknot, const float *outknots,
-                                    int outpitch, float *outctlpoints )
+boolean mbs_multiOsloRemoveKnotsLSQf ( int ncurves, int spdimen, int degree,
+                                       int inlastknot, const float *inknots,
+                                       int inpitch, float *inctlpoints,
+                                       int outlastknot, const float *outknots,
+                                       int outpitch, float *outctlpoints )
 {
   void          *stp;
   int           k, nc, nr, as, qs, rs;
@@ -80,7 +85,7 @@ void mbs_multiOsloRemoveKnotsLSQf ( int ncurves, int spdimen, int degree,
   if ( inlastknot == outlastknot ) { /* nothing really to do, just copy data */
      pkv_Selectf ( ncurves, spdimen*(inlastknot-degree), inpitch, outpitch,
                    inctlpoints, outctlpoints );
-    return;
+    return true;
   }
 
    stp = pkv_GetScratchMemTop ();
@@ -91,7 +96,7 @@ void mbs_multiOsloRemoveKnotsLSQf ( int ncurves, int spdimen, int degree,
   aprof = (bandm_profile*)pkv_GetScratchMem ( (nc+1)*sizeof(bandm_profile) );
   if ( !aprof ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
   as = mbs_BuildOsloMatrixProfilef ( degree, outlastknot, outknots,
                                      inlastknot, inknots, aprof );
@@ -100,7 +105,7 @@ void mbs_multiOsloRemoveKnotsLSQf ( int ncurves, int spdimen, int degree,
   aa = pkv_GetScratchMemf ( as );
   if ( !aa ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
   mbs_BuildOsloMatrixf ( degree, outlastknot, outknots, inknots, aprof, aa );
 
@@ -114,7 +119,7 @@ void mbs_multiOsloRemoveKnotsLSQf ( int ncurves, int spdimen, int degree,
   ra = pkv_GetScratchMemf ( rs );
   if ( !qprof || !rprof || !qa || !ra ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
   pkn_BandmQRDecomposeMatrixf ( nr, nc, aprof, aa, qprof, qa, rprof, ra );
 
@@ -128,5 +133,10 @@ void mbs_multiOsloRemoveKnotsLSQf ( int ncurves, int spdimen, int degree,
   }
 
   pkv_SetScratchMemTop ( stp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( stp );
+  return false;
 } /*mbs_multiOsloRemoveKnotsLSQf*/
 

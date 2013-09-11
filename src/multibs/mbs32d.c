@@ -69,14 +69,16 @@ void mbs_BCHornerDerC3Rd ( int degree, const point4d *ctlpoints, double t,
   MultVector3d ( 1.0/hp.w, d, d );
 } /*mbs_BCHornerDerC3Rd*/
 
-void mbs_BCHornerDerPd ( int degreeu, int degreev, int spdimen,
-                         const double *ctlpoints,
-                         double u, double v,
-                         double *p, double *du, double *dv )
+boolean mbs_BCHornerDerPd ( int degreeu, int degreev, int spdimen,
+                            const double *ctlpoints,
+                            double u, double v,
+                            double *p, double *du, double *dv )
 {
+  void   *sp;
   double *scr, *q;
-  int   scr_size;
+  int    scr_size;
 
+  sp = pkv_GetScratchMemTop ();
   if ( degreeu == 0 ) {
     if ( degreev == 0 ) {
       memcpy ( p, ctlpoints, spdimen*sizeof(double) );
@@ -95,7 +97,7 @@ void mbs_BCHornerDerPd ( int degreeu, int degreev, int spdimen,
     q = pkv_GetScratchMemd ( scr_size = (6+2*(degreev+1))*spdimen );
     if ( !q ) {
       PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-      exit ( 1 );
+      goto failure;
     }
     scr = &q[6*spdimen];
     mbs_multiBCHornerd ( degreeu-1, 2, spdimen*(degreev+1), spdimen*(degreev+1),
@@ -114,47 +116,64 @@ void mbs_BCHornerDerPd ( int degreeu, int degreev, int spdimen,
                              (double)degreev, 0, dv );
     pkn_MatrixLinCombd ( 1, spdimen, 0, &q[0], 1.0-v, 0, &q[spdimen], v,
                          0, p );
-    pkv_FreeScratchMemd ( scr_size );
   }
+  pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*mbs_BCHornerDerPd*/
 
-void mbs_BCHornerDerP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
-                           double u, double v,
-                           point3d *p, vector3d *du, vector3d *dv )
+boolean mbs_BCHornerDerP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
+                              double u, double v,
+                              point3d *p, vector3d *du, vector3d *dv )
 {
   point4d hp, hdu, hdv;
 
-  mbs_BCHornerDerP4d ( degreeu, degreev, ctlpoints, u, v, &hp, &hdu, &hdv );
-  Point4to3d ( &hp, p );
-  memcpy ( du, &hdu, sizeof(vector3d) );
-  AddVector3Md ( du, p, -hdu.w, du );
-  MultVector3d ( 1.0/hp.w, du, du );
-  memcpy ( dv, &hdv, sizeof(vector3d) );
-  AddVector3Md ( dv, p, -hdv.w, dv );
-  MultVector3d ( 1.0/hp.w, dv, dv );
+  if ( mbs_BCHornerDerP4d ( degreeu, degreev, ctlpoints, u, v, &hp, &hdu, &hdv ) ) {
+    Point4to3d ( &hp, p );
+    memcpy ( du, &hdu, sizeof(vector3d) );
+    AddVector3Md ( du, p, -hdu.w, du );
+    MultVector3d ( 1.0/hp.w, du, du );
+    memcpy ( dv, &hdv, sizeof(vector3d) );
+    AddVector3Md ( dv, p, -hdv.w, dv );
+    MultVector3d ( 1.0/hp.w, dv, dv );
+    return true;
+  }
+  else
+    return false;
 } /*mbs_BCHornerDerP3Rd*/
 
-void mbs_BCHornerNvP3d ( int degreeu, int degreev, const point3d *ctlpoints,
-                         double u, double v,
-                         point3d *p, vector3d *nv )
+boolean mbs_BCHornerNvP3d ( int degreeu, int degreev, const point3d *ctlpoints,
+                            double u, double v,
+                            point3d *p, vector3d *nv )
 {
   vector3d du, dv;
 
-  mbs_BCHornerDerP3d ( degreeu, degreev, ctlpoints, u, v, p, &du, &dv );
-  CrossProduct3d ( &du, &dv, nv );
-  NormalizeVector3d ( nv );
+  if ( mbs_BCHornerDerP3d ( degreeu, degreev, ctlpoints, u, v, p, &du, &dv ) ) {
+    CrossProduct3d ( &du, &dv, nv );
+    NormalizeVector3d ( nv );
+    return true;
+  }
+  else
+    return false;
 } /*mbs_BCHornerNvP3d*/
 
-void mbs_BCHornerNvP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
-                          double u, double v,
-                          point3d *p, vector3d *nv )
+boolean mbs_BCHornerNvP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
+                             double u, double v,
+                             point3d *p, vector3d *nv )
 {
   point4d  P;
   vector4d Du, Dv;
 
-  mbs_BCHornerDerP4d ( degreeu, degreev, ctlpoints, u, v, &P, &Du, &Dv );
-  Point4to3d ( &P, p );
-  CrossProduct4P3d ( &P, &Du, &Dv, nv );
-  NormalizeVector3d ( nv );
+  if ( mbs_BCHornerDerP4d ( degreeu, degreev, ctlpoints, u, v, &P, &Du, &Dv ) ) {
+    Point4to3d ( &P, p );
+    CrossProduct4P3d ( &P, &Du, &Dv, nv );
+    NormalizeVector3d ( nv );
+    return true;
+  }
+  else
+    return false;
 } /*mbs_BCHornerNvP3Rd*/
 

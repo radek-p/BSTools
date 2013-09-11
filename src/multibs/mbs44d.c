@@ -21,25 +21,28 @@
 #include "multibs.h"
 
 /* /////////////////////////////////////////// */
-
-void mbs_FindBezPatchDiagFormd ( int degreeu, int degreev, int spdimen,
-                                 CONST_ double *cpoints,
-                                 int k, int l, double u, double v,
-                                 double *dfcp )
+boolean mbs_FindBezPatchDiagFormd ( int degreeu, int degreev, int spdimen,
+                                    CONST_ double *cpoints,
+                                    int k, int l, double u, double v,
+                                    double *dfcp )
 {
   void  *sp;
   double *p;
   int   i, pitch, ptch;
 
-  if ( k > degreeu || l > degreev )
+  if ( k > degreeu || l > degreev ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_5, ERRMSG_5 );
+    return false;
+  }
   sp = pkv_GetScratchMemTop ();
 
   pitch = (degreev+1)*spdimen;
   if ( k < degreeu ) {
     p = pkv_GetScratchMemd ( (k+1)*pitch );
-    if ( !p )
-      PKV_SIGNALERROR ( LIB_MULTIBS, 52, ERRMSG_0 );
+    if ( !p ) {
+      PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
+      goto failure;
+    }
     mbs_multiBCHornerd ( degreeu-k, k+1, pitch, pitch, cpoints, u, p );
   }
   else
@@ -54,32 +57,42 @@ void mbs_FindBezPatchDiagFormd ( int degreeu, int degreev, int spdimen,
     memcpy ( dfcp, p, (k+1)*(l+1)*sizeof(double) );
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*mbs_FindBezPatchDiagFormd*/
 
-void mbs_BCHornerDer3Pd ( int degreeu, int degreev, int spdimen,
-                          CONST_ double *ctlpoints,
-                          double u, double v,
-                          double *p, double *pu, double *pv,
-                          double *puu, double *puv, double *pvv,
-                          double *puuu, double *puuv, double *puvv, double *pvvv )
+boolean mbs_BCHornerDer3Pd ( int degreeu, int degreev, int spdimen,
+                             CONST_ double *ctlpoints,
+                             double u, double v,
+                             double *p, double *pu, double *pv,
+                             double *puu, double *puv, double *pvv,
+                             double *puuu, double *puuv, double *puvv, double *pvvv )
 {
   void  *sp;
   double *dfa, *dfb, *dfc, *dfd;
   double s, t;
 
-  if ( degreeu < 3 || degreev < 3 )
+  if ( degreeu < 3 || degreev < 3 ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_5, ERRMSG_5 );
+    return false;
+  }
 
   sp = pkv_GetScratchMemTop ();
   dfa = pkv_GetScratchMemd ( 16*spdimen );
   dfb = pkv_GetScratchMemd ( 12*spdimen );
   dfc = pkv_GetScratchMemd ( 8*spdimen );
   dfd = pkv_GetScratchMemd ( 4*spdimen );
-  if ( !dfa || !dfb || !dfc || !dfd )
+  if ( !dfa || !dfb || !dfc || !dfd ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
+    goto failure;
+  }
 
-  mbs_FindBezPatchDiagFormd ( degreeu, degreev, spdimen, ctlpoints,
-                              3, 3, u, v, dfa );
+  if ( !mbs_FindBezPatchDiagFormd ( degreeu, degreev, spdimen, ctlpoints,
+                                    3, 3, u, v, dfa ) )
+    goto failure;
   s = 1.0-u;  t = 1.0-v;
 
   pkn_MatrixLinCombd ( 4, 3*spdimen, 4*spdimen, dfa, t,
@@ -147,5 +160,10 @@ void mbs_BCHornerDer3Pd ( int degreeu, int degreev, int spdimen,
   pkn_MatrixLinCombd ( 1, spdimen, 0, dfb, t, 0, &dfb[spdimen], v, 0, p );
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*mbs_BCHornerDer3Pd*/
 

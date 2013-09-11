@@ -49,7 +49,7 @@ int mbs_multideBoorDer2d ( int degree, int lastknot, const double *knots,
     d = pkv_GetScratchMemd ( ncurves*dpitch );
     if ( !d ) {
       PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-      exit ( 1 );
+      goto failure;
     }
     _mbs_multideBoorKerneld ( degree, knots, ncurves, spdimen,
                                pitch, ctlpoints, t, k, r, 2, dpitch, d );
@@ -60,7 +60,7 @@ int mbs_multideBoorDer2d ( int degree, int lastknot, const double *knots,
     d = pkv_GetScratchMemd ( ncurves*dpitch );
     if ( !d ) {
       PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-      exit ( 1 );
+      goto failure;
     }
     pkv_Selectd ( ncurves, dpitch, pitch, dpitch,
                   &ctlpoints[(k-degree)*spdimen], &d[0] );
@@ -103,6 +103,10 @@ int mbs_multideBoorDer2d ( int degree, int lastknot, const double *knots,
 
   pkv_SetScratchMemTop ( sp );
   return degree-r;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return -1;
 } /*mbs_multideBoorDer2d*/
 
 int mbs_multideBoorDer3d ( int degree, int lastknot, const double *knots,
@@ -134,7 +138,7 @@ int mbs_multideBoorDer3d ( int degree, int lastknot, const double *knots,
     d = pkv_GetScratchMemd ( ncurves*dpitch );
     if ( !d ) {
       PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-      exit ( 1 );
+      goto failure;
     }
     _mbs_multideBoorKerneld ( degree, knots, ncurves, spdimen,
                                pitch, ctlpoints, t, k, r, 3, dpitch, d );
@@ -145,7 +149,7 @@ int mbs_multideBoorDer3d ( int degree, int lastknot, const double *knots,
     d = pkv_GetScratchMemd ( ncurves*dpitch );
     if ( !d ) {
       PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-      exit ( 1 );
+      goto failure;
     }
     pkv_Selectd ( ncurves, dpitch, pitch, dpitch,
                   &ctlpoints[(k-degree)*spdimen], &d[0] );
@@ -200,5 +204,9 @@ int mbs_multideBoorDer3d ( int degree, int lastknot, const double *knots,
 
   pkv_SetScratchMemTop ( sp );
   return degree-r;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return -1;
 } /*mbs_multideBoorDer3d*/
 

@@ -162,24 +162,25 @@ static boolean _mbs_onesignch ( double *ac, boolean *nonzero )
   return true;
 } /*_mbs_onesignch*/
 
-static void _mbs_pushp ( double t0, double t1, double *ac )
+static boolean _mbs_pushp ( double t0, double t1, double *ac )
 {
   _sd = pkv_GetScratchMemd ( _deg+3 );
   if ( !_sd ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_6, ERRMSG_6 );
-    exit ( 1 );
+    return false;
   }
   _sd[0] = t0;
   _sd[1] = t1;
   memcpy ( &_sd[2], ac, (_deg+1)*sizeof(double) );
   _sp++;
+  return true;
 } /*_mbs_pushp*/
 
-static void _mbs_popp ( double *t0, double *t1, double *ac )
+static boolean _mbs_popp ( double *t0, double *t1, double *ac )
 {
   if ( !_sp ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_6, ERRMSG_6 );
-    exit ( 1 );
+    return false;
   }
   _sp--;
   *t0 = _sd[0];
@@ -187,6 +188,7 @@ static void _mbs_popp ( double *t0, double *t1, double *ac )
   memcpy ( ac, &_sd[2], (_deg+1)*sizeof(double) );
   _sd -= _deg+3;
   pkv_FreeScratchMemd ( _deg+3 );
+  return true;
 } /*_mbs_popp*/
 
 static void _mbs_AddLineBezcIntersd ( const point2d *p0, double t0,
@@ -246,9 +248,11 @@ static double _mbs_FindLineBezcIntersd ( const point2d *p0, double t0,
   _deg = deg;
   _sp = 0;
   if ( _mbs_varsign ( ac ) ) {
-    _mbs_pushp ( 0.0, 1.0, ac );
+    if ( !_mbs_pushp ( 0.0, 1.0, ac ) )
+      goto out;
     do {
-      _mbs_popp ( &u0, &u1, _ac );
+      if ( !_mbs_popp ( &u0, &u1, _ac ) )
+        goto out;
       if ( _mbs_onesignch ( _ac, &nonzero ) ) {
         if ( nonzero ) {
           u = pkn_Illinoisd ( _mbs_apoly, 0.0, 1.0, eps, &error );
@@ -274,10 +278,14 @@ static double _mbs_FindLineBezcIntersd ( const point2d *p0, double t0,
         if ( u1-u0 > eps ) {
           mbs_BisectBC1d ( deg, _ac, bc );
           u = 0.5*(u0+u1);
-          if ( _mbs_varsign ( _ac ) )
-            _mbs_pushp ( u, u1, _ac );
-          if ( _mbs_varsign ( bc ) )
-            _mbs_pushp ( u0, u, bc );
+          if ( _mbs_varsign ( _ac ) ) {
+            if ( _mbs_pushp ( u, u1, _ac ) )
+              goto out;
+          }
+          if ( _mbs_varsign ( bc ) ) {
+            if ( !_mbs_pushp ( u0, u, bc ) )
+              goto out;
+          }
         }
         else {
           if ( ni >= maxinters )

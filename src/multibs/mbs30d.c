@@ -70,7 +70,7 @@ static boolean _mbs_IsOnePixel ( int degree, vector3d *cp )
   return true;
 } /*_mbs_IsOnePixel*/
 
-static void _mbs_RasterizeBCd ( int degree, vector3d *acp )
+static boolean _mbs_RasterizeBCd ( int degree, vector3d *acp )
 {
 #define STKSIZE  32
 
@@ -108,7 +108,7 @@ static void _mbs_RasterizeBCd ( int degree, vector3d *acp )
   stack = (stackel*)pkv_GetScratchMem ( STKSIZE*sizeof(stackel) );
   if ( !stack ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
 
         /* convert control points to the scaled basis */
@@ -161,7 +161,11 @@ static void _mbs_RasterizeBCd ( int degree, vector3d *acp )
   } while ( stp );
 
   pkv_SetScratchMemTop ( sp );
+  return true;
 
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 #undef STKSIZE
 #undef NEIGHBOURS
 #undef OUTPUT
@@ -170,8 +174,7 @@ static void _mbs_RasterizeBCd ( int degree, vector3d *acp )
 #undef POP
 } /*_mbs_RasterizeBCd*/
 
-
-static void _mbs_RasterizeBC2Rd ( int degree, const point3d *cpoints )
+static boolean _mbs_RasterizeBC2Rd ( int degree, const point3d *cpoints )
 {
   void     *sp;
   char     *cp, *cq;
@@ -184,7 +187,7 @@ static void _mbs_RasterizeBC2Rd ( int degree, const point3d *cpoints )
                     (int)(cpoints[0].y/cpoints[0].z+0.5),
                     (int)(cpoints[1].x/cpoints[1].z+0.5),
                     (int)(cpoints[1].y/cpoints[1].z+0.5) );
-    return;
+    return true;
   }
 
   sp = pkv_GetScratchMemTop ();
@@ -192,7 +195,7 @@ static void _mbs_RasterizeBC2Rd ( int degree, const point3d *cpoints )
   cp = pkv_GetScratchMem ( size = (degree+1)*sizeof(point3d) );
   if ( !acp || !cp ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
 
   memcpy ( cp, cpoints, size );  cp += size;
@@ -205,13 +208,13 @@ static void _mbs_RasterizeBC2Rd ( int degree, const point3d *cpoints )
       Point3to2d ( &((point3d*)cp)[0], &v );
     else {
       PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_7, ERRMSG_7 );
-      exit ( 1 );
+      goto failure;
     }
     if ( ((point3d*)cp)[degree].z )
       Point3to2d ( &((point3d*)cp)[degree], &w );
     else {
       PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_7, ERRMSG_7 );
-      exit ( 1 );
+      goto failure;
     }
     SubtractPoints2d ( &w, &v, &v );
     if ( mbs_MonotonicPolylineRd ( 3, degree+1, 3, (double*)cp, (double*)&v ) ) {
@@ -224,16 +227,21 @@ draw_it:
       cq = pkv_GetScratchMem ( size );
       if ( !cq ) {
         PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-        exit ( 1 );
+        goto failure;
       }
       mbs_BisectBC3d ( degree, cp, cq );
       stp += 2;  cp = cq+size;
     }
   } while ( stp );
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*_mbs_RasterizeBC2Rd*/
 
-static void _mbs_RasterizeBC2d ( int degree, const point2d *cpoints )
+static boolean _mbs_RasterizeBC2d ( int degree, const point2d *cpoints )
 {
   void    *sp;
   point3d *cp;
@@ -243,18 +251,23 @@ static void _mbs_RasterizeBC2d ( int degree, const point2d *cpoints )
   cp = pkv_GetScratchMem ( (degree+1)*sizeof(point3d) );
   if ( !cp ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
   pkv_Selectd ( degree+1, 2, 2, 3, (double*)cpoints, (double*)cp );
   for ( i = 0; i <= degree; i++ )
     cp[i].z = 1.0;
   _mbs_RasterizeBC2Rd ( degree, cp );
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*_mbs_RasterizeBC2d*/
 
-void mbs_RasterizeBC2d ( int degree, const point2d *cpoints,
-                         void (*output)(const xpoint *buf, int n),
-                         boolean outlast )
+boolean mbs_RasterizeBC2d ( int degree, const point2d *cpoints,
+                            void (*output)(const xpoint *buf, int n),
+                            boolean outlast )
 {
   void *sp;
 
@@ -263,18 +276,25 @@ void mbs_RasterizeBC2d ( int degree, const point2d *cpoints,
   _pkv_InitPixelBuffer ();
   if ( _pkv_pixbuf ) {
     _pkv_OutputPixels = output;
-    _mbs_RasterizeBC2d ( degree, cpoints );
+    if ( !_mbs_RasterizeBC2d ( degree, cpoints ) )
+      goto failure;
     if ( _pkv_npix && !outlast )
       _pkv_npix--;
     PKV_FLUSH
   }
   _pkv_DestroyPixelBuffer ();
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  _pkv_DestroyPixelBuffer ();
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*mbs_RasterizeBC2d*/
 
-void mbs_RasterizeBC2Rd ( int degree, const point3d *cpoints,
-                          void (*output)(const xpoint *buf, int n),
-                          boolean outlast )
+boolean mbs_RasterizeBC2Rd ( int degree, const point3d *cpoints,
+                             void (*output)(const xpoint *buf, int n),
+                             boolean outlast )
 {
   void *sp;
 
@@ -282,20 +302,27 @@ void mbs_RasterizeBC2Rd ( int degree, const point3d *cpoints,
   xround = yround = 0;
   _pkv_InitPixelBuffer ();
   if ( !_pkv_pixbuf )
-    return;
+    return false;
   _pkv_OutputPixels = output;
-  _mbs_RasterizeBC2Rd ( degree, cpoints );
+  if ( !_mbs_RasterizeBC2Rd ( degree, cpoints ) )
+    goto failure;
   if ( _pkv_npix && !outlast )
     _pkv_npix--;
   PKV_FLUSH
   _pkv_DestroyPixelBuffer ();
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  _pkv_DestroyPixelBuffer ();
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*mbs_RasterizeBC2Rd*/
 
-void mbs_RasterizeBS2d ( int degree, int lastknot, const double *knots,
-                         const point2d *cpoints,
-                         void (*output)(const xpoint *buf, int n),
-                         boolean outlast )
+boolean mbs_RasterizeBS2d ( int degree, int lastknot, const double *knots,
+                            const point2d *cpoints,
+                            void (*output)(const xpoint *buf, int n),
+                            boolean outlast )
 {
   void    *sp;
   int     ku, i;
@@ -305,29 +332,36 @@ void mbs_RasterizeBS2d ( int degree, int lastknot, const double *knots,
   xround = yround = 0;
   _pkv_InitPixelBuffer ();
   if ( !_pkv_pixbuf )
-    return;
+    return false;
   ku = mbs_NumKnotIntervalsd ( degree, lastknot, knots );
   cp = (point2d*)pkv_GetScratchMem ( ku*(degree+1)*sizeof(point2d) );
   if ( !cp ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
   mbs_BSToBezC2d ( degree, lastknot, knots, cpoints, &ku, NULL, NULL, cp );
 
   _pkv_OutputPixels = output;
   for ( i = 0; i < ku; i++, cp += degree+1 )
-    _mbs_RasterizeBC2d ( degree, cp );
+    if ( !_mbs_RasterizeBC2d ( degree, cp ) )
+      goto failure;
   if ( _pkv_npix && !outlast )
     _pkv_npix--;
   PKV_FLUSH
   _pkv_DestroyPixelBuffer ();
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  _pkv_DestroyPixelBuffer ();
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*mbs_RasterizeBS2d*/
 
-void mbs_RasterizeBS2Rd ( int degree, int lastknot, const double *knots,
-                          const point3d *cpoints,
-                          void (*output)(const xpoint *buf, int n),
-                          boolean outlast )
+boolean mbs_RasterizeBS2Rd ( int degree, int lastknot, const double *knots,
+                             const point3d *cpoints,
+                             void (*output)(const xpoint *buf, int n),
+                             boolean outlast )
 {
   void    *sp;
   int     ku, i;
@@ -337,22 +371,29 @@ void mbs_RasterizeBS2Rd ( int degree, int lastknot, const double *knots,
   xround = yround = 0;
   _pkv_InitPixelBuffer ();
   if ( !_pkv_pixbuf )
-    return;
+    return false;
   ku = mbs_NumKnotIntervalsd ( degree, lastknot, knots );
   cp = (point3d*)pkv_GetScratchMem ( ku*(degree+1)*sizeof(point3d) );
   if ( !cp ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
   mbs_BSToBezC3d ( degree, lastknot, knots, cpoints, &ku, NULL, NULL, cp );
 
   _pkv_OutputPixels = output;
   for ( i = 0; i < ku; i++, cp += degree+1 )
-    _mbs_RasterizeBC2Rd ( degree, cp );
+    if ( !_mbs_RasterizeBC2Rd ( degree, cp ) )
+      goto failure;
   if ( _pkv_npix && !outlast )
     _pkv_npix--;
   PKV_FLUSH
   _pkv_DestroyPixelBuffer ();
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  _pkv_DestroyPixelBuffer ();
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*mbs_RasterizeBS2Rd*/
 

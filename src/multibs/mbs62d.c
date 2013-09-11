@@ -20,7 +20,7 @@
 /* /////////////////////////////////////////// */
 /* constructing closed cubic B-spline curves of interpolation */
 
-void mbs_multiBSCubicClosedInterpd ( int lastinterpknot, double *interpknots,
+boolean mbs_multiBSCubicClosedInterpd ( int lastinterpknot, double *interpknots,
                                int ncurves, int spdimen, int xpitch,
                                const double *x,
                                int *lastbsknot, double *bsknots,
@@ -48,7 +48,7 @@ void mbs_multiBSCubicClosedInterpd ( int lastinterpknot, double *interpknots,
   a = pkv_GetScratchMemd ( 3*n );
   if ( !a ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
   b = &a[n];
   c = &b[n];
@@ -97,5 +97,10 @@ void mbs_multiBSCubicClosedInterpd ( int lastinterpknot, double *interpknots,
                 &ctlpoints[spdimen], &ctlpoints[(n+1)*spdimen] );
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*mbs_multiBSCubicClosedInterpd*/
 

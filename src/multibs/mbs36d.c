@@ -22,17 +22,17 @@
 /* interpolation problem with knots of interpolation at the end points */
 /* of the domain, with arbitrary multiplicities. */
 
-void mbs_multiInterp2knHermiteBSd ( int ncurves, int spdimen, int degree,
-                                    int lastknot, const double *knots,
-                                    int nlbc, int lbcpitch, const double *lbc,
-                                    int nrbc, int rbcpitch, const double *rbc,
-                                    int pitch, double *ctlpoints )
+boolean mbs_multiInterp2knHermiteBSd ( int ncurves, int spdimen, int degree,
+                                       int lastknot, const double *knots,
+                                       int nlbc, int lbcpitch, const double *lbc,
+                                       int nrbc, int rbcpitch, const double *rbc,
+                                       int pitch, double *ctlpoints )
 {
   int i, j;
 
   if ( nlbc+nrbc != lastknot-degree ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    return false;
   }
 
         /* get the interpolation conditions */
@@ -57,5 +57,6 @@ void mbs_multiInterp2knHermiteBSd ( int ncurves, int spdimen, int degree,
                         pitch, &ctlpoints[(i-1)*spdimen],
                         -(knots[i+degree]-knots[i+j])/(double)(degree-j),
                         pitch, &ctlpoints[(i-1)*spdimen] );
+  return true;
 } /*mbs_multiInterp2knHermiteBSd*/
 

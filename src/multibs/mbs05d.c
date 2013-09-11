@@ -49,7 +49,7 @@ int mbs_multideBoorDerd ( int degree, int lastknot,
     dpitch = (degree-r+1)*spdimen;
     if ( !( d = pkv_GetScratchMemd(ncurves*dpitch)) ) {
       PKV_SIGNALERROR ( LIB_MULTIBS, 2, ERRMSG_2 );
-      exit ( 1 );
+      goto failure;
     }
 
     _mbs_multideBoorKerneld ( degree, knots, ncurves, spdimen,
@@ -91,6 +91,10 @@ int mbs_multideBoorDerd ( int degree, int lastknot,
   }
   pkv_SetScratchMemTop ( sp );
   return degree-r;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return -1;
 } /*mbs_multideBoorDerd*/
 
 boolean mbs_deBoorDerPd ( int degreeu, int lastknotu, const double *knotsu,

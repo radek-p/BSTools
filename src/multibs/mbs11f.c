@@ -20,17 +20,17 @@
 /* /////////////////////////////////////////// */
 /* degree elevation of Bezier curves */
 
-void mbs_multiBCDegElevf ( int ncurves, int spdimen,
-                           int inpitch, int indegree, const float *inctlpoints,
-                           int deltadeg,
-                           int outpitch, int *outdegree, float *outctlpoints )
+boolean mbs_multiBCDegElevf ( int ncurves, int spdimen,
+                              int inpitch, int indegree, const float *inctlpoints,
+                              int deltadeg,
+                              int outpitch, int *outdegree, float *outctlpoints )
 {
   int   i, j, k, n, m;
   float *p, *q;
 
   if ( deltadeg < 0 ) {/* We can do the degree elevation, not reduction here. */
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_5, ERRMSG_5 );
-    exit ( 1 );
+    return false;
   }
     
 /* If inctlpoints is NULL then we assume that data are already pointed by */
@@ -55,8 +55,8 @@ void mbs_multiBCDegElevf ( int ncurves, int spdimen,
     }
   }
   *outdegree = indegree+deltadeg;
+  return true;
 } /*mbs_multiBCDegElevf*/
-
 
 /* /////////////////////////////////////////// */
 /* degree elevation of B-spline curves */
@@ -67,13 +67,13 @@ void mbs_multiBCDegElevf ( int ncurves, int spdimen,
 /* It must be preceded by the appropriate reimplementation of the         */
 /* procedure mbs_multiMaxKnotInsf, which assumes the same thing.          */
 
-void mbs_multiBSDegElevf ( int ncurves, int spdimen,
-                           int indegree, int inlastknot, const float *inknots,
-                           int inpitch, const float *inctlpoints,
-                           int deltadeg,
-                           int *outdegree, int *outlastknot,
-                           float *outknots, int outpitch, float *outctlpoints,
-                           boolean freeend )
+boolean mbs_multiBSDegElevf ( int ncurves, int spdimen,
+                              int indegree, int inlastknot, const float *inknots,
+                              int inpitch, const float *inctlpoints,
+                              int deltadeg,
+                              int *outdegree, int *outlastknot,
+                              float *outknots, int outpitch, float *outctlpoints,
+                              boolean freeend )
 {
   void          *stp;
   int           auxpitch, ap, akns, skipl, skipr;
@@ -93,11 +93,11 @@ void mbs_multiBSDegElevf ( int ncurves, int spdimen,
     *outdegree = indegree;
     *outlastknot = inlastknot;
     memcpy ( outknots, inknots, (inlastknot+1)*sizeof(float) );
-    return;
+    return true;
   }
   if ( deltadeg < 0 ) {/* We can do the degree elevation, not reduction here. */
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_5, ERRMSG_5 );
-    exit ( 1 );
+    return false;
   }
 
 /* Create a working area. */
@@ -108,7 +108,7 @@ void mbs_multiBSDegElevf ( int ncurves, int spdimen,
   akns = mbs_LastknotMaxInsf ( indegree, lkn, inknots, &ki );
   if ( ki <= 0 ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_5, ERRMSG_5 );
-    exit ( 1 );
+    goto failure;
   }
   auxpitch = max ( ki*ap, (akns-indegree)*spdimen );
   auxcp = pkv_GetScratchMemf ( ncurves*auxpitch + deg*spdimen );
@@ -116,7 +116,7 @@ void mbs_multiBSDegElevf ( int ncurves, int spdimen,
 
   if ( !auxcp || !akn ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    exit ( 1 );
+    goto failure;
   }
 
 /* Now the conversion to the piecewise Bezier form and then the actual */
@@ -213,5 +213,10 @@ void mbs_multiBSDegElevf ( int ncurves, int spdimen,
   }
 
   pkv_SetScratchMemTop ( stp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( stp );
+  return false;
 } /*mbs_multiBSDegElevf*/
 

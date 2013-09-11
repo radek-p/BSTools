@@ -3408,4 +3408,14 @@ Wersja 0.32:
     typu void, zmienione procedury maja typ wyniku boolean i zwracaja true,
     jesli zaden blad nie zostal wykryty, albo false, jesli jakis zostal.
 
+11.09.2013.
+791. Zmiany w bibliotece libmultibs: obsluga bledow w nowym stylu, tj. po
+    wywolaniu PKV_SIGNALERROR nastepuje powrot z procedury z informacja o
+    bledzie. Na ogol to jest wartosc powrotna false, pewna liczba procedur
+    ma zmieniony typ wyniku z void na boolean. Tymczasem trzeba to
+    doprowadzic do konca, tj. przerobic wszystkie procedury, ktore
+    wywolywaly procedury, ktore moga zawiesc na takie, ktore z
+    niepowodzeniem sobie poradza (to nie ma znaczenia, gdy pkv_SignalError
+    wywoluje exit, ale wlasnie to ma sie zmienic).
+
 
