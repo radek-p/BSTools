@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2010                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -366,8 +366,8 @@ void g1h_DrawDomAuxPatchesd ( GHoleDomaind *domain,
                void (*drawpatch) ( int n, int m, const point2d *cp ) );
 void g1h_DrawBasAuxPatchesd ( GHoleDomaind *domain, int fn,
                void (*drawpatch) ( int n, int m, const double *cp ) );
-void g1h_DrawJFunctiond ( GHoleDomaind *domain, int k, int l,
-                          void (*drawpoly) ( int deg, const double *f ) );
+boolean g1h_DrawJFunctiond ( GHoleDomaind *domain, int k, int l,
+                             void (*drawpoly) ( int deg, const double *f ) );
 void g1h_DrawDiPatchesd ( GHoleDomaind *domain,
                       void (*drawpatch) ( int n, int m, const point2d *cp ) );
 void g1h_ExtractPartitiond ( GHoleDomaind *domain,
@@ -387,7 +387,7 @@ void g1h_DrawBasAFunctiond ( GHoleDomaind *domain, int fn,
                void (*drawpatch) ( int n, int m, const point3d *cp ) );
 void g1h_DrawBasBFunctiond ( GHoleDomaind *domain, int fn,
                void (*drawpatch) ( int n, int m, const point3d *cp ) );
-void g1h_DrawBasCNetd ( GHoleDomaind *domain, int fn,
+boolean g1h_DrawBasCNetd ( GHoleDomaind *domain, int fn,
                void (*drawnet) ( int n, int m, const point3d *cp ) );
 void g1h_DrawBFAomcd ( GHoleDomaind *domain, int fn, 
                        void (*drawpoly)(int degree, const double *coeff) );

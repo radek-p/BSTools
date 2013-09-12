@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -113,8 +113,8 @@ finish:
 } /*g2h_DrawBasAuxPatchesd*/
 
 /* ////////////////////////////////////////////////////////////////////////// */
-void g2h_DrawJFunctiond ( GHoleDomaind *domain, int k, int l,  
-                          void (*drawpoly) ( int deg, const double *f ) )
+boolean g2h_DrawJFunctiond ( GHoleDomaind *domain, int k, int l,  
+                             void (*drawpoly) ( int deg, const double *f ) )
 {
   void   *sp;
   G2HolePrivateRecd *privateG2;
@@ -128,7 +128,7 @@ void g2h_DrawJFunctiond ( GHoleDomaind *domain, int k, int l,
   hole_k = domain->hole_k;
   privateG2 = domain->privateG2;
   if ( !privateG2->jfunc )
-    return;
+    goto failure;
   G2GetPolynomialAddresses ( privateG2->jfunc,
         b01, c01, f01, g01, b11, c11, f11, g11,
         b02, c02, f02, g02, b12, c12, f12, g12, b01b01, twob01c01, c01c01,
@@ -164,10 +164,15 @@ case 24: f = c11c11;  deg = 2*G2_CG11DEG;  break;
 case 25: f = f11f11;  deg = 2*G2_BF11DEG;  break;
 case 26: f = twof11g11;  deg = G2_BF11DEG+G2_CG11DEG;  break;
 case 27: f = g11g11;  deg = 2*G2_CG11DEG;  break;
-default: exit ( 1 );
+default: goto failure;
   }
   drawpoly ( deg, &f[k*(deg+1)] );
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*g2h_DrawJFunctiond*/
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -386,7 +391,7 @@ void g2h_DrawBasBFunctiond ( GHoleDomaind *domain, int fn,
   pkv_SetScratchMemTop ( sp );
 } /*g2h_DrawBasBFunctiond*/
 
-void g2h_DrawBasCNetd ( GHoleDomaind *domain, int fn,   
+boolean g2h_DrawBasCNetd ( GHoleDomaind *domain, int fn,   
                void (*drawnet) ( int n, int m, const point3d *cp ) )
 {
   void    *sp;
@@ -399,8 +404,10 @@ void g2h_DrawBasCNetd ( GHoleDomaind *domain, int fn,
   sp = pkv_GetScratchMemTop ();
   ind = pkv_GetScratchMem ( 16*sizeof(int) );
   cp  = pkv_GetScratchMem ( 16*sizeof(point3d) );
-  if ( !ind || !cp )
-    exit ( 1 );
+  if ( !ind || !cp ) {
+    PKV_SIGNALERROR ( LIB_EGHOLE, ERRCODE_2, ERRMSG_2 );
+    goto failure;
+  }
 
   privateG  = domain->privateG;
   domain_cp = domain->domain_cp;
@@ -415,6 +422,11 @@ void g2h_DrawBasCNetd ( GHoleDomaind *domain, int fn,
     drawnet ( 3, 3, cp );
   }
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*g2h_DrawBasCNetd*/
 
 /* ////////////////////////////////////////////////////////////////////////// */

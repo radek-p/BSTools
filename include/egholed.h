@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2010                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -44,7 +44,7 @@ GHoleDomaind* gh_CreateDomaind ( int     hole_k,
                                  point2d *domain_cp );
 void gh_DestroyDomaind ( GHoleDomaind *domain );
 
-void gh_GetBspInd ( int hole_k, int i, int j, int *ind );
+boolean gh_GetBspInd ( int hole_k, int i, int j, int *ind );
 int gh_DrawBFcpn ( int hole_k, unsigned char *bfcpn );
 
 boolean gh_FindDomSurrndBezPatchesd ( GHoleDomaind *domain );

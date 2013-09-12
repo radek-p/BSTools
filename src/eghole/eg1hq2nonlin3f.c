@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2008, 2012                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2008, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -30,11 +30,11 @@
 
 #ifdef DEBUG_FVAL
 /* ////////////////////////////////////////////////////////////////////////// */
-static void ComputePDer ( GHoleDomainf *domain, G1HNLPrivatef *nlpr,
-                          const float *acoeff,
-                          int k, int cn, float knot,
-                          float *p, float *pu, float *pv,
-                          float *jpuu, float *jpuv, float *jpvv, vector2f *tang )
+static boolean ComputePDer ( GHoleDomainf *domain, G1HNLPrivatef *nlpr,
+                             const float *acoeff,
+                             int k, int cn, float knot,
+                             float *p, float *pu, float *pv,
+                             float *jpuu, float *jpuv, float *jpvv, vector2f *tang )
 {
 #define N ((G1H_FINALDEG+1)*(G1H_FINALDEG+1))
   void     *sp;
@@ -62,8 +62,10 @@ static void ComputePDer ( GHoleDomainf *domain, G1HNLPrivatef *nlpr,
   dicp = pkv_GetScratchMem ( N*sizeof(point2f) );
   pc00 = pkv_GetScratchMemf ( 2*(G1_CROSSDEGSUM+4) );
   pcp = pkv_GetScratchMemf ( N );
-  if ( !dicp || !pc00 || !pcp )
-    exit ( 1 );
+  if ( !dicp || !pc00 || !pcp ) {
+    PKV_SIGNALERROR ( LIB_EGHOLE, ERRCODE_2, ERRMSG_2 );
+    goto failure;
+  }
   pc01 = &pc00[G1_CROSS00DEG+1];  pc10 = &pc01[G1_CROSS01DEG+1];
   pc11 = &pc10[G1_CROSS10DEG+1];  pd00 = &pc11[G1_CROSS11DEG+1];
   pd01 = &pd00[G1_CROSS00DEG+1];  pd10 = &pd01[G1_CROSS01DEG+1];
@@ -174,7 +176,7 @@ case 1:
     *jpuv = -puv;
     *jpvv = -pvv;
     if ( !_gh_FindDomSurrndPatchf ( domain, (k+1) % hole_k, 1, dicp ) )
-      exit ( 1 );
+      goto failure;
     mbs_BCHornerDer2Pf ( 3, 3, 2, &dicp[0].x, 0.0, knot, &ei.x, &eiu.x, &eiv.x,
                          &eiuu.x, &eiuv.x, &eivv.x );
     memset ( pcp, 0, 16*sizeof(float) );
@@ -208,7 +210,7 @@ case 2:
     *jpuv = -puv;
     *jpvv = -pvv;
     if ( !_gh_FindDomSurrndPatchf ( domain, k, 2, dicp ) )
-      exit ( 1 );
+      goto failure;
     mbs_BCHornerDer2Pf ( 3, 3, 2, &dicp[0].x, 0.0, knot, &ei.x, &eiu.x, &eiv.x,
                          &eiuu.x, &eiuv.x, &eivv.x );
     memset ( pcp, 0, 16*sizeof(float) );
@@ -229,10 +231,15 @@ case 2:
     break;
 
 default:
-    exit ( 1 );
+    goto failure;
   }
 
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 #undef N
 } /*ComputePDer*/
 
@@ -1115,7 +1122,7 @@ failure:
 
 /* ///////////////////////////////////////////////////////////////////////// */
 #ifdef DEBUG_HESSIAN
-static void _TestHessian ( GHoleDomainf *domain, G1HNLPrivatef *nlpr, float C )
+static boolean _TestHessian ( GHoleDomainf *domain, G1HNLPrivatef *nlpr, float C )
 {
   void   *sp;
   G1HolePrivateRecf *privateG1;
@@ -1138,13 +1145,15 @@ static void _TestHessian ( GHoleDomainf *domain, G1HNLPrivatef *nlpr, float C )
   grad = pkv_GetScratchMemf ( nfunc );
   asize = pkn_Block3ArraySize ( hole_k-1, G1_DBDIM, G1_DBDIM+nfunc_a );
   hessian = pkv_GetScratchMemf ( 2*asize );
-  if ( !coeff || !grad || !hessian )
-    exit ( 1 );
+  if ( !coeff || !grad || !hessian ) {
+    PKV_SIGNALERROR ( LIB_EGHOLE, ERRCODE_2, ERRMSG_2 );
+    goto failure;
+  }
   memset ( coeff, 0, nfunc*sizeof(float) );
   if ( !_g1hq2_ComputeExtNLFuncGradHessianf ( domain, nlpr, coeff,
                                 5.0*C/nlpr->ddiam,
                                 &func, grad, hessian, &hessian[asize] ) )
-    exit ( 1 );
+    goto failure;
   f = fopen ( "g1q2ehessianf.txt", "w+" );
   amat = privateG1->Q2EAMat;
   for ( i = 0; i < nfunc; i++ )
@@ -1158,7 +1167,11 @@ static void _TestHessian ( GHoleDomainf *domain, G1HNLPrivatef *nlpr, float C )
   fclose ( f );
   printf ( "%s\n", "g1q2ehessianf.txt" );
   pkv_SetScratchMemTop ( sp );
-  exit ( 0 );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*_TestHessian*/
 #endif
 /* ///////////////////////////////////////////////////////////////////////// */

@@ -3418,4 +3418,9 @@ Wersja 0.32:
     niepowodzeniem sobie poradza (to nie ma znaczenia, gdy pkv_SignalError
     wywoluje exit, ale wlasnie to ma sie zmienic).
 
+12.09.2013.
+792. Zmiany w bibliotece libeghole; usuniete wszystkie wywolania exit, po
+    wykryciu bledow nastepuje powrot.
+
+
 

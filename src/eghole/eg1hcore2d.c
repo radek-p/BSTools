@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2008                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -81,33 +81,3 @@ void _g1h_GetBFBPatchCurvesd ( GHoleDomaind *domain, int fn, int i,
   *d11 = &bbq1cr1[(fn*hole_k+i)*(G1_CROSS11DEG+1)];
 } /*_g1h_GetBFBPatchCurvesd*/
 
-/* ////////////////////////////////////////////////////////////////////////// */
-#ifdef NICO
-static void _g1h_GetDomSurrndBFuncd ( GHoleDomaind *domain,
-                                      int i, int j, const double *bfc, double *bf )
-{
-  int     hole_k, k;
-  int     *ind;
-  double  *q;
-  void   *sp;
-  double *ukn, *vkn;
-
-  sp  = pkv_GetScratchMemTop ();
-  ind = pkv_GetScratchMem ( 16*sizeof(int) );
-  q   = pkv_GetScratchMemd ( 16 );
-  if ( !ind || !q )
-    exit ( 1 );
-
-  hole_k = domain->hole_k;
-  gh_GetBspInd ( hole_k, i, j, ind );
-  for ( k = 0; k < 16; k++ )
-    q[k] = bfc[ind[k]];
-
-  ukn = &domain->hole_knots[11*((i+hole_k-1) % hole_k)+3];
-  vkn = &domain->hole_knots[11*i+j];
-  mbs_BSPatchToBezd ( 1, 3, 7, ukn, 3, 7, vkn, 4, q,
-                      NULL, NULL, NULL, NULL, NULL, NULL, 4, bf );
-
-  pkv_SetScratchMemTop ( sp );
-} /*_g1h_GetDomSurrndBFuncd*/
-#endif

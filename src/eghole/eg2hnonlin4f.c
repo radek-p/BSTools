@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2008, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2008, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -1496,7 +1496,7 @@ failure:
 
 /* ////////////////////////////////////////////////////////////////////////// */
 #ifdef DEBUG_HESSIAN
-void _TestHessian ( GHoleDomainf *domain, G2HNLSPrivatef *nlsprivate )
+static boolean _TestHessian ( GHoleDomainf *domain, G2HNLSPrivatef *nlsprivate )
 {
   void *sp;
   G2HNLPrivatef      *nlprivate;
@@ -1524,12 +1524,14 @@ void _TestHessian ( GHoleDomainf *domain, G2HNLSPrivatef *nlsprivate )
   grad  = pkv_GetScratchMemf ( nfunc );
   asize = pkn_Block1ArraySize ( hole_k, bs1, bs2 );
   hessian = pkv_GetScratchMemf ( asize );
-  if ( !coeff || !grad || !hessian )
-    exit ( 1 );
+  if ( !coeff || !grad || !hessian ) {
+    PKV_SIGNALERROR ( LIB_EGHOLE, ERRCODE_2, ERRMSG_2 );
+    goto failure;
+  }
   memset ( coeff, 0, nfunc*sizeof(float) );
   if ( !_g2h_ComputeSplNLFuncGradHessianf ( domain, nlsprivate, coeff,
                                             &func, grad, hessian ) )
-    exit ( 1 );
+    goto failure;
   f = fopen ( "g2hessianf.txt", "w+" );
   amat = sprivate->SAMat;
   for ( i = 0; i < nfunc; i++ )
@@ -1546,7 +1548,11 @@ void _TestHessian ( GHoleDomainf *domain, G2HNLSPrivatef *nlsprivate )
   printf ( "%s\n", "g2hessianf.txt" );
 
   pkv_SetScratchMemTop ( sp );
-  exit ( 0 );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*_TestHessian*/
 #endif
 /* ////////////////////////////////////////////////////////////////////////// */

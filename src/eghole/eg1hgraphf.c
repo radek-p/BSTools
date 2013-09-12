@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -99,8 +99,8 @@ finish:
 } /*g1h_DrawBasAuxPatchesf*/
 
 /* ////////////////////////////////////////////////////////////////////////// */
-void g1h_DrawJFunctionf ( GHoleDomainf *domain, int k, int l,  
-                          void (*drawpoly) ( int deg, const float *f ) )
+boolean g1h_DrawJFunctionf ( GHoleDomainf *domain, int k, int l,  
+                             void (*drawpoly) ( int deg, const float *f ) )
 {
   void  *sp;
   G1HolePrivateRecf *privateG1;
@@ -111,7 +111,7 @@ void g1h_DrawJFunctionf ( GHoleDomainf *domain, int k, int l,
   hole_k = domain->hole_k;
   privateG1 = domain->privateG1;
   if ( !privateG1->jfunc )
-    return;
+    goto failure;
   G1GetPolyAddr ( privateG1->jfunc, b01, c01, f01, g01, b11, c11, f11, g11 );
 
   switch ( l ) {
@@ -123,10 +123,17 @@ void g1h_DrawJFunctionf ( GHoleDomainf *domain, int k, int l,
  case 5: f = c11;     deg = G1_CG11DEG;    break;
  case 6: f = f11;     deg = G1_BF11DEG;    break;
  case 7: f = g11;     deg = G1_CG11DEG;    break;
-default: exit ( 1 );
+default:
+    PKV_SIGNALERROR ( LIB_EGHOLE, ERRCODE_3, ERRMSG_3 );
+    goto failure;
   }
   drawpoly ( deg, &f[k*(deg+1)] );
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*g1h_DrawJFunctionf*/
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -336,7 +343,7 @@ void g1h_DrawBasBFunctionf ( GHoleDomainf *domain, int fn,
   pkv_SetScratchMemTop ( sp );
 } /*g1h_DrawBasBFunctionf*/
 
-void g1h_DrawBasCNetf ( GHoleDomainf *domain, int fn,   
+boolean g1h_DrawBasCNetf ( GHoleDomainf *domain, int fn,   
                void (*drawnet) ( int n, int m, const point3f *cp ) )
 {
   void    *sp;
@@ -349,8 +356,10 @@ void g1h_DrawBasCNetf ( GHoleDomainf *domain, int fn,
   sp = pkv_GetScratchMemTop ();
   ind = pkv_GetScratchMem ( 16*sizeof(int) );
   cp  = pkv_GetScratchMem ( 16*sizeof(point3f) );
-  if ( !ind || !cp )
-    exit ( 1 );
+  if ( !ind || !cp ) {
+    PKV_SIGNALERROR ( LIB_EGHOLE, ERRCODE_2, ERRMSG_2 );
+    goto failure;
+  }
 
   privateG  = domain->privateG;
   domain_cp = domain->domain_cp;
@@ -365,6 +374,11 @@ void g1h_DrawBasCNetf ( GHoleDomainf *domain, int fn,
     drawnet ( 3, 3, cp );
   }
   pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*g1h_DrawBasCNetf*/
 
 /* ////////////////////////////////////////////////////////////////////////// */

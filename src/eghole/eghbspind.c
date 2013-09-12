@@ -26,7 +26,7 @@
 #include "eghprivated.h"
 
 /* ///////////////////////////////////////////////////////////////////////// */
-void gh_GetBspInd ( int hole_k, int i, int j, int *ind )
+boolean gh_GetBspInd ( int hole_k, int i, int j, int *ind )
 {
   int  l;
   int  ind1[16];
@@ -64,8 +64,9 @@ case 2:
     break;
 
 default:
-    exit ( 1 );
+    return false;
   }
+  return true;
 } /*gh_GetBspInd*/
 
 /* ////////////////////////////////////////////////////////////////////////// */

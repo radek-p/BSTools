@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -355,7 +355,6 @@ printf ( "b12: %f %f %f %f %f %f\n", b12[0], b12[1], b12[2], b12[3], b12[4], b12
 printf ( "f12: %f %f %f %f %f %f\n", f12[0], f12[1], f12[2], f12[3], f12[4], f12[5] );
 printf ( "c12: %f %f %f %f %f\n", c12[0], c12[1], c12[2], c12[3], c12[4] );
 printf ( "g12: %f %f %f %f %f\n", g12[0], g12[1], g12[2], g12[3], g12[4] );
-exit ( 1 );
 */
   pkv_SetScratchMemTop ( sp );
   return true;
