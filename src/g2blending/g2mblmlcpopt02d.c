@@ -26,6 +26,7 @@
 #include "g2blprivated.h"
 #include "g2mblprivated.h"
 #include "g2mblmlprivated.h"
+#include "msgpool.h"
 
 /* ///////////////////////////////////////////////////////////////////////// */
 boolean _g2mbl_CMPFindCoarseMeshBlock (
@@ -191,10 +192,8 @@ if ( g2mbl_outputnzdistr )
     ei = vertd[k].fneigh;
     eb = vertd[k].nneigh;
     for ( j = 0; j < eb; j++ ) {
-
-if ( k != nzci[rthrpermut[ei+j]].i )
-  exit ( 1 );
-
+      if ( k != nzci[rthrpermut[ei+j]].i )
+        goto failure;
       l = nzci[rthrpermut[ei+j]].j;
       if ( pkn_TMBTestAndClear ( nzcdistr, k, l ) ) {
         vertd[l].firstsel = min ( vertd[l].firstsel, i );

@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2009, 2010                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2009, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -71,7 +71,7 @@ case 10:
     pkn_QuadGaussLegendre20d ( 0.0, 1.0, nkn, _knots, _coeff );
     break;
 default:
-    exit ( 1 );
+    return false;
   }
   for ( j = k = 0;  k < 4;  k++ )
     for ( i = 0;  i < nkn;  i++, j++ )

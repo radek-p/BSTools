@@ -3422,5 +3422,9 @@ Wersja 0.32:
 792. Zmiany w bibliotece libeghole; usuniete wszystkie wywolania exit, po
     wykryciu bledow nastepuje powrot.
 
+13.09.2013.
+793. Zmiany w bibliotece libg2blending; zamiast wypisywania komunikatu bledu
+    bezposrednio przez printf jest wywolanie makra PKV_SIGNALERROR.
+
 
 

@@ -29,6 +29,7 @@
 #include "g2mblprivated.h"
 #define _CONST
 #include "g2mblmlprivated.h"
+#include "msgpool.h"
 
 #define _DEBUG
 
@@ -229,13 +230,6 @@ boolean _g2mbl_CMPMultRTHR3x3d ( int nrowsa, int nnza, index3 *ai, double *ac,
       for ( l = 1; l < cnt; l++ ) {
         k = auxpermut[l];
         if ( wsp[k] != l0 ) {
-#define DEBUG
-#ifdef DEBUG
-if ( hind.i < hind.j || 3*hind.j < hprof[3*hind.i] ) {
-  printf ( "blad profilu!" );
-  exit ( 1 );
-}
-#endif
           if ( hind.i > hind.j ) {
             for ( ii = kk = 0;  ii < 3;  ii++ )
               for ( jj = 0;  jj < 3;  jj++, kk++ )
@@ -253,12 +247,6 @@ if ( hind.i < hind.j || 3*hind.j < hprof[3*hind.i] ) {
           pkn_AddMatrixMd ( 1, 9, 0, s, 0, &abnzc[aikbkj[k].j],
                             bc[aikbkj[k].i], 0, s );
       }
-#ifdef DEBUG
-if ( hind.i < hind.j || 3*hind.j < hprof[3*hind.i] ) {
-  printf ( "blad profilu!" );
-  exit ( 1 );
-}
-#endif
       if ( hind.i > hind.j ) {
         for ( ii = kk = 0;  ii < 3;  ii++ )
           for ( jj = 0;  jj < 3;  jj++, kk++ )
@@ -323,7 +311,7 @@ boolean _g2mbl_CMPSetupCoarseHessiand ( mesh_ml_optdata *d, int bl, double nu )
     bHnnz = 2*nHbl-nvcp;
     PKV_MALLOC ( Hblnzi, bHnnz*sizeof(index3) );
     if ( !Hblnzi ) {
-printf ( "QQ a\n" );
+      PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_1, ERRMSG_1 );
       goto failure;
     }
     for ( i = l = 0;  i < nvcp;  i++ ) {
@@ -346,7 +334,7 @@ printf ( "QQ a\n" );
                                    nwcp, brmnnz, brmnzi, rmnzc, bd->nnz1,
                                    nu,
                                    hsize, hprof, hrows ) ) {
-printf ( "QQ b\n" );
+      PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_10, ERRMSG_10 );
       goto failure;
     }
   }
@@ -667,7 +655,7 @@ static boolean _g2mbl_MLDecompSmallBlockd ( void *usrdata, int3 *jobnum )
     if ( !g2mbl_MLGetHessianRowsd ( nv, bd0->nvcp, bd0->vncpi,
                           bd0->nHbl, bd0->iHbl, bd0->cHbl, bd0->tHbl, d->Hbl,
                           nvcp, vncpi, hsize, hprof, hrows ) ) {
-printf ( "%s\n", ERRMSG_25 );
+      PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_17, ERRMSG_17 );
       goto failure;
     }
     bd->fghflag |= FLAG_H;
@@ -722,7 +710,7 @@ static boolean _g2mbl_MLDecompCoarseBlockd ( void *usrdata, int3 *jobnum )
   nvars3 = 3*nwcp;
   if ( !(bd->fghflag & FLAG_CMH) ) {
     if ( !_g2mbl_CMPSetupCoarseHessiand ( d, bl, nu ) ) {
-printf ( "qq\n" );
+      PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_16, ERRMSG_16 );
       goto failure;
     }
     bd->fghflag |= FLAG_CMH;

@@ -31,6 +31,7 @@
 #include "g2blprivated.h"
 #include "g2mblprivated.h"
 #include "g2mblmlprivated.h"
+#include "msgpool.h"
 
 /* ///////////////////////////////////////////////////////////////////////// */
 boolean _g2mbl_CMPSSetupCoarseHessiand ( mesh_ml_optdata *d, int bl, double nu )
@@ -170,12 +171,6 @@ boolean _g2mbl_CMPSSetupCoarseHessiand ( mesh_ml_optdata *d, int bl, double nu )
         for ( l = 1; l < cnt; l++ ) {
           k = auxpermut[l];
           if ( wsp[k] != l0 ) {
-#ifdef DEBUG
-if ( hind.i < hind.j || hind.j < hprof[hind.i] ) {
-  printf ( "blad profilu!" );
-  exit ( 1 );
-}
-#endif
             hrows[hind.i][hind.j] = s;
             s = rmnzc[aikbkj[k].i]*hrc[aikbkj[k].j];
             hind.i = l0 = wsp[k];
@@ -183,12 +178,6 @@ if ( hind.i < hind.j || hind.j < hprof[hind.i] ) {
           else
             s += rmnzc[aikbkj[k].i]*hrc[aikbkj[k].j];
         }
-#ifdef DEBUG
-if ( hind.i < hind.j || hind.j < hprof[hind.i] ) {
-  printf ( "blad profilu!" );
-  exit ( 1 );
-}
-#endif
         hrows[hind.i][hind.j] = s;
       }
     }
@@ -503,7 +492,7 @@ static boolean _g2mbl_MLSDecompSmallBlockd ( void *usrdata, int3 *jobnum )
     if ( !g2mbl_MLSGetHessianRowsd ( nv, bd0->nvcp, bd0->vncpi,
                           bd0->nHbl, bd0->iHbl, bd0->cHbl, bd0->tHbl, d->Hbl,
                           nvcp, vncpi, hsize, hprof, hrows ) ) {
-printf ( "%s\n", ERRMSG_25 );
+      PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_17, ERRMSG_17 );
       goto failure;
     }
     bd->fghflag |= FLAG_H;
@@ -557,7 +546,7 @@ static boolean _g2mbl_MLSDecompCoarseBlockd ( void *usrdata, int3 *jobnum )
   nwcp   = bd->nwcp;
   if ( !(bd->fghflag & FLAG_CMH) ) {
     if ( !_g2mbl_CMPSSetupCoarseHessiand ( d, bl, nu ) ) {
-printf ( "qq\n" );
+      PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_32, ERRMSG_32 );
       goto failure;
     }
     bd->fghflag |= FLAG_CMH;

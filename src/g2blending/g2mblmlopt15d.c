@@ -26,6 +26,7 @@
 #include "g2blprivated.h"
 #include "g2mblprivated.h"
 #include "g2mblmlprivated.h"
+#include "msgpool.h"
 
 #define _DEBUG
 /*#define __DEBUG*/
@@ -138,14 +139,14 @@ _g2mbl_MLAuxNuFuncd ( nkn, qcoeff, Nitabs, Jac, nv, mvcp, nvcp, vncpi, \
         /* allocate arrays */
   coeff = pkv_GetScratchMemd ( 3*nvars );
   if ( !coeff ) {
-printf ( "%s\n", ERRMSG_2 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_2, ERRMSG_2 );
     goto failure;
   }
   dcoeff = &coeff[nvars];
   grad = &dcoeff[nvars];
   auxmvcp = pkv_GetScratchMem ( nv*sizeof(point3d) );
   if ( !auxmvcp ) {
-printf ( "%s\n", ERRMSG_2 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_2, ERRMSG_2 );
     goto failure;
   }
 
@@ -175,7 +176,7 @@ printf ( "%s\n", ERRMSG_2 );
         if ( !g2mbl_MLGetHessianRowsd ( nv, bd1->nvcp, bd1->vncpi,
                         bd1->nHbl, bd1->iHbl, bd1->cHbl, bd1->tHbl, d->Hbl,
                         nvcp, vncpi, hsize, hprof, hrows ) ) {
-printf ( "%s\n", ERRMSG_25 );
+          PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_17, ERRMSG_17 );
           goto failure;
         }
         bd->fghflag &= ~FLAG_LH;
@@ -193,7 +194,7 @@ printf ( " H" );
                      ndomel, domelind, domelem, domelcpind, nvcp, vncpi,
                      true, ftab1, gtab1, htab,
                      &fga, dcoeff, hsize, hprof, hrows ) ) {
-printf ( "%s\n", ERRMSG_27 );
+          PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_19, ERRMSG_19 );
           goto failure;
         }
 #ifdef G2MBL_TIME_IT
@@ -221,7 +222,7 @@ printf ( "G" );
       if ( !g2mbl_MLFuncGradd ( nkn, qcoeff, Nitabs, Jac, nv, mvcp,
                  ndomel, domelind, domelem, domelcpind, nvcp, vncpi,
                  recalc, ftab2, gtab2, &func, grad ) ) {
-printf ( "%s\n", ERRMSG_28 );
+        PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_20, ERRMSG_20 );
         goto failure;
       }
       bd->fghflag |= FLAG_F | FLAG_G;
@@ -230,7 +231,7 @@ printf ( "%s\n", ERRMSG_28 );
       if ( !g2mbl_MLFuncGradd ( nkn, qcoeff, Nitabs, Jac, nv, mvcp,
                    ndomel, domelind, domelem, domelcpind, nvcp, vncpi,
                    false, ftab2, gtab2, &func, grad ) ) {
-printf ( "%s\n", ERRMSG_28 );
+          PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_20, ERRMSG_20 );
           goto failure;
       }
       bd->fghflag |= FLAG_F | FLAG_G;
@@ -282,7 +283,7 @@ printf ( "G" );
     if ( !g2mbl_MLFuncGradd ( nkn, qcoeff, Nitabs, Jac, nv, auxmvcp,
                ndomel, domelind, domelem, domelcpind, nvcp, vncpi,
                true, ftab2, gtab2, &fga, dcoeff ) ) {
-printf ( "%s\n", ERRMSG_28 );
+      PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_20, ERRMSG_20 );
       goto failure;
     }
     bd->fghflag &= ~(FLAG_F | FLAG_G);  /* until acceptance */
@@ -338,7 +339,7 @@ printf ( "G" );
         if ( !g2mbl_MLFuncGradd ( nkn, qcoeff, Nitabs, Jac, nv, auxmvcp,
                    ndomel, domelind, domelem, domelcpind, nvcp, vncpi,
                    true, ftab2, gtab2, &fge, grad ) ) {
-printf ( "%s\n", ERRMSG_28 );
+          PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_20, ERRMSG_20 );
           goto failure;
         }
         bd->fghflag &= ~(FLAG_F | FLAG_G);  /* until acceptance */
@@ -359,7 +360,7 @@ lm_trajectory:
     if ( d->nu[0] <= 0.0 ) {
       if ( !pkn_NRBSymFindEigenvalueIntervald ( nvars, hprof, hrows[0], hrows,
                                                 &lmin, &lmax ) ) {
-printf ( "%s\n", ERRMSG_31 );
+        PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_23, ERRMSG_23 );
         goto failure;
       }
       d->nu[0] = d->nu[1] = gc = 0.0001*(lmax-lmin);

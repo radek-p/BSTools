@@ -26,6 +26,7 @@
 #include "g2blprivated.h"
 #include "g2mblprivated.h"
 #include "g2mblmlprivated.h"
+#include "msgpool.h"
 
 /* ///////////////////////////////////////////////////////////////////////// */
 boolean g2mbl_MLCMPOptInitd ( /* fine mesh */
@@ -58,14 +59,14 @@ boolean g2mbl_MLCMPOptInitd ( /* fine mesh */
   PKV_MALLOC ( *data, sizeof(mesh_ml_optdata) );
   d = *data;
   if ( !d ) {
-printf ( "%s\n", ERRMSG_22 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_14, ERRMSG_14 );
     goto failure;
   }
   memset ( d, 0, sizeof(mesh_ml_optdata) );
   if ( !_g2mbl_CMPAssignMeshd ( d, fnv, fmv, fmvhei, fmvcp, fnhe, fmhe,
                                 fnfac, fmfac, fmhei, fmkcp,
                                 cnv, rmnnz, rmnzi, rmnzc ) ) {
-printf ( "%s\n", ERRMSG_23 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_15, ERRMSG_15 );
     goto failure;
   }
   d->nvars = 3*d->nvcp;
@@ -75,7 +76,7 @@ printf ( "nvcp = %d, nvars = %d\n", d->nvcp, d->nvars );
   if ( !_g2mbl_MLSetupBlocksd ( d, nlevels, 3, SUBBLOCK_STEP_CP ) )
     goto failure;
   if ( !_g2mbl_MLFindElementsd ( d, 3, nkn1 != nkn2 ) ) {
-printf ( "%s\n", ERRMSG_23 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_15, ERRMSG_15 );
     goto failure;
   }
   if ( !_g2mbl_MLFindBlockElementsd ( d ) )

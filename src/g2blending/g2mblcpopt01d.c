@@ -27,6 +27,8 @@
 #include "g2mblprivated.h"
 #include "g2mblmlprivated.h"
 
+#include "msgpool.h"
+
 /* ///////////////////////////////////////////////////////////////////////// */
 boolean _g2mbl_CMPSetupCGPrecondd ( mesh_lmt_optdata *d )
 {
@@ -134,7 +136,7 @@ boolean _g2mbl_CMPSetupCGPrecondd ( mesh_lmt_optdata *d )
   hwsize = 3*d->nwcp;
   PKV_MALLOC ( d->phrows, hwsize*sizeof(double*) + d->phsize*sizeof(double) );
   if ( !d->phrows ) {
-printf ( "%s\n", ERRMSG_9 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_1, ERRMSG_1 );
     goto failure;
   }
   pkn_NRBFindRowsd ( hwsize, d->phprof, (double*)&d->phrows[hwsize], d->phrows );

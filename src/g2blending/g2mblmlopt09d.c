@@ -26,6 +26,7 @@
 #include "g2blprivated.h"
 #include "g2mblprivated.h"
 #include "g2mblmlprivated.h"
+#include "msgpool.h"
 
 /* ///////////////////////////////////////////////////////////////////////// */
 boolean _g2mbl_MLSetupBlockCholHessiand ( mesh_ml_optdata *d, int bn )
@@ -57,7 +58,7 @@ boolean _g2mbl_MLSetupBlockCholHessiand ( mesh_ml_optdata *d, int bn )
   nncpi      = pkv_GetScratchMemi ( nv );
   vertd      = pkv_GetScratchMem ( nvcp*sizeof(vertex_desc) );
   if ( !nzcdistr || !nncpi || !vertd ) {
-printf ( "%s\n", ERRMSG_2 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_2, ERRMSG_2 );
     goto failure;
   }
         /* find the number of variable vertices in the block */
@@ -98,13 +99,13 @@ printf ( "%s\n", ERRMSG_2 );
 
   PKV_MALLOC ( bd->hprof, 3*nvcp*sizeof(int) );
   if ( !bd->hprof ) {
-printf ( "%s\n", ERRMSG_9 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_1, ERRMSG_1 );
     goto failure;
   }
   if ( !_g2mbl_OrderCPoints ( nv, nvcp, 0, nzcdsize, nzcdistr, nncpi, vncpi,
                               vertd, ndomelems, domelem, domelcpind,
                               NULL, 3, &bd->hsize, bd->hprof, NULL ) ) {
-printf ( "%s\n", ERRMSG_19 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_11, ERRMSG_11 );
     goto failure;
   }
   hsize = bd->hsize;
@@ -131,7 +132,7 @@ printf ( "%s\n", ERRMSG_19 );
   }
   PKV_MALLOC ( bd->hrows, 2*(nvars*sizeof(double*)+hsize*sizeof(double)) );
   if ( !bd->hrows ) {
-printf ( "%s\n", ERRMSG_9 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_1, ERRMSG_1 );
     goto failure;
   }
   bd->lhrows = &bd->hrows[nvars];

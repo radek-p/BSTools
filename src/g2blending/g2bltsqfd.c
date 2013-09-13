@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2009                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2009, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -108,7 +108,8 @@ boolean g2bl_FuncTSQFd ( int nkn,
   Nitab = pkv_GetScratchMemd ( size );
   if ( !Nitab )
     goto failure;
-  _g2bl_TabBasisFuncd ( nkn, &qknots, &qcoeff, &bf, &dbf, &ddbf, &dddbf );
+  if ( !_g2bl_TabBasisFuncd ( nkn, &qknots, &qcoeff, &bf, &dbf, &ddbf, &dddbf ) )
+    goto failure;
   g2bl_TabNid ( nkn, bf, dbf, ddbf, dddbf, Nitab );
   *fT = *fS = *fQ = *fF = 0;
   for ( isq = sqk = 0;  isq < lastknotu-6;  isq++ )

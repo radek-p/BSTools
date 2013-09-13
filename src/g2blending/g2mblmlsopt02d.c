@@ -29,6 +29,7 @@
 #include "g2blprivated.h"
 #include "g2mblprivated.h"
 #include "g2mblmlprivated.h"
+#include "msgpool.h"
 
 /* ///////////////////////////////////////////////////////////////////////// */
 static void _g2mbl_MLSFindCPNormal ( int d, int *vertnum, int *mtab,
@@ -111,7 +112,7 @@ boolean _g2mbl_MLSFindCPNormalsd ( mesh_ml_optdata *d )
 
   PKV_MALLOC ( d->mvcpn, nv*sizeof(vector3d) );
   if ( !d->mvcpn ) {
-printf ( "%s\n", ERRMSG_9 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_1, ERRMSG_1 );
     goto failure;
   }
   memset ( d->mvcpn, 0, nv*sizeof(vector3d) );

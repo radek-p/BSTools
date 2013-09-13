@@ -25,6 +25,7 @@
 
 #include "g2blprivated.h"
 #include "g2mblprivated.h"
+#include "msgpool.h"
 
 /* ////////////////////////////////////////////////////////////////////////// */
 #define EPS0    5.0e-10
@@ -351,7 +352,7 @@ switch_to_lmt:
   if ( d->nu[0] <= 0.0 ) {
     if ( !pkn_NRBSymFindEigenvalueIntervald ( nvars, hprof, hrows[0], hrows,
                                               &lmin, &lmax ) ) {
-printf ( "%s\n", ERRMSG_23 );
+      PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_23, ERRMSG_23 );
       goto failure;
     }
     d->nu[0] = d->nu[1] = gc = 0.01*(lmax-lmin);

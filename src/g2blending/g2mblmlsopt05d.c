@@ -29,6 +29,7 @@
 #include "g2blprivated.h"
 #include "g2mblprivated.h"
 #include "g2mblmlprivated.h"
+#include "msgpool.h"
 
 /* ///////////////////////////////////////////////////////////////////////// */
 void _g2mbl_MLSAddCPIncrement ( int nvcp, int *vncpi,
@@ -108,14 +109,14 @@ boolean g2mbl_MLSOptBlockAd ( void *data, int bl )
         /* allocate arrays */
   coeff = pkv_GetScratchMemd ( 3*nvcp );
   if ( !coeff ) {
-printf ( "%s\n", ERRMSG_2 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_2, ERRMSG_2 );
     goto failure;
   }
   dcoeff = &coeff[nvcp];
   grad   = &dcoeff[nvcp];
   auxmvcp = pkv_GetScratchMem ( nv*sizeof(point3d) );
   if ( !auxmvcp ) {
-printf ( "%s\n", ERRMSG_2 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_2, ERRMSG_2 );
     goto failure;
   }
 
@@ -152,7 +153,7 @@ pkv_Tic ( NULL );
                      ndomel, domelind, domelem, domelcpind, nvcp, vncpi,
                      true, ftab1, gtab1, htab,
                      &fga, dcoeff, nHbl, iHbl, cHbl, tHbl, Hbl ) ) {
-printf ( "%s\n", ERRMSG_27 );
+          PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_19, ERRMSG_19 );
           goto failure;
         }
 #ifdef G2MBL_TIME_IT
@@ -184,7 +185,7 @@ printf ( "G" );
                      Jac, nv, mvcp, mvcpn,
                      ndomel, domelind, domelem, domelcpind, nvcp, vncpi,
                      recalc, ftab2, gtab2, &func, grad ) ) {
-printf ( "%s\n", ERRMSG_28 );
+          PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_20, ERRMSG_20 );
           goto failure;
         }
         bd->fghflag |= FLAG_F | FLAG_G;
@@ -195,7 +196,7 @@ printf ( "%s\n", ERRMSG_28 );
                      Jac, nv, mvcp, mvcpn,
                      ndomel, domelind, domelem, domelcpind, nvcp, vncpi,
                      false, ftab2, gtab2, &func, grad ) ) {
-printf ( "%s\n", ERRMSG_28 );
+          PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_20, ERRMSG_20 );
           goto failure;
         }
         bd->fghflag |= FLAG_F | FLAG_G;
@@ -267,7 +268,7 @@ printf ( "G" );
       if ( !g2mbl_MLSFuncGradd ( nkn, qcoeff, Nitabs, Jac, nv, auxmvcp, mvcpn,
                  ndomel, domelind, domelem, domelcpind, nvcp, vncpi,
                  true, ftab2, gtab2, &fga, dcoeff ) ) {
-printf ( "%s\n", ERRMSG_28 );
+        PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_20, ERRMSG_20 );
         goto failure;
       }
       bd->fghflag &= ~(FLAG_F | FLAG_G);  /* until acceptance */
@@ -351,7 +352,7 @@ pkv_Tic ( NULL );
                      ndomel, domelind, domelem, domelcpind, nvcp, vncpi,
                      true, ftab1, gtab1, htab,
                      &func, grad, nHbl, iHbl, cHbl, tHbl, Hbl ) ) {
-printf ( "%s\n", ERRMSG_27 );
+          PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_19, ERRMSG_19 );
           goto failure;
         }
 #ifdef G2MBL_TIME_IT
@@ -407,7 +408,7 @@ printf ( ")" );
       bd->fghflag |= (bd1->fghflag | bd2->fghflag) & FLAG_ADVANCE;
       if ( bl == d->currentblock &&
           !((bd1->fghflag | bd2->fghflag) & FLAG_ADVANCE) ) {
-printf ( "%s\n", ERRMSG_30 );
+        PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_22, ERRMSG_22 );
         goto failure;
       }
       else if ( !(bd1->fghflag & FLAG_CH) && !(bd2->fghflag & FLAG_CH) ) {

@@ -47,10 +47,8 @@
 #define ERRMSG_8  "Degree too high"
 #define ERRCODE_9 9
 #define ERRMSG_9  "Cannot malloc"
-/*
 #define ERRCODE_10 10
-#define ERRMSG_10 "Invalid data"
-*/
+#define ERRMSG_10 "Matrix operation error"
 #define ERRCODE_11 11
 #define ERRMSG_11 "Cannot evaluate basis functions"
 #define ERRCODE_12 12

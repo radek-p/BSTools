@@ -29,6 +29,7 @@
 #include "g2blprivated.h"
 #include "g2mblprivated.h"
 #include "g2mblmlprivated.h"
+#include "msgpool.h"
 
 #define _DEBUG
 /*#define __DEBUG*/
@@ -217,14 +218,14 @@ _g2mbl_MLSCAuxNuFuncd ( d, bl, nkn, qcoeff, Nitabs, Jac, nv, mvcp, mvcpn, \
         /* allocate arrays */
   coeff = pkv_GetScratchMemd ( 3*nvcp );
   if ( !coeff ) {
-printf ( "%s\n", ERRMSG_2 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_2, ERRMSG_2 );
     goto failure;
   }
   dcoeff = &coeff[nvcp];
   grad = &dcoeff[nvcp];
   auxmvcp = pkv_GetScratchMem ( nv*sizeof(point3d) );
   if ( !auxmvcp ) {
-printf ( "%s\n", ERRMSG_2 );
+    PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_2, ERRMSG_2 );
     goto failure;
   }
 
@@ -257,7 +258,7 @@ printf ( " H" );
                      ndomel, domelind, domelem, domelcpind, nvcp, vncpi,
                      true, ftab1, gtab1, htab,
                      &fga, dcoeff, nHbl, iHbl, cHbl, tHbl, Hbl ) ) {
-printf ( "%s\n", ERRMSG_27 );
+        PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_19, ERRMSG_19 );
         goto failure;
       }
 #ifdef G2MBL_TIME_IT
@@ -288,8 +289,8 @@ printf ( "G" );
       if ( !g2mbl_MLSFuncGradd ( nkn, qcoeff, Nitabs, Jac, nv, mvcp, mvcpn,
                  ndomel, domelind, domelem, domelcpind, nvcp, vncpi,
                  recalc, ftab2, gtab2, &func, grad ) ) {
-printf ( "%s\n", ERRMSG_28 );
-          goto failure;
+        PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_20, ERRMSG_20 );
+        goto failure;
       }
       bd->fghflag |= FLAG_F | FLAG_G;
       fg_ok = true;
@@ -298,8 +299,8 @@ printf ( "%s\n", ERRMSG_28 );
       if ( !g2mbl_MLSFuncGradd ( nkn, qcoeff, Nitabs, Jac, nv, mvcp, mvcpn,
                  ndomel, domelind, domelem, domelcpind, nvcp, vncpi,
                  false, ftab2, gtab2, &func, grad ) ) {
-printf ( "%s\n", ERRMSG_28 );
-          goto failure;
+        PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_20, ERRMSG_20 );
+        goto failure;
       }
       bd->fghflag |= FLAG_F | FLAG_G;
       fg_ok = true;
@@ -374,7 +375,7 @@ printf ( "G" );
     if ( !g2mbl_MLSFuncGradd ( nkn, qcoeff, Nitabs, Jac, nv, auxmvcp, mvcpn,
                ndomel, domelind, domelem, domelcpind, nvcp, vncpi,
                true, ftab2, gtab2, &fga, dcoeff ) ) {
-printf ( "%s\n", ERRMSG_28 );
+      PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_20, ERRMSG_20 );
       goto failure;
     }
     bd->fghflag &= ~(FLAG_F | FLAG_G);  /* until acceptance */
@@ -452,7 +453,7 @@ lm_trajectory:
   if ( d->nu[0] <= 0.0 ) {
     if ( !_g2mbl_H1x1FindEigenvalueIntervald ( nvcp,
                      nHbl, iHbl, cHbl, tHbl, Hbl, dcoeff, &lmin, &lmax ) ) {
-printf ( "%s\n", ERRMSG_31 );
+      PKV_SIGNALERROR ( LIB_G2BLENDING, ERRCODE_23, ERRMSG_23 );
       goto failure;
     }
     d->nu[0] = d->nu[1] = gc = 0.001*(lmax-lmin);
