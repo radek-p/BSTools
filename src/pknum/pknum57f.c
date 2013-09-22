@@ -403,8 +403,13 @@ lm_trajectory:
     if ( fm < GRTHR*(f-fge) || fm < EPS2*fge )
       break;
   }
-  *nu = ge;
-  if ( incne < delta )
+  if ( ge < MYINFINITY )
+    *nu = ge;
+  if ( fge >= f ) {
+    result = PKN_LMT_NO_PROGRESS;
+    goto way_out;
+  }
+  else if ( incne < delta )
     result = PKN_LMT_FOUND_ZEROGRAD;
 finish_lmt:
   memcpy ( x, minx, n*sizeof(float) );

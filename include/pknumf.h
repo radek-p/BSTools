@@ -693,6 +693,7 @@ boolean pkn_QuadGaussLegendre20f ( float a, float b, int n,
 #define PKN_LMT_FOUND_MINIMUM   2
 #define PKN_LMT_FOUND_ZEROGRAD  3
 #define PKN_LMT_FOUND_BARRIER   4
+#define PKN_LMT_NO_PROGRESS     5
 #endif
 
 typedef boolean (*pkn_NLMTevalfuncf)( int n, void *usrdata,

@@ -3426,5 +3426,10 @@ Wersja 0.32:
 793. Zmiany w bibliotece libg2blending; zamiast wypisywania komunikatu bledu
     bezposrednio przez printf jest wywolanie makra PKV_SIGNALERROR.
 
+15.09.2013.
+794. Zmiana w procedurze pkn_NLMIterf, mozliwy wynik PKN_LMT_NO_PROGRESS,
+    ktory oznacza prawdopodobnie osiagniecie maksymalnej granicznej
+    dokladnosci.
+
 
 
