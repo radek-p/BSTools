@@ -194,7 +194,7 @@ int pkn_NLMIterd ( int n, void *usrdata, double *x,
       goto finish_lmt; \
     } \
     if ( fnu < lowerbound ) { \
-      result = PKN_LMT_ERROR; \
+      result = PKN_LMT_CROSSED_LIMIT; \
       goto way_out; \
     } \
     if ( fnu < fge ) { \

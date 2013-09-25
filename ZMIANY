@@ -3431,5 +3431,8 @@ Wersja 0.32:
     ktory oznacza prawdopodobnie osiagniecie maksymalnej granicznej
     dokladnosci.
 
-
+24.09.2013.
+795. Zmiana w procedurze pkn_NLMIterf, mozliwy wynik PKN_LMT_CROSSED_LIMIT,
+    ktory oznacza przekroczenie dolnego ograniczenia wartosci
+    minimalizowanej funkcji, czyli prawdopodobnie blad.
 
