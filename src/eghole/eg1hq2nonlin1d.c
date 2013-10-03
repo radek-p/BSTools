@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2008, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2008, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -134,14 +134,15 @@ boolean _g1hq2_TabNLDer0d ( int nkn, const double *tkn,
     goto failure;
 
   for ( i = 0; i < nkn*nkn; i++ )
-    pkn_Comp2iDerivatives3d ( diu[i].x, diu[i].y, div[i].x, div[i].y,
-          diuu[i].x, diuu[i].y, diuv[i].x, diuv[i].y, divv[i].x, divv[i].y,
-          diuuu[i].x, diuuu[i].y, diuuv[i].x, diuuv[i].y,
-          diuvv[i].x, diuvv[i].y, divvv[i].x, divvv[i].y,
-          1, &hu[i], &hv[i], &huu[i], &huv[i], &hvv[i],
-          &huuu[i], &huuv[i], &huvv[i], &hvvv[i],
-          &psiu[i], &psiv[i], &psiuu[i], &psiuv[i], &psivv[i],
-          &psiuuu[i], &psiuuv[i], &psiuvv[i], &psivvv[i] );
+    if ( !pkn_Comp2iDerivatives3d ( diu[i].x, diu[i].y, div[i].x, div[i].y,
+              diuu[i].x, diuu[i].y, diuv[i].x, diuv[i].y, divv[i].x, divv[i].y,
+              diuuu[i].x, diuuu[i].y, diuuv[i].x, diuuv[i].y,
+              diuvv[i].x, diuvv[i].y, divvv[i].x, divvv[i].y,
+              1, &hu[i], &hv[i], &huu[i], &huv[i], &hvv[i],
+              &huuu[i], &huuv[i], &huvv[i], &hvvv[i],
+              &psiu[i], &psiv[i], &psiuu[i], &psiuv[i], &psivv[i],
+              &psiuuu[i], &psiuuv[i], &psiuvv[i], &psivvv[i] ) )
+      goto failure;
 
   pkv_SetScratchMemTop ( sp );
   return true;
@@ -186,14 +187,15 @@ boolean _g1hq2_TabNLDerd ( int nkn, double *tkn,
     goto failure;
 
   for ( i = 0; i < nkn*nkn; i++ )
-    pkn_Comp2iDerivatives3d ( diu[i].x, diu[i].y, div[i].x, div[i].y,
-          diuu[i].x, diuu[i].y, diuv[i].x, diuv[i].y, divv[i].x, divv[i].y,
-          diuuu[i].x, diuuu[i].y, diuuv[i].x, diuuv[i].y,
-          diuvv[i].x, diuvv[i].y, divvv[i].x, divvv[i].y,
-          1, &hu[i], &hv[i], &huu[i], &huv[i], &hvv[i],
-          &huuu[i], &huuv[i], &huvv[i], &hvvv[i],
-          &psiu[i], &psiv[i], &psiuu[i], &psiuv[i], &psivv[i],
-          &psiuuu[i], &psiuuv[i], &psiuvv[i], &psivvv[i] );
+    if ( !pkn_Comp2iDerivatives3d ( diu[i].x, diu[i].y, div[i].x, div[i].y,
+              diuu[i].x, diuu[i].y, diuv[i].x, diuv[i].y, divv[i].x, divv[i].y,
+              diuuu[i].x, diuuu[i].y, diuuv[i].x, diuuv[i].y,
+              diuvv[i].x, diuvv[i].y, divvv[i].x, divvv[i].y,
+              1, &hu[i], &hv[i], &huu[i], &huv[i], &hvv[i],
+              &huuu[i], &huuv[i], &huvv[i], &hvvv[i],
+              &psiu[i], &psiv[i], &psiuu[i], &psiuv[i], &psivv[i],
+              &psiuuu[i], &psiuuv[i], &psiuvv[i], &psivvv[i] ) )
+      goto failure;
 
   pkv_SetScratchMemTop ( sp );
   return true;
@@ -203,18 +205,20 @@ failure:
   return false;
 } /*_g1hq2_TabNLDerd*/
 
-void _g1hq2_SetupCTrdd ( const vector2d *cdiu, const vector2d *cdiv,
+boolean _g1hq2_SetupCTrdd ( const vector2d *cdiu, const vector2d *cdiv,
            const vector2d *cdiuu, const vector2d *cdiuv, const vector2d *cdivv,
            double *ctrd )
 {
   vector2d gx, gy, gxx, gxy, gyy;
 
-  pkn_f2iDerivatives2d ( cdiu->x, cdiu->y, cdiv->x, cdiv->y,
-        cdiuu->x, cdiuu->y, cdiuv->x, cdiuv->y, cdivv->x, cdivv->y,
-        &gx.x, &gy.x, &gxx.x, &gxy.x, &gyy.x );
+  if ( !pkn_f2iDerivatives2d ( cdiu->x, cdiu->y, cdiv->x, cdiv->y,
+            cdiuu->x, cdiuu->y, cdiuv->x, cdiuv->y, cdivv->x, cdivv->y,
+            &gx.x, &gy.x, &gxx.x, &gxy.x, &gyy.x ) )
+    return false;
   pkn_Setup2DerA11Matrixd ( gx.x, gx.y, gy.x, gy.y, ctrd );
   pkn_Setup2DerA21Matrixd ( gxx.x, gxx.y, gxy.x, gxy.y, gyy.x, gyy.y, &ctrd[4] );
   pkn_Setup2DerA22Matrixd ( gx.x, gx.y, gy.x, gy.y, &ctrd[10] );
+  return true;
 } /*_g1hq2_SetupCTrdd*/
 
 boolean _g1hq2_TabNLBasisFunctionsOmegad ( GHoleDomaind *domain, int nkn,

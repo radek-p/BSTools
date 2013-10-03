@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2008                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -58,12 +58,12 @@ boolean _gh_AnalyzePartitiond ( GHoleDomaind *domain, int omcdeg,
                                 double **_partition, GHoleSgnPartd **_spartition,
                                 double *_spart_alpha0 );
 void _gh_PrepareTabKnotsd ( int nquad, int opt, double *knots );
-void _g2h_DiJacobian3d ( const vector2d *du, const vector2d *dv,
-                         const vector2d *duu, const vector2d *duv,
-                         const vector2d *dvv,
-                         const vector2d *duuu, const vector2d *duuv,
-                         const vector2d *duvv, const vector2d *dvvv,
-                         double *jac, double *trd );
+boolean _g2h_DiJacobian3d ( const vector2d *du, const vector2d *dv,
+                            const vector2d *duu, const vector2d *duv,
+                            const vector2d *dvv,
+                            const vector2d *duuu, const vector2d *duuv,
+                            const vector2d *duvv, const vector2d *dvvv,
+                            double *jac, double *trd );
 double _g2h_Integrald ( int hole_k, int nknsq, double *jac,
                         unsigned short supp1, vector2d *func1,
                         unsigned short supp2, vector2d *func2 );

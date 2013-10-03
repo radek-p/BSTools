@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -473,7 +473,8 @@ static boolean g1h_NLConstrNewtond ( GHoleDomaind *domain,
     if ( !_g1h_ComputeNLFuncGradHessiand ( domain, nlprivate, coeff,
                                            &func, grad, hessian ) )
       goto failure;
-    pkn_ComputeQTSQd ( nfunc_a, hessian, nconstr, cT, aa, M );
+    if ( !pkn_ComputeQTSQd ( nfunc_a, hessian, nconstr, cT, aa, M ) )
+      goto failure;
     for ( i = 0; i < nfunc; i++ )
       for ( j = i; j < nfunc; j++ )
         E22[pkn_SymMatIndex(i,j)] = M[pkn_SymMatIndex(nconstr+i,nconstr+j)];

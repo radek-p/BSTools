@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -294,10 +294,11 @@ double g1h_ExtFunctionalValued ( GHoleDomaind *domain, int spdimen,
                              &patches[k*(G1H_FINALDEG+1)*(G1H_FINALDEG+1)*spdimen],
                              tkn[i], tkn[j],
                              pi, piu, piv, piuu, piuv, pivv );
-        pkn_Comp2iDerivatives2d ( diu.x, diu.y, div.x, div.y, diuu.x, diuu.y,
-                                  diuv.x, diuv.y, divv.x, divv.y,
-                                  spdimen, piu, piv, piuu, piuv, pivv,
-                                  fiu, fiv, fiuu, fiuv, fivv );
+        if ( !pkn_Comp2iDerivatives2d ( diu.x, diu.y, div.x, div.y, diuu.x, diuu.y,
+                                        diuv.x, diuv.y, divv.x, divv.y,
+                                        spdimen, piu, piv, piuu, piuv, pivv,
+                                        fiu, fiv, fiuu, fiuv, fivv ) )
+          goto failure;
         jac = diu.x*div.y - diu.y*div.x;
         for ( l = 0, lap = 0.0;  l < spdimen;  l++ ) {
           lp = fiuu[l]+fivv[l];

@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -20,9 +20,9 @@
 /* /////////////////////////////////////////// */
 /* Horner scheme for Bezier curves and patches */
 
-void mbs_multiBCHornerDer2f ( int degree, int ncurves, int spdimen, int pitch,
-                              const float *ctlpoints,
-                              float t, float *p, float *d1, float *d2 )
+boolean mbs_multiBCHornerDer2f ( int degree, int ncurves, int spdimen, int pitch,
+                                 const float *ctlpoints,
+                                 float t, float *p, float *d1, float *d2 )
 {
   int   i;
   float *a, s;
@@ -31,6 +31,7 @@ void mbs_multiBCHornerDer2f ( int degree, int ncurves, int spdimen, int pitch,
     mbs_multiBCHornerDerf ( degree, ncurves, spdimen, pitch, ctlpoints,
                             t, p, d1 );
     memset ( d2, 0, ncurves*spdimen*sizeof(float) );
+    return true;
   }
   else if ( (a = pkv_GetScratchMemf ( 3*spdimen )) ) {
     s = (float)(1.0-t);
@@ -51,7 +52,10 @@ void mbs_multiBCHornerDer2f ( int degree, int ncurves, int spdimen, int pitch,
       pkn_MatrixLinCombf ( 1, spdimen, 0, a, s, 0, &a[spdimen], t, 0, p );
     }
     pkv_FreeScratchMemf ( 3*spdimen );
+    return true;
   }
+  else
+    return false;
 } /*mbs_multiBCHornerDer2f*/
 
 void mbs_BCHornerDer2C2Rf ( int degree, const point3f *ctlpoints, float t,

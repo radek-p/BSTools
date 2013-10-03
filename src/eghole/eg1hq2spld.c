@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2008, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2008, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -237,8 +237,9 @@ static boolean _g1h_Q2TabCurveLapCoeff0d ( const vector2d *di,
     mbs_BCHornerDer2C2d ( G1H_FINALDEG, p, tkn[i], &d, &du, &duu );
     mbs_BCHornerDerC2d ( G1H_FINALDEG, pv, tkn[i], &dv, &duv );
     mbs_BCHornerC2d ( G1H_FINALDEG, pvv, tkn[i], &dvv );
-    pkn_f2iDerivatives2d ( du.x, du.y, dv.x, dv.y, duu.x, duu.y, duv.x, duv.y,
-                           dvv.x, dvv.y, &gx.x, &gy.x, &gxx.x, &gxy.x, &gyy.x );
+    if ( !pkn_f2iDerivatives2d ( du.x, du.y, dv.x, dv.y, duu.x, duu.y, duv.x, duv.y,
+                                 dvv.x, dvv.y, &gx.x, &gy.x, &gxx.x, &gxy.x, &gyy.x ) )
+      goto failure;
     pkn_Setup2DerA21Matrixd ( gxx.x, gxx.y, gxy.x, gxy.y, gyy.x, gyy.y, A21 );
     pkn_Setup2DerA22Matrixd ( gx.x, gx.y, gy.x, gy.y, A22 );
     trd[j+0] = A21[0]+A21[4];  trd[j+1] = A21[1]+A21[5];
@@ -273,8 +274,9 @@ static boolean _g1h_Q2TabCurveLapCoeff1d ( const vector2d *di,
     mbs_BCHornerDer2C2d ( G1H_FINALDEG, p, tkn[i], &d, &dv, &dvv );
     mbs_BCHornerDerC2d ( G1H_FINALDEG, pu, tkn[i], &du, &duv );
     mbs_BCHornerC2d ( G1H_FINALDEG, puu, tkn[i], &duu );
-    pkn_f2iDerivatives2d ( du.x, du.y, dv.x, dv.y, duu.x, duu.y, duv.x, duv.y,
-                           dvv.x, dvv.y, &gx.x, &gy.x, &gxx.x, &gxy.x, &gyy.x );
+    if ( !pkn_f2iDerivatives2d ( du.x, du.y, dv.x, dv.y, duu.x, duu.y, duv.x, duv.y,
+                                 dvv.x, dvv.y, &gx.x, &gy.x, &gxx.x, &gxy.x, &gyy.x ) )
+      goto failure;
     pkn_Setup2DerA21Matrixd ( gxx.x, gxx.y, gxy.x, gxy.y, gyy.x, gyy.y, A21 );
     pkn_Setup2DerA22Matrixd ( gx.x, gx.y, gy.x, gy.y, A22 );
     trd[j+0] = A21[0]+A21[4];  trd[j+1] = A21[1]+A21[5];

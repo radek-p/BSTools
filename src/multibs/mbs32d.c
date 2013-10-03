@@ -20,9 +20,9 @@
 /* /////////////////////////////////////////// */
 /* Horner scheme for Bezier curves and patches */
 
-void mbs_multiBCHornerDerd ( int degree, int ncurves, int spdimen, int pitch,
-                             const double *ctlpoints,
-                             double t, double *p, double *d )
+boolean mbs_multiBCHornerDerd ( int degree, int ncurves, int spdimen, int pitch,
+                                const double *ctlpoints,
+                                double t, double *p, double *d )
 {
   int   i;
   double *a;
@@ -30,6 +30,7 @@ void mbs_multiBCHornerDerd ( int degree, int ncurves, int spdimen, int pitch,
   if ( degree == 0 ) {
     pkv_Selectd ( ncurves, spdimen, pitch, spdimen, ctlpoints, p );
     memset ( d, 0, ncurves*spdimen*sizeof(double) );
+    return true;
   }
   else if ( (a = pkv_GetScratchMemd ( 2*spdimen )) ) {
     for ( i = 0;
@@ -42,7 +43,10 @@ void mbs_multiBCHornerDerd ( int degree, int ncurves, int spdimen, int pitch,
                            0, p );
     }
     pkv_FreeScratchMemd ( 2*spdimen );
+    return true;
   }
+  else
+    return false;
 } /*mbs_multiBCHornerDerd*/
 
 void mbs_BCHornerDerC2Rd ( int degree, const point3d *ctlpoints, double t,

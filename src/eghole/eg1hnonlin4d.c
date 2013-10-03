@@ -344,11 +344,12 @@ bvz = 0.0;
                 jk++, sn++, dn++ ) {
             q = cb[k*nkn+jk];  qv = cbt[k*nkn+jk];  qvv = cbtt[k*nkn+jk];
             _g1h_TensDer2d ( p, pu, puu, q, qv, qvv, pq );
-            pkn_Comp2iDerivatives2d ( diu[dn].x, diu[dn].y, div[dn].x, div[dn].y,
-                     diuu[dn].x, diuu[dn].y, diuv[dn].x, diuv[dn].y,
-                     divv[dn].x, divv[dn].y,
-                     1, &pq[0], &pq[1], &pq[2], &pq[3], &pq[4],
-                     &psiu[sn], &psiv[sn], &psiuu[sn], &psiuv[sn], &psivv[sn] );
+            if ( !pkn_Comp2iDerivatives2d ( diu[dn].x, diu[dn].y, div[dn].x, div[dn].y,
+                        diuu[dn].x, diuu[dn].y, diuv[dn].x, diuv[dn].y,
+                        divv[dn].x, divv[dn].y,
+                        1, &pq[0], &pq[1], &pq[2], &pq[3], &pq[4],
+                        &psiu[sn], &psiv[sn], &psiuu[sn], &psiuv[sn], &psivv[sn] ) )
+              goto failure;
           }
         }
       }
@@ -405,11 +406,12 @@ bvz = 0.0;
             pq[3] = p1u*dhfunc[jj+2];
             pq[4] = p1*ddhfunc[jj+2];
           }
-          pkn_Comp2iDerivatives2d ( diu[dn].x, diu[dn].y, div[dn].x, div[dn].y,
+          if ( !pkn_Comp2iDerivatives2d ( diu[dn].x, diu[dn].y, div[dn].x, div[dn].y,
                      diuu[dn].x, diuu[dn].y, diuv[dn].x, diuv[dn].y,
                      divv[dn].x, divv[dn].y,
                      1, &pq[0], &pq[1], &pq[2], &pq[3], &pq[4],
-                     &psiu[sn], &psiv[sn], &psiuu[sn], &psiuv[sn], &psivv[sn] );
+                     &psiu[sn], &psiv[sn], &psiuu[sn], &psiuv[sn], &psivv[sn] ) )
+            goto failure;
         }
       }
     }
@@ -453,11 +455,12 @@ bvz = 0.0;
             pq[3] = p1u*dhfunc[jj+2];
             pq[4] = p1uu*hfunc[jj+2];
           }
-          pkn_Comp2iDerivatives2d ( diu[dn].x, diu[dn].y, div[dn].x, div[dn].y,
-                     diuu[dn].x, diuu[dn].y, diuv[dn].x, diuv[dn].y,
-                     divv[dn].x, divv[dn].y,
-                     1, &pq[0], &pq[1], &pq[2], &pq[3], &pq[4],
-                     &psiu[sn], &psiv[sn], &psiuu[sn], &psiuv[sn], &psivv[sn] );
+          if ( !pkn_Comp2iDerivatives2d ( diu[dn].x, diu[dn].y, div[dn].x, div[dn].y,
+                        diuu[dn].x, diuu[dn].y, diuv[dn].x, diuv[dn].y,
+                        divv[dn].x, divv[dn].y,
+                        1, &pq[0], &pq[1], &pq[2], &pq[3], &pq[4],
+                        &psiu[sn], &psiv[sn], &psiuu[sn], &psiuv[sn], &psivv[sn] ) )
+            goto failure;
         }
       }
     }
@@ -1182,8 +1185,9 @@ printf ( "func = %f, gn0 = %f\n", func, gn );
     else {
 printf ( "! " );
 
-      pkn_Block1SymMatrixMultd ( hole_k, bs1, bs2, chess,
-                                 1, 1, grad, 1, dcoeff );
+      if ( !pkn_Block1SymMatrixMultd ( hole_k, bs1, bs2, chess,
+                                       1, 1, grad, 1, dcoeff ) )
+        goto failure;
       aux = (double)pkn_ScalarProductd ( nfunc, grad, dcoeff );
       if ( gn < 0.0 || aux < EPSF*gn ) {
         domain->error_code = G1H_ERROR_NL_MINIMIZATION;
@@ -1477,7 +1481,8 @@ static boolean g1h_SplNLConstrNewtond ( GHoleDomaind *domain,
                               &func, grad, hessian ) )
       goto failure;
 
-    pkn_ComputeQTSQd ( bs2, hkk, nconstr, cT, aa, M );
+    if ( !pkn_ComputeQTSQd ( bs2, hkk, nconstr, cT, aa, M ) )
+      goto failure;
     for ( i = 0; i < bs3; i++ )
       for ( j = i; j < bs3; j++ )
         E22kk[pkn_SymMatIndex(i,j)] = M[pkn_SymMatIndex(nconstr+i,nconstr+j)];
@@ -1506,7 +1511,8 @@ static boolean g1h_SplNLConstrNewtond ( GHoleDomaind *domain,
 
 printf ( "!" );
 
-      pkn_Block1SymMatrixMultd ( hole_k, bs1, bs3, cE22, 1, 1, f, 1, y1 );
+      if ( !pkn_Block1SymMatrixMultd ( hole_k, bs1, bs3, cE22, 1, 1, f, 1, y1 ) )
+        goto failure;
       aux = pkn_ScalarProductd ( nfunc, f, y1 );
       if ( aux <= 0.0 || aux < EPSF*gn )
         goto failure;

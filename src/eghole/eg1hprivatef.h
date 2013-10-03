@@ -228,10 +228,10 @@ boolean g1h_TabBicubicCoonsPatchDer2f (
       int degd10, const float *d10,
       int degd11, const float *d11,
       float *p, float *pu, float *pv, float *puu, float *puv, float *pvv );
-void _g1h_DiJacobian2f ( const vector2f *du, const vector2f *dv,
-                         const vector2f *duu, const vector2f *duv,
-                         const vector2f *dvv,
-                         float *jac, float *trd );
+boolean _g1h_DiJacobian2f ( const vector2f *du, const vector2f *dv,
+                            const vector2f *duu, const vector2f *duv,
+                            const vector2f *dvv,
+                            float *jac, float *trd );
 boolean _g1h_TabDiPatchJac2f ( int nkn, const float *kn, const float *hfunc,
                                const float *dhfunc, const float *ddhfunc,
                                const vector2f *c00, const vector2f *c01,
@@ -482,9 +482,9 @@ boolean _g1h_Q2TabLaplacianGrad0f ( int nkn, const float *tkn,
         vector2f *lapgrad );
 void _g1h_TabCurveJacobianf ( int deg, const point2f *cp,
                               int nkn, const float *kn, float *jac );
-void _g1h_LapCoefff ( const vector2f *du, const vector2f *dv,
-                      const vector2f *duu, const vector2f *duv,
-                      const vector2f *dvv, float *trd );
+boolean _g1h_LapCoefff ( const vector2f *du, const vector2f *dv,
+                         const vector2f *duu, const vector2f *duv,
+                         const vector2f *dvv, float *trd );
 boolean _g1h_TabCurveLapCoeff0f ( const point2f *c00, const vector2f *c01,
                                   const point2f *c10, const vector2f *c11,
                                   const point2f *d00, const vector2f *d01,
@@ -544,7 +544,7 @@ boolean _g1h_TabBSFuncDer3f ( int deg, int lastknot, const float *knots,
                               int i0, int i1,
                               int n, const float *tkn, int *fkn, int *lkn,
                               float *b, float *bt, float *btt, float *bttt );
-void _g1hq2_SetupCTrdf ( const vector2f *cdiu, const vector2f *cdiv,
+boolean _g1hq2_SetupCTrdf ( const vector2f *cdiu, const vector2f *cdiv,
            const vector2f *cdiuu, const vector2f *cdiuv, const vector2f *cdivv,
            float *ctrd );
 boolean _g1hq2_FindDomSurrndPatchf ( GHoleDomainf *domain,

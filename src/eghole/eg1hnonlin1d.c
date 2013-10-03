@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2012                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -208,10 +208,11 @@ boolean _g1h_TabNLDer0d ( int nkn, const double *tkn,
     goto failure;
 
   for ( i = 0; i < nkn*nkn; i++ )
-    pkn_Comp2iDerivatives2d ( diu[i].x, diu[i].y, div[i].x, div[i].y,
-          diuu[i].x, diuu[i].y, diuv[i].x, diuv[i].y, divv[i].x, divv[i].y,
-          1, &hu[i], &hv[i], &huu[i], &huv[i], &hvv[i],
-          &psiu[i], &psiv[i], &psiuu[i], &psiuv[i], &psivv[i] );
+    if ( !pkn_Comp2iDerivatives2d ( diu[i].x, diu[i].y, div[i].x, div[i].y,
+              diuu[i].x, diuu[i].y, diuv[i].x, diuv[i].y, divv[i].x, divv[i].y,
+              1, &hu[i], &hv[i], &huu[i], &huv[i], &hvv[i],
+              &psiu[i], &psiv[i], &psiuu[i], &psiuv[i], &psivv[i] ) )
+      goto failure;
 
   pkv_SetScratchMemTop ( sp );
   return true;
@@ -251,10 +252,11 @@ boolean _g1h_TabNLDerd ( int nkn, double *tkn,
     goto failure;
 
   for ( i = 0; i < nkn*nkn; i++ )
-    pkn_Comp2iDerivatives2d ( diu[i].x, diu[i].y, div[i].x, div[i].y,
-          diuu[i].x, diuu[i].y, diuv[i].x, diuv[i].y, divv[i].x, divv[i].y,
-          1, &hu[i], &hv[i], &huu[i], &huv[i], &hvv[i],
-          &psiu[i], &psiv[i], &psiuu[i], &psiuv[i], &psivv[i] );
+    if ( !pkn_Comp2iDerivatives2d ( diu[i].x, diu[i].y, div[i].x, div[i].y,
+              diuu[i].x, diuu[i].y, diuv[i].x, diuv[i].y, divv[i].x, divv[i].y,
+              1, &hu[i], &hv[i], &huu[i], &huv[i], &hvv[i],
+              &psiu[i], &psiv[i], &psiuu[i], &psiuv[i], &psivv[i] ) )
+      goto failure;
 
   pkv_SetScratchMemTop ( sp );
   return true;

@@ -111,10 +111,11 @@ case 0:
     *tang = diu;
     mbs_BCHornerDer2Pf ( n, m, 1, pcp, knot, 0.0,
                          &f, &fu, &fv, &fuu, &fuv, &fvv );
-    pkn_Comp2iDerivatives2f ( diu.x, diu.y, div.x, div.y, diuu.x, diuu.y,
-                              diuv.x, diuv.y, divv.x, divv.y,
-                              1, &fu, &fv, &fuu, &fuv, &fvv,
-                              pu, pv, jpuu, jpuv, jpvv );
+    if ( !pkn_Comp2iDerivatives2f ( diu.x, diu.y, div.x, div.y, diuu.x, diuu.y,
+                                    diuv.x, diuv.y, divv.x, divv.y,
+                                    1, &fu, &fv, &fuu, &fuv, &fvv,
+                                    pu, pv, jpuu, jpuv, jpvv ) )
+      goto failure;
     k = (k+hole_k-1) % hole_k;
     pkv_Selectf ( N, 2, 3, 2, &nlpr->nldi[k*N], dicp );
     memset ( pc00, 0, 2*(G1_CROSSDEGSUM+4)*sizeof(float) );
@@ -153,10 +154,11 @@ case 0:
                          &ei.x, &eiu.x, &eiv.x, &eiuu.x, &eiuv.x, &eivv.x );
     mbs_BCHornerDer2Pf ( n, m, 1, pcp, 0.0, knot,
                          &e, &eu, &ev, &euu, &euv, &evv );
-    pkn_Comp2iDerivatives2f ( eiu.x, eiu.y, eiv.x, eiv.y, eiuu.x, eiuu.y,
-                              eiuv.x, eiuv.y, eivv.x, eivv.y,
-                              1, &eu, &ev, &euu, &euv, &evv,
-                              &qu, &qv, &puu, &puv, &pvv );
+    if ( !pkn_Comp2iDerivatives2f ( eiu.x, eiu.y, eiv.x, eiv.y, eiuu.x, eiuu.y,
+                                    eiuv.x, eiuv.y, eivv.x, eivv.y,
+                                    1, &eu, &ev, &euu, &euv, &evv,
+                                    &qu, &qv, &puu, &puv, &pvv ) )
+      goto failure;
     *jpuu -= puu;
     *jpuv -= puv;
     *jpvv -= pvv;
@@ -168,10 +170,11 @@ case 1:
     *tang = diu;
     mbs_BCHornerDer2Pf ( n, m, 1, pcp, knot, 1.0,
                          &f, &fu, &fv, &fuu, &fuv, &fvv );
-    pkn_Comp2iDerivatives2f ( diu.x, diu.y, div.x, div.y, diuu.x, diuu.y,
-                              diuv.x, diuv.y, divv.x, divv.y,
-                              1, &fu, &fv, &fuu, &fuv, &fvv,
-                              pu, pv, &puu, &puv, &pvv );
+    if ( !pkn_Comp2iDerivatives2f ( diu.x, diu.y, div.x, div.y, diuu.x, diuu.y,
+                                    diuv.x, diuv.y, divv.x, divv.y,
+                                    1, &fu, &fv, &fuu, &fuv, &fvv,
+                                    pu, pv, &puu, &puv, &pvv ) )
+      goto failure;
     *jpuu = -puu;
     *jpuv = -puv;
     *jpvv = -pvv;
@@ -187,10 +190,11 @@ case 1:
     }
     mbs_BCHornerDer2Pf ( 3, 3, 1, pcp, 0.0, knot,
                          &e, &eu, &ev, &euu, &euv, &evv );
-    pkn_Comp2iDerivatives2f ( eiu.x, eiu.y, eiv.x, eiv.y, eiuu.x, eiuu.y,
-                              eiuv.x, eiuv.y, eivv.x, eivv.y,
-                              1, &eu, &ev, &euu, &euv, &evv,
-                              &qu, &qv, &puu, &puv, &pvv );
+    if ( !pkn_Comp2iDerivatives2f ( eiu.x, eiu.y, eiv.x, eiv.y, eiuu.x, eiuu.y,
+                                    eiuv.x, eiuv.y, eivv.x, eivv.y,
+                                    1, &eu, &ev, &euu, &euv, &evv,
+                                    &qu, &qv, &puu, &puv, &pvv ) )
+      goto failure;
     *jpuu += puu;
     *jpuv += puv;
     *jpvv += pvv;
@@ -202,10 +206,11 @@ case 2:
     *tang = div;
     mbs_BCHornerDer2Pf ( n, m, 1, pcp, 1.0, knot,
                          &f, &fu, &fv, &fuu, &fuv, &fvv );
-    pkn_Comp2iDerivatives2f ( diu.x, diu.y, div.x, div.y, diuu.x, diuu.y,
-                              diuv.x, diuv.y, divv.x, divv.y,
-                              1, &fu, &fv, &fuu, &fuv, &fvv,
-                              pu, pv, &puu, &puv, &pvv );
+    if ( !pkn_Comp2iDerivatives2f ( diu.x, diu.y, div.x, div.y, diuu.x, diuu.y,
+                                    diuv.x, diuv.y, divv.x, divv.y,
+                                    1, &fu, &fv, &fuu, &fuv, &fvv,
+                                    pu, pv, &puu, &puv, &pvv ) )
+      goto failure;
     *jpuu = -puu;
     *jpuv = -puv;
     *jpvv = -pvv;
@@ -221,10 +226,11 @@ case 2:
     }
     mbs_BCHornerDer2Pf ( 3, 3, 1, pcp, 0.0, knot,
                          &e, &eu, &ev, &euu, &euv, &evv );
-    pkn_Comp2iDerivatives2f ( eiu.x, eiu.y, eiv.x, eiv.y, eiuu.x, eiuu.y,
-                              eiuv.x, eiuv.y, eivv.x, eivv.y,
-                              1, &eu, &ev, &euu, &euv, &evv,
-                              &qu, &qv, &puu, &puv, &pvv );
+    if ( !pkn_Comp2iDerivatives2f ( eiu.x, eiu.y, eiv.x, eiv.y, eiuu.x, eiuu.y,
+                                    eiuv.x, eiuv.y, eivv.x, eivv.y,
+                                    1, &eu, &ev, &euu, &euv, &evv,
+                                    &qu, &qv, &puu, &puv, &pvv ) )
+      goto failure;
     *jpuu += puu;
     *jpuv += puv;
     *jpvv += pvv;
@@ -374,7 +380,7 @@ static boolean _g1hq2_TabExtNLBasisFunctionsf ( GHoleDomainf *domain,
         psiuuu = &nlpr->psiuuu[fN];  psiuuv = &nlpr->psiuuv[fN];
         psiuvv = &nlpr->psiuvv[fN];  psivvv = &nlpr->psivvv[fN];
         for ( l = 0; l < G1_NQUADSQ; l++ )
-          pkn_Comp2iDerivatives3f ( diu[l].x, diu[l].y, div[l].x, div[l].y,
+          if ( !pkn_Comp2iDerivatives3f ( diu[l].x, diu[l].y, div[l].x, div[l].y,
                   diuu[l].x, diuu[l].y, diuv[l].x, diuv[l].y,
                   divv[l].x, divv[l].y, diuuu[l].x, diuuu[l].y,
                   diuuv[l].x, diuuv[l].y, diuvv[l].x, diuvv[l].y,
@@ -382,7 +388,8 @@ static boolean _g1hq2_TabExtNLBasisFunctionsf ( GHoleDomainf *domain,
                   &tbezuu[bN+l], &tbezuv[bN+l], &tbezvv[bN+l],
                   &tbezuuu[bN+l], &tbezuuv[bN+l], &tbezuvv[bN+l], &tbezvvv[bN+l],
                   &psiu[l], &psiv[l], &psiuu[l], &psiuv[l], &psivv[l],
-                  &psiuuu[l], &psiuuv[l], &psiuvv[l], &psivvv[l] );
+                  &psiuuu[l], &psiuuv[l], &psiuvv[l], &psivvv[l] ) )
+          goto failure;
       }
   }
   if ( !(ctr = pkv_GetScratchMemf ( 3*G1_NQUAD*38*hole_k)) ) {
@@ -1473,7 +1480,8 @@ static boolean g1hq2_NLExtConstrNewtonf ( GHoleDomainf *domain,
                                                 &func, grad, hessian, E22ii ) )
       goto failure;
 
-    pkn_ComputeQTSQf ( mS, hkk, nconstr, cT, aa, M );
+    if ( !pkn_ComputeQTSQf ( mS, hkk, nconstr, cT, aa, M ) )
+      goto failure;
     for ( i = 0; i < ms; i++ )
       for ( j = i; j < ms; j++ )
         E22kk[pkn_SymMatIndex(i,j)] = M[pkn_SymMatIndex(nconstr+i,nconstr+j)];

@@ -525,23 +525,24 @@ default:      /* composite rectangles formula */
   }
 } /*_gh_PrepareTabKnotsf*/
 
-void _g2h_DiJacobian3f ( const vector2f *du, const vector2f *dv,
-                         const vector2f *duu, const vector2f *duv,
-                         const vector2f *dvv,
-                         const vector2f *duuu, const vector2f *duuv,
-                         const vector2f *duvv, const vector2f *dvvv,
-                         float *jac, float *trd )
+boolean _g2h_DiJacobian3f ( const vector2f *du, const vector2f *dv,
+                            const vector2f *duu, const vector2f *duv,
+                            const vector2f *dvv,
+                            const vector2f *duuu, const vector2f *duuv,
+                            const vector2f *duvv, const vector2f *dvvv,
+                            float *jac, float *trd )
 {
   vector2f gx, gy, gxx, gxy, gyy, gxxx, gxxy, gxyy, gyyy;
   float    A31[8], A32[12], A33[16];
 
   *jac = (float)fabs ( du->x*dv->y - du->y*dv->x );
 
-  pkn_f2iDerivatives3f ( du->x, du->y, dv->x, dv->y,
-      duu->x, duu->y, duv->x, duv->y, dvv->x, dvv->y,
-      duuu->x, duuu->y, duuv->x, duuv->y, duvv->x, duvv->y, dvvv->x, dvvv->y,
-      (float*)&gx, (float*)&gy, (float*)&gxx, (float*)&gxy, (float*)&gyy,
-      (float*)&gxxx, (float*)&gxxy, (float*)&gxyy, (float*)&gyyy );
+  if ( !pkn_f2iDerivatives3f ( du->x, du->y, dv->x, dv->y,
+          duu->x, duu->y, duv->x, duv->y, dvv->x, dvv->y,
+          duuu->x, duuu->y, duuv->x, duuv->y, duvv->x, duvv->y, dvvv->x, dvvv->y,
+          (float*)&gx, (float*)&gy, (float*)&gxx, (float*)&gxy, (float*)&gyy,
+          (float*)&gxxx, (float*)&gxxy, (float*)&gxyy, (float*)&gyyy ) )
+    return false;;
 
   pkn_Setup2DerA31Matrixf ( gxxx.x, gxxx.y, gxxy.x, gxxy.y,
                             gxyy.x, gxyy.y, gyyy.x, gyyy.y, A31 );
@@ -558,6 +559,7 @@ void _g2h_DiJacobian3f ( const vector2f *du, const vector2f *dv,
   trd[11] = A32[3]+A32[9];   trd[12] = A32[4]+A32[10];  trd[13] = A32[5]+A32[11];
   trd[14] = A33[4]+A33[12];  trd[15] = A33[5]+A33[13];
   trd[16] = A33[6]+A33[14];  trd[17] = A33[7]+A33[15];
+  return true;
 } /*_g2h_DiJacobian3f*/
 
 float _g2h_Integralf ( int hole_k, int nknsq, float *jac,

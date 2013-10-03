@@ -3,30 +3,32 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2010                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
 
-void _g1h_DiJacobian2f ( const vector2f *du, const vector2f *dv,
-                         const vector2f *duu, const vector2f *duv,
-                         const vector2f *dvv,
-                         float *jac, float *trd )
+boolean _g1h_DiJacobian2f ( const vector2f *du, const vector2f *dv,
+                            const vector2f *duu, const vector2f *duv,
+                            const vector2f *dvv,
+                            float *jac, float *trd )
 {
   vector2f gx, gy, gxx, gxy, gyy;
   float    A21[6], A22[9];
 
   *jac = (float)fabs ( du->x*dv->y - du->y*dv->x );
 
-  pkn_f2iDerivatives2f ( du->x, du->y, dv->x, dv->y,
-      duu->x, duu->y, duv->x, duv->y, dvv->x, dvv->y,
-      (float*)&gx, (float*)&gy, (float*)&gxx, (float*)&gxy, (float*)&gyy );
+  if ( !pkn_f2iDerivatives2f ( du->x, du->y, dv->x, dv->y,
+          duu->x, duu->y, duv->x, duv->y, dvv->x, dvv->y,
+          (float*)&gx, (float*)&gy, (float*)&gxx, (float*)&gxy, (float*)&gyy ) )
+    return false;
 
   pkn_Setup2DerA21Matrixf ( gxx.x, gxx.y, gxy.x, gxy.y, gyy.x, gyy.y, A21 );
   pkn_Setup2DerA22Matrixf ( gx.x, gx.y, gy.x, gy.y, A22 );
 
   trd[0]  = A21[0]+A21[4];   trd[1]  = A21[1]+A21[5];
   trd[2]  = A22[0]+A22[6];   trd[3]  = A22[1]+A22[7];   trd[4] = A22[2]+A22[8];
+  return true;
 } /*_g1h_DiJacobian2f*/
 
 boolean _g1h_TabDiPatchJac2f ( int nkn, const float *kn, const float *hfunc,

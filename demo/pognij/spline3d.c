@@ -692,24 +692,29 @@ void DisplayAuxPoints ( int id )
 
 void DisplayConvh ( int id )
 {
+  void    *sp;
   int     i, j, k, kpcs;
   point4d *ncp;
   int     scratchsize;
   point2d chf[MAX_DEGREE+2];
   XPoint  ch[MAX_DEGREE+3];
 
+  sp = pkv_GetScratchMemTop ();
   id &= 0x03;
   xgeSetForeground ( xgec_DimGrey );
   if ( bezpoly ) {
     kpcs = mbs_NumKnotIntervalsd ( kwind.degree, kwind.lastknot, knots );
     ncp = (point4d*)pkv_GetScratchMem (
                       scratchsize = (kwind.degree+1)*kpcs*sizeof(point4d) );
+    if ( !ncp )
+      return;
     mbs_BSToBezC4d ( kwind.degree, kwind.lastknot, knots, cpoints, &kpcs, NULL, NULL, ncp );
     for ( i = 0; i < kpcs; i++ ) {
       for ( j = 0; j <= kwind.degree; j++ )
         RzutujPunkt ( id, &ncp[i*(kwind.degree+1)+j], &chf[j] );
       j = kwind.degree+1;
-      FindConvexHull2d ( &j, chf );
+      if ( !FindConvexHull2d ( &j, chf ) )
+        goto way_out;
       if ( j > 2 ) {
         for ( k = 0; k < j; k++ ) {
           ch[k].x = (short)(chf[k].x+0.5);
@@ -723,7 +728,8 @@ void DisplayConvh ( int id )
       for ( j = 0; j <= kwind.degree; j++ )
         RzutujPunkt ( id, &ncp[i*(kwind.degree+1)+j], &chf[j] );
       j = kwind.degree+1;
-      FindConvexHull2d ( &j, chf );
+      if ( !FindConvexHull2d ( &j, chf ) )
+        goto way_out;
       if ( j > 1 ) {
         for ( k = 0; k < j; k++ ) {
           ch[k].x = (short)(chf[k].x+0.5);
@@ -733,7 +739,6 @@ void DisplayConvh ( int id )
         xgeDrawLines ( j+1, ch );
       }
     }
-    pkv_FreeScratchMem ( scratchsize );
   }
   else {
     for ( i = 0; i < kwind.lastknot-2*kwind.degree; i++ ) {
@@ -741,7 +746,8 @@ void DisplayConvh ( int id )
         for ( j = 0; j <= kwind.degree; j++ )
           RzutujPunkt ( id, &cpoints[i+j], &chf[j] );
         j = kwind.degree+1;
-        FindConvexHull2d ( &j, chf );
+        if ( !FindConvexHull2d ( &j, chf ) )
+          goto way_out;
         if ( j > 2 ) {
           for ( k = 0; k < j; k++ ) {
             ch[k].x = (short)(chf[k].x+0.5);
@@ -757,7 +763,8 @@ void DisplayConvh ( int id )
         for ( j = 0; j <= kwind.degree; j++ )
           RzutujPunkt ( id, &cpoints[i+j], &chf[j] );
         j = kwind.degree+1;
-        FindConvexHull2d ( &j, chf );
+        if ( !FindConvexHull2d ( &j, chf ) )
+          goto way_out;
         if ( j > 2 ) {
           for ( k = 0; k < j; k++ ) {
             ch[k].x = (short)(chf[k].x+0.5);
@@ -769,6 +776,8 @@ void DisplayConvh ( int id )
       }
     }
   }
+way_out:
+  pkv_SetScratchMemTop ( sp );
 } /*DisplayConvh*/
 
 static void GetPFKnots ( int i, int *rr, double *uu, double *pfknots )

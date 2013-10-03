@@ -419,6 +419,7 @@ void DisplayAuxPoints ( void )
 
 void DisplayConvh ( void )
 {
+  void    *sp;
   int     i, j, k, kpcs;
   point3d *ncp;
   point2d q;
@@ -426,11 +427,14 @@ void DisplayConvh ( void )
   point2d chf[MAX_DEGREE+2];
   XPoint  ch[MAX_DEGREE+3];
 
+  sp = pkv_GetScratchMemTop ();
   xgeSetForeground ( xgec_Grey5 );
   if ( bezpoly ) {
     kpcs = mbs_NumKnotIntervalsd ( kwind.degree, kwind.lastknot, knots );
     ncp = (point3d*)pkv_GetScratchMem (
                       scratchsize = (kwind.degree+1)*kpcs*sizeof(point3d) );
+    if ( !ncp )
+      goto way_out;
     mbs_BSToBezC3d ( kwind.degree, kwind.lastknot, knots, cpoints, &kpcs,
                      NULL, NULL, ncp );
     for ( i = 0; i < kpcs; i++ ) {
@@ -440,7 +444,8 @@ void DisplayConvh ( void )
         chf[j].y = q.y;
       }
       j = kwind.degree+1;
-      FindConvexHull2d ( &j, chf );
+      if ( !FindConvexHull2d ( &j, chf ) )
+        goto way_out;
       if ( j > 2 ) {
         for ( k = 0; k < j; k++ ) {
           ch[k].x = (short)(chf[k].x+0.5);
@@ -457,7 +462,8 @@ void DisplayConvh ( void )
         chf[j].y = (short)(q.y+0.5);
       }
       j = kwind.degree+1;
-      FindConvexHull2d ( &j, chf );
+      if ( !FindConvexHull2d ( &j, chf ) )
+        goto way_out;
       if ( j > 1 ) {
         for ( k = 0; k < j; k++ ) {
           ch[k].x = (short)(chf[k].x+0.5);
@@ -475,7 +481,8 @@ void DisplayConvh ( void )
         for ( j = 0; j <= kwind.degree; j++ )
           chf[j] = rpoints[i+j];
         j = kwind.degree+1;
-        FindConvexHull2d ( &j, chf );
+        if ( !FindConvexHull2d ( &j, chf ) )
+          goto way_out;
         if ( j > 2 ) {
           for ( k = 0; k < j; k++ ) {
             ch[k].x = (short)(chf[k].x+0.5);
@@ -491,7 +498,8 @@ void DisplayConvh ( void )
         for ( j = 0; j <= kwind.degree; j++ )
           chf[j] = rpoints[i+j];
         j = kwind.degree+1;
-        FindConvexHull2d ( &j, chf );
+        if ( !FindConvexHull2d ( &j, chf ) )
+          goto way_out;
         if ( j > 2 ) {
           for ( k = 0; k < j; k++ ) {
             ch[k].x = (short)(chf[k].x+0.5);
@@ -503,6 +511,8 @@ void DisplayConvh ( void )
       }
     }
   }
+way_out:
+  pkv_SetScratchMemTop ( sp );
 } /*DisplayConvh*/
 
 void DisplayBasis ( int y, int yu )

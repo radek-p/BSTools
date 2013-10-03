@@ -3436,3 +3436,8 @@ Wersja 0.32:
     ktory oznacza przekroczenie dolnego ograniczenia wartosci
     minimalizowanej funkcji, czyli prawdopodobnie blad.
 
+3.10.2013.
+796. Porcja poprawek obslugi bledow - dodana reakcja na powrot z informacja
+    o bledzie z niektorych procedur.
+
+

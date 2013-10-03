@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2008, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2008, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -397,15 +397,16 @@ static boolean _g1hq2_TabSplNLBasisFunctionsd ( GHoleDomaind *domain,
             q = cb[k*nkn+jk];      qv = cbt[k*nkn+jk];
             qvv = cbtt[k*nkn+jk];  qvvv = cbttt[k*nkn+jk];
             _g2h_TensDer3d ( p, pu, puu, puuu, q, qv, qvv, qvvv, pq );
-            pkn_Comp2iDerivatives3d ( diu[dn].x, diu[dn].y, div[dn].x, div[dn].y,
-                diuu[dn].x, diuu[dn].y, diuv[dn].x, diuv[dn].y,
-                divv[dn].x, divv[dn].y, diuuu[dn].x, diuuu[dn].y,
-                diuuv[dn].x, diuuv[dn].y, diuvv[dn].x, diuvv[dn].y,
-                divvv[dn].x, divvv[dn].y,
-                1, &pq[0], &pq[1], &pq[2], &pq[3], &pq[4], &pq[5], &pq[6],
-                &pq[7], &pq[8],
-                &psiu[sn], &psiv[sn], &psiuu[sn], &psiuv[sn], &psivv[sn],
-                &psiuuu[sn], &psiuuv[sn], &psiuvv[sn], &psivvv[sn] );
+            if ( !pkn_Comp2iDerivatives3d ( diu[dn].x, diu[dn].y, div[dn].x, div[dn].y,
+                    diuu[dn].x, diuu[dn].y, diuv[dn].x, diuv[dn].y,
+                    divv[dn].x, divv[dn].y, diuuu[dn].x, diuuu[dn].y,
+                    diuuv[dn].x, diuuv[dn].y, diuvv[dn].x, diuvv[dn].y,
+                    divvv[dn].x, divvv[dn].y,
+                    1, &pq[0], &pq[1], &pq[2], &pq[3], &pq[4], &pq[5], &pq[6],
+                    &pq[7], &pq[8],
+                    &psiu[sn], &psiv[sn], &psiuu[sn], &psiuv[sn], &psivv[sn],
+                    &psiuuu[sn], &psiuuv[sn], &psiuvv[sn], &psivvv[sn] ) )
+              goto failure;
           }
         }
       }
@@ -480,7 +481,7 @@ static boolean _g1hq2_TabSplNLBasisFunctionsd ( GHoleDomaind *domain,
             pq[7] = p1u*ddhfunc[jj+2];
             pq[8] = p1*dddhfunc[jj+2];
           }
-          pkn_Comp2iDerivatives3d ( diu[dn].x, diu[dn].y, div[dn].x, div[dn].y,
+          if ( !pkn_Comp2iDerivatives3d ( diu[dn].x, diu[dn].y, div[dn].x, div[dn].y,
                      diuu[dn].x, diuu[dn].y, diuv[dn].x, diuv[dn].y,
                      divv[dn].x, divv[dn].y, diuuu[dn].x, diuuu[dn].y,
                      diuuv[dn].x, diuuv[dn].y, diuvv[dn].x, diuvv[dn].y,
@@ -488,7 +489,8 @@ static boolean _g1hq2_TabSplNLBasisFunctionsd ( GHoleDomaind *domain,
                      1, &pq[0], &pq[1], &pq[2], &pq[3], &pq[4], &pq[5], &pq[6],
                      &pq[7], &pq[8],
                      &psiu[sn], &psiv[sn], &psiuu[sn], &psiuv[sn], &psivv[sn],
-                     &psiuuu[sn], &psiuuv[sn], &psiuvv[sn], &psivvv[sn] );
+                     &psiuuu[sn], &psiuuv[sn], &psiuvv[sn], &psivvv[sn] ) )
+            goto failure;
         }
       }
     }
@@ -548,7 +550,7 @@ static boolean _g1hq2_TabSplNLBasisFunctionsd ( GHoleDomaind *domain,
             pq[7] = p1uu*dhfunc[jj+2];
             pq[8] = p1uuu*hfunc[jj+2];
           }
-          pkn_Comp2iDerivatives3d ( diu[dn].x, diu[dn].y, div[dn].x, div[dn].y,
+          if ( !pkn_Comp2iDerivatives3d ( diu[dn].x, diu[dn].y, div[dn].x, div[dn].y,
                      diuu[dn].x, diuu[dn].y, diuv[dn].x, diuv[dn].y,
                      divv[dn].x, divv[dn].y, diuuu[dn].x, diuuu[dn].y,
                      diuuv[dn].x, diuuv[dn].y, diuvv[dn].x, diuvv[dn].y,
@@ -556,7 +558,8 @@ static boolean _g1hq2_TabSplNLBasisFunctionsd ( GHoleDomaind *domain,
                      1, &pq[0], &pq[1], &pq[2], &pq[3], &pq[4], &pq[5], &pq[6],
                      &pq[7], &pq[8],
                      &psiu[sn], &psiv[sn], &psiuu[sn], &psiuv[sn], &psivv[sn],
-                     &psiuuu[sn], &psiuuv[sn], &psiuvv[sn], &psivvv[sn] );
+                     &psiuuu[sn], &psiuuv[sn], &psiuvv[sn], &psivvv[sn] ) )
+            goto failure;
         }
       }
     }
@@ -3596,7 +3599,8 @@ static boolean g1hq2_SplNLConstrNewtond ( GHoleDomaind *domain,
                                                 &func, grad, hessian, E22 ) )
       goto failure;
 
-    pkn_ComputeQTSQd ( bs2, hkk, nconstr, cT, aa, M );
+    if ( !pkn_ComputeQTSQd ( bs2, hkk, nconstr, cT, aa, M ) )
+      goto failure;
     for ( i = 0; i < bs3; i++ )
       for ( j = i; j < bs3; j++ )
         E22kk[pkn_SymMatIndex(i,j)] = M[pkn_SymMatIndex(nconstr+i,nconstr+j)];

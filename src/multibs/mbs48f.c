@@ -198,9 +198,10 @@ boolean mbs_multiBSDegRedf ( int ncurves, int spdimen,
                            Nout, outkn, &nrows, &ncols, &prof, &mtrx );
 
       /* solve the least-squares problem to obtain the resulting control points */
-  pkn_multiBandmSolveRLSQf ( nrows, ncols, prof, mtrx,
-                             ncurves, spdimen, auxpitch, a,
-                             outpitch, outctlpoints );
+  if ( !pkn_multiBandmSolveRLSQf ( nrows, ncols, prof, mtrx,
+                                   ncurves, spdimen, auxpitch, a,
+                                   outpitch, outctlpoints ) )
+    goto failure;
 
   memcpy ( outknots, outkn, (Nout+1)*sizeof(float) );
   *outdegree = outdeg;
@@ -374,9 +375,10 @@ boolean mbs_multiBSDegRedClosedf ( int ncurves, int spdimen,
   }
 
       /* solve the linear least-squares problem with constraints */
-  pkn_multiBandmSolveCRLSQf ( nrows, ncols, prof, mtrx, outdeg-q,
-                              Nout-outdeg-q, c, ncurves, spdimen, auxpitch, a,
-                              0, NULL, outpitch, outctlpoints );
+  if ( !pkn_multiBandmSolveCRLSQf ( nrows, ncols, prof, mtrx, outdeg-q,
+                                    Nout-outdeg-q, c, ncurves, spdimen, auxpitch, a,
+                                    0, NULL, outpitch, outctlpoints ) )
+    goto failure;
   if ( q > 0 )
     pkv_Movef ( ncurves, q*spdimen, outpitch, Kout*spdimen,
                 &outctlpoints[(outdeg-q)*spdimen] );

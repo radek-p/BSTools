@@ -594,9 +594,9 @@ boolean mbs_BCHornerP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
                            double u, double v, point3d *p );
 
 
-void mbs_multiBCHornerDerd ( int degree, int ncurves, int spdimen, int pitch,
-                             const double *ctlpoints,
-                             double t, double *p, double *d );
+boolean mbs_multiBCHornerDerd ( int degree, int ncurves, int spdimen, int pitch,
+                                const double *ctlpoints,
+                                double t, double *p, double *d );
 
 #define mbs_BCHornerDerC1d(degree,coeff,t,p,d) \
   mbs_multiBCHornerDerd ( degree, 1, 1, 0, coeff, t, p, d )
@@ -647,7 +647,7 @@ boolean mbs_BCHornerNvP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
                              point3d *p, vector3d *nv );
 
 
-void mbs_multiBCHornerDer2d ( int degree, int ncurves, int spdimen, int pitch,
+boolean mbs_multiBCHornerDer2d ( int degree, int ncurves, int spdimen, int pitch,
                               const double *ctlpoints, 
                               double t, double *p, double *d1, double *d2 );
 

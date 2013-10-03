@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -96,11 +96,12 @@ static boolean _g1h_TabExtNLBasisFunctionsf ( GHoleDomainf *domain,
         psiuu = &nlpr->psiuu[fN];  psiuv = &nlpr->psiuv[fN];
         psivv = &nlpr->psivv[fN];
         for ( l = 0; l < G1_NQUADSQ; l++ )
-          pkn_Comp2iDerivatives2f ( diu[l].x, diu[l].y, div[l].x, div[l].y,
-                  diuu[l].x, diuu[l].y, diuv[l].x, diuv[l].y,
-                  divv[l].x, divv[l].y, 1, &tbezu[bN+l], &tbezv[bN+l],
-                  &tbezuu[bN+l], &tbezuv[bN+l], &tbezvv[bN+l],
-                  &psiu[l], &psiv[l], &psiuu[l], &psiuv[l], &psivv[l] );
+          if ( !pkn_Comp2iDerivatives2f ( diu[l].x, diu[l].y, div[l].x, div[l].y,
+                     diuu[l].x, diuu[l].y, diuv[l].x, diuv[l].y,
+                     divv[l].x, divv[l].y, 1, &tbezu[bN+l], &tbezv[bN+l],
+                     &tbezuu[bN+l], &tbezuv[bN+l], &tbezvv[bN+l],
+                     &psiu[l], &psiv[l], &psiuu[l], &psiuv[l], &psivv[l] ) )
+            goto failure;
       }
   }
   pkv_SetScratchMemTop ( sp );
@@ -443,8 +444,9 @@ printf ( "func = %f, gn0 = %f\n", func, gn );
 
 printf ( "! " );
 
-      pkn_Block1SymMatrixMultf ( hole_k, G1_DBDIM, nfunc_a, chii,
-                                 1, 1, grad, 1, dcoeff );
+      if ( !pkn_Block1SymMatrixMultf ( hole_k, G1_DBDIM, nfunc_a, chii,
+                                       1, 1, grad, 1, dcoeff ) )
+        goto failure;
       aux = (float)pkn_ScalarProductf ( nfunc, grad, dcoeff );
       if ( gn < 0.0 || aux < EPSF*gn ) {
         domain->error_code = G1H_ERROR_NL_MINIMIZATION;
@@ -657,7 +659,8 @@ static boolean g1h_ExtNLConstrNewtonf ( GHoleDomainf *domain,
                                               &func, grad, hii ) )
       goto failure;
 
-    pkn_ComputeQTSQf ( nfunc_a, hkk, nconstr, cT, aa, M );
+    if ( !pkn_ComputeQTSQf ( nfunc_a, hkk, nconstr, cT, aa, M ) )
+      goto failure;
     for ( i = 0; i < nfunc_a-nconstr; i++ )
       for ( j = i; j < nfunc_a-nconstr; j++ )
         E22kk[pkn_SymMatIndex(i,j)] = M[pkn_SymMatIndex(nconstr+i,nconstr+j)];
@@ -691,8 +694,9 @@ printf ( "func = %f, gn0 = %f\n", func, gn );
 
 printf ( "! " );
 
-      pkn_Block1SymMatrixMultf ( hole_k, G1_DBDIM, nfunc_a-nconstr, cE22ii,
-                                 1, 1, f, 1, y1 );
+      if ( !pkn_Block1SymMatrixMultf ( hole_k, G1_DBDIM, nfunc_a-nconstr, cE22ii,
+                                       1, 1, f, 1, y1 ) )
+        goto failure;
       aux = (float)pkn_ScalarProductf ( nfunc, f, y1 );
       if ( aux <= 0.0 || aux < EPSF*gn )
         goto failure;

@@ -215,22 +215,24 @@ void _g1h_TabCurveJacobiand ( int deg, const point2d *cp,
   }
 } /*_g1h_TabCurveJacobiand*/
 
-void _g1h_LapCoeffd ( const vector2d *du, const vector2d *dv,
-                     const vector2d *duu, const vector2d *duv,
-                     const vector2d *dvv, double *trd )
+boolean _g1h_LapCoeffd ( const vector2d *du, const vector2d *dv,
+                         const vector2d *duu, const vector2d *duv,
+                         const vector2d *dvv, double *trd )
 {
   vector2d gx, gy, gxx, gxy, gyy;
   double   A21[6], A22[9];
 
-  pkn_f2iDerivatives2d ( du->x, du->y, dv->x, dv->y,
-      duu->x, duu->y, duv->x, duv->y, dvv->x, dvv->y,
-      (double*)&gx, (double*)&gy, (double*)&gxx, (double*)&gxy, (double*)&gyy );
+  if ( !pkn_f2iDerivatives2d ( du->x, du->y, dv->x, dv->y,
+          duu->x, duu->y, duv->x, duv->y, dvv->x, dvv->y,
+          (double*)&gx, (double*)&gy, (double*)&gxx, (double*)&gxy, (double*)&gyy ) )
+    return false;
 
   pkn_Setup2DerA21Matrixd ( gxx.x, gxx.y, gxy.x, gxy.y, gyy.x, gyy.y, A21 );
   pkn_Setup2DerA22Matrixd ( gx.x, gx.y, gy.x, gy.y, A22 );
 
   trd[0]  = A21[0]+A21[4];   trd[1]  = A21[1]+A21[5];
   trd[2]  = A22[0]+A22[6];   trd[3]  = A22[1]+A22[7];   trd[4] = A22[2]+A22[8];
+  return true;
 } /*_g1h_LapCoeffd*/
 
 boolean _g1h_TabCurveLapCoeff0d ( const point2d *c00, const vector2d *c01,
