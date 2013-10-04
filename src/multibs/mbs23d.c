@@ -20,11 +20,11 @@
 /* ////////////////////////////////////////// */
 /* conversion of a B-spline patch to piecewise Bezier form */
 
-void mbs_multiBSCurvesToBezd ( int spdimen, int ncurves,
-                               int degree, int lastinknot, const double *inknots,
-                               int inpitch, const double *inctlp,
-                               int *kpcs, int *lastoutknot, double *outknots,
-                               int outpitch, double *outctlp )
+boolean mbs_multiBSCurvesToBezd ( int spdimen, int ncurves,
+                                  int degree, int lastinknot, const double *inknots,
+                                  int inpitch, const double *inctlp,
+                                  int *kpcs, int *lastoutknot, double *outknots,
+                                  int outpitch, double *outctlp )
 {
   int   NNa, auxpitch, ku, skipl, skipr;
   double *ua, *cpa;
@@ -37,10 +37,15 @@ void mbs_multiBSCurvesToBezd ( int spdimen, int ncurves,
   auxpitch = spdimen*(NNa-degree);
   ua = pkv_GetScratchMemd ( NNa+1 );
   cpa = pkv_GetScratchMemd ( auxpitch*ncurves );
+  if ( !ua || !cpa )
+    goto failure;
 
                /* maximal knot insertion */
-  mbs_multiMaxKnotInsd ( ncurves, spdimen, degree, lastinknot, inknots, inpitch,
-                         inctlp, &NNa, ua, auxpitch, cpa, &skipl, &skipr );
+  if ( !mbs_multiMaxKnotInsd ( ncurves, spdimen, degree,
+                               lastinknot, inknots, inpitch,
+                               inctlp, &NNa, ua, auxpitch, cpa,
+                               &skipl, &skipr ) )
+    goto failure;
   NNa -= skipr+skipl;
   if ( kpcs ) *kpcs = ku;
   if ( lastoutknot ) *lastoutknot = NNa;
@@ -50,5 +55,10 @@ void mbs_multiBSCurvesToBezd ( int spdimen, int ncurves,
                 &cpa[spdimen*skipl], outctlp );
 
   pkv_SetScratchMemTop ( st );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( st );
+  return false;
 } /*mbs_BSCurvesToBezd*/
 

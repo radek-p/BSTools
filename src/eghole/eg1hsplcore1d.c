@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2008, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2008, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -164,9 +164,11 @@ case 0:   /* nonzero is r0 and its derivative, r0u */
 
       /* compute pv = b1*r0u + c1*r0s = b1*r0u */
     lkn = size;
-    mbs_multiMultBSCd ( 1, G1_BF01DEG, 2*G1_BF01DEG+1, &knb[G1H_FINALDEG-G1_BF01DEG],
+    if ( !mbs_multiMultBSCd ( 1, G1_BF01DEG, 2*G1_BF01DEG+1,
+                        &knb[G1H_FINALDEG-G1_BF01DEG],
                         0, b1, 1, 1, G1H_OMCDEG-1, lknr-2, &knr[1], 0, r0u,
-                        &deg, &lkn, kn, 0, aux );
+                        &deg, &lkn, kn, 0, aux ) )
+      goto failure;
     mbs_multiAdjustBSCRepd ( 1, 1, deg, lkn, kn, 0, aux,
                              degpv, lknpv, knpv, 0, pv );
     break;
@@ -174,9 +176,11 @@ case 0:   /* nonzero is r0 and its derivative, r0u */
 case 1:   /* nonzero is r0s */
       /* compute pv = b1*r0u + c1*r0s = c1*r0s */
     lkn = size;
-    mbs_multiMultBSCd ( 1, G1_CG01DEG, 2*G1_CG01DEG+1, &knb[G1H_FINALDEG-G1_CG01DEG],
+    if ( !mbs_multiMultBSCd ( 1, G1_CG01DEG, 2*G1_CG01DEG+1,
+                        &knb[G1H_FINALDEG-G1_CG01DEG],
                         0, c1, 1, 1, G1H_OMCDEG-1, lknr-2, &knr[1], 0, r0s,
-                        &deg, &lkn, kn, 0, aux );
+                        &deg, &lkn, kn, 0, aux ) )
+      goto failure;
     mbs_multiAdjustBSCRepd ( 1, 1, deg, lkn, kn, 0, aux,
                              degpv, lknpv, knpv, 0, pv );
     break;

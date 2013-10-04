@@ -450,7 +450,8 @@ boolean pkn_Comp2iDerivatives2d ( double xu, double yu, double xv, double yv,
   int    i;
 
   sp = pkv_GetScratchMemTop ();
-  pkn_Comp2iDerivatives1d ( xu, yu, xv, yv, spdimen, hu, hv, gx, gy );
+  if ( !pkn_Comp2iDerivatives1d ( xu, yu, xv, yv, spdimen, hu, hv, gx, gy ) )
+    goto failure;
 
   A21 = pkv_GetScratchMemd ( 15+3*spdimen );
   if ( !A21 ) {
@@ -506,9 +507,10 @@ boolean pkn_Comp2iDerivatives3d ( double xu, double yu, double xv, double yv,
   int    i;
 
   sp = pkv_GetScratchMemTop ();
-  pkn_Comp2iDerivatives2d ( xu, yu, xv, yv, xuu, yuu, xuv, yuv, xvv, yvv,
-                            spdimen, hu, hv, huu, huv, hvv,
-                            gx, gy, gxx, gxy, gyy );
+  if ( !pkn_Comp2iDerivatives2d ( xu, yu, xv, yv, xuu, yuu, xuv, yuv, xvv, yvv,
+                                  spdimen, hu, hv, huu, huv, hvv,
+                                  gx, gy, gxx, gxy, gyy ) )
+    goto failure;
 
   A31 = pkv_GetScratchMemd ( 36+4*spdimen );
   if ( !A31 ) {
@@ -583,12 +585,13 @@ boolean pkn_Comp2iDerivatives4d ( double xu, double yu, double xv, double yv,
   int    i;
 
   sp = pkv_GetScratchMemTop ();
-  pkn_Comp2iDerivatives3d ( xu, yu, xv, yv,  xuu, yuu, xuv, yuv, xvv, yvv,
-                            xuuu, yuuu, xuuv, yuuv, xuvv, yuvv, xvvv, yvvv,
-                            spdimen, hu, hv, huu, huv, hvv,
-                            huuu, huuv, huvv, hvvv,
-                            gx, gy, gxx, gxy, gyy,
-                            gxxx, gxxy, gxyy, gyyy );
+  if ( !pkn_Comp2iDerivatives3d ( xu, yu, xv, yv,  xuu, yuu, xuv, yuv, xvv, yvv,
+                                  xuuu, yuuu, xuuv, yuuv, xuvv, yuvv, xvvv, yvvv,
+                                  spdimen, hu, hv, huu, huv, hvv,
+                                  huuu, huuv, huvv, hvvv,
+                                  gx, gy, gxx, gxy, gyy,
+                                  gxxx, gxxy, gxyy, gyyy ) )
+    goto failure;
 
   A41 = pkv_GetScratchMemd ( 70+5*spdimen );
   if ( !A41 ) {

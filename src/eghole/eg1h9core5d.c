@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2008                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -28,10 +28,12 @@ static boolean FindDiCrossDerad ( int spdimen,
   mbs_multiFindBezDerivatived ( G1_CROSS00DEG, 1, spdimen, 0, r0, 0, r0u );
 
         /* compute pv = b1*ru + c1*rs */
-  mbs_multiMultBezCd ( 1, G1_BF01DEG, 0, b1, spdimen, 1, G1_CROSS00DEG-1, 0, r0u,
-                       &deg1, 0, aux1 );
-  mbs_multiMultBezCd ( 1, G1_CG01DEG, 0, c1, spdimen, 1, G1_CROSS00DEG-1, 0, r0s,
-                       &deg2, 0, aux2 );
+  if ( !mbs_multiMultBezCd ( 1, G1_BF01DEG, 0, b1, spdimen, 1, G1_CROSS00DEG-1, 0, r0u,
+                             &deg1, 0, aux1 ) )
+    goto failure;
+  if ( !mbs_multiMultBezCd ( 1, G1_CG01DEG, 0, c1, spdimen, 1, G1_CROSS00DEG-1, 0, r0s,
+                             &deg2, 0, aux2 ) )
+    goto failure;
 
             /* at this point deg1 = 5, deg2 = 4 */
   mbs_multiBCDegElevd ( 1, spdimen, 0, deg2, aux2, deg1-deg2, 0, &deg2, pv );
@@ -65,10 +67,12 @@ static boolean FindDiCrossDerbd ( int spdimen,
   mbs_multiFindBezDerivatived ( 3, 1, spdimen, 0, r0, 0, r0u );
 
         /* compute pv = b1*ru + c1*rs */
-  mbs_multiMultBezCd ( 1, G1_BF11DEG, 0, b1, spdimen, 1, 2, 0, r0u,
-                       &deg1, 0, aux1 );
-  mbs_multiMultBezCd ( 1, G1_CG11DEG, 0, c1, spdimen, 1, 3, 0, r0s,
-                       &deg2, 0, pv );
+  if ( !mbs_multiMultBezCd ( 1, G1_BF11DEG, 0, b1, spdimen, 1, 2, 0, r0u,
+                             &deg1, 0, aux1 ) )
+    goto failure;
+  if ( !mbs_multiMultBezCd ( 1, G1_CG11DEG, 0, c1, spdimen, 1, 3, 0, r0s,
+                             &deg2, 0, pv ) )
+    goto failure;
 
             /* at this point deg1 = deg2 = 5 = G1_CROSS11DEG */
   pkn_AddMatrixd ( 1, spdimen*(deg1+1), 0, aux1, 0, pv, 0, pv );

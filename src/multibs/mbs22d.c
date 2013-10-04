@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -20,13 +20,13 @@
 /* ////////////////////////////////////////// */
 /* conversion of a B-spline patch to piecewise Bezier form */
 
-void mbs_BSPatchToBezd ( int spdimen,
-                         int degreeu, int lastuknot, const double *uknots,
-                         int degreev, int lastvknot, const double *vknots,
-                         int inpitch, const double *inctlp,
-                         int *kupcs, int *lastoutuknot, double *outuknots,
-                         int *kvpcs, int *lastoutvknot, double *outvknots,
-                         int outpitch, double *outctlp )
+boolean mbs_BSPatchToBezd ( int spdimen,
+                            int degreeu, int lastuknot, const double *uknots,
+                            int degreev, int lastvknot, const double *vknots,
+                            int inpitch, const double *inctlp,
+                            int *kupcs, int *lastoutuknot, double *outuknots,
+                            int *kvpcs, int *lastoutvknot, double *outvknots,
+                            int outpitch, double *outctlp )
 {
   int   NNa, MMa, pitch1, pitch2, ku, kv, skipl, skipr;
   double *ua, *va, *cpa, *cpb;
@@ -43,22 +43,26 @@ void mbs_BSPatchToBezd ( int spdimen,
   va = pkv_GetScratchMemd ( MMa+1 );
   cpa = pkv_GetScratchMemd ( pitch2*(NNa-degreeu) );
   cpb = pkv_GetScratchMemd ( pitch1*(NNa-degreeu) );
+  if ( !ua || !va || !cpa || !cpb )
+    goto failure;
 
                /* pack input control points */
   pkv_Selectd ( lastuknot-degreeu, pitch1, inpitch, pitch1, inctlp, cpa );
 
                /* maximal "u" knot insertion */
-  mbs_multiMaxKnotInsd ( 1, pitch1, degreeu, lastuknot, uknots,
-                         0, cpa, &NNa, ua, 0, cpb, &skipl, &skipr );
+  if ( !mbs_multiMaxKnotInsd ( 1, pitch1, degreeu, lastuknot, uknots,
+                               0, cpa, &NNa, ua, 0, cpb, &skipl, &skipr ) )
+    goto failure;
   NNa -= skipr+skipl;
   if ( kupcs ) *kupcs = ku;
   if ( lastoutuknot ) *lastoutuknot = NNa;
   if ( outuknots ) memmove ( outuknots, &ua[skipl], (NNa+1)*sizeof(double) );
 
                /* maximal "v" knot insertion */
-  mbs_multiMaxKnotInsd ( NNa-degreeu, spdimen, degreev, lastvknot, vknots,
-                         pitch1, &cpb[skipl*pitch1], &MMa, va, pitch2, cpa,
-                         &skipl, &skipr );
+  if ( !mbs_multiMaxKnotInsd ( NNa-degreeu, spdimen, degreev, lastvknot, vknots,
+                               pitch1, &cpb[skipl*pitch1], &MMa, va, pitch2, cpa,
+                               &skipl, &skipr ) )
+    goto failure;
   MMa -= skipl+skipr;
   if ( kvpcs ) *kvpcs = kv;
   if ( lastoutvknot ) *lastoutvknot = MMa;
@@ -68,5 +72,10 @@ void mbs_BSPatchToBezd ( int spdimen,
                 &cpa[spdimen*skipl], outctlp );
 
   pkv_SetScratchMemTop ( st );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( st );
+  return false;
 } /*mbs_BSPatchToBezd*/
 

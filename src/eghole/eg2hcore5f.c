@@ -436,7 +436,7 @@ failure:
 #undef r1uss1
 } /*FindJFunctionsDif*/
 
-static void MultJFunctionsf ( int hole_k,
+static boolean MultJFunctionsf ( int hole_k,
                const float *b01, const float *c01,
                float *b01b01, float *twob01c01, float *c01c01,
                const float *b11, const float *c11,
@@ -445,29 +445,39 @@ static void MultJFunctionsf ( int hole_k,
 /* compute the products of polynomials, which will be used many times later */
   int degprod;
 
-  mbs_multiMultBezCf ( hole_k, G2_BF01DEG, G2_BF01DEG+1, b01,
+  if ( !mbs_multiMultBezCf ( hole_k, G2_BF01DEG, G2_BF01DEG+1, b01,
                     1, hole_k, G2_BF01DEG, G2_BF01DEG+1, b01,
-                    &degprod, 2*G2_BF01DEG+1, b01b01 );
-  mbs_multiMultBezCf ( hole_k, G2_BF01DEG, G2_BF01DEG+1, b01,
+                    &degprod, 2*G2_BF01DEG+1, b01b01 ) )
+    goto failure;
+  if ( !mbs_multiMultBezCf ( hole_k, G2_BF01DEG, G2_BF01DEG+1, b01,
                     1, hole_k, G2_CG01DEG, G2_CG01DEG+1, c01,
-                    &degprod, G2_BF01DEG+G2_CG01DEG+1, twob01c01 );
+                    &degprod, G2_BF01DEG+G2_CG01DEG+1, twob01c01 ) )
+    goto failure;
   pkn_MultMatrixNumf ( 1, hole_k*(G2_BF01DEG+G2_CG01DEG+1), 0, twob01c01, 2.0,
                        0, twob01c01 );
-  mbs_multiMultBezCf ( hole_k, G2_CG01DEG, G2_CG01DEG+1, c01,
+  if ( !mbs_multiMultBezCf ( hole_k, G2_CG01DEG, G2_CG01DEG+1, c01,
                     1, hole_k, G2_CG01DEG, G2_CG01DEG+1, c01,
-                    &degprod, 2*G2_CG01DEG+1, c01c01 );
+                    &degprod, 2*G2_CG01DEG+1, c01c01 ) )
+    goto failure;
 
-  mbs_multiMultBezCf ( hole_k, G2_BF11DEG, G2_BF11DEG+1, b11,
+  if ( !mbs_multiMultBezCf ( hole_k, G2_BF11DEG, G2_BF11DEG+1, b11,
                     1, hole_k, G2_BF11DEG, G2_BF11DEG+1, b11,
-                    &degprod, 2*G2_BF11DEG+1, b11b11 );
-  mbs_multiMultBezCf ( hole_k, G2_BF11DEG, G2_BF11DEG+1, b11,
+                    &degprod, 2*G2_BF11DEG+1, b11b11 ) )
+    goto failure;
+  if ( !mbs_multiMultBezCf ( hole_k, G2_BF11DEG, G2_BF11DEG+1, b11,
                     1, hole_k, G2_CG11DEG, G2_CG11DEG+1, c11,
-                    &degprod, G2_BF11DEG+G2_CG11DEG+1, twob11c11 );
+                    &degprod, G2_BF11DEG+G2_CG11DEG+1, twob11c11 ) )
+    goto failure;
   pkn_MultMatrixNumf ( 1, hole_k*(G2_BF11DEG+G2_CG11DEG+1), 0, twob11c11, 2.0,
                        0, twob11c11 );
-  mbs_multiMultBezCf ( hole_k, G2_CG11DEG, G2_CG11DEG+1, c11,
+  if ( !mbs_multiMultBezCf ( hole_k, G2_CG11DEG, G2_CG11DEG+1, c11,
                     1, hole_k, G2_CG11DEG, G2_CG11DEG+1, c11,
-                    &degprod, 2*G2_CG11DEG+1, c11c11 );
+                    &degprod, 2*G2_CG11DEG+1, c11c11 ) )
+    goto failure;
+  return true;
+
+failure:
+  return false;
 } /*MultJFunctionsf*/
 
 static boolean FindJFunctionsf ( GHoleDomainf *domain )
@@ -525,10 +535,12 @@ static boolean FindJFunctionsf ( GHoleDomainf *domain )
     domain->error_code = G2H_ERROR_INVALID_JUNC_FUNC;
     goto failure;
   }
-  MultJFunctionsf ( hole_k, b01, c01, b01b01, twob01c01, c01c01,
-                            b11, c11, b11b11, twob11c11, c11c11 );
-  MultJFunctionsf ( hole_k, f01, g01, f01f01, twof01g01, g01g01,
-                            f11, g11, f11f11, twof11g11, g11g11 );
+  if ( !MultJFunctionsf ( hole_k, b01, c01, b01b01, twob01c01, c01c01,
+                                  b11, c11, b11b11, twob11c11, c11c11 ) )
+    goto failure;
+  if ( !MultJFunctionsf ( hole_k, f01, g01, f01f01, twof01g01, g01g01,
+                                  f11, g11, f11f11, twof11g11, g11g11 ) )
+    goto failure;
 
   pkv_SetScratchMemTop ( sp );
   return true;

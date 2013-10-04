@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2007, 2012                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2007, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -176,22 +176,28 @@ case 0:   /* nonzero is r0 and its derivatives, r0u, r0uu */
 
       /* compute pv = b1*r0u + c1*r0s = b1*r0u */
     lkn1 = size;
-    mbs_multiMultBSCd ( 1, G2_BF01DEG, 2*G2_BF01DEG+1, &knb[G2H_FINALDEG-G2_BF01DEG],
+    if ( !mbs_multiMultBSCd ( 1, G2_BF01DEG, 2*G2_BF01DEG+1,
+                        &knb[G2H_FINALDEG-G2_BF01DEG],
                         0, b1, 1, 1, G2H_OMCDEG-1, lknr-2, &knr[1], 0, r0u,
-                        &deg1, &lkn1, kn1, 0, aux1 );
+                        &deg1, &lkn1, kn1, 0, aux1 ) )
+      goto failure;
     mbs_multiAdjustBSCRepd ( 1, 1, deg1, lkn1, kn1, 0, aux1,
                              degpv, lknpv, knpv, 0, pv );
 
       /* compute pvv = b2*r0u + c2*r0s + b1b1*r0uu + twob1c1*r0us + c1c1*r0ss */
       /* = b2*r0u + b1b1*r0uu */
     lkn1 = size;
-    mbs_multiMultBSCd ( 1, G2_BF02DEG, 2*G2_BF02DEG+1, &knb[G2H_FINALDEG-G2_BF02DEG],
+    if ( !mbs_multiMultBSCd ( 1, G2_BF02DEG, 2*G2_BF02DEG+1,
+                        &knb[G2H_FINALDEG-G2_BF02DEG],
                         0, b2, 1, 1, G2H_OMCDEG-1, lknr-2, &knr[1], 0, r0u,
-                        &deg1, &lkn1, kn1, 0, aux1 );
+                        &deg1, &lkn1, kn1, 0, aux1 ) )
+      goto failure;
     lkn2 = size;
-    mbs_multiMultBSCd ( 1, 2*G2_BF01DEG, 4*G2_BF01DEG+1, &knb[G2H_FINALDEG-2*G2_BF01DEG],
+    if ( !mbs_multiMultBSCd ( 1, 2*G2_BF01DEG, 4*G2_BF01DEG+1,
+                        &knb[G2H_FINALDEG-2*G2_BF01DEG],
                         0, b1b1, 1, 1, G2H_OMCDEG-2, lknr-4, &knr[2], 0, r0uu,
-                        &deg2, &lkn2, kn2, 0, aux2 );
+                        &deg2, &lkn2, kn2, 0, aux2 ) )
+      goto failure;
     mbs_multiAddBSCurvesd ( 1, 1, deg1, lkn1, kn1, 0, aux1, deg2, lkn2, kn2, 0, aux2,
                             &deg3, &lkn3, kn3, 0, aux3 );
     mbs_multiAdjustBSCRepd ( 1, 1, deg3, lkn3, kn3, 0, aux3,
@@ -203,23 +209,28 @@ case 1:   /* nonzero is r0s and its derivative, r0us */
 
       /* compute pv = b1*r0u + c1*r0s = c1*r0s */
     lkn1 = size;
-    mbs_multiMultBSCd ( 1, G2_CG01DEG, 2*G2_CG01DEG+1, &knb[G2H_FINALDEG-G2_CG01DEG],
+    if ( !mbs_multiMultBSCd ( 1, G2_CG01DEG, 2*G2_CG01DEG+1,
+                        &knb[G2H_FINALDEG-G2_CG01DEG],
                         0, c1, 1, 1, G2H_OMCDEG-1, lknr-2, &knr[1], 0, r0s,
-                        &deg1, &lkn1, kn1, 0, aux1 );
+                        &deg1, &lkn1, kn1, 0, aux1 ) )
+      goto failure;
     mbs_multiAdjustBSCRepd ( 1, 1, deg1, lkn1, kn1, 0, aux1,
                              degpv, lknpv, knpv, 0, pv );
 
       /* compute pvv = b2*r0u + c2*r0s + b1b1*r0uu + twob1c1*r0us + c1c1*r0ss */
       /* = c2*r0s + twob1c1*r0us */
     lkn1 = size;
-    mbs_multiMultBSCd ( 1, G2_CG02DEG, 2*G2_CG02DEG+1, &knb[G2H_FINALDEG-G2_CG02DEG],
+    if ( !mbs_multiMultBSCd ( 1, G2_CG02DEG, 2*G2_CG02DEG+1,
+                        &knb[G2H_FINALDEG-G2_CG02DEG],
                         0, c2, 1, 1, G2H_OMCDEG-1, lknr-2, &knr[1], 0, r0s,
-                        &deg1, &lkn1, kn1, 0, aux1 );
+                        &deg1, &lkn1, kn1, 0, aux1 ) )
+      goto failure;
     lkn2 = size;
-    mbs_multiMultBSCd ( 1, G2_BF01DEG+G2_CG01DEG, 2*(G2_BF01DEG+G2_CG01DEG)+1,
+    if ( !mbs_multiMultBSCd ( 1, G2_BF01DEG+G2_CG01DEG, 2*(G2_BF01DEG+G2_CG01DEG)+1,
                         &knb[G2H_FINALDEG-G2_BF01DEG-G2_CG01DEG], 0, twob1c1,
                         1, 1, G2H_OMCDEG-2, lknr-4, &knr[2], 0, r0us,
-                        &deg2, &lkn2, kn2, 0, aux2 );
+                        &deg2, &lkn2, kn2, 0, aux2 ) )
+      goto failure;
     mbs_multiAddBSCurvesd ( 1, 1, deg1, lkn1, kn1, 0, aux1, deg2, lkn2, kn2, 0, aux2,
                             &deg3, &lkn3, kn3, 0, aux3 );
     mbs_multiAdjustBSCRepd ( 1, 1, deg3, lkn3, kn3, 0, aux3,
@@ -233,9 +244,11 @@ case 2:   /* nonzero is r0ss */
       /* compute pvv = b2*r0u + c2*r0s + b1b1*r0uu + twob1c1*r0us + c1c1*r0ss */
       /* = c1c1*r0ss */
     lkn1 = size;
-    mbs_multiMultBSCd ( 1, 2*G2_CG01DEG, 4*G2_CG01DEG+1, &knb[G2H_FINALDEG-2*G2_CG01DEG],
+    if ( !mbs_multiMultBSCd ( 1, 2*G2_CG01DEG, 4*G2_CG01DEG+1,
+                        &knb[G2H_FINALDEG-2*G2_CG01DEG],
                         0, c1c1, 1, 1, G2H_OMCDEG-2, lknr-4, &knr[2], 0, r0ss,
-                        &deg1, &lkn1, kn1, 0, aux1 );
+                        &deg1, &lkn1, kn1, 0, aux1 ) )
+      goto failure;
     mbs_multiAdjustBSCRepd ( 1, 1, deg1, lkn1, kn1, 0, aux1,
                              degpvv, lknpvv, knpvv, 0, pvv );
     break;

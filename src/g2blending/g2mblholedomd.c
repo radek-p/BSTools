@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2010                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2013                                  */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -155,12 +155,13 @@ boolean g2mbl_TabNid ( int hole_k, int nkn, double *qknots,
           mbs_BCHornerDer3P1d ( G2H_FINALDEG, G2H_FINALDEG, fcp,
                                 qknots[i], qknots[j], &p, &dp[0], &dp[1], &dp[2],
                                 &dp[3], &dp[4], &dp[5], &dp[6], &dp[7], &dp[8] );
-          pkn_Comp2iDerivatives3d ( adc[0].x, adc[0].y, adc[1].x, adc[1].y,
+          if ( !pkn_Comp2iDerivatives3d ( adc[0].x, adc[0].y, adc[1].x, adc[1].y,
                   adc[2].x, adc[2].y, adc[3].x, adc[3].y, adc[4].x, adc[4].y,
                   adc[5].x, adc[5].y, adc[6].x, adc[6].y, adc[7].x, adc[7].y,
                   adc[8].x, adc[8].y, 1, &dp[0], &dp[1], &dp[2], &dp[3], &dp[4],
                   &dp[5], &dp[6], &dp[7], &dp[8], &df[0], &df[1], &df[2], &df[3],
-                  &df[4], &df[5], &df[6], &df[7], &df[8] );
+                  &df[4], &df[5], &df[6], &df[7], &df[8] ) )
+          goto failure;
         }
     }
   }

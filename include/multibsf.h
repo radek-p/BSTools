@@ -294,11 +294,11 @@ boolean mbs_multiMaxKnotInsf ( int ncurves, int spdimen, int degree,
     outlastknot,outknots,0,(float*)outctlpoints,skipl,skipr)
 
 
-void mbs_multiBSCurvesToBezf ( int spdimen, int ncurves,
-                               int degree, int lastinknot, const float *inknots,
-                               int inpitch, const float *inctlp,
-                               int *kpcs, int *lastoutknot, float *outknots,
-                               int outpitch, float *outctlp );
+boolean mbs_multiBSCurvesToBezf ( int spdimen, int ncurves,
+                                  int degree, int lastinknot, const float *inknots,
+                                  int inpitch, const float *inctlp,
+                                  int *kpcs, int *lastoutknot, float *outknots,
+                                  int outpitch, float *outctlp );
 
 #define mbs_BSToBezC1f(degree,lastinknot,inknots,incoeff,kpcs, \
     lastoutknot,outknots,outcoeff) \
@@ -318,7 +318,7 @@ void mbs_multiBSCurvesToBezf ( int spdimen, int ncurves,
     kpcs,lastoutknot,outknots,0,(float*)outctlp)
 
 
-void mbs_BSPatchToBezf ( int spdimen,
+boolean mbs_BSPatchToBezf ( int spdimen,
                          int degreeu, int lastuknot, const float *uknots,
                          int degreev, int lastvknot, const float *vknots,
                          int inpitch, const float *inctlp,

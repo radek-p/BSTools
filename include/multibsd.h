@@ -294,11 +294,11 @@ boolean mbs_multiMaxKnotInsd ( int ncurves, int spdimen, int degree,
     outlastknot,outknots,0,(double*)outctlpoints,skipl,skipr)
 
 
-void mbs_multiBSCurvesToBezd ( int spdimen, int ncurves,
-                               int degree, int lastinknot, const double *inknots,
-                               int inpitch, const double *inctlp,
-                               int *kpcs, int *lastoutknot, double *outknots,
-                               int outpitch, double *outctlp );
+boolean mbs_multiBSCurvesToBezd ( int spdimen, int ncurves,
+                                  int degree, int lastinknot, const double *inknots,
+                                  int inpitch, const double *inctlp,
+                                  int *kpcs, int *lastoutknot, double *outknots,
+                                  int outpitch, double *outctlp );
 
 #define mbs_BSToBezC1d(degree,lastinknot,inknots,incoeff,kpcs, \
     lastoutknot,outknots,outcoeff) \
@@ -318,13 +318,13 @@ void mbs_multiBSCurvesToBezd ( int spdimen, int ncurves,
     kpcs,lastoutknot,outknots,0,(double*)outctlp)
 
 
-void mbs_BSPatchToBezd ( int spdimen,
-                         int degreeu, int lastuknot, const double *uknots,
-                         int degreev, int lastvknot, const double *vknots,
-                         int inpitch, const double *inctlp,
-                         int *kupcs, int *lastoutuknot, double *outuknots,
-                         int *kvpcs, int *lastoutvknot, double *outvknots,
-                         int outpitch, double *outctlp );
+boolean mbs_BSPatchToBezd ( int spdimen,
+                            int degreeu, int lastuknot, const double *uknots,
+                            int degreev, int lastvknot, const double *vknots,
+                            int inpitch, const double *inctlp,
+                            int *kupcs, int *lastoutuknot, double *outuknots,
+                            int *kvpcs, int *lastoutvknot, double *outvknots,
+                            int outpitch, double *outctlp );
 
 
 int mbs_NumKnotIntervalsd ( int degree, int lastknot, const double *knots );

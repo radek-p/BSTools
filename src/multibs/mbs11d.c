@@ -124,9 +124,10 @@ boolean mbs_multiBSDegElevd ( int ncurves, int spdimen,
 /* executed, all arcs of one curve are processed.                      */
   if ( !inctlpoints )
     inctlpoints = outctlpoints;
-  mbs_multiMaxKnotInsd ( ncurves, spdimen, indegree, inlastknot, inknots,
-                         inpitch, inctlpoints, &lkn, akn, auxpitch, auxcp,
-                         &skipl, &skipr );
+  if ( !mbs_multiMaxKnotInsd ( ncurves, spdimen, indegree, inlastknot, inknots,
+                               inpitch, inctlpoints, &lkn, akn, auxpitch, auxcp,
+                               &skipl, &skipr ) )
+    goto failure;
   auxcp += skipl*spdimen;
   lkn -= skipl+skipr;
   for ( k = 0; k < ncurves; k++ )
