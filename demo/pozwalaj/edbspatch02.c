@@ -82,14 +82,16 @@ boolean GeomObjectBSplinePatchSetDegreeU ( GO_BSplinePatch *obj, int degu )
       goto failure;
     }
     if ( obj->closed_u ) {
-      mbs_multiBSDegElevClosedd ( 1, (lastknot_v-degree_v)*cpdimen, degree_u,
+      if ( !mbs_multiBSDegElevClosedd ( 1, (lastknot_v-degree_v)*cpdimen, degree_u,
                          lastknot_u, knots_u, 0, obj->cpoints, degu-degree_u,
-                         &d0, &d1, knu, 0, cp );
+                         &d0, &d1, knu, 0, cp ) )
+        goto failure;
     }
     else {
-      mbs_multiBSDegElevd ( 1, (lastknot_v-degree_v)*cpdimen, degree_u, lastknot_u,
+      if ( !mbs_multiBSDegElevd ( 1, (lastknot_v-degree_v)*cpdimen, degree_u, lastknot_u,
                             knots_u, 0, obj->cpoints, degu-degree_u,
-                            &d0, &d1, knu, 0, cp, false );
+                            &d0, &d1, knu, 0, cp, false ) )
+        goto failure;
     }
 
 if ( d0 != degu || d1 != lknu ) {
@@ -202,16 +204,18 @@ boolean GeomObjectBSplinePatchSetDegreeV ( GO_BSplinePatch *obj, int degv )
       goto failure;
     }
     if ( obj->closed_v ) {
-      mbs_multiBSDegElevClosedd ( lastknot_u-degree_u, cpdimen, degree_v,
+      if ( !mbs_multiBSDegElevClosedd ( lastknot_u-degree_u, cpdimen, degree_v,
                          lastknot_v, knots_v, (lastknot_v-degree_v)*cpdimen,
                          obj->cpoints, degv-degree_v,
-                         &d0, &d1, knv, (lknv-degv)*cpdimen, cp );
+                         &d0, &d1, knv, (lknv-degv)*cpdimen, cp ) )
+        goto failure;
     }
     else {
-      mbs_multiBSDegElevd ( lastknot_u-degree_u, cpdimen, degree_v, lastknot_v,
+      if ( !mbs_multiBSDegElevd ( lastknot_u-degree_u, cpdimen, degree_v, lastknot_v,
                             knots_v, (lastknot_v-degree_v)*cpdimen,
                             obj->cpoints, degv-degree_v,
-                            &d0, &d1, knv, (lknv-degv)*cpdimen, cp, false );
+                            &d0, &d1, knv, (lknv-degv)*cpdimen, cp, false ) )
+        goto failure;
     }
 
 if ( d0 != degv || d1 != lknv ) {

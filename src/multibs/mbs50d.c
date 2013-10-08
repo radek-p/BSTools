@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -147,43 +147,57 @@ boolean mbs_BezC2CoonsToBezd ( int spdimen,
   p3 = &p2[(degu+1)*(degv+1)*spdimen];
 
         /* construct the patch p1 */
-  mbs_multiBCDegElevd ( 1, spdimen, 0, degc00, c00, degu-degc00,
-                        0, &d, &bc[0] );
-  mbs_multiBCDegElevd ( 1, spdimen, 0, degc01, c01, degu-degc01,
-                        0, &d, &bc[(degu+1)*spdimen] );
-  mbs_multiBCDegElevd ( 1, spdimen, 0, degc02, c02, degu-degc02,
-                        0, &d, &bc[2*(degu+1)*spdimen] );
-  mbs_multiBCDegElevd ( 1, spdimen, 0, degc10, c10, degu-degc10,
-                        0, &d, &bc[3*(degu+1)*spdimen] );
-  mbs_multiBCDegElevd ( 1, spdimen, 0, degc11, c11, degu-degc11,
-                        0, &d, &bc[4*(degu+1)*spdimen] );
-  mbs_multiBCDegElevd ( 1, spdimen, 0, degc12, c12, degu-degc12,
-                        0, &d, &bc[5*(degu+1)*spdimen] );
+  if ( !mbs_multiBCDegElevd ( 1, spdimen, 0, degc00, c00, degu-degc00,
+                              0, &d, &bc[0] ) )
+    goto failure;
+  if ( !mbs_multiBCDegElevd ( 1, spdimen, 0, degc01, c01, degu-degc01,
+                              0, &d, &bc[(degu+1)*spdimen] ) )
+    goto failure;
+  if ( !mbs_multiBCDegElevd ( 1, spdimen, 0, degc02, c02, degu-degc02,
+                              0, &d, &bc[2*(degu+1)*spdimen] ) )
+    goto failure;
+  if ( !mbs_multiBCDegElevd ( 1, spdimen, 0, degc10, c10, degu-degc10,
+                              0, &d, &bc[3*(degu+1)*spdimen] ) )
+    goto failure;
+  if ( !mbs_multiBCDegElevd ( 1, spdimen, 0, degc11, c11, degu-degc11,
+                              0, &d, &bc[4*(degu+1)*spdimen] ) )
+    goto failure;
+  if ( !mbs_multiBCDegElevd ( 1, spdimen, 0, degc12, c12, degu-degc12,
+                              0, &d, &bc[5*(degu+1)*spdimen] ) )
+    goto failure;
   pitch = (degu+1)*spdimen;
   mbs_multiInterp2knHermiteBezd ( 1, pitch, 5, 3, pitch, bc,
            3, pitch, &bc[3*(degu+1)*spdimen], pitch, p1 );
   pkv_TransposeMatrixc ( 6, degu+1, spdimen*sizeof(double),
                          (degu+1)*spdimen*sizeof(double), (char*)p1,
                          6*spdimen*sizeof(double), (char*)p );
-  mbs_BCDegElevPd ( spdimen, degu, 5, p, 0, degv-5, &du, &dv, p );
+  if ( !mbs_BCDegElevPd ( spdimen, degu, 5, p, 0, degv-5, &du, &dv, p ) )
+    goto failure;
 
         /* construct the patch p2 */
-  mbs_multiBCDegElevd ( 1, spdimen, 0, degd00, d00, degv-degd00,
-                        0, &d, &bc[0] );
-  mbs_multiBCDegElevd ( 1, spdimen, 0, degd01, d01, degv-degd01,
-                        0, &d, &bc[(degv+1)*spdimen] );
-  mbs_multiBCDegElevd ( 1, spdimen, 0, degd02, d02, degv-degd02,
-                        0, &d, &bc[2*(degv+1)*spdimen] );
-  mbs_multiBCDegElevd ( 1, spdimen, 0, degd10, d10, degv-degd10,
-                        0, &d, &bc[3*(degv+1)*spdimen] );
-  mbs_multiBCDegElevd ( 1, spdimen, 0, degd11, d11, degv-degd11,
-                        0, &d, &bc[4*(degv+1)*spdimen] );
-  mbs_multiBCDegElevd ( 1, spdimen, 0, degd12, d12, degv-degd12,
-                        0, &d, &bc[5*(degv+1)*spdimen] );
+  if ( !mbs_multiBCDegElevd ( 1, spdimen, 0, degd00, d00, degv-degd00,
+                              0, &d, &bc[0] ) )
+    goto failure;
+  if ( !mbs_multiBCDegElevd ( 1, spdimen, 0, degd01, d01, degv-degd01,
+                              0, &d, &bc[(degv+1)*spdimen] ) )
+    goto failure;
+  if ( !mbs_multiBCDegElevd ( 1, spdimen, 0, degd02, d02, degv-degd02,
+                              0, &d, &bc[2*(degv+1)*spdimen] ) )
+    goto failure;
+  if ( !mbs_multiBCDegElevd ( 1, spdimen, 0, degd10, d10, degv-degd10,
+                              0, &d, &bc[3*(degv+1)*spdimen] ) )
+    goto failure;
+  if ( !mbs_multiBCDegElevd ( 1, spdimen, 0, degd11, d11, degv-degd11,
+                              0, &d, &bc[4*(degv+1)*spdimen] ) )
+    goto failure;
+  if ( !mbs_multiBCDegElevd ( 1, spdimen, 0, degd12, d12, degv-degd12,
+                              0, &d, &bc[5*(degv+1)*spdimen] ) )
+    goto failure;
   pitch = (degv+1)*spdimen;
   mbs_multiInterp2knHermiteBezd ( 1, pitch, 5, 3, pitch, bc,
            3, pitch, &bc[3*(degv+1)*spdimen], pitch, p2 );
-  mbs_BCDegElevPd ( spdimen, 5, degv, p2, degu-5, 0, &du, &dv, p2 );
+  if ( !mbs_BCDegElevPd ( spdimen, 5, degv, p2, degu-5, 0, &du, &dv, p2 ) )
+    goto failure;
   pkn_AddMatrixd ( 1, spdimen*(degu+1)*(degv+1), 0, p, 0, p2, 0, p );
 
         /* construct the patch p3 */
@@ -201,7 +215,8 @@ boolean mbs_BezC2CoonsToBezd ( int spdimen,
                                   3, 0, &bc[6*3*spdimen], 0, p3 );
   mbs_multiInterp2knHermiteBezd ( 6, spdimen, 5, 3, 6*spdimen, p3,
                                   3, 6*spdimen, &p3[3*spdimen], 6*spdimen, p2 );
-  mbs_BCDegElevPd ( spdimen, 5, 5, p2, degu-5, degv-5, &du, &dv, p3 );
+  if ( !mbs_BCDegElevPd ( spdimen, 5, 5, p2, degu-5, degv-5, &du, &dv, p3 ) )
+    goto failure;
   pkn_SubtractMatrixd ( 1, spdimen*(degu+1)*(degv+1), 0, p, 0, p3, 0, p );
 
   pkv_SetScratchMemTop ( sp );

@@ -259,14 +259,13 @@ boolean GeomObjectBezierCurveSetDegree ( GO_BezierCurve *obj, int deg )
   cp = malloc ( ncp*obj->me.cpdimen*sizeof(double) );
   mkcp = malloc ( ncp );
   if ( !cp || !mkcp ) {
-    if ( cp )   free ( cp );
-    if ( mkcp ) free ( mkcp );
-    if ( wcp )  free ( wcp );
-    return false;
+    goto failure;
   }
-  if ( deg > obj->degree )
-    mbs_multiBCDegElevd ( 1, obj->me.cpdimen, 0, obj->degree, obj->cpoints,
-                          deg-obj->degree, 0, &deg, cp );
+  if ( deg > obj->degree ) {
+    if ( !mbs_multiBCDegElevd ( 1, obj->me.cpdimen, 0, obj->degree, obj->cpoints,
+                                deg-obj->degree, 0, &deg, cp ) )
+      goto failure;
+  }
   else if ( deg < obj->degree )
     mbs_multiBCDegRedd ( 1, obj->me.cpdimen, 0, obj->degree, obj->cpoints,
                          obj->degree-deg, 0, &deg, cp );
@@ -286,6 +285,12 @@ boolean GeomObjectBezierCurveSetDegree ( GO_BezierCurve *obj, int deg )
   obj->me.dlistmask = 0;
   GeomObjectBezierCurveDisplayInfoText ( obj );
   return true;
+
+failure:
+  if ( cp )   free ( cp );
+  if ( mkcp ) free ( mkcp );
+  if ( wcp )  free ( wcp );
+  return false;
 } /*GeomObjectBezierCurveSetDegree*/
 
 void GeomObjectBezierCurveFindBBox ( GO_BezierCurve *obj, Box3d *box )

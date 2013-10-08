@@ -44,7 +44,8 @@ static boolean FindDiCrossDerad ( int spdimen,
     goto failure;
 
             /* at this point deg1 = 8, deg2 = 7 */
-  mbs_multiBCDegElevd ( 1, spdimen, 0, deg2, aux2, deg1-deg2, 0, &deg2, pv );
+  if ( !mbs_multiBCDegElevd ( 1, spdimen, 0, deg2, aux2, deg1-deg2, 0, &deg2, pv ) )
+    goto failure;
   pkn_AddMatrixd ( 1, spdimen*(deg1+1), 0, pv, 0, aux1, 0, pv );
 
         /* compute pvv = b2*ru + c2*rs + b1^2ruu + 2*b1*c1*rus + c1^2*rss */
@@ -56,7 +57,8 @@ static boolean FindDiCrossDerad ( int spdimen,
     goto failure;
 
             /* at this point deg1 = 9, deg2 = 8 */
-  mbs_multiBCDegElevd ( 1, spdimen, 0, deg2, aux2, deg1-deg2, 0, &deg2, pvv );
+  if ( !mbs_multiBCDegElevd ( 1, spdimen, 0, deg2, aux2, deg1-deg2, 0, &deg2, pvv ) )
+    goto failure;
   pkn_AddMatrixd ( 1, spdimen*(deg1+1), 0, pvv, 0, aux1, 0, pvv );
   if ( !mbs_multiMultBezCd ( 1, 2*G2_BF01DEG, 0, b1b1, spdimen, 1, G2_CROSS00DEG-2, 0,
                        r0uu, &deg1, 0, aux1 ) )
@@ -65,13 +67,15 @@ static boolean FindDiCrossDerad ( int spdimen,
                        r0us, &deg2, 0, aux2 ) )
     goto failure;
             /* at this point deg1 = 9, deg2 = 8 */
-  mbs_multiBCDegElevd ( 1, spdimen, 0, deg2, aux2, deg1-deg2, 0, &deg2, aux3 );
+  if ( !mbs_multiBCDegElevd ( 1, spdimen, 0, deg2, aux2, deg1-deg2, 0, &deg2, aux3 ) )
+    goto failure;
   pkn_AddMatrixd ( 1, spdimen*(deg1+1), 0, aux1, 0, aux3, 0, aux1 );
   if ( !mbs_multiMultBezCd ( 1, 2*G2_CG01DEG, 0, c1c1, spdimen, 1, G2_CROSS00DEG-2, 0,
                        r0ss, &deg2, 0, aux2 ) )
     goto failure;
             /* at this point deg1 = 9, deg2 = 7 */
-  mbs_multiBCDegElevd ( 1, spdimen, 0, deg2, aux2, deg1-deg2, 0, &deg2, aux3 );
+  if ( !mbs_multiBCDegElevd ( 1, spdimen, 0, deg2, aux2, deg1-deg2, 0, &deg2, aux3 ) )
+    goto failure;
   pkn_AddMatrixd ( 1, spdimen*(deg1+1), 0, aux1, 0, aux3, 0, aux1 );
   pkn_AddMatrixd ( 1, spdimen*(G2_CROSS02DEG+1), 0, pvv, 0, aux1, 0, pvv );
 
@@ -130,7 +134,9 @@ static boolean FindDiCrossDerbd ( int spdimen,
     goto failure;
             /* at this point deg1 = deg2 = 7 = G2_CROSS12DEG-2 */
   pkn_AddMatrixd ( 1, spdimen*(deg1+1), 0, aux1, 0, aux2, 0, aux3 );
-  mbs_multiBCDegElevd ( 1, spdimen, 0, deg1, aux3, G2_CROSS12DEG-deg1, 0, &deg1, pvv );
+  if ( !mbs_multiBCDegElevd ( 1, spdimen, 0, deg1, aux3, G2_CROSS12DEG-deg1,
+                              0, &deg1, pvv ) )
+    goto failure;
 
   if ( !mbs_multiMultBezCd ( 1, 2*G2_BF11DEG, 0, b1b1, spdimen, 1, 1, 0,
                        r0uu, &deg1, 0, aux1 ) )

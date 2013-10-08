@@ -29,9 +29,10 @@ boolean mbs_multiBSDegElevClosedf ( int ncurves, int spdimen,
 
   sp = pkv_GetScratchMemTop ();
   T = inknots[inlastknot-indegree]-inknots[indegree];
-  mbs_multiBSDegElevf ( ncurves, spdimen, indegree, inlastknot, inknots,
-                        inpitch, inctlpoints, deltadeg, outdegree, &lkn,
-                        outknots, outpitch, outctlpoints, false );
+  if ( !mbs_multiBSDegElevf ( ncurves, spdimen, indegree, inlastknot, inknots,
+                              inpitch, inctlpoints, deltadeg, outdegree, &lkn,
+                              outknots, outpitch, outctlpoints, false ) )
+    goto failure;
   deg = *outdegree;
   if ( !(nlkn = pkv_GetScratchMemf ( deg+1 )) ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );

@@ -130,10 +130,11 @@ boolean mbs_multiBSDegElevd ( int ncurves, int spdimen,
     goto failure;
   auxcp += skipl*spdimen;
   lkn -= skipl+skipr;
-  for ( k = 0; k < ncurves; k++ )
-    mbs_multiBCDegElevd ( ki, spdimen, (indegree+1)*spdimen, indegree, NULL,
-                          deltadeg, ap, outdegree,
-                          &auxcp[k*auxpitch] );
+  for ( k = 0; k < ncurves; k++ ) {
+    if ( !mbs_multiBCDegElevd ( ki, spdimen, (indegree+1)*spdimen, indegree, NULL,
+                                deltadeg, ap, outdegree, &auxcp[k*auxpitch] ) )
+      goto failure;
+  }
   
 /* construct the final knot sequence - each knot has the multiplicity */
 /* increased by deltadeg, in the array outknots, and the intermediate */

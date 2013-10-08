@@ -251,17 +251,20 @@ boolean GeomObjectBezierPatchSetDegreeU ( GO_BezierPatch *obj, int degu )
   ncp = (degu+1)*(obj->degree_v+1);
   cp = malloc ( ncp*obj->me.cpdimen*sizeof(double) );
   mkcp = malloc ( ncp );
-  if ( !cp || !mkcp ) {
-    if ( cp ) free ( cp );
-    if ( mkcp ) free ( mkcp );
-    return false;
+  if ( !cp || !mkcp )
+    goto failure;
+  if ( degu > obj->degree_u ) {
+    if ( !mbs_BCDegElevPd ( obj->me.cpdimen, obj->degree_u, obj->degree_v,
+                            obj->cpoints, degu-obj->degree_u, 0,
+                            &degu, &degv, cp  ) )
+      goto failure;
   }
-  if ( degu > obj->degree_u )
-    mbs_BCDegElevPd ( obj->me.cpdimen, obj->degree_u, obj->degree_v, obj->cpoints,
-                      degu-obj->degree_u, 0, &degu, &degv, cp  );
-  else if ( degu < obj->degree_u )
-    mbs_BCDegRedPd ( obj->me.cpdimen, obj->degree_u, obj->degree_v, obj->cpoints,
-                     obj->degree_u-degu, 0, &degu, &degv, cp  );
+  else if ( degu < obj->degree_u ) {
+    if ( !mbs_BCDegRedPd ( obj->me.cpdimen, obj->degree_u, obj->degree_v,
+                           obj->cpoints, obj->degree_u-degu, 0,
+                           &degu, &degv, cp  ) )
+      goto failure;
+  }
   else
     memcpy ( cp, obj->cpoints, ncp*obj->me.cpdimen*sizeof(double) );
   free ( obj->cpoints );
@@ -278,6 +281,11 @@ boolean GeomObjectBezierPatchSetDegreeU ( GO_BezierPatch *obj, int degu )
   }
   GeomObjectBezierPatchDisplayInfoText ( obj );
   return true;
+
+failure:
+  if ( cp ) free ( cp );
+  if ( mkcp ) free ( mkcp );
+  return false;
 } /*GeomObjectBezierPatchSetDegreeU*/
 
 boolean GeomObjectBezierPatchSetDegreeV ( GO_BezierPatch *obj, int degv )
@@ -293,17 +301,20 @@ boolean GeomObjectBezierPatchSetDegreeV ( GO_BezierPatch *obj, int degv )
   ncp = (obj->degree_u+1)*(degv+1);
   cp = malloc ( ncp*obj->me.cpdimen*sizeof(double) );
   mkcp = malloc ( ncp );
-  if ( !cp || !mkcp ) {
-    if ( cp ) free ( cp );
-    if ( mkcp ) free ( mkcp );
-    return false;
+  if ( !cp || !mkcp )
+    goto failure;
+  if ( degv > obj->degree_v ) {
+    if ( !mbs_BCDegElevPd ( obj->me.cpdimen, obj->degree_u, obj->degree_v,
+                            obj->cpoints, 0, degv-obj->degree_v,
+                            &degu, &degv, cp ) )
+      goto failure;
   }
-  if ( degv > obj->degree_v )
-    mbs_BCDegElevPd ( obj->me.cpdimen, obj->degree_u, obj->degree_v, obj->cpoints,
-                      0, degv-obj->degree_v, &degu, &degv, cp  );
-  else if ( degv < obj->degree_v )
-    mbs_BCDegRedPd ( obj->me.cpdimen, obj->degree_u, obj->degree_v, obj->cpoints,
-                     0, obj->degree_v-degv, &degu, &degv, cp  );
+  else if ( degv < obj->degree_v ) {
+    if ( !mbs_BCDegRedPd ( obj->me.cpdimen, obj->degree_u, obj->degree_v,
+                           obj->cpoints, 0, obj->degree_v-degv,
+                           &degu, &degv, cp ) )
+      goto failure;
+  }
   else
     memcpy ( cp, obj->cpoints, ncp*obj->me.cpdimen*sizeof(double) );
   free ( obj->cpoints );
@@ -320,6 +331,11 @@ boolean GeomObjectBezierPatchSetDegreeV ( GO_BezierPatch *obj, int degv )
   }
   GeomObjectBezierPatchDisplayInfoText ( obj );
   return true;
+
+failure:
+  if ( cp ) free ( cp );
+  if ( mkcp ) free ( mkcp );
+  return false;
 } /*GeomObjectBezierPatchSetDegreeV*/
 
 boolean GeomObjectBezierPatchFlipUV ( GO_BezierPatch *obj )

@@ -813,12 +813,20 @@ int Nt, r, s, t, pt;
         printf ( "Not enough memory\n" );
         exit ( 1 );
       }
-      if ( kwind.closed )
-        mbs_BSDegElevClosedC3d ( kwind.degree, kwind.lastknot, knots, cpoints, 1,
-                                 &kwind.degree, &kwind.lastknot, nkn, ncp );
-      else
-        mbs_BSDegElevC3d ( kwind.degree, kwind.lastknot, knots, cpoints, 1,
-                           &kwind.degree, &kwind.lastknot, nkn, ncp, true );
+      if ( kwind.closed ) {
+        if ( !mbs_BSDegElevClosedC3d ( kwind.degree, kwind.lastknot, knots, cpoints, 1,
+                                       &kwind.degree, &kwind.lastknot, nkn, ncp ) ) {
+          pkv_SetScratchMemTop ( sp );
+          return false;
+        }
+      }
+      else {
+        if ( !mbs_BSDegElevC3d ( kwind.degree, kwind.lastknot, knots, cpoints, 1,
+                                 &kwind.degree, &kwind.lastknot, nkn, ncp, true ) ) {
+          pkv_SetScratchMemTop ( sp );
+          return false;
+        }
+      }
       npoints = kwind.lastknot-kwind.degree;
       memcpy ( knots, nkn, (kwind.lastknot+1)*sizeof(double) );
       memcpy ( cpoints, ncp, npoints*sizeof(point3d) );

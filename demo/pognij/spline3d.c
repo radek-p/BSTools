@@ -337,12 +337,20 @@ boolean DegreeElevation ( void )
         printf ( "Not enough memory\n" );
         exit ( 1 );
       }
-      if ( kwind.closed )
-        mbs_BSDegElevClosedC4d ( kwind.degree, kwind.lastknot, knots, cpoints, 1,
-                                 &kwind.degree, &kwind.lastknot, nkn, ncp );
-      else
-        mbs_BSDegElevC4d ( kwind.degree, kwind.lastknot, knots, cpoints, 1,
-                           &kwind.degree, &kwind.lastknot, nkn, ncp, true );
+      if ( kwind.closed ) {
+        if ( !mbs_BSDegElevClosedC4d ( kwind.degree, kwind.lastknot, knots, cpoints, 1,
+                                       &kwind.degree, &kwind.lastknot, nkn, ncp ) ) {
+          pkv_SetScratchMemTop ( sp );
+          return false;
+        }
+      }
+      else {
+        if ( !mbs_BSDegElevC4d ( kwind.degree, kwind.lastknot, knots, cpoints, 1,
+                                 &kwind.degree, &kwind.lastknot, nkn, ncp, true ) ) {
+          pkv_SetScratchMemTop ( sp );
+          return false;
+        }
+      }
       npoints = kwind.lastknot-kwind.degree;
       memcpy ( knots, nkn, (kwind.lastknot+1)*sizeof(double) );
       memcpy ( cpoints, ncp, npoints*sizeof(point4d) );

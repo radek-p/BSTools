@@ -44,7 +44,8 @@ void g1h_DrawDomAuxPatchesf ( GHoleDomainf *domain,
 
   for ( i = 0; i < hole_k; i++ ) {
     memcpy ( auxp, omc, (G1H_OMCDEG+1)*sizeof(point2f) );
-    mbs_BCDegElevC2f ( 3, omcd, 1, &j, &auxp[(G1H_OMCDEG+1)] );
+    if ( !mbs_BCDegElevC2f ( 3, omcd, 1, &j, &auxp[(G1H_OMCDEG+1)] ) )
+      goto finish;
     for ( j = 0; j <= G1H_OMCDEG; j++ )
       AddVector2f ( &auxp[j], &auxp[(G1H_OMCDEG+1)+j], &auxp[(G1H_OMCDEG+1)+j] );
     drawpatch ( 1, G1H_OMCDEG, auxp );
@@ -86,7 +87,8 @@ void g1h_DrawBasAuxPatchesf ( GHoleDomainf *domain, int fn,
 
   for ( i = 0; i < hole_k; i++ ) {
     memcpy ( auxp, omc, (G1H_OMCDEG+1)*sizeof(float) );
-    mbs_BCDegElevC1f ( G1H_OMCDEG-1, omcd, 1, &j, &auxp[G1H_OMCDEG+1] );
+    if ( !mbs_BCDegElevC1f ( G1H_OMCDEG-1, omcd, 1, &j, &auxp[G1H_OMCDEG+1] ) )
+      goto finish;
     for ( j = 0; j <= G1H_OMCDEG; j++ )
       auxp[G1H_OMCDEG+1+j] += auxp[j];
     drawpatch ( 1, G1H_OMCDEG, auxp );

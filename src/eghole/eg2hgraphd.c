@@ -45,8 +45,10 @@ void g2h_DrawDomAuxPatchesd ( GHoleDomaind *domain,
 
   for ( i = 0; i < hole_k; i++ ) {
     memcpy ( auxp, omc, (G2H_OMCDEG+1)*sizeof(point2d) );
-    mbs_BCDegElevC2d ( 6, omcd, 1, &j, &auxp[8] );
-    mbs_BCDegElevC2d ( 5, omcdd, 2, &j, &auxp[16] );
+    if ( !mbs_BCDegElevC2d ( 6, omcd, 1, &j, &auxp[8] ) )
+      goto finish;
+    if ( !mbs_BCDegElevC2d ( 5, omcdd, 2, &j, &auxp[16] ) )
+      goto finish;
     for ( j = 0; j <= G2H_OMCDEG; j++ ) {
       MultVector2d ( 0.5, &auxp[8+j], &auxp[8+j] );
       AddVector2Md ( &auxp[8+j], &auxp[16+j], 0.5, &auxp[16+j] );
@@ -94,8 +96,10 @@ void g2h_DrawBasAuxPatchesd ( GHoleDomaind *domain, int fn,
 
   for ( i = 0; i < hole_k; i++ ) {
     memcpy ( auxp, omc, (G2H_OMCDEG+1)*sizeof(double) );
-    mbs_BCDegElevC1d ( 6, omcd, 1, &j, &auxp[8] );
-    mbs_BCDegElevC1d ( 5, omcdd, 2, &j, &auxp[16] );
+    if ( !mbs_BCDegElevC1d ( 6, omcd, 1, &j, &auxp[8] ) )
+      goto finish;
+    if ( !mbs_BCDegElevC1d ( 5, omcdd, 2, &j, &auxp[16] ) )
+      goto finish;
     for ( j = 0; j <= G2H_OMCDEG; j++ ) {
       auxp[8+j] *= 0.5;
       auxp[16+j] = (double)(auxp[8+j] + 0.5*auxp[16+j]);

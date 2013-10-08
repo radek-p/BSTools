@@ -329,14 +329,22 @@ boolean EqMerDegreeElevation ( void )
         printf ( "Not enough memory\n" );
         exit ( 1 );
       }
-      if ( ckwind->closed )
-        mbs_BSDegElevClosedC3d ( ckwind->degree, ckwind->lastknot,
+      if ( ckwind->closed ) {
+        if ( !mbs_BSDegElevClosedC3d ( ckwind->degree, ckwind->lastknot,
                                  ckwind->knots, eqmer_cpoints, 1,
-                                 &ckwind->degree, &ckwind->lastknot, nkn, ncp );
-      else
-        mbs_BSDegElevC3d ( ckwind->degree, ckwind->lastknot,
+                                 &ckwind->degree, &ckwind->lastknot, nkn, ncp ) ) {
+          pkv_SetScratchMemTop ( sp );
+          return false;
+        }
+      }
+      else {
+        if ( !mbs_BSDegElevC3d ( ckwind->degree, ckwind->lastknot,
                            ckwind->knots, eqmer_cpoints, 1,
-                           &ckwind->degree, &ckwind->lastknot, nkn, ncp, true );
+                           &ckwind->degree, &ckwind->lastknot, nkn, ncp, true ) ) {
+          pkv_SetScratchMemTop ( sp );
+          return false;
+        }
+      }
       neqmerpoints = ckwind->lastknot-ckwind->degree;
       memcpy ( ckwind->knots, nkn, (ckwind->lastknot+1)*sizeof(double) );
       memcpy ( eqmer_cpoints, ncp, neqmerpoints*sizeof(point3d) );

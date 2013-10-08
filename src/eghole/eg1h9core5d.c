@@ -36,7 +36,8 @@ static boolean FindDiCrossDerad ( int spdimen,
     goto failure;
 
             /* at this point deg1 = 5, deg2 = 4 */
-  mbs_multiBCDegElevd ( 1, spdimen, 0, deg2, aux2, deg1-deg2, 0, &deg2, pv );
+  if ( !mbs_multiBCDegElevd ( 1, spdimen, 0, deg2, aux2, deg1-deg2, 0, &deg2, pv ) )
+    goto failure;
   pkn_AddMatrixd ( 1, spdimen*(deg1+1), 0, pv, 0, aux1, 0, pv );
 
   pkv_SetScratchMemTop ( sp );

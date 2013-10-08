@@ -33,33 +33,35 @@ static boolean _mbs_DegRedFindMatrixd ( int indegree,
                      int *nrows, int *ncols,
                      bandm_profile **prof, double **mtrx )
 {
-  void          *sp;
+  void          *sp1, *sp2;
   int           i, j, _nrows, _ncols, coll, fkn, kmat;
   int           ii, jj, kk, ll, mm, ra, rb;
   double        ta, tb;
   bandm_profile *_prof;
   double        *_mtrx, *a, *b, *auxknots2;
 
+  sp1 = pkv_GetScratchMemTop ();
   *nrows = _nrows = Naux-indegree;
   *ncols = _ncols = Nout-outdeg;
   coll = deltadeg*(outdeg+1)+1;
   *prof = _prof = pkv_GetScratchMem ( (_ncols+1)*sizeof(bandm_profile) );
   *mtrx = _mtrx = pkv_GetScratchMemd ( _ncols*coll );
-  sp = pkv_GetScratchMemTop ();
+  sp2 = pkv_GetScratchMemTop ();
   a = pkv_GetScratchMemd ( 2*outdeg+1 );
   b = pkv_GetScratchMemd ( Naux );
   auxknots2 = pkv_GetScratchMemd ( 3*outdeg*(deltadeg+1)+2 );
   if ( !_prof || !_mtrx || !a || !b || !auxknots2 ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
-    return false;
+    goto failure;
   }
 
   memset ( a, 0, (2*outdeg+1)*sizeof(double) );
   a[outdeg] = 1.0;
   for ( i = fkn = kmat = 0; i < _ncols; i++ ) {
         /* compute the matrix column coefficients */
-    mbs_BSDegElevC1d ( outdeg, 3*outdeg+1, &outknots[i-outdeg], a, deltadeg,
-                       &ii, &mm, auxknots2, b, true );
+    if ( !mbs_BSDegElevC1d ( outdeg, 3*outdeg+1, &outknots[i-outdeg], a, deltadeg,
+                             &ii, &mm, auxknots2, b, true ) )
+      goto failure;
         /* identify the nonzero ones and their position in the column */
     for ( j = i; auxknots[0] > outknots[j]; j++ ) ;
     ta = outknots[j];  tb = outknots[i+outdeg+1];
@@ -80,8 +82,12 @@ static boolean _mbs_DegRedFindMatrixd ( int indegree,
   }
   _prof[_ncols].firstnz = 0;
   _prof[_ncols].ind = kmat;
-  pkv_SetScratchMemTop ( sp );
+  pkv_SetScratchMemTop ( sp2 );
   return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp1 );
+  return false;
 } /*_mbs_DegRedFindMatrixd*/
 
 /* ///////////////////////////////////////////////////////////////////////// */

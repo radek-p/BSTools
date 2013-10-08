@@ -152,9 +152,10 @@ boolean mbs_multiAdjustBSCRepd ( int ncurves, int spdimen,
     ctlp = pkv_GetScratchMemd ( ncurves*ptch );
     if ( !knt || !ctlp )
       goto failure;
-    mbs_multiBSDegElevd ( ncurves, spdimen, indegree, inlastknot, inknots,
-                          inpitch, inctlpoints, outdegree-indegree,
-                          &outdegree, &lknt, knt, ptch, ctlp, false );
+    if ( !mbs_multiBSDegElevd ( ncurves, spdimen, indegree, inlastknot, inknots,
+                                inpitch, inctlpoints, outdegree-indegree,
+                                &outdegree, &lknt, knt, ptch, ctlp, false ) )
+      goto failure;
   }
   else {
         /* just copy data */

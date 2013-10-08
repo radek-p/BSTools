@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -619,7 +619,8 @@ static void ConstructFinalPatches ( int hole_k, point3d *npatch,
       InterPoint3d ( &q0b[0], &fp[6*j+1], 5.0/3.0, &q0b[1] );
       q0b[3] = fp[6*j+5];
       InterPoint3d ( &q0b[3], &fp[6*j+4], 5.0/3.0, &q0b[2] );
-      mbs_BCDegElevC3d ( 3, q0b, 2, &k, r0b );
+      if ( !mbs_BCDegElevC3d ( 3, q0b, 2, &k, r0b ) )
+        exit ( 1 );
       fp[6*j+2] = r0b[2];  fp[6*j+3] = r0b[3];
     }
     for ( j = 2; j <= 3; j++ ) {
@@ -627,7 +628,8 @@ static void ConstructFinalPatches ( int hole_k, point3d *npatch,
       InterPoint3d ( &q0b[0], &fp[j+6], 5.0/3.0, &q0b[1] );
       q0b[3] = fp[j+30];
       InterPoint3d ( &q0b[3], &fp[j+24], 5.0/3.0, &q0b[2] );
-      mbs_BCDegElevC3d ( 3, q0b, 2, &k, r0b );
+      if ( !mbs_BCDegElevC3d ( 3, q0b, 2, &k, r0b ) )
+        exit ( 1 );
       MidPoint3d ( &fp[j+12], &r0b[2], &fp[j+12] );
       MidPoint3d ( &fp[j+18], &r0b[3], &fp[j+18] );
     }

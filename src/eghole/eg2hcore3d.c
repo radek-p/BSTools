@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2008                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -229,8 +229,9 @@ case G2H_DOMAIN_CURVES_DEG4:
     }
     mbs_multiInterp2knHermiteBezd ( hole_k, 2, 4,
          2, 16, (double*)omcbc, 3, 16, (double*)&omcbc[5], 10, (double*)auxomc );
-    mbs_multiBCDegElevd ( hole_k, 2, 10, 4, (double*)auxomc,
-                          G2_CROSS00DEG-4, 16, &ndata, (double*)omc );
+    if ( !mbs_multiBCDegElevd ( hole_k, 2, 10, 4, (double*)auxomc,
+                                G2_CROSS00DEG-4, 16, &ndata, (double*)omc ) )
+      goto failure;
         /* derivatives of order 2, 3, 4 at 0 are computed "by hand" */
     for ( i = 0; i < hole_k; i++ ) {
       for ( j = 1; j <= 4; j++ )
@@ -243,8 +244,9 @@ case G2H_DOMAIN_CURVES_DEG4:
         /* similarly, first order cross derivatives */
     mbs_multiInterp2knHermiteBezd ( hole_k, 2, 3,
          1, 14, (double*)omcbcd, 3, 14, (double*)&omcbcd[4], 10, (double*)auxomc );
-    mbs_multiBCDegElevd ( hole_k, 2, 10, 3, (double*)auxomc,
-                          G2_CROSS00DEG-1-3, 14, &ndata, (double*)omcd );
+    if ( !mbs_multiBCDegElevd ( hole_k, 2, 10, 3, (double*)auxomc,
+                                G2_CROSS00DEG-1-3, 14, &ndata, (double*)omcd ) )
+      goto failure;
     for ( i = 0; i < hole_k; i++ ) {
       for ( j = 1; j <= 3; j++ )
         for ( l = 3; l >= j; l-- )
@@ -257,8 +259,9 @@ case G2H_DOMAIN_CURVES_DEG4:
         /* second order cross derivatives */
     mbs_multiInterp2knHermiteBezd ( hole_k, 2, 3,
          1, 12, (double*)omcbcdd, 3, 12, (double*)&omcbcdd[3], 10, (double*)auxomc );
-    mbs_multiBCDegElevd ( hole_k, 2, 10, 3, (double*)auxomc,
-                          G2_CROSS00DEG-2-3, 12, &ndata, (double*)omcdd );
+    if ( !mbs_multiBCDegElevd ( hole_k, 2, 10, 3, (double*)auxomc,
+                                G2_CROSS00DEG-2-3, 12, &ndata, (double*)omcdd ) )
+      goto failure;
     for ( i = 0; i < hole_k; i++ ) {
       for ( j = 1; j <= 2; j++ )
         for ( l = 2; l >= j; l-- )

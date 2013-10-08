@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2008                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -229,8 +229,9 @@ case G2H_DOMAIN_CURVES_DEG4:
     }
     mbs_multiInterp2knHermiteBezf ( hole_k, 2, 4,
          2, 16, (float*)omcbc, 3, 16, (float*)&omcbc[5], 10, (float*)auxomc );
-    mbs_multiBCDegElevf ( hole_k, 2, 10, 4, (float*)auxomc,
-                          G2_CROSS00DEG-4, 16, &ndata, (float*)omc );
+    if ( !mbs_multiBCDegElevf ( hole_k, 2, 10, 4, (float*)auxomc,
+                                G2_CROSS00DEG-4, 16, &ndata, (float*)omc ) )
+      goto failure;
         /* derivatives of order 2, 3, 4 at 0 are computed "by hand" */
     for ( i = 0; i < hole_k; i++ ) {
       for ( j = 1; j <= 4; j++ )
@@ -243,8 +244,9 @@ case G2H_DOMAIN_CURVES_DEG4:
         /* similarly, first order cross derivatives */
     mbs_multiInterp2knHermiteBezf ( hole_k, 2, 3,
          1, 14, (float*)omcbcd, 3, 14, (float*)&omcbcd[4], 10, (float*)auxomc );
-    mbs_multiBCDegElevf ( hole_k, 2, 10, 3, (float*)auxomc,
-                          G2_CROSS00DEG-1-3, 14, &ndata, (float*)omcd );
+    if ( !mbs_multiBCDegElevf ( hole_k, 2, 10, 3, (float*)auxomc,
+                                G2_CROSS00DEG-1-3, 14, &ndata, (float*)omcd ) )
+      goto failure;
     for ( i = 0; i < hole_k; i++ ) {
       for ( j = 1; j <= 3; j++ )
         for ( l = 3; l >= j; l-- )
@@ -257,8 +259,9 @@ case G2H_DOMAIN_CURVES_DEG4:
         /* second order cross derivatives */
     mbs_multiInterp2knHermiteBezf ( hole_k, 2, 3,
          1, 12, (float*)omcbcdd, 3, 12, (float*)&omcbcdd[3], 10, (float*)auxomc );
-    mbs_multiBCDegElevf ( hole_k, 2, 10, 3, (float*)auxomc,
-                          G2_CROSS00DEG-2-3, 12, &ndata, (float*)omcdd );
+    if ( !mbs_multiBCDegElevf ( hole_k, 2, 10, 3, (float*)auxomc,
+                                G2_CROSS00DEG-2-3, 12, &ndata, (float*)omcdd ) )
+      goto failure;
     for ( i = 0; i < hole_k; i++ ) {
       for ( j = 1; j <= 2; j++ )
         for ( l = 2; l >= j; l-- )

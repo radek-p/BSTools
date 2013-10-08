@@ -41,12 +41,16 @@ boolean DegreeElevationU ( void )
     cpa = pkv_GetScratchMem ( MAX_KNOTS*sizeof(point3d) );
     if ( !ua || !cpa )
       goto failure;
-    if ( kwind.closed_u )
-      mbs_BSDegElevClosedC3d ( degree_u, lastknot_u, knots_u,
-                               equator_cpoints, 1, &na, &Na, ua, cpa );
-    else
-      mbs_BSDegElevC3d ( degree_u, lastknot_u, knots_u,
-                         equator_cpoints, 1, &na, &Na, ua, cpa, true );
+    if ( kwind.closed_u ) {
+      if ( !mbs_BSDegElevClosedC3d ( degree_u, lastknot_u, knots_u,
+                                     equator_cpoints, 1, &na, &Na, ua, cpa ) )
+        goto failure;
+    }
+    else {
+      if ( !mbs_BSDegElevC3d ( degree_u, lastknot_u, knots_u,
+                               equator_cpoints, 1, &na, &Na, ua, cpa, true ) )
+        goto failure;
+    }
     memcpy ( equator_knots, ua, (Na+1)*sizeof(double) );
     memcpy ( equator_cpoints, cpa, (Na-na)*sizeof(point3d) );
     memset ( equator_mkpoints, 0, (Na-na)*sizeof(boolean) );
@@ -65,16 +69,19 @@ boolean DegreeElevationU ( void )
       goto failure;
 
     if ( kwind.closed_u ) {
-      mbs_multiBSDegElevClosedd ( 1, (lastknot_v-degree_v)*4, degree_u,
+      if ( !mbs_multiBSDegElevClosedd ( 1, (lastknot_v-degree_v)*4, degree_u,
                lastknot_u, knots_u, 0, (double*)cpoints, 1, &na, &Na, ua,
-               0, cpa );
+               0, cpa ) )
+        goto failure;
       kwind.clcKu = Na-2*na;
       kwind.clcTu = ua[na+kwind.clcKu]-ua[na];
     }
-    else
-      mbs_multiBSDegElevd ( 1, (lastknot_v-degree_v)*4, degree_u,
+    else {
+      if ( !mbs_multiBSDegElevd ( 1, (lastknot_v-degree_v)*4, degree_u,
                lastknot_u, knots_u, 0, (double*)cpoints, 1, &na, &Na, ua,
-               0, cpa, false );
+               0, cpa, false ) )
+        goto failure;
+    }
     degree_u = na;
     lastknot_u = Na;
     memcpy ( knots_u, ua, (lastknot_u+1)*sizeof(double) );
@@ -117,12 +124,16 @@ boolean DegreeElevationV ( void )
     cpa = pkv_GetScratchMem ( (lastknot_v-degree_v+kv+r)*sizeof(point3d) );
     if ( !va || !cpa )
       goto failure;
-    if ( kwind.closed_v )
-      mbs_BSDegElevClosedC3d ( degree_v, lastknot_v, knots_v,
-                               meridian_cpoints, 1, &ma, &Ma, va, cpa );
-    else
-      mbs_BSDegElevC3d ( degree_v, lastknot_v, knots_v,
-                         meridian_cpoints, 1, &ma, &Ma, va, cpa, true );
+    if ( kwind.closed_v ) {
+      if ( !mbs_BSDegElevClosedC3d ( degree_v, lastknot_v, knots_v,
+                                     meridian_cpoints, 1, &ma, &Ma, va, cpa ) )
+        goto failure;
+    }
+    else {
+      if ( !mbs_BSDegElevC3d ( degree_v, lastknot_v, knots_v,
+                               meridian_cpoints, 1, &ma, &Ma, va, cpa, true ) )
+        goto failure;
+    }
     memcpy ( meridian_knots, va, (Ma+1)*sizeof(double) );
     memcpy ( meridian_cpoints, cpa, (Ma-ma)*sizeof(point3d) );
     memset ( meridian_mkpoints, 0, (Ma-ma)*sizeof(boolean) );
@@ -142,17 +153,19 @@ boolean DegreeElevationV ( void )
     pitch1 = (lastknot_v-degree_v)*4;
     if ( kwind.closed_v ) {
       pitch2 = (lastknot_v-degree_v+kv+r-s-t)*4;
-      mbs_multiBSDegElevClosedd ( lastknot_u-degree_u, 4, degree_v,
+      if ( !mbs_multiBSDegElevClosedd ( lastknot_u-degree_u, 4, degree_v,
                lastknot_v, knots_v, pitch1,
-               (double*)cpoints, 1, &ma, &Ma, va, pitch2, cpa );
+               (double*)cpoints, 1, &ma, &Ma, va, pitch2, cpa ) )
+        goto failure;
       kwind.clcKv = Ma-2*ma;
       kwind.clcTv = va[ma+kwind.clcKv]-va[ma];
     }
     else {
       pitch2 = (lastknot_v-degree_v+kv-s-t)*4;
-      mbs_multiBSDegElevd ( lastknot_u-degree_u, 4, degree_v,
+      if ( !mbs_multiBSDegElevd ( lastknot_u-degree_u, 4, degree_v,
                lastknot_v, knots_v, pitch1, (double*)cpoints, 1,
-               &ma, &Ma, va, pitch2, cpa, false );
+               &ma, &Ma, va, pitch2, cpa, false ) )
+        goto failure;
     }
     degree_v = ma;
     lastknot_v = Ma;

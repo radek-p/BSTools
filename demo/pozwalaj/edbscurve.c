@@ -344,14 +344,18 @@ boolean GeomObjectBSplineCurveSetDegree ( GO_BSplineCurve *obj, int deg )
     cp = malloc ( ncp*obj->me.cpdimen*sizeof(double) );
     if ( !kn || !cp )
       goto failure;
-    if ( !obj->closed )
-      mbs_multiBSDegElevd ( 1, obj->me.cpdimen, obj->degree, obj->lastknot,
+    if ( !obj->closed ) {
+      if ( !mbs_multiBSDegElevd ( 1, obj->me.cpdimen, obj->degree, obj->lastknot,
                             obj->knots, 0, obj->cpoints, deg-obj->degree,
-                            &deg, &nnlkn, kn, 0, cp, true );
-    else
-      mbs_multiBSDegElevClosedd ( 1, obj->me.cpdimen, obj->degree, obj->lastknot,
+                            &deg, &nnlkn, kn, 0, cp, true ) )
+        goto failure;
+    }
+    else {
+      if ( !mbs_multiBSDegElevClosedd ( 1, obj->me.cpdimen, obj->degree, obj->lastknot,
                                   obj->knots, 0, obj->cpoints, deg-obj->degree,
-                                  &deg, &nnlkn, kn, 0, cp );
+                                  &deg, &nnlkn, kn, 0, cp ) )
+        goto failure;
+    }
   }
   else if ( deg < obj->degree ) {
         /* upper bounds for the numbers of new knots and control points */
