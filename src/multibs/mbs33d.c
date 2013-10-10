@@ -24,14 +24,16 @@ boolean mbs_multiBCHornerDer2d ( int degree, int ncurves, int spdimen, int pitch
                                  const double *ctlpoints,
                                  double t, double *p, double *d1, double *d2 )
 {
+  void  *sp;
   int   i;
   double *a, s;
 
+  sp = pkv_GetScratchMemTop ();
   if ( degree <= 1 ) {
-    mbs_multiBCHornerDerd ( degree, ncurves, spdimen, pitch, ctlpoints,
-                            t, p, d1 );
+    if ( !mbs_multiBCHornerDerd ( degree, ncurves, spdimen, pitch, ctlpoints,
+                                  t, p, d1 ) )
+      goto failure;
     memset ( d2, 0, ncurves*spdimen*sizeof(double) );
-    return true;
   }
   else if ( (a = pkv_GetScratchMemd ( 3*spdimen )) ) {
     s = 1.0-t;
@@ -51,19 +53,25 @@ boolean mbs_multiBCHornerDer2d ( int degree, int ncurves, int spdimen, int pitch
                                (double)degree, 0, d1 );
       pkn_MatrixLinCombd ( 1, spdimen, 0, a, s, 0, &a[spdimen], t, 0, p );
     }
-    pkv_FreeScratchMemd ( 3*spdimen );
-    return true;
   }
   else
-    return false;
+    goto failure;
+
+  pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*mbs_multiBCHornerDer2d*/
 
-void mbs_BCHornerDer2C2Rd ( int degree, const point3d *ctlpoints, double t,
-                            point2d *p, vector2d *d1, vector2d *d2 )
+boolean mbs_BCHornerDer2C2Rd ( int degree, const point3d *ctlpoints, double t,
+                               point2d *p, vector2d *d1, vector2d *d2 )
 {
   point3d hp, hd1, hd2;
 
-  mbs_BCHornerDer2C3d ( degree, ctlpoints, t, &hp, &hd1, &hd2 );
+  if ( !mbs_BCHornerDer2C3d ( degree, ctlpoints, t, &hp, &hd1, &hd2 ) )
+    return false;
   Point3to2d ( &hp, p );
   memcpy ( d1, &hd1, sizeof(vector2d) );
   AddVector2Md ( d1, p, -hd1.z, d1 );
@@ -72,14 +80,16 @@ void mbs_BCHornerDer2C2Rd ( int degree, const point3d *ctlpoints, double t,
   AddVector2Md ( d2, d1, -2.0*hd1.z, d2 );
   AddVector2Md ( d2, p, -hd2.z, d2 );
   MultVector2d ( 1.0/hp.z, d2, d2 );
+  return true;
 } /*mbs_BCHornerDer2C2Rd*/
 
-void mbs_BCHornerDer2C3Rd ( int degree, const point4d *ctlpoints, double t,
-                            point3d *p, vector3d *d1, vector3d *d2 )
+boolean mbs_BCHornerDer2C3Rd ( int degree, const point4d *ctlpoints, double t,
+                               point3d *p, vector3d *d1, vector3d *d2 )
 {
   point4d hp, hd1, hd2;
 
-  mbs_BCHornerDer2C4d ( degree, ctlpoints, t, &hp, &hd1, &hd2 );
+  if ( !mbs_BCHornerDer2C4d ( degree, ctlpoints, t, &hp, &hd1, &hd2 ) )
+    return false;
   Point4to3d ( &hp, p );
   memcpy ( d1, &hd1, sizeof(vector3d) );
   AddVector3Md ( d1, p, -hd1.w, d1 );
@@ -88,18 +98,21 @@ void mbs_BCHornerDer2C3Rd ( int degree, const point4d *ctlpoints, double t,
   AddVector3Md ( d2, d1, -2.0*hd1.w, d2 );
   AddVector3Md ( d2, p, -hd2.w, d2 );
   MultVector3d ( 1.0/hp.w, d2, d2 );
+  return true;
 } /*mbs_BCHornerDer2C3Rd*/
 
-void mbs_BCHornerDer2Pd ( int degreeu, int degreev, int spdimen,   
-                          const double *ctlpoints,   
-                          double u, double v,   
-                          double *p, double *du, double *dv,
-                          double *duu, double *duv, double *dvv )
+boolean mbs_BCHornerDer2Pd ( int degreeu, int degreev, int spdimen,   
+                             const double *ctlpoints,   
+                             double u, double v,   
+                             double *p, double *du, double *dv,
+                             double *duu, double *duv, double *dvv )
 {
+  void   *sp;
   double *q, *r;
-  int   n, m, i, k, pitch;
-  int   size;
+  int    n, m, i, k, pitch;
+  int    size;
 
+  sp = pkv_GetScratchMemTop ();
   pitch = (degreev+1)*spdimen;
   if ( (r = pkv_GetScratchMemd ( size = 36*spdimen+3*pitch )) ) {
     q = &r[36*spdimen];
@@ -109,7 +122,8 @@ void mbs_BCHornerDer2Pd ( int degreeu, int degreev, int spdimen,
     }
     else {
       n = 3;
-      mbs_multiBCHornerd ( degreeu-2, 3, pitch, pitch, ctlpoints, u, q );
+      if ( !mbs_multiBCHornerd ( degreeu-2, 3, pitch, pitch, ctlpoints, u, q ) )
+        goto failure;
     }
     if ( degreev <= 2 ) {
       m = degreev+1;
@@ -118,8 +132,9 @@ void mbs_BCHornerDer2Pd ( int degreeu, int degreev, int spdimen,
     else {
       m = 3;
       for ( i = 0; i < n; i++ )
-        mbs_multiBCHornerd ( degreev-2, 3, spdimen, spdimen,
-                             &q[i*pitch], v, &r[i*3*spdimen] );
+        if ( !mbs_multiBCHornerd ( degreev-2, 3, spdimen, spdimen,
+                                   &q[i*pitch], v, &r[i*3*spdimen] ) )
+          goto failure;
     }
 
                     /* now the last steps of the de Casteljau algorithm */
@@ -220,21 +235,28 @@ case 1:
       memset ( dv, 0, spdimen*sizeof(double) );
       memset ( dvv, 0, spdimen*sizeof(double) );
     }
-
-    pkv_FreeScratchMemd ( size );
   }
+  else
+    goto failure;
+  pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*mbs_BCHornerDer2Pd*/
 
-void mbs_BCHornerDer2P3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
-                            double u, double v,
-                            point3d *p, vector3d *du, vector3d *dv,
-                            vector3d *duu, vector3d *duv, vector3d *dvv )
+boolean mbs_BCHornerDer2P3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
+                               double u, double v,
+                               point3d *p, vector3d *du, vector3d *dv,
+                               vector3d *duu, vector3d *duv, vector3d *dvv )
 {
   point4d hp, hdu, hdv, hduu, hduv, hdvv;
   double   iw;
 
-  mbs_BCHornerDer2P4d ( degreeu, degreev, ctlpoints, u, v,
-                        &hp, &hdu, &hdv, &hduu, &hduv, &hdvv );
+  if ( !mbs_BCHornerDer2P4d ( degreeu, degreev, ctlpoints, u, v,
+                              &hp, &hdu, &hdv, &hduu, &hduv, &hdvv ) )
+    return false;
   Point4to3d ( &hp, p );
 
   iw = 1.0/hp.w;
@@ -258,5 +280,6 @@ void mbs_BCHornerDer2P3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
   AddVector3Md ( dvv, dv, -2.0*hdv.w, dvv );
   AddVector3Md ( dvv, p, -hdvv.w, dvv );
   MultVector3d ( iw, dvv, dvv );
+  return true;
 } /*mbs_BCHornerDer2P3Rd*/
 

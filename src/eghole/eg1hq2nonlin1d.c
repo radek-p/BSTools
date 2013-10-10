@@ -269,13 +269,14 @@ boolean _g1hq2_TabNLBasisFunctionsOmegad ( GHoleDomaind *domain, int nkn,
     for ( i = l = 0;  i < nkn;  i++ )
          /* ***** this is not an optimal algorithm, to be improved */
       for ( j = 0;  j < nkn;  j++, l++ ) {
-        mbs_BCHornerDer3Pd ( G1H_FINALDEG, G1H_FINALDEG, 2, (double*)di,
+        if ( !mbs_BCHornerDer3Pd ( G1H_FINALDEG, G1H_FINALDEG, 2, (double*)di,
                     tkn[i], tkn[j], (double*)&ddi,
                     (double*)&nlpr->diu[kNQ2+l], (double*)&nlpr->div[kNQ2+l],
                     (double*)&nlpr->diuu[kNQ2+l], (double*)&nlpr->diuv[kNQ2+l],
                     (double*)&nlpr->divv[kNQ2+l],
                     (double*)&nlpr->diuuu[kNQ2+l], (double*)&nlpr->diuuv[kNQ2+l],
-                    (double*)&nlpr->diuvv[kNQ2+l], (double*)&nlpr->divvv[kNQ2+l] );
+                    (double*)&nlpr->diuvv[kNQ2+l], (double*)&nlpr->divvv[kNQ2+l] ) )
+          goto failure;
         nlpr->jac[kNQ2+l] = (double)det2d ( &nlpr->diu[kNQ2+l], &nlpr->div[kNQ2+l] );
       }
   }
@@ -444,27 +445,31 @@ boolean _g1hq2_TabNLBasisFunctionsGammad ( GHoleDomaind *domain, int nkn,
         k++, kk = (k+1) % hole_k, kN += N, kNQ2 += 3*nkn ) {
     pkv_Selectd ( N, 2, 3, 2, &nlpr->nldi[kN], di );
     for ( i = 0; i < nkn; i++ ) {
-      mbs_BCHornerDer2Pd ( G1H_FINALDEG, G1H_FINALDEG, 2, (double*)di,
-                           tkn[i], 0.0, &cdi.x, &cdiu.x, &cdiv.x,
-                           &cdiuu.x, &cdiuv.x, &cdivv.x );
+      if ( !mbs_BCHornerDer2Pd ( G1H_FINALDEG, G1H_FINALDEG, 2, (double*)di,
+                                 tkn[i], 0.0, &cdi.x, &cdiu.x, &cdiv.x,
+                                 &cdiuu.x, &cdiuv.x, &cdivv.x ) )
+        goto failure;
       nlpr->ctang[kNQ2+i] = cdiu;
       _g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
                           &ctrd[38*(kNQ2+i)] );
-      mbs_BCHornerDer2Pd ( G1H_FINALDEG, G1H_FINALDEG, 2, (double*)di,
-                           tkn[i], 1.0, &cdi.x, &cdiu.x, &cdiv.x,
-                           &cdiuu.x, &cdiuv.x, &cdivv.x );
+      if ( !mbs_BCHornerDer2Pd ( G1H_FINALDEG, G1H_FINALDEG, 2, (double*)di,
+                                 tkn[i], 1.0, &cdi.x, &cdiu.x, &cdiv.x,
+                                 &cdiuu.x, &cdiuv.x, &cdivv.x ) )
+        goto failure;
       nlpr->ctang[kNQ2+nkn+i] = cdiu;
       _g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
                           &ctrd[38*(kNQ2+nkn+i)] );
-      mbs_BCHornerDer2Pd ( G1H_FINALDEG, G1H_FINALDEG, 2, (double*)di,
-                           1.0, tkn[i], &cdi.x, &cdiu.x, &cdiv.x,
-                           &cdiuu.x, &cdiuv.x, &cdivv.x );
+      if ( !mbs_BCHornerDer2Pd ( G1H_FINALDEG, G1H_FINALDEG, 2, (double*)di,
+                                 1.0, tkn[i], &cdi.x, &cdiu.x, &cdiv.x,
+                                 &cdiuu.x, &cdiuv.x, &cdivv.x ) )
+        goto failure;
       nlpr->ctang[kNQ2+2*nkn+i] = cdiv;
       _g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
                           &ctrd[38*(kNQ2+2*nkn+i)] );
-      mbs_BCHornerDer2Pd ( G1H_FINALDEG, G1H_FINALDEG, 2, (double*)di,
-                           0.0, tkn[i], &cdi.x, &cdiu.x, &cdiv.x,
-                           &cdiuu.x, &cdiuv.x, &cdivv.x );
+      if ( !mbs_BCHornerDer2Pd ( G1H_FINALDEG, G1H_FINALDEG, 2, (double*)di,
+                                 0.0, tkn[i], &cdi.x, &cdiu.x, &cdiv.x,
+                                 &cdiuu.x, &cdiuv.x, &cdivv.x ) )
+        goto failure;
       _g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
                           &ctrd[38*(kk*3*nkn+i)+19] );
     }
@@ -472,18 +477,20 @@ boolean _g1hq2_TabNLBasisFunctionsGammad ( GHoleDomaind *domain, int nkn,
     if ( !_g1hq2_FindDomSurrndPatchd ( domain, nlpr, kk, 1, sicp ) )
       goto failure;
     for ( i = 0; i < nkn; i++ ) {
-      mbs_BCHornerDer2Pd ( 3, 3, 2, (double*)sicp,
-                           0.0, tkn[i], &cdi.x, &cdiu.x, &cdiv.x,
-                           &cdiuu.x, &cdiuv.x, &cdivv.x );
+      if ( !mbs_BCHornerDer2Pd ( 3, 3, 2, (double*)sicp,
+                                 0.0, tkn[i], &cdi.x, &cdiu.x, &cdiv.x,
+                                 &cdiuu.x, &cdiuv.x, &cdivv.x ) )
+        goto failure;
       _g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
                           &ctrd[38*(kNQ2+nkn+i)+19] );
     }
     if ( !_g1hq2_FindDomSurrndPatchd ( domain, nlpr, k, 2, sicp ) )
       goto failure;
     for ( i = 0; i < nkn; i++ ) {
-      mbs_BCHornerDer2Pd ( 3, 3, 2, (double*)sicp,
-                           0.0, tkn[i], &cdi.x, &cdiu.x, &cdiv.x,
-                           &cdiuu.x, &cdiuv.x, &cdivv.x );
+      if ( !mbs_BCHornerDer2Pd ( 3, 3, 2, (double*)sicp,
+                                 0.0, tkn[i], &cdi.x, &cdiu.x, &cdiv.x,
+                                 &cdiuu.x, &cdiuv.x, &cdivv.x ) )
+        goto failure;
       _g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
                           &ctrd[38*(kNQ2+2*nkn+i)+19] );
     }
@@ -670,8 +677,9 @@ boolean _g1hq2_TabNLBasisFunctionsGammad ( GHoleDomaind *domain, int nkn,
   }
   for ( k = 0; k < hole_k; k++ ) {
     for ( i = 0, fN = (3*(nfunc_a*hole_k+k)+1)*nkn;  i < nkn;  i++, fN++ ) {
-      mbs_BCHornerDer2Pd ( 3, 3, 1, &bc00[k*2*16], 0.0, tkn[i],
-                           &tabeu[1], tabeu, tabev, tabeuu, tabeuv, tabevv );
+      if ( !mbs_BCHornerDer2Pd ( 3, 3, 1, &bc00[k*2*16], 0.0, tkn[i],
+                                 &tabeu[1], tabeu, tabev, tabeuu, tabeuv, tabevv ) )
+        goto failure;
       A11 = &ctrd[38*((3*k+1)*nkn+i)+19];  A21 = &A11[4];  A22 = &A21[6];
       nlpr->cpsiuu[fN] += A21[0]*tabeu[0] + A21[1]*tabev[0] +
                           A22[0]*tabeuu[0] + A22[1]*tabeuv[0] + A22[2]*tabevv[0];
@@ -681,8 +689,9 @@ boolean _g1hq2_TabNLBasisFunctionsGammad ( GHoleDomaind *domain, int nkn,
                           A22[6]*tabeuu[0] + A22[7]*tabeuv[0] + A22[8]*tabevv[0];
     }
     for ( i = 0, fN = (3*(nfunc_a*hole_k+k)+2)*nkn;  i < nkn;  i++, fN++ ) {
-      mbs_BCHornerDer2Pd ( 3, 3, 1, &bc00[(k*2+1)*16], 0.0, tkn[i],
-                           &tabeu[1], tabeu, tabev, tabeuu, tabeuv, tabevv );
+      if ( !mbs_BCHornerDer2Pd ( 3, 3, 1, &bc00[(k*2+1)*16], 0.0, tkn[i],
+                                 &tabeu[1], tabeu, tabev, tabeuu, tabeuv, tabevv ) )
+        goto failure;
       A11 = &ctrd[38*((3*k+2)*nkn+i)+19];  A21 = &A11[4];  A22 = &A21[6];
       nlpr->cpsiuu[fN] += A21[0]*tabeu[0] + A21[1]*tabev[0] +
                           A22[0]*tabeuu[0] + A22[1]*tabeuv[0] + A22[2]*tabevv[0];

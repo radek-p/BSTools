@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2008                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -657,13 +657,16 @@ boolean _g2h_GetBBasisAuxpf ( GHoleDomainf *domain, int fn,
   for ( i = 0; i < hole_k; i++ ) {
     for ( j = 0; j < 2; j++ ) {
       gh_GetDomSurrndBFuncf ( domain, fn, i, j+1, &bezfc[(2*i+j)*16] );
-      mbs_multiBCHornerDer2f ( 3, 1, 4, 0, &bezfc[(2*i+j)*16], 0.0,
-          &bez[(2*i+j)*12], &bez[(2*i+j)*12+4], &bez[(2*i+j)*12]+8 );
+      if ( !mbs_multiBCHornerDer2f ( 3, 1, 4, 0, &bezfc[(2*i+j)*16], 0.0,
+              &bez[(2*i+j)*12], &bez[(2*i+j)*12+4], &bez[(2*i+j)*12]+8 ) )
+        goto failure;
       memcpy ( &bezfc[(2*i+j)*16+4], &bez[(2*i+j)*12+4], 8*sizeof(float) );
-      mbs_multiBCHornerDer2f ( 3, 3, 1, 4, &bez[(2*i+j)*12], 0.0,
-          &bezbc[(2*i+j)*18], &bezbc[(2*i+j)*18+3], &bezbc[(2*i+j)*18+6] );
-      mbs_multiBCHornerDer2f ( 3, 3, 1, 4, &bez[(2*i+j)*12], 1.0,
-          &bezbc[(2*i+j)*18+9], &bezbc[(2*i+j)*18+12], &bezbc[(2*i+j)*18+15] );
+      if ( !mbs_multiBCHornerDer2f ( 3, 3, 1, 4, &bez[(2*i+j)*12], 0.0,
+              &bezbc[(2*i+j)*18], &bezbc[(2*i+j)*18+3], &bezbc[(2*i+j)*18+6] ) )
+        goto failure;
+      if ( !mbs_multiBCHornerDer2f ( 3, 3, 1, 4, &bez[(2*i+j)*12], 1.0,
+              &bezbc[(2*i+j)*18+9], &bezbc[(2*i+j)*18+12], &bezbc[(2*i+j)*18+15] ) )
+        goto failure;
     }
   }
 

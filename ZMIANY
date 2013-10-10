@@ -3446,4 +3446,8 @@ Wersja 0.32:
 8.10.2013.
 798. Kolejna porcja porzadkow w obsludze bledow.
 
+10.10.2013.
+799. Obsluga bledow - ciag dalszy. Tym razem wywolania mbs_multiBCHorner* w
+    bibliotekach libmultibs, libeghole, libg1blending i libg2blending.
+
 

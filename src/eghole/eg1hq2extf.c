@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2008, 2010                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2008, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -182,8 +182,9 @@ boolean _g1h_TabLaplacianJump00f ( int nkn, const float *tkn, int fni,
 /* !!! this is not as it ought to be!, to be replaced later !!! */
   if ( fi == 2 ) {
     for ( i = j = 0;  i < nkn;  i++, j += 5 ) {
-      mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 1, b, 0.0, tkn[i],
-                           &p, &pu, &pv, &puu, &puv, &pvv );
+      if ( !mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 1, b, 0.0, tkn[i],
+                                 &p, &pu, &pv, &puu, &puv, &pvv ) )
+        goto failure;
       lap = trdd00[j]*pu + trdd00[j+1]*pv +
             trdd00[j+2]*puu + trdd00[j+3]*puv + trdd00[j+4]*pvv;
       lapd00[i] = -lap;
@@ -193,8 +194,9 @@ boolean _g1h_TabLaplacianJump00f ( int nkn, const float *tkn, int fni,
     memset ( lapd00, 0, nkn*sizeof(float) );
   if ( fi == G1H_FINALDEG-2 ) {
     for ( i = j = 0;  i < nkn;  i++, j += 5 ) {
-      mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 1, b, 1.0, tkn[i],
-                           &p, &pu, &pv, &puu, &puv, &pvv );
+      if ( !mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 1, b, 1.0, tkn[i],
+                                 &p, &pu, &pv, &puu, &puv, &pvv ) )
+        goto failure;
       lap = trdd10[j]*pu + trdd10[j+1]*pv +
             trdd10[j+2]*puu + trdd10[j+3]*puv + trdd10[j+4]*pvv;
       lapd10[i] = -lap;
@@ -205,8 +207,9 @@ boolean _g1h_TabLaplacianJump00f ( int nkn, const float *tkn, int fni,
 
   if ( fj == 2 ) {
     for ( i = j = 0;  i < nkn;  i++, j += 5 ) {
-      mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 1, b, tkn[i], 0.0,
-                           &p, &pu, &pv, &puu, &puv, &pvv );
+      if ( !mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 1, b, tkn[i], 0.0,
+                                 &p, &pu, &pv, &puu, &puv, &pvv ) )
+        goto failure;
       lap = trdc00[j]*pu + trdc00[j+1]*pv +
             trdc00[j+2]*puu + trdc00[j+3]*puv + trdc00[j+4]*pvv;
       lapc00[i] = lap;
@@ -216,8 +219,9 @@ boolean _g1h_TabLaplacianJump00f ( int nkn, const float *tkn, int fni,
     memset ( lapc00, 0, nkn*sizeof(float) );
   if ( fj == G1H_FINALDEG-2 ) {
     for ( i = j = 0;  i < nkn;  i++, j += 5 ) {
-      mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 1, b, tkn[i], 1.0,
-                           &p, &pu, &pv, &puu, &puv, &pvv );
+      if ( !mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 1, b, tkn[i], 1.0,
+                                 &p, &pu, &pv, &puu, &puv, &pvv ) )
+        goto failure;
       lap = trdc10[j]*pu + trdc10[j+1]*pv +
             trdc10[j+2]*puu + trdc10[j+3]*puv + trdc10[j+4]*pvv;
       lapc10[i] = -lap;

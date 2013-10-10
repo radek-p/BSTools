@@ -133,7 +133,8 @@ boolean g2h_ComputeNLNormalf ( GHoleDomainf *domain,
           /* integrate the unit normal vector at the boundary */
       for ( k = 0; k < DENSITY; k++ ) {
         t = (float)(k+k+1)/(float)(2*DENSITY);
-        mbs_BCHornerDerP3f ( 3, 3, bcp, 0.0, t, &p, &pu, &pv );
+        if ( !mbs_BCHornerDerP3f ( 3, 3, bcp, 0.0, t, &p, &pu, &pv ) )
+          goto failure;
         NormalizeVector3f ( &pv );
         CrossProduct3f ( &pu, &pv, &nu );
         AddVector3f ( &nv, &nu, &nv );
@@ -148,7 +149,8 @@ boolean g2h_ComputeNLNormalf ( GHoleDomainf *domain,
           /* integrate the unit normal vector at the boundary */
       for ( k = 0; k < DENSITY; k++ ) {
         t = (float)(k+k+1)/(float)(2*DENSITY);
-        mbs_BCHornerDerP3f ( 3, 3, bcp, 0.0, t, &p, &pu, &pv );
+        if ( !mbs_BCHornerDerP3f ( 3, 3, bcp, 0.0, t, &p, &pu, &pv ) )
+          goto failure;
         CrossProduct3f ( &pu, &pv, &nu );
         if ( DotProduct3f ( &nu, &nv ) <= 0.0 ) {
           domain->error_code = G2H_ERROR_NL_CANNOT_PROJECT;
@@ -346,13 +348,14 @@ boolean _g2h_TabNLBasisFunctionsf ( GHoleDomainf *domain,
     for ( i = l = 0;  i < G2_NQUAD;  i++ )
          /* ***** this is not an optimal algorithm, to be improved */
       for ( j = 0;  j < G2_NQUAD;  j++, l++ ) {
-        mbs_BCHornerDer3Pf ( G2H_FINALDEG, G2H_FINALDEG, 2, (float*)di,
+        if ( !mbs_BCHornerDer3Pf ( G2H_FINALDEG, G2H_FINALDEG, 2, (float*)di,
                     tkn[i], tkn[j], (float*)&ddi,
                     (float*)&nlpr->diu[kNQ2+l], (float*)&nlpr->div[kNQ2+l],
                     (float*)&nlpr->diuu[kNQ2+l], (float*)&nlpr->diuv[kNQ2+l],
                     (float*)&nlpr->divv[kNQ2+l],
                     (float*)&nlpr->diuuu[kNQ2+l], (float*)&nlpr->diuuv[kNQ2+l],
-                    (float*)&nlpr->diuvv[kNQ2+l], (float*)&nlpr->divvv[kNQ2+l] );
+                    (float*)&nlpr->diuvv[kNQ2+l], (float*)&nlpr->divvv[kNQ2+l] ) )
+          goto failure;
         nlpr->jac[kNQ2+l] = (float)det2f ( &nlpr->diu[kNQ2+l], &nlpr->div[kNQ2+l] );
      }
   }

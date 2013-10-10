@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2010, 2012                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2010, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -39,7 +39,8 @@ float gh_HoleDomainAreaf ( GHoleDomainf *domain, boolean symmetric )
   if ( symmetric ) {
     surrpc = _gh_GetDomSurrndPatchf ( domain, 0, 1 );
     for ( j = 0; j < 3; j++ ) {
-      mbs_BCHornerDerC2f ( 3, surrpc, qknots[j], &p, &d );
+      if ( !mbs_BCHornerDerC2f ( 3, surrpc, qknots[j], &p, &d ) )
+        return 0.0;
       f = p.x*d.y-p.y*d.x;
       area -= f*qcoeff[j];
     }
@@ -49,13 +50,15 @@ float gh_HoleDomainAreaf ( GHoleDomainf *domain, boolean symmetric )
     for ( i = 0; i < hole_k; i++ ) {
       surrpc = _gh_GetDomSurrndPatchf ( domain, i, 1 );
       for ( j = 0; j < 3; j++ ) {
-        mbs_BCHornerDerC2f ( 3, surrpc, qknots[j], &p, &d );
+        if ( !mbs_BCHornerDerC2f ( 3, surrpc, qknots[j], &p, &d ) )
+          return 0.0;
         f = p.x*d.y-p.y*d.x;
         area -= f*qcoeff[j];
       }
       surrpc = _gh_GetDomSurrndPatchf ( domain, i, 2 );
       for ( j = 0; j < 3; j++ ) {
-        mbs_BCHornerDerC2f ( 3, surrpc, qknots[j], &p, &d );
+        if ( !mbs_BCHornerDerC2f ( 3, surrpc, qknots[j], &p, &d ) )
+          return 0.0;
         f = p.x*d.y-p.y*d.x;
         area += f*qcoeff[j];
       }

@@ -129,7 +129,8 @@ boolean g1h_ComputeNLNormald ( GHoleDomaind *domain,
           /* integrate the unit normal vector at the boundary */
       for ( k = 0; k < DENSITY; k++ ) {
         t = (double)(k+k+1)/(double)(2*DENSITY);
-        mbs_BCHornerDerP3d ( 3, 3, bcp, 0.0, t, &p, &pu, &pv );
+        if ( !mbs_BCHornerDerP3d ( 3, 3, bcp, 0.0, t, &p, &pu, &pv ) )
+          goto failure;
         NormalizeVector3d ( &pv );
         CrossProduct3d ( &pu, &pv, &nu );
         AddVector3d ( &nv, &nu, &nv );
@@ -144,7 +145,8 @@ boolean g1h_ComputeNLNormald ( GHoleDomaind *domain,
           /* integrate the unit normal vector at the boundary */
       for ( k = 0; k < DENSITY; k++ ) {
         t = (double)(k+k+1)/(double)(2*DENSITY);
-        mbs_BCHornerDerP3d ( 3, 3, bcp, 0.0, t, &p, &pu, &pv );
+        if ( !mbs_BCHornerDerP3d ( 3, 3, bcp, 0.0, t, &p, &pu, &pv ) )
+          goto failure;
         CrossProduct3d ( &pu, &pv, &nu );
         if ( DotProduct3d ( &nu, &nv ) <= 0.0 )
           goto failure;
@@ -308,11 +310,12 @@ boolean _g1h_TabNLBasisFunctionsd ( GHoleDomaind *domain, int nkn,
     for ( i = l = 0;  i < nkn;  i++ )
          /* ***** this is not an optimal algorithm, to be improved */
       for ( j = 0;  j < nkn;  j++, l++ ) {
-        mbs_BCHornerDer2Pd ( G1H_FINALDEG, G1H_FINALDEG, 2, (double*)di,
+        if ( !mbs_BCHornerDer2Pd ( G1H_FINALDEG, G1H_FINALDEG, 2, (double*)di,
                     tkn[i], tkn[j], (double*)&ddi,
                     (double*)&nlpr->diu[kNQ2+l], (double*)&nlpr->div[kNQ2+l],
                     (double*)&nlpr->diuu[kNQ2+l], (double*)&nlpr->diuv[kNQ2+l],
-                    (double*)&nlpr->divv[kNQ2+l] );
+                    (double*)&nlpr->divv[kNQ2+l] ) )
+          goto failure;
         nlpr->jac[kNQ2+l] = (double)det2d ( &nlpr->diu[kNQ2+l], &nlpr->div[kNQ2+l] );
      }
   }

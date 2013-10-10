@@ -231,12 +231,16 @@ static boolean _g1h_Q2TabCurveLapCoeff0d ( const vector2d *di,
   if ( !p )
     goto failure;
   pv = &p[G1H_FINALDEG+1];  pvv = &pv[G1H_FINALDEG+1];
-  mbs_multiBCHornerDer2d ( G1H_FINALDEG, G1H_FINALDEG+1, 2, 2*(G1H_FINALDEG+1),
-                           (double*)di, v, (double*)p, (double*)pv, (double*)pvv );
+  if ( !mbs_multiBCHornerDer2d ( G1H_FINALDEG, G1H_FINALDEG+1, 2, 2*(G1H_FINALDEG+1),
+                           (double*)di, v, (double*)p, (double*)pv, (double*)pvv ) )
+    goto failure;
   for ( i = j = 0;  i < nkn;  i++, j += 5 ) {
-    mbs_BCHornerDer2C2d ( G1H_FINALDEG, p, tkn[i], &d, &du, &duu );
-    mbs_BCHornerDerC2d ( G1H_FINALDEG, pv, tkn[i], &dv, &duv );
-    mbs_BCHornerC2d ( G1H_FINALDEG, pvv, tkn[i], &dvv );
+    if ( !mbs_BCHornerDer2C2d ( G1H_FINALDEG, p, tkn[i], &d, &du, &duu ) )
+      goto failure;
+    if ( !mbs_BCHornerDerC2d ( G1H_FINALDEG, pv, tkn[i], &dv, &duv ) )
+      goto failure;
+    if ( !mbs_BCHornerC2d ( G1H_FINALDEG, pvv, tkn[i], &dvv ) )
+      goto failure;
     if ( !pkn_f2iDerivatives2d ( du.x, du.y, dv.x, dv.y, duu.x, duu.y, duv.x, duv.y,
                                  dvv.x, dvv.y, &gx.x, &gy.x, &gxx.x, &gxy.x, &gyy.x ) )
       goto failure;
@@ -268,12 +272,16 @@ static boolean _g1h_Q2TabCurveLapCoeff1d ( const vector2d *di,
   if ( !p )
     goto failure;
   pu = &p[G1H_FINALDEG+1];  puu = &pu[G1H_FINALDEG+1];
-  mbs_multiBCHornerDer2d ( G1H_FINALDEG, 1, 2*(G1H_FINALDEG+1), 0,
-                           (double*)di, u, (double*)p, (double*)pu, (double*)puu );
+  if ( !mbs_multiBCHornerDer2d ( G1H_FINALDEG, 1, 2*(G1H_FINALDEG+1), 0,
+                           (double*)di, u, (double*)p, (double*)pu, (double*)puu ) )
+    goto failure;
   for ( i = j = 0;  i < nkn;  i++, j += 5 ) {
-    mbs_BCHornerDer2C2d ( G1H_FINALDEG, p, tkn[i], &d, &dv, &dvv );
-    mbs_BCHornerDerC2d ( G1H_FINALDEG, pu, tkn[i], &du, &duv );
-    mbs_BCHornerC2d ( G1H_FINALDEG, puu, tkn[i], &duu );
+    if ( !mbs_BCHornerDer2C2d ( G1H_FINALDEG, p, tkn[i], &d, &dv, &dvv ) )
+      goto failure;
+    if ( !mbs_BCHornerDerC2d ( G1H_FINALDEG, pu, tkn[i], &du, &duv ) )
+      goto failure;
+    if ( !mbs_BCHornerC2d ( G1H_FINALDEG, puu, tkn[i], &duu ) )
+      goto failure;
     if ( !pkn_f2iDerivatives2d ( du.x, du.y, dv.x, dv.y, duu.x, duu.y, duv.x, duv.y,
                                  dvv.x, dvv.y, &gx.x, &gy.x, &gxx.x, &gxy.x, &gyy.x ) )
       goto failure;
@@ -1235,8 +1243,9 @@ default:
           &degu, &degv, (double*)di );
       for ( k = 0; k < nk; k++ ) {
         x = cknots[G1H_FINALDEG+1+k*m2];
-        mbs_multiBCHornerd ( G1H_FINALDEG, G1H_FINALDEG+1, 2, 2*(G1H_FINALDEG+1),
-                             (double*)di, x, (double*)cdi );
+        if ( !mbs_multiBCHornerd ( G1H_FINALDEG, G1H_FINALDEG+1, 2, 2*(G1H_FINALDEG+1),
+                                   (double*)di, x, (double*)cdi ) )
+          goto failure;
         _g1h_TabCurveJacobiand ( G1H_FINALDEG, cdi, nquad, tkn,
                                  &jac[(3+k)*nquad] );
         if ( !_g1h_Q2TabCurveLapCoeff0d ( di, nquad, tkn, x,
@@ -1245,8 +1254,9 @@ default:
       }
       for ( k = 0; k < nk; k++ ) {
         x = cknots[G1H_FINALDEG+1+k*m2];
-        mbs_multiBCHornerd ( G1H_FINALDEG, 1, 2*(G1H_FINALDEG+1), 0,
-                             (double*)di, x, (double*)cdi );
+        if ( !mbs_multiBCHornerd ( G1H_FINALDEG, 1, 2*(G1H_FINALDEG+1), 0,
+                                   (double*)di, x, (double*)cdi ) )
+          goto failure;
         _g1h_TabCurveJacobiand ( G1H_FINALDEG, cdi, nquad, tkn,
                                  &jac[(3+nk+k)*nquad] );
         if ( !_g1h_Q2TabCurveLapCoeff1d ( di, x, nquad, tkn,

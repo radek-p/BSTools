@@ -75,8 +75,9 @@ default:
   }
   for ( j = k = 0;  k < 4;  k++ )
     for ( i = 0;  i < nkn;  i++, j++ )
-      mbs_multiBCHornerDer3d ( 3, 1, 1, 0, &bfcp[4*k], _knots[i],
-                               &_bf[j], &_dbf[j], &_ddbf[j], &_dddbf[j] );
+      if ( !mbs_multiBCHornerDer3d ( 3, 1, 1, 0, &bfcp[4*k], _knots[i],
+                                     &_bf[j], &_dbf[j], &_ddbf[j], &_dddbf[j] ) )
+        return false;
 
   return true;
 } /*_g2bl_TabBasisFuncd*/

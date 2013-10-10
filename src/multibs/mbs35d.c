@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -21,15 +21,16 @@
 /* computing the matrices of the fundamental */
 /* forms of B\'{e}zier patches */
 
-void mbs_FundFormsBP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
-                         double u, double v,
-                         double *firstform, double *secondform )
+boolean mbs_FundFormsBP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
+                             double u, double v,
+                             double *firstform, double *secondform )
 {
   point3d  p;
   vector3d pu, pv, puu, puv, pvv, normal;
 
-  mbs_BCHornerDer2P3Rd ( degreeu, degreev, ctlpoints, u, v,
-                         &p, &pu, &pv, &puu, &puv, &pvv );
+  if ( !mbs_BCHornerDer2P3Rd ( degreeu, degreev, ctlpoints, u, v,
+                               &p, &pu, &pv, &puu, &puv, &pvv ) )
+    return false;
 
   firstform[0] = DotProduct3d ( &pu, &pu );
   firstform[1] = DotProduct3d ( &pu, &pv );
@@ -40,39 +41,43 @@ void mbs_FundFormsBP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
   secondform[0] = DotProduct3d ( &normal, &puu );
   secondform[1] = DotProduct3d ( &normal, &puv );
   secondform[2] = DotProduct3d ( &normal, &pvv );
+  return true;
 } /*mbs_FundFormsBP3Rd*/
 
 
 /* computing Gaussian and mean curvature */
 
-void mbs_GMCurvaturesBP3Rd ( int degreeu, int degreev, const point4d *ctlpoints, 
+boolean mbs_GMCurvaturesBP3Rd ( int degreeu, int degreev, const point4d *ctlpoints, 
                              double u, double v,
                              double *gaussian, double *mean )
 {
   double first[3], second[3];
   double a, b, c;
 
-  mbs_FundFormsBP3Rd ( degreeu, degreev, ctlpoints, u, v, first, second );
+  if ( !mbs_FundFormsBP3Rd ( degreeu, degreev, ctlpoints, u, v, first, second ) )
+    return false;
   a = first[0]*first[2] - first[1]*first[1];
   b = 2.0*second[1]*first[1] - second[0]*first[2] - second[2]*first[0];
   c = second[0]*second[2] - second[1]*second[1];
   *gaussian = c/a;
   *mean = 0.5*b/a;
+  return true;
 } /*mbs_GMCurvaturesBP3Rd*/
 
 
 /* computing principal curvatures and directions */
 
-void mbs_PrincipalDirectionsBP3Rd ( int degreeu, int degreev,
-                                    const point4d *ctlpoints, 
-                                    double u, double v,
-                                    double *k1, vector2d *v1,
-                                    double *k2, vector2d *v2 )
+boolean mbs_PrincipalDirectionsBP3Rd ( int degreeu, int degreev,
+                                       const point4d *ctlpoints, 
+                                       double u, double v,
+                                       double *k1, vector2d *v1,
+                                       double *k2, vector2d *v2 )
 {
   double first[3], second[3];
   double a, b, c;
 
-  mbs_FundFormsBP3Rd ( degreeu, degreev, ctlpoints, u, v, first, second );
+  if ( !mbs_FundFormsBP3Rd ( degreeu, degreev, ctlpoints, u, v, first, second ) )
+    return false;
   a = first[0]*first[2] - first[1]*first[1];
   b = 2.0*second[1]*first[1] - second[0]*first[2] - second[2]*first[0];
   c = second[0]*second[2] - second[1]*second[1];
@@ -96,5 +101,6 @@ void mbs_PrincipalDirectionsBP3Rd ( int degreeu, int degreev,
   else
     SetVector2d ( v2, c, -b );
   NormalizeVector2d ( v2 );
+  return true;
 } /*mbs_PrincipalDirectionsBP3Rd*/
 

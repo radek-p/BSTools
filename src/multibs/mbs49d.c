@@ -18,29 +18,38 @@
 #include "pkgeom.h"
 #include "multibs.h"
 
-void mbs_BezC1CoonsFindCornersd ( int spdimen,
-                                  int degc00, const double *c00,
-                                  int degc01, const double *c01,
-                                  int degc10, const double *c10,
-                                  int degc11, const double *c11,
-                                  double *pcorners )
+boolean mbs_BezC1CoonsFindCornersd ( int spdimen,
+                                     int degc00, const double *c00,
+                                     int degc01, const double *c01,
+                                     int degc10, const double *c10,
+                                     int degc11, const double *c11,
+                                     double *pcorners )
 {
-  mbs_multiBCHornerDerd ( degc00, 1, spdimen, 0, c00, 0.0,
-                          &pcorners[0], &pcorners[spdimen*8] );
-  mbs_multiBCHornerDerd ( degc00, 1, spdimen, 0, c00, 1.0,
-                          &pcorners[spdimen*4], &pcorners[spdimen*12] );
-  mbs_multiBCHornerDerd ( degc10, 1, spdimen, 0, c10, 0.0,
-                          &pcorners[spdimen*1], &pcorners[spdimen*9] );
-  mbs_multiBCHornerDerd ( degc10, 1, spdimen, 0, c10, 1.0,
-                          &pcorners[spdimen*5], &pcorners[spdimen*13] );
-  mbs_multiBCHornerDerd ( degc01, 1, spdimen, 0, c01, 0.0,
-                          &pcorners[spdimen*2], &pcorners[spdimen*10] );
-  mbs_multiBCHornerDerd ( degc01, 1, spdimen, 0, c01, 1.0,
-                          &pcorners[spdimen*6], &pcorners[spdimen*14] );
-  mbs_multiBCHornerDerd ( degc11, 1, spdimen, 0, c11, 0.0,
-                          &pcorners[spdimen*3], &pcorners[spdimen*11] );
-  mbs_multiBCHornerDerd ( degc11, 1, spdimen, 0, c11, 1.0,
-                          &pcorners[spdimen*7], &pcorners[spdimen*15] );
+  if ( !mbs_multiBCHornerDerd ( degc00, 1, spdimen, 0, c00, 0.0,
+                          &pcorners[0], &pcorners[spdimen*8] ) )
+    return false;
+  if ( !mbs_multiBCHornerDerd ( degc00, 1, spdimen, 0, c00, 1.0,
+                          &pcorners[spdimen*4], &pcorners[spdimen*12] ) )
+    return false;
+  if ( !mbs_multiBCHornerDerd ( degc10, 1, spdimen, 0, c10, 0.0,
+                          &pcorners[spdimen*1], &pcorners[spdimen*9] ) )
+    return false;
+  if ( !mbs_multiBCHornerDerd ( degc10, 1, spdimen, 0, c10, 1.0,
+                          &pcorners[spdimen*5], &pcorners[spdimen*13] ) )
+    return false;
+  if ( !mbs_multiBCHornerDerd ( degc01, 1, spdimen, 0, c01, 0.0,
+                          &pcorners[spdimen*2], &pcorners[spdimen*10] ) )
+    return false;
+  if ( !mbs_multiBCHornerDerd ( degc01, 1, spdimen, 0, c01, 1.0,
+                          &pcorners[spdimen*6], &pcorners[spdimen*14] ) )
+    return false;
+  if ( !mbs_multiBCHornerDerd ( degc11, 1, spdimen, 0, c11, 0.0,
+                          &pcorners[spdimen*3], &pcorners[spdimen*11] ) )
+    return false;
+  if ( !mbs_multiBCHornerDerd ( degc11, 1, spdimen, 0, c11, 1.0,
+                          &pcorners[spdimen*7], &pcorners[spdimen*15] ) )
+    return false;
+  return true;
 } /*mbs_BezC1CoonsFindCornersd*/
 
 static int FindMaxInt ( int a, int b, int c, int d, int e )
@@ -48,57 +57,6 @@ static int FindMaxInt ( int a, int b, int c, int d, int e )
   a = max ( a, b );  a = max ( a, c );  a = max ( a, d );  a = max ( a, e );
   return a;
 } /*FindMaxInt*/
-
-/*
-static void Verify ( int spdimen,
-                     int degc00, const double *c00,
-                     int degc01, const double *c01,
-                     int degc10, const double *c10,
-                     int degc11, const double *c11,
-                     int degd00, const double *d00,
-                     int degd01, const double *d01,
-                     int degd10, const double *d10,
-                     int degd11, const double *d11 )
-{
-  void   *sp;
-  double *cc, *cd, *dd;
-  int    i, j, k;
-
-  sp = pkv_GetScratchMemTop ();
-  cc = pkv_GetScratchMemd ( 16*spdimen );
-  cd = pkv_GetScratchMemd ( 16*spdimen );
-  dd = pkv_GetScratchMemd ( 16*spdimen );
-
-  mbs_BezC1CoonsFindCornersd ( spdimen, degc00, c00, degc01, c01,
-                                 degc10, c10, degc11, c11, cc );
-  mbs_BezC1CoonsFindCornersd ( spdimen, degd00, d00, degd01, d01,
-                                 degd10, d10, degd11, d11, cd );
-  pkv_TransposeMatrixc ( 4, 4, spdimen*sizeof(double),
-                         4*spdimen*sizeof(double), (char*)cd,
-                         4*spdimen*sizeof(double), (char*)dd );
-  for ( i = 0; i < 4; i++ ) {
-    for ( j = 0; j < 4; j++ )
-      for ( k = 0; k < spdimen; k++ )
-        printf ( "%7.4f ", cc[(4*i+j)*spdimen+k] );
-    printf ( "\n" );
-  }
-  printf ( "\n" );
-  for ( i = 0; i < 4; i++ ) {
-    for ( j = 0; j < 4; j++ )
-      for ( k = 0; k < spdimen; k++ )
-        printf ( "%7.4f ", dd[(4*i+j)*spdimen+k] );
-    printf ( "\n" );
-  }
-  printf ( "\n" );
-  for ( i = 0; i < 4; i++ ) {
-    for ( j = 0; j < 4; j++ )
-      for ( k = 0; k < spdimen; k++ )
-        printf ( "%7.4f ", dd[(4*i+j)*spdimen+k]-cc[(4*i+j)*spdimen+k] );
-    printf ( "\n" );
-  }
-
-  pkv_SetScratchMemTop ( sp );
-} / *Verify*/
 
 boolean mbs_BezC1CoonsToBezd ( int spdimen,
                                int degc00, const double *c00,
@@ -172,8 +130,9 @@ boolean mbs_BezC1CoonsToBezd ( int spdimen,
   pkn_AddMatrixd ( 1, spdimen*(degu+1)*(degv+1), 0, p, 0, p2, 0, p );
 
         /* construct the patch p3 */
-  mbs_BezC1CoonsFindCornersd ( spdimen, degc00, c00, degc01, c01,
-                                 degc10, c10, degc11, c11, pc );
+  if ( !mbs_BezC1CoonsFindCornersd ( spdimen, degc00, c00, degc01, c01,
+                                     degc10, c10, degc11, c11, pc ) )
+    goto failure;
 
   pkv_Selectd ( 2, 4*spdimen, 4*2*spdimen, 4*spdimen, pc, p3 );
   pkv_Selectd ( 2, 4*spdimen, 4*2*spdimen, 4*spdimen, &pc[4*spdimen], &p3[4*2*spdimen] );
@@ -198,8 +157,8 @@ failure:
 } /*mbs_BezC1CoonsToBezd*/
 
 /* ///////////////////////////////////////////////////////////////////////// */
-void mbs_TabCubicHFuncDer2d ( double a, double b, int nkn, const double *kn,
-                              double *hfunc, double *dhfunc, double *ddhfunc )
+boolean mbs_TabCubicHFuncDer2d ( double a, double b, int nkn, const double *kn,
+                                 double *hfunc, double *dhfunc, double *ddhfunc )
 {
   double HFunc[16] = {1.0, 1.0, 0.0, 0.0,                  /* h00 */
                       0.0, 0.0, 1.0, 1.0,                  /* h10 */
@@ -210,27 +169,30 @@ void mbs_TabCubicHFuncDer2d ( double a, double b, int nkn, const double *kn,
 
   if ( a == 0.0 && b == 1.0 ) {
      for ( i = j = 0;  i < nkn;  i++, j += 4 )
-       mbs_multiBCHornerDer2d ( 3, 4, 1, 4, HFunc, kn[i],
-                                &hfunc[j], &dhfunc[j], &ddhfunc[j] );
+       if ( !mbs_multiBCHornerDer2d ( 3, 4, 1, 4, HFunc, kn[i],
+                                      &hfunc[j], &dhfunc[j], &ddhfunc[j] ) )
+         return false;
   }
   else {
     h = b - a;
     h_1 = 1.0/h;
     h_2 = h_1*h_1;
     for ( i = j = 0;  i < nkn;  i++, j += 4 ) {
-      mbs_multiBCHornerDer2d ( 3, 4, 1, 4, HFunc, (kn[i]-a)/h,
-                               &hfunc[j], &dhfunc[j], &ddhfunc[j] );
+      if ( !mbs_multiBCHornerDer2d ( 3, 4, 1, 4, HFunc, (kn[i]-a)/h,
+                                     &hfunc[j], &dhfunc[j], &ddhfunc[j] ) )
+        return false;
       hfunc[j+2]   *= h;      hfunc[j+3]   *= h;
       dhfunc[j]    *= h_1;    dhfunc[j+1]  *= h_1;  
       ddhfunc[j]   *= h_2;    ddhfunc[j+1] *= h_2;  
       ddhfunc[j+2] *= h_1;    ddhfunc[j+3] *= h_1;  
     }
-  }  
+  }
+  return true;
 } /*mbs_TabCubicHFuncDer2d*/
 
-void mbs_TabCubicHFuncDer3d ( double a, double b, int nkn, const double *kn,
-                              double *hfunc, double *dhfunc, double *ddhfunc,
-                              double *dddhfunc )
+boolean mbs_TabCubicHFuncDer3d ( double a, double b, int nkn, const double *kn,
+                                 double *hfunc, double *dhfunc, double *ddhfunc,
+                                 double *dddhfunc )
 {
   double HFunc[16] = {1.0, 1.0, 0.0, 0.0,                  /* h00 */
                      0.0, 0.0, 1.0, 1.0,                  /* h10 */
@@ -241,8 +203,9 @@ void mbs_TabCubicHFuncDer3d ( double a, double b, int nkn, const double *kn,
 
   if ( a == 0.0 && b == 1.0 ) {
      for ( i = j = 0;  i < nkn;  i++, j += 4 )
-       mbs_multiBCHornerDer3d ( 3, 4, 1, 4, HFunc, kn[i],
-                            &hfunc[j], &dhfunc[j], &ddhfunc[j], &dddhfunc[j] );
+       if ( !mbs_multiBCHornerDer3d ( 3, 4, 1, 4, HFunc, kn[i],
+                            &hfunc[j], &dhfunc[j], &ddhfunc[j], &dddhfunc[j] ) )
+         return false;
   }
   else {
     h = b - a;
@@ -250,8 +213,9 @@ void mbs_TabCubicHFuncDer3d ( double a, double b, int nkn, const double *kn,
     h_2 = h_1*h_1;
     h_3 = h_1*h_2;
     for ( i = j = 0;  i < nkn;  i++, j += 4 ) {
-      mbs_multiBCHornerDer3d ( 3, 4, 1, 4, HFunc, (kn[i]-a)/h,
-                           &hfunc[j], &dhfunc[j], &ddhfunc[j], &dddhfunc[j] );
+      if ( !mbs_multiBCHornerDer3d ( 3, 4, 1, 4, HFunc, (kn[i]-a)/h,
+                           &hfunc[j], &dhfunc[j], &ddhfunc[j], &dddhfunc[j] ) )
+        return false;
       hfunc[j+2]    *= h;      hfunc[j+3]   *= h;
       dhfunc[j]     *= h_1;    dhfunc[j+1]  *= h_1;
       ddhfunc[j]    *= h_2;    ddhfunc[j+1] *= h_2;
@@ -260,18 +224,21 @@ void mbs_TabCubicHFuncDer3d ( double a, double b, int nkn, const double *kn,
       dddhfunc[j+2] *= h_2;    dddhfunc[j+3] *= h_2;
     }
   }
+  return true;
 } /*mbs_TabCubicHFuncDer3d*/
 
-void mbs_TabBezCurveDer2d ( int spdimen, int degree, const double *cp,
-                            int nkn, const double *kn,
-                            int ppitch,
-                            double *p, double *dp, double *ddp )
+boolean mbs_TabBezCurveDer2d ( int spdimen, int degree, const double *cp,
+                               int nkn, const double *kn,
+                               int ppitch,
+                               double *p, double *dp, double *ddp )
 {
   int i, j;
 
   for ( i = j = 0;  i < nkn;  i++, j += ppitch )
-    mbs_multiBCHornerDer2d ( degree, 1, spdimen, 0, cp, kn[i],
-                             &p[j], &dp[j], &ddp[j] );
+    if ( !mbs_multiBCHornerDer2d ( degree, 1, spdimen, 0, cp, kn[i],
+                                   &p[j], &dp[j], &ddp[j] ) )
+      return false;
+  return true;
 } /*mbs_TabBezCurveDer2d*/
 
 boolean _mbs_TabBezC1Coonsd ( int spdimen, int nknu, int nknv,
@@ -339,26 +306,35 @@ boolean mbs_TabBezC1CoonsDer2d ( int spdimen,
   d = &ddc[ku];  dd = &d[kv];  ddd = &dd[kv];
   pcorners = &ddd[kv];
 
-  mbs_BezC1CoonsFindCornersd ( spdimen, degc00, c00, degc01, c01,
-                               degc10, c10, degc11, c11, pcorners );
+  if ( !mbs_BezC1CoonsFindCornersd ( spdimen, degc00, c00, degc01, c01,
+                               degc10, c10, degc11, c11, pcorners ) )
+    goto failure;
 
-  mbs_TabBezCurveDer2d ( spdimen, degc00, c00, nknu, knu, 4*spdimen,
-            &c[0], &dc[0], &ddc[0] );
-  mbs_TabBezCurveDer2d ( spdimen, degc10, c10, nknu, knu, 4*spdimen,
-            &c[spdimen], &dc[spdimen], &ddc[spdimen] );
-  mbs_TabBezCurveDer2d ( spdimen, degc01, c01, nknu, knu, 4*spdimen,
-            &c[2*spdimen], &dc[2*spdimen], &ddc[2*spdimen] );
-  mbs_TabBezCurveDer2d ( spdimen, degc11, c11, nknu, knu, 4*spdimen,
-            &c[3*spdimen], &dc[3*spdimen], &ddc[3*spdimen] );
+  if ( !mbs_TabBezCurveDer2d ( spdimen, degc00, c00, nknu, knu, 4*spdimen,
+            &c[0], &dc[0], &ddc[0] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer2d ( spdimen, degc10, c10, nknu, knu, 4*spdimen,
+            &c[spdimen], &dc[spdimen], &ddc[spdimen] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer2d ( spdimen, degc01, c01, nknu, knu, 4*spdimen,
+            &c[2*spdimen], &dc[2*spdimen], &ddc[2*spdimen] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer2d ( spdimen, degc11, c11, nknu, knu, 4*spdimen,
+            &c[3*spdimen], &dc[3*spdimen], &ddc[3*spdimen] ) )
+    goto failure;
 
-  mbs_TabBezCurveDer2d ( spdimen, degd00, d00, nknv, knv, 4*spdimen,
-            &d[0], &dd[0], &ddd[0] );
-  mbs_TabBezCurveDer2d ( spdimen, degd10, d10, nknv, knv, 4*spdimen,
-            &d[spdimen], &dd[spdimen], &ddd[spdimen] );
-  mbs_TabBezCurveDer2d ( spdimen, degd01, d01, nknv, knv, 4*spdimen,
-            &d[2*spdimen], &dd[2*spdimen], &ddd[2*spdimen] );
-  mbs_TabBezCurveDer2d ( spdimen, degd11, d11, nknv, knv, 4*spdimen,
-            &d[3*spdimen], &dd[3*spdimen], &ddd[3*spdimen] );
+  if ( !mbs_TabBezCurveDer2d ( spdimen, degd00, d00, nknv, knv, 4*spdimen,
+            &d[0], &dd[0], &ddd[0] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer2d ( spdimen, degd10, d10, nknv, knv, 4*spdimen,
+            &d[spdimen], &dd[spdimen], &ddd[spdimen] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer2d ( spdimen, degd01, d01, nknv, knv, 4*spdimen,
+            &d[2*spdimen], &dd[2*spdimen], &ddd[2*spdimen] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer2d ( spdimen, degd11, d11, nknv, knv, 4*spdimen,
+            &d[3*spdimen], &dd[3*spdimen], &ddd[3*spdimen] ) )
+    goto failure;
 
   if ( p )
     if ( !_mbs_TabBezC1Coonsd ( spdimen, nknu, nknv, c, d, pcorners,
@@ -423,26 +399,35 @@ boolean mbs_TabBezC1CoonsDer3d ( int spdimen,
   d = &dddc[ku];  dd = &d[kv];  ddd = &dd[kv];  dddd = &ddd[kv];
   pcorners = &dddd[kv];
 
-  mbs_BezC1CoonsFindCornersd ( spdimen, degc00, c00, degc01, c01,
-                               degc10, c10, degc11, c11, pcorners );
+  if ( !mbs_BezC1CoonsFindCornersd ( spdimen, degc00, c00, degc01, c01,
+                               degc10, c10, degc11, c11, pcorners ) )
+    goto failure;
 
-  mbs_TabBezCurveDer3d ( spdimen, degc00, c00, nknu, knu, 4*spdimen,
-            &c[0], &dc[0], &ddc[0], &dddc[0] );
-  mbs_TabBezCurveDer3d ( spdimen, degc10, c10, nknu, knu, 4*spdimen,
-            &c[spdimen], &dc[spdimen], &ddc[spdimen], &dddc[spdimen] );
-  mbs_TabBezCurveDer3d ( spdimen, degc01, c01, nknu, knu, 4*spdimen,
-            &c[2*spdimen], &dc[2*spdimen], &ddc[2*spdimen], &dddc[2*spdimen] );
-  mbs_TabBezCurveDer3d ( spdimen, degc11, c11, nknu, knu, 4*spdimen,
-            &c[3*spdimen], &dc[3*spdimen], &ddc[3*spdimen], &dddc[3*spdimen] );
+  if ( !mbs_TabBezCurveDer3d ( spdimen, degc00, c00, nknu, knu, 4*spdimen,
+            &c[0], &dc[0], &ddc[0], &dddc[0] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer3d ( spdimen, degc10, c10, nknu, knu, 4*spdimen,
+            &c[spdimen], &dc[spdimen], &ddc[spdimen], &dddc[spdimen] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer3d ( spdimen, degc01, c01, nknu, knu, 4*spdimen,
+            &c[2*spdimen], &dc[2*spdimen], &ddc[2*spdimen], &dddc[2*spdimen] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer3d ( spdimen, degc11, c11, nknu, knu, 4*spdimen,
+            &c[3*spdimen], &dc[3*spdimen], &ddc[3*spdimen], &dddc[3*spdimen] ) )
+    goto failure;
 
-  mbs_TabBezCurveDer3d ( spdimen, degd00, d00, nknv, knv, 4*spdimen,
-            &d[0], &dd[0], &ddd[0], &dddd[0] );
-  mbs_TabBezCurveDer3d ( spdimen, degd10, d10, nknv, knv, 4*spdimen,
-            &d[spdimen], &dd[spdimen], &ddd[spdimen], &dddd[spdimen] );
-  mbs_TabBezCurveDer3d ( spdimen, degd01, d01, nknv, knv, 4*spdimen,
-            &d[2*spdimen], &dd[2*spdimen], &ddd[2*spdimen], &dddd[2*spdimen] );
-  mbs_TabBezCurveDer3d ( spdimen, degd11, d11, nknv, knv, 4*spdimen,
-            &d[3*spdimen], &dd[3*spdimen], &ddd[3*spdimen], &dddd[3*spdimen] );
+  if ( !mbs_TabBezCurveDer3d ( spdimen, degd00, d00, nknv, knv, 4*spdimen,
+            &d[0], &dd[0], &ddd[0], &dddd[0] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer3d ( spdimen, degd10, d10, nknv, knv, 4*spdimen,
+            &d[spdimen], &dd[spdimen], &ddd[spdimen], &dddd[spdimen] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer3d ( spdimen, degd01, d01, nknv, knv, 4*spdimen,
+            &d[2*spdimen], &dd[2*spdimen], &ddd[2*spdimen], &dddd[2*spdimen] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer3d ( spdimen, degd11, d11, nknv, knv, 4*spdimen,
+            &d[3*spdimen], &dd[3*spdimen], &ddd[3*spdimen], &dddd[3*spdimen] ) )
+    goto failure;
 
   if ( p )
     if ( !_mbs_TabBezC1Coonsd ( spdimen, nknu, nknv, c, d, pcorners,
@@ -555,19 +540,25 @@ boolean mbs_TabBezC1Coons0Der2d ( int spdimen,
   d = &ddc[ku];  dd = &d[kv];  ddd = &dd[kv];
   pcorners = &ddd[kv];
 
-  mbs_multiBCHornerDerd ( degc00, 1, spdimen, 0, c00, 0.0,
-      &pcorners[0], &pcorners[spdimen*2] );
-  mbs_multiBCHornerDerd ( degc01, 1, spdimen, 0, c01, 0.0,
-      &pcorners[spdimen*1], &pcorners[spdimen*3] );
+  if ( !mbs_multiBCHornerDerd ( degc00, 1, spdimen, 0, c00, 0.0,
+      &pcorners[0], &pcorners[spdimen*2] ) )
+    goto failure;
+  if ( !mbs_multiBCHornerDerd ( degc01, 1, spdimen, 0, c01, 0.0,
+      &pcorners[spdimen*1], &pcorners[spdimen*3] ) )
+    goto failure;
 
-  mbs_TabBezCurveDer2d ( spdimen, degc00, c00, nknu, knu, 2*spdimen,
-            &c[0], &dc[0], &ddc[0] );
-  mbs_TabBezCurveDer2d ( spdimen, degc01, c01, nknu, knu, 2*spdimen,
-            &c[spdimen], &dc[spdimen], &ddc[spdimen] );
-  mbs_TabBezCurveDer2d ( spdimen, degd00, d00, nknv, knv, 2*spdimen,
-            &d[0], &dd[0], &ddd[0] );
-  mbs_TabBezCurveDer2d ( spdimen, degd01, d01, nknv, knv, 2*spdimen,
-            &d[spdimen], &dd[spdimen], &ddd[spdimen] );
+  if ( !mbs_TabBezCurveDer2d ( spdimen, degc00, c00, nknu, knu, 2*spdimen,
+            &c[0], &dc[0], &ddc[0] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer2d ( spdimen, degc01, c01, nknu, knu, 2*spdimen,
+            &c[spdimen], &dc[spdimen], &ddc[spdimen] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer2d ( spdimen, degd00, d00, nknv, knv, 2*spdimen,
+            &d[0], &dd[0], &ddd[0] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer2d ( spdimen, degd01, d01, nknv, knv, 2*spdimen,
+            &d[spdimen], &dd[spdimen], &ddd[spdimen] ) )
+    goto failure;
 
   if ( p )
     if ( !_mbs_TabBezC1Coons0d ( spdimen, nknu, nknv, c, d, pcorners,
@@ -628,19 +619,25 @@ boolean mbs_TabBezC1Coons0Der3d ( int spdimen,
   d = &dddc[ku];  dd = &d[kv];  ddd = &dd[kv];  dddd = &ddd[kv];
   pcorners = &dddd[kv];
 
-  mbs_multiBCHornerDerd ( degc00, 1, spdimen, 0, c00, 0.0,
-      &pcorners[0], &pcorners[spdimen*2] );
-  mbs_multiBCHornerDerd ( degc01, 1, spdimen, 0, c01, 0.0,
-      &pcorners[spdimen*1], &pcorners[spdimen*3] );
+  if ( !mbs_multiBCHornerDerd ( degc00, 1, spdimen, 0, c00, 0.0,
+      &pcorners[0], &pcorners[spdimen*2] ) )
+    goto failure;
+  if ( !mbs_multiBCHornerDerd ( degc01, 1, spdimen, 0, c01, 0.0,
+      &pcorners[spdimen*1], &pcorners[spdimen*3] ) )
+    goto failure;
 
-  mbs_TabBezCurveDer3d ( spdimen, degc00, c00, nknu, knu, 2*spdimen,
-            &c[0], &dc[0], &ddc[0], &dddc[0] );
-  mbs_TabBezCurveDer3d ( spdimen, degc01, c01, nknu, knu, 2*spdimen,
-            &c[spdimen], &dc[spdimen], &ddc[spdimen], &dddc[spdimen] );
-  mbs_TabBezCurveDer3d ( spdimen, degd00, d00, nknv, knv, 2*spdimen,
-            &d[0], &dd[0], &ddd[0], &dddd[0] );
-  mbs_TabBezCurveDer3d ( spdimen, degd01, d01, nknv, knv, 2*spdimen,
-            &d[spdimen], &dd[spdimen], &ddd[spdimen], &dddd[spdimen] );
+  if ( !mbs_TabBezCurveDer3d ( spdimen, degc00, c00, nknu, knu, 2*spdimen,
+            &c[0], &dc[0], &ddc[0], &dddc[0] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer3d ( spdimen, degc01, c01, nknu, knu, 2*spdimen,
+            &c[spdimen], &dc[spdimen], &ddc[spdimen], &dddc[spdimen] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer3d ( spdimen, degd00, d00, nknv, knv, 2*spdimen,
+            &d[0], &dd[0], &ddd[0], &dddd[0] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer3d ( spdimen, degd01, d01, nknv, knv, 2*spdimen,
+            &d[spdimen], &dd[spdimen], &ddd[spdimen], &dddd[spdimen] ) )
+    goto failure;
 
   if ( p )
     if ( !_mbs_TabBezC1Coons0d ( spdimen, nknu, nknv, c, d, pcorners,

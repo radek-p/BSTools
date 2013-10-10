@@ -610,10 +610,10 @@ boolean mbs_multiBCHornerDerd ( int degree, int ncurves, int spdimen, int pitch,
   mbs_multiBCHornerDerd ( degree, 1, 4, 0, (double*)ctlpoints, t, \
     (double*)p, (double*)d )
 
-void mbs_BCHornerDerC2Rd ( int degree, const point3d *ctlpoints, double t,
-                           point2d *p, vector2d *d );
-void mbs_BCHornerDerC3Rd ( int degree, const point4d *ctlpoints, double t,
-                           point3d *p, vector3d *d );
+boolean mbs_BCHornerDerC2Rd ( int degree, const point3d *ctlpoints, double t,
+                              point2d *p, vector2d *d );
+boolean mbs_BCHornerDerC3Rd ( int degree, const point4d *ctlpoints, double t,
+                              point3d *p, vector3d *d );
 
 
 boolean mbs_BCHornerDerPd ( int degreeu, int degreev, int spdimen,
@@ -663,16 +663,16 @@ boolean mbs_multiBCHornerDer2d ( int degree, int ncurves, int spdimen, int pitch
   mbs_multiBCHornerDer2d ( degree, 1, 4, 0, (double*)ctlpoints, t, \
     (double*)p, (double*)d1, (double*)d2 )
 
-void mbs_BCHornerDer2C2Rd ( int degree, const point3d *ctlpoints, double t,
-                            point2d *p, vector2d *d1, vector2d *d2 );
-void mbs_BCHornerDer2C3Rd ( int degree, const point4d *ctlpoints, double t,
-                            point3d *p, vector3d *d1, vector3d *d2 );
+boolean mbs_BCHornerDer2C2Rd ( int degree, const point3d *ctlpoints, double t,
+                               point2d *p, vector2d *d1, vector2d *d2 );
+boolean mbs_BCHornerDer2C3Rd ( int degree, const point4d *ctlpoints, double t,
+                               point3d *p, vector3d *d1, vector3d *d2 );
 
-void mbs_BCHornerDer2Pd ( int degreeu, int degreev, int spdimen,
-                          const double *ctlpoints,
-                          double u, double v,
-                          double *p, double *du, double *dv,
-                          double *duu, double *duv, double *dvv );
+boolean mbs_BCHornerDer2Pd ( int degreeu, int degreev, int spdimen,
+                             const double *ctlpoints,
+                             double u, double v,
+                             double *p, double *du, double *dv,
+                             double *duu, double *duv, double *dvv );
 
 #define mbs_BCHornerDer2P1d(degreeu,degreev,coeff,u,v,p,du,dv,duu,duv,dvv) \
   mbs_BCHornerDer2Pd ( degreeu, degreev, 1, coeff, u, v, \
@@ -687,15 +687,15 @@ void mbs_BCHornerDer2Pd ( int degreeu, int degreev, int spdimen,
   mbs_BCHornerDer2Pd ( degreeu, degreev, 4, (double*)ctlpoints, u, v, \
     (double*)p, (double*)du, (double*)dv, (double*)duu, (double*)duv, (double*)dvv )
 
-void mbs_BCHornerDer2P3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
-                            double u, double v,
-                            point3d *p, vector3d *du, vector3d *dv,
-                            vector3d *duu, vector3d *duv, vector3d *dvv );
+boolean mbs_BCHornerDer2P3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
+                               double u, double v,
+                               point3d *p, vector3d *du, vector3d *dv,
+                               vector3d *duu, vector3d *duv, vector3d *dvv );
 
 
-void mbs_multiBCHornerDer3d ( int degree, int ncurves, int spdimen, int pitch,
-                              const double *ctlpoints, double t,
-                              double *p, double *d1, double *d2, double *d3 );
+boolean mbs_multiBCHornerDer3d ( int degree, int ncurves, int spdimen, int pitch,
+                                 const double *ctlpoints, double t,
+                                 double *p, double *d1, double *d2, double *d3 );
 
 #define mbs_BCHornerDer3C1d(degree,coeff,t,p,d1,d2,d3) \
   mbs_multiBCHornerDer3d ( degree, 1, 1, 0, coeff, t, p, d1, d2, d3 )
@@ -763,46 +763,46 @@ boolean mbs_multiBSCubicClosedInterpd ( int lastinterpknot, double *interpknots,
                                int bspitch, double *ctlpoints );
 
 
-void mbs_BCFrenetC2d ( int degree, const point2d *ctlpoints, double t,
-                       point2d *cpoint, vector2d *fframe, double *curvature );
+boolean mbs_BCFrenetC2d ( int degree, const point2d *ctlpoints, double t,
+                          point2d *cpoint, vector2d *fframe, double *curvature );
 
-void mbs_BCFrenetC2Rd ( int degree, const point3d *ctlpoints, double t,
-                        point2d *cpoint, vector2d *fframe, double *curvature );
+boolean mbs_BCFrenetC2Rd ( int degree, const point3d *ctlpoints, double t,
+                           point2d *cpoint, vector2d *fframe, double *curvature );
 
-void mbs_BCFrenetC3d ( int degree, const point3d *ctlpoints, double t,
-                       point3d *cpoint, vector3d *fframe, double *curvatures );
+boolean mbs_BCFrenetC3d ( int degree, const point3d *ctlpoints, double t,
+                          point3d *cpoint, vector3d *fframe, double *curvatures );
 
-void mbs_BCFrenetC3Rd ( int degree, const point4d *ctlpoints, double t,
-                        point3d *cpoint, vector3d *fframe, double *curvatures );
+boolean mbs_BCFrenetC3Rd ( int degree, const point4d *ctlpoints, double t,
+                           point3d *cpoint, vector3d *fframe, double *curvatures );
 
 
-void mbs_FundFormsBP3d ( int degreeu, int degreev, const point3d *ctlpoints,
-                         double u, double v,
-                         double *firstform, double *secondform );
-
-void mbs_GMCurvaturesBP3d ( int degreeu, int degreev, const point3d *ctlpoints,
+boolean mbs_FundFormsBP3d ( int degreeu, int degreev, const point3d *ctlpoints,
                             double u, double v,
-                            double *gaussian, double *mean );
+                            double *firstform, double *secondform );
 
-void mbs_PrincipalDirectionsBP3d ( int degreeu, int degreev,
-                                   const point3d *ctlpoints,
-                                   double u, double v,
-                                   double *k1, vector2d *v1,
-                                   double *k2, vector2d *v2 );
+boolean mbs_GMCurvaturesBP3d ( int degreeu, int degreev, const point3d *ctlpoints,
+                               double u, double v,
+                               double *gaussian, double *mean );
 
-void mbs_FundFormsBP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
-                          double u, double v,
-                          double *firstform, double *secondform );
+boolean mbs_PrincipalDirectionsBP3d ( int degreeu, int degreev,
+                                      const point3d *ctlpoints,
+                                      double u, double v,
+                                      double *k1, vector2d *v1,
+                                      double *k2, vector2d *v2 );
 
-void mbs_GMCurvaturesBP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
+boolean mbs_FundFormsBP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
                              double u, double v,
-                             double *gaussian, double *mean );
+                             double *firstform, double *secondform );
 
-void mbs_PrincipalDirectionsBP3Rd ( int degreeu, int degreev,
-                                    const point4d *ctlpoints,
-                                    double u, double v,
-                                    double *k1, vector2d *v1,
-                                    double *k2, vector2d *v2 );
+boolean mbs_GMCurvaturesBP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
+                                double u, double v,
+                                double *gaussian, double *mean );
+
+boolean mbs_PrincipalDirectionsBP3Rd ( int degreeu, int degreev,
+                                       const point4d *ctlpoints,
+                                       double u, double v,
+                                       double *k1, vector2d *v1,
+                                       double *k2, vector2d *v2 );
 
 
 void mbs_multiBisectBezCurvesd ( int degree, int ncurves,
@@ -1213,12 +1213,12 @@ boolean mbs_ClipBC3Rd ( int ncplanes, const vector4d *cplanes,
 
 /* ///////////////////////////////////////////////////////////////////////// */
 /* Bicubic polynomial Coons patches */
-void mbs_BezC1CoonsFindCornersd ( int spdimen,
-                                  int degc00, const double *c00,
-                                  int degc01, const double *c01,
-                                  int degc10, const double *c10,
-                                  int degc11, const double *c11,
-                                  double *pcorners );
+boolean mbs_BezC1CoonsFindCornersd ( int spdimen,
+                                     int degc00, const double *c00,
+                                     int degc01, const double *c01,
+                                     int degc10, const double *c10,
+                                     int degc11, const double *c11,
+                                     double *pcorners );
 boolean mbs_BezC1CoonsToBezd ( int spdimen,
                                int degc00, const double *c00,
                                int degc01, const double *c01,
@@ -1230,15 +1230,15 @@ boolean mbs_BezC1CoonsToBezd ( int spdimen,
                                int degd11, const double *d11,
                                int *n, int *m, double *p );
 
-void mbs_TabCubicHFuncDer2d ( double a, double b, int nkn, const double *kn,
-                              double *hfunc, double *dhfunc, double *ddhfunc );
-void mbs_TabCubicHFuncDer3d ( double a, double b, int nkn, const double *kn, 
-                              double *hfunc, double *dhfunc, double *ddhfunc,
-                              double *dddhfunc );
-void mbs_TabBezCurveDer2d ( int spdimen, int degree, const double *cp,
-                            int nkn, const double *kn,
-                            int ppitch,
-                            double *p, double *dp, double *ddp );
+boolean mbs_TabCubicHFuncDer2d ( double a, double b, int nkn, const double *kn,
+                                 double *hfunc, double *dhfunc, double *ddhfunc );
+boolean mbs_TabCubicHFuncDer3d ( double a, double b, int nkn, const double *kn, 
+                                 double *hfunc, double *dhfunc, double *ddhfunc,
+                                 double *dddhfunc );
+boolean mbs_TabBezCurveDer2d ( int spdimen, int degree, const double *cp,
+                               int nkn, const double *kn,
+                               int ppitch,
+                               double *p, double *dp, double *ddp );
 boolean _mbs_TabBezC1Coonsd ( int spdimen, int nknu, int nknv,
                    const double *c, const double *d, const double *p,
                    const double *hu, const double *hv, double *pp );
@@ -1300,14 +1300,14 @@ boolean mbs_TabBezC1Coons0Der3d ( int spdimen,
 
 /* ///////////////////////////////////////////////////////////////////////// */
 /* Biquintic polynomial Coons patches */
-void mbs_BezC2CoonsFindCornersd ( int spdimen,
-                                  int degc00, const double *c00,
-                                  int degc01, const double *c01,
-                                  int degc02, const double *c02,
-                                  int degc10, const double *c10,
-                                  int degc11, const double *c11,
-                                  int degc12, const double *c12,
-                                  double *pcorners );
+boolean mbs_BezC2CoonsFindCornersd ( int spdimen,
+                                     int degc00, const double *c00,
+                                     int degc01, const double *c01,
+                                     int degc02, const double *c02,
+                                     int degc10, const double *c10,
+                                     int degc11, const double *c11,
+                                     int degc12, const double *c12,
+                                     double *pcorners );
 boolean mbs_BezC2CoonsToBezd ( int spdimen,
                                int degc00, const double *c00,
                                int degc01, const double *c01,
@@ -1322,13 +1322,13 @@ boolean mbs_BezC2CoonsToBezd ( int spdimen,
                                int degd11, const double *d11,
                                int degd12, const double *d12,
                                int *n, int *m, double *p );
-void mbs_TabQuinticHFuncDer3d ( double a, double b, int nkn, const double *kn,
-                                double *hfunc, double *dhfunc,
-                                double *ddhfunc, double *dddhfunc );
-void mbs_TabBezCurveDer3d ( int spdimen, int degree, const double *cp,
-                            int nkn, const double *kn,
-                            int ppitch,
-                            double *p, double *dp, double *ddp, double *dddp );
+boolean mbs_TabQuinticHFuncDer3d ( double a, double b, int nkn, const double *kn,
+                                   double *hfunc, double *dhfunc,
+                                   double *ddhfunc, double *dddhfunc );
+boolean mbs_TabBezCurveDer3d ( int spdimen, int degree, const double *cp,
+                               int nkn, const double *kn,
+                               int ppitch,
+                               double *p, double *dp, double *ddp, double *dddp );
 boolean _mbs_TabBezC2Coonsd (
                    int spdimen, int nknu, int nknv,
                    const double *c, const double *d, const double *p,

@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -62,7 +62,8 @@ boolean g1h_GetBPDerivativesf ( GHoleDomainf *domain, int cno, float *val )
   for ( i = 0; i < nfunc_a; i++ ) {
     cr0 = &bbr0[(i*hole_k+cno)*(G1_CROSS00DEG+1)];
     v = &val[3*i];
-    mbs_BCHornerDer2C1f ( G1_CROSS00DEG, cr0, 0.0, &v[0], &v[1], &v[2] );
+    if ( !mbs_BCHornerDer2C1f ( G1_CROSS00DEG, cr0, 0.0, &v[0], &v[1], &v[2] ) )
+      goto failure;
   }
   return true;
 

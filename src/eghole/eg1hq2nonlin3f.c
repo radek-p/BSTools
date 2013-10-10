@@ -106,11 +106,13 @@ static boolean ComputePDer ( GHoleDomainf *domain, G1HNLPrivatef *nlpr,
     }
   switch ( cn ) {
 case 0:
-    mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 2, &dicp[0].x, knot, 0.0,
-                         &di.x, &diu.x, &div.x, &diuu.x, &diuv.x, &divv.x );
+    if ( !mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 2, &dicp[0].x, knot, 0.0,
+                               &di.x, &diu.x, &div.x, &diuu.x, &diuv.x, &divv.x ) )
+      goto failure;
     *tang = diu;
-    mbs_BCHornerDer2Pf ( n, m, 1, pcp, knot, 0.0,
-                         &f, &fu, &fv, &fuu, &fuv, &fvv );
+    if ( !mbs_BCHornerDer2Pf ( n, m, 1, pcp, knot, 0.0,
+                               &f, &fu, &fv, &fuu, &fuv, &fvv ) )
+      goto failure;
     if ( !pkn_Comp2iDerivatives2f ( diu.x, diu.y, div.x, div.y, diuu.x, diuu.y,
                                     diuv.x, diuv.y, divv.x, divv.y,
                                     1, &fu, &fv, &fuu, &fuv, &fvv,
@@ -150,10 +152,12 @@ case 0:
         fn = k*G1_DBDIM+i*(G1H_FINALDEG-3)+j;
         pcp[(i+2)*(G1H_FINALDEG+1)+j+2] -= acoeff[fn];
       }
-    mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 2, &dicp[0].x, 0.0, knot,
-                         &ei.x, &eiu.x, &eiv.x, &eiuu.x, &eiuv.x, &eivv.x );
-    mbs_BCHornerDer2Pf ( n, m, 1, pcp, 0.0, knot,
-                         &e, &eu, &ev, &euu, &euv, &evv );
+    if ( !mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 2, &dicp[0].x, 0.0, knot,
+                               &ei.x, &eiu.x, &eiv.x, &eiuu.x, &eiuv.x, &eivv.x ) )
+      goto failure;
+    if ( !mbs_BCHornerDer2Pf ( n, m, 1, pcp, 0.0, knot,
+                               &e, &eu, &ev, &euu, &euv, &evv ) )
+      goto failure;
     if ( !pkn_Comp2iDerivatives2f ( eiu.x, eiu.y, eiv.x, eiv.y, eiuu.x, eiuu.y,
                                     eiuv.x, eiuv.y, eivv.x, eivv.y,
                                     1, &eu, &ev, &euu, &euv, &evv,
@@ -165,11 +169,13 @@ case 0:
     break;
 
 case 1:
-    mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 2, &dicp[0].x, knot, 1.0,
-                         &di.x, &diu.x, &div.x, &diuu.x, &diuv.x, &divv.x );
+    if ( !mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 2, &dicp[0].x, knot, 1.0,
+                               &di.x, &diu.x, &div.x, &diuu.x, &diuv.x, &divv.x ) )
+      goto failure;
     *tang = diu;
-    mbs_BCHornerDer2Pf ( n, m, 1, pcp, knot, 1.0,
-                         &f, &fu, &fv, &fuu, &fuv, &fvv );
+    if ( !mbs_BCHornerDer2Pf ( n, m, 1, pcp, knot, 1.0,
+                               &f, &fu, &fv, &fuu, &fuv, &fvv ) )
+      goto failure;
     if ( !pkn_Comp2iDerivatives2f ( diu.x, diu.y, div.x, div.y, diuu.x, diuu.y,
                                     diuv.x, diuv.y, divv.x, divv.y,
                                     1, &fu, &fv, &fuu, &fuv, &fvv,
@@ -180,16 +186,18 @@ case 1:
     *jpvv = -pvv;
     if ( !_gh_FindDomSurrndPatchf ( domain, (k+1) % hole_k, 1, dicp ) )
       goto failure;
-    mbs_BCHornerDer2Pf ( 3, 3, 2, &dicp[0].x, 0.0, knot, &ei.x, &eiu.x, &eiv.x,
-                         &eiuu.x, &eiuv.x, &eivv.x );
+    if ( !mbs_BCHornerDer2Pf ( 3, 3, 2, &dicp[0].x, 0.0, knot, &ei.x, &eiu.x, &eiv.x,
+                               &eiuu.x, &eiuv.x, &eivv.x ) )
+      goto failure;
     memset ( pcp, 0, 16*sizeof(float) );
     for ( fn = 0; fn < nfunc_b; fn++ ) {
       bvz = nlpr->rhole_cp[bfcpn[fn]].z;
       gh_GetDomSurrndBFuncf ( domain, fn, (k+1) % hole_k, 1, pc00 );
       pkn_AddMatrixMf ( 1, 16, 0, pcp, 0, pc00, bvz, 0, pcp );
     }
-    mbs_BCHornerDer2Pf ( 3, 3, 1, pcp, 0.0, knot,
-                         &e, &eu, &ev, &euu, &euv, &evv );
+    if ( !mbs_BCHornerDer2Pf ( 3, 3, 1, pcp, 0.0, knot,
+                               &e, &eu, &ev, &euu, &euv, &evv ) )
+      goto failure;
     if ( !pkn_Comp2iDerivatives2f ( eiu.x, eiu.y, eiv.x, eiv.y, eiuu.x, eiuu.y,
                                     eiuv.x, eiuv.y, eivv.x, eivv.y,
                                     1, &eu, &ev, &euu, &euv, &evv,
@@ -201,11 +209,13 @@ case 1:
     break;
 
 case 2:
-    mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 2, &dicp[0].x, 1.0, knot,
-                         &di.x, &diu.x, &div.x, &diuu.x, &diuv.x, &divv.x );
+    if ( !mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 2, &dicp[0].x, 1.0, knot,
+                               &di.x, &diu.x, &div.x, &diuu.x, &diuv.x, &divv.x ) )
+      goto failure;
     *tang = div;
-    mbs_BCHornerDer2Pf ( n, m, 1, pcp, 1.0, knot,
-                         &f, &fu, &fv, &fuu, &fuv, &fvv );
+    if ( !mbs_BCHornerDer2Pf ( n, m, 1, pcp, 1.0, knot,
+                               &f, &fu, &fv, &fuu, &fuv, &fvv ) )
+      goto failure;
     if ( !pkn_Comp2iDerivatives2f ( diu.x, diu.y, div.x, div.y, diuu.x, diuu.y,
                                     diuv.x, diuv.y, divv.x, divv.y,
                                     1, &fu, &fv, &fuu, &fuv, &fvv,
@@ -216,16 +226,18 @@ case 2:
     *jpvv = -pvv;
     if ( !_gh_FindDomSurrndPatchf ( domain, k, 2, dicp ) )
       goto failure;
-    mbs_BCHornerDer2Pf ( 3, 3, 2, &dicp[0].x, 0.0, knot, &ei.x, &eiu.x, &eiv.x,
-                         &eiuu.x, &eiuv.x, &eivv.x );
+    if ( !mbs_BCHornerDer2Pf ( 3, 3, 2, &dicp[0].x, 0.0, knot, &ei.x, &eiu.x, &eiv.x,
+                               &eiuu.x, &eiuv.x, &eivv.x ) )
+      goto failure;
     memset ( pcp, 0, 16*sizeof(float) );
     for ( fn = 0; fn < nfunc_b; fn++ ) {
       bvz = nlpr->rhole_cp[bfcpn[fn]].z;
       gh_GetDomSurrndBFuncf ( domain, fn, k, 2, pc00 );
       pkn_AddMatrixMf ( 1, 16, 0, pcp, 0, pc00, bvz, 0, pcp );
     }
-    mbs_BCHornerDer2Pf ( 3, 3, 1, pcp, 0.0, knot,
-                         &e, &eu, &ev, &euu, &euv, &evv );
+    if ( !mbs_BCHornerDer2Pf ( 3, 3, 1, pcp, 0.0, knot,
+                               &e, &eu, &ev, &euu, &euv, &evv ) )
+      goto failure;
     if ( !pkn_Comp2iDerivatives2f ( eiu.x, eiu.y, eiv.x, eiv.y, eiuu.x, eiuu.y,
                                     eiuv.x, eiuv.y, eivv.x, eivv.y,
                                     1, &eu, &ev, &euu, &euv, &evv,
@@ -426,8 +438,9 @@ static boolean _g1hq2_TabExtNLBasisFunctionsf ( GHoleDomainf *domain,
         if ( i == 0 ) {
           for ( l = 0; l < G1_NQUAD; l++ ) {
             A11 = &ctrdd[38*l];  A21 = &A11[4];  A22 = &A21[6];
-            mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 1, b, 0.0, tkn[l],
-                             &tbezu[1], tbezu, tbezv, tbezuu, tbezuv, tbezvv );
+            if ( !mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 1, b, 0.0, tkn[l],
+                             &tbezu[1], tbezu, tbezv, tbezuu, tbezuv, tbezvv ) )
+              goto failure;
             psiuu[bN+3*G1_NQUAD+l] = -(A21[0]*tbezu[0] + A21[1]*tbezv[0] +
                           A22[0]*tbezuu[0] + A22[1]*tbezuv[0] + A22[2]*tbezvv[0]);
             psiuv[bN+3*G1_NQUAD+l] = -(A21[2]*tbezu[0] + A21[3]*tbezv[0] +
@@ -439,8 +452,9 @@ static boolean _g1hq2_TabExtNLBasisFunctionsf ( GHoleDomainf *domain,
         else if ( i == G1H_FINALDEG-4 ) {
           for ( l = 0; l < G1_NQUAD; l++ ) {
             A11 = &ctrd[38*(2*G1_NQUAD+l)];  A21 = &A11[4];  A22 = &A21[6];
-            mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 1, b, 1.0, tkn[l],
-                             &tbezu[1], tbezu, tbezv, tbezuu, tbezuv, tbezvv );
+            if ( !mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 1, b, 1.0, tkn[l],
+                             &tbezu[1], tbezu, tbezv, tbezuu, tbezuv, tbezvv ) )
+              goto failure;
             psiuu[bN+2*G1_NQUAD+l] = -(A21[0]*tbezu[0] + A21[1]*tbezv[0] +
                           A22[0]*tbezuu[0] + A22[1]*tbezuv[0] + A22[2]*tbezvv[0]);
             psiuv[bN+2*G1_NQUAD+l] = -(A21[2]*tbezu[0] + A21[3]*tbezv[0] +
@@ -452,8 +466,9 @@ static boolean _g1hq2_TabExtNLBasisFunctionsf ( GHoleDomainf *domain,
         if ( j == 0 ) {
           for ( l = 0; l < G1_NQUAD; l++  ) {
             A11 = &ctrd[38*l];  A21 = &A11[4];  A22 = &A21[6];
-            mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 1, b, tkn[l], 0.0,
-                             &tbezu[1], tbezu, tbezv, tbezuu, tbezuv, tbezvv );
+            if ( !mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 1, b, tkn[l], 0.0,
+                             &tbezu[1], tbezu, tbezv, tbezuu, tbezuv, tbezvv ) )
+              goto failure;
             psiuu[bN+l] = A21[0]*tbezu[0] + A21[1]*tbezv[0] +
                           A22[0]*tbezuu[0] + A22[1]*tbezuv[0] + A22[2]*tbezvv[0];
             psiuv[bN+l] = A21[2]*tbezu[0] + A21[3]*tbezv[0] +
@@ -465,8 +480,9 @@ static boolean _g1hq2_TabExtNLBasisFunctionsf ( GHoleDomainf *domain,
         else if ( j == G1H_FINALDEG-4 ) {
           for ( l = 0; l < G1_NQUAD; l++ ) {
             A11 = &ctrd[38*(G1_NQUAD+l)];  A21 = &A11[4];  A22 = &A21[6];
-            mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 1, b, tkn[l], 1.0,
-                             &tbezu[1], tbezu, tbezv, tbezuu, tbezuv, tbezvv );
+            if ( !mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 1, b, tkn[l], 1.0,
+                             &tbezu[1], tbezu, tbezv, tbezuu, tbezuv, tbezvv ) )
+              goto failure;
             psiuu[bN+G1_NQUAD+l] = -(A21[0]*tbezu[0] + A21[1]*tbezv[0] +
                           A22[0]*tbezuu[0] + A22[1]*tbezuv[0] + A22[2]*tbezvv[0]);
             psiuv[bN+G1_NQUAD+l] = -(A21[2]*tbezu[0] + A21[3]*tbezv[0] +

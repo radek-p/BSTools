@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -21,15 +21,16 @@
 /* computing the matrices of the fundamental */
 /* forms of B\'{e}zier patches */
 
-void mbs_FundFormsBP3Rf ( int degreeu, int degreev, const point4f *ctlpoints,
-                         float u, float v,
-                         float *firstform, float *secondform )
+boolean mbs_FundFormsBP3Rf ( int degreeu, int degreev, const point4f *ctlpoints,
+                             float u, float v,
+                             float *firstform, float *secondform )
 {
   point3f  p;
   vector3f pu, pv, puu, puv, pvv, normal;
 
-  mbs_BCHornerDer2P3Rf ( degreeu, degreev, ctlpoints, u, v,
-                         &p, &pu, &pv, &puu, &puv, &pvv );
+  if ( !mbs_BCHornerDer2P3Rf ( degreeu, degreev, ctlpoints, u, v,
+                               &p, &pu, &pv, &puu, &puv, &pvv ) )
+    return false;
 
   firstform[0] = (float)DotProduct3f ( &pu, &pu );
   firstform[1] = (float)DotProduct3f ( &pu, &pv );
@@ -40,39 +41,43 @@ void mbs_FundFormsBP3Rf ( int degreeu, int degreev, const point4f *ctlpoints,
   secondform[0] = (float)DotProduct3f ( &normal, &puu );
   secondform[1] = (float)DotProduct3f ( &normal, &puv );
   secondform[2] = (float)DotProduct3f ( &normal, &pvv );
+  return true;
 } /*mbs_FundFormsBP3Rf*/
 
 
 /* computing Gaussian and mean curvature */
 
-void mbs_GMCurvaturesBP3Rf ( int degreeu, int degreev, const point4f *ctlpoints, 
-                             float u, float v,
-                             float *gaussian, float *mean )
+boolean mbs_GMCurvaturesBP3Rf ( int degreeu, int degreev, const point4f *ctlpoints, 
+                                float u, float v,
+                                float *gaussian, float *mean )
 {
   float first[3], second[3];
   float a, b, c;
 
-  mbs_FundFormsBP3Rf ( degreeu, degreev, ctlpoints, u, v, first, second );
+  if ( !mbs_FundFormsBP3Rf ( degreeu, degreev, ctlpoints, u, v, first, second ) )
+    return false;
   a = first[0]*first[2] - first[1]*first[1];
   b = (float)2.0*second[1]*first[1] - second[0]*first[2] - second[2]*first[0];
   c = second[0]*second[2] - second[1]*second[1];
   *gaussian = c/a;
   *mean = (float)0.5*b/a;
+  return true;
 } /*mbs_GMCurvaturesBP3Rf*/
 
 
 /* computing principal curvatures and directions */
 
-void mbs_PrincipalDirectionsBP3Rf ( int degreeu, int degreev,
-                                    const point4f *ctlpoints, 
-                                    float u, float v,
-                                    float *k1, vector2f *v1,
-                                    float *k2, vector2f *v2 )
+boolean mbs_PrincipalDirectionsBP3Rf ( int degreeu, int degreev,
+                                       const point4f *ctlpoints, 
+                                       float u, float v,
+                                       float *k1, vector2f *v1,
+                                       float *k2, vector2f *v2 )
 {
   float first[3], second[3];
   float a, b, c;
 
-  mbs_FundFormsBP3Rf ( degreeu, degreev, ctlpoints, u, v, first, second );
+  if ( !mbs_FundFormsBP3Rf ( degreeu, degreev, ctlpoints, u, v, first, second ) )
+    return false;
   a = first[0]*first[2] - first[1]*first[1];
   b = (float)2.0*second[1]*first[1] - second[0]*first[2] - second[2]*first[0];
   c = second[0]*second[2] - second[1]*second[1];
@@ -96,5 +101,6 @@ void mbs_PrincipalDirectionsBP3Rf ( int degreeu, int degreev,
   else
     SetVector2f ( v2, c, -b );
   NormalizeVector2f ( v2 );
+  return true;
 } /*mbs_PrincipalDirectionsBP3Rf*/
 

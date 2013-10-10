@@ -202,17 +202,19 @@ failure:
   return false;
 } /*_g1h_Q2TabLaplacianGrad0f*/
 
-void _g1h_TabCurveJacobianf ( int deg, const point2f *cp,
-                              int nkn, const float *kn, float *jac )
+boolean _g1h_TabCurveJacobianf ( int deg, const point2f *cp,
+                                 int nkn, const float *kn, float *jac )
 {
   int      i;
   point2f  p;
   vector2f dp;
 
   for ( i = 0; i < nkn; i++ ) {
-    mbs_BCHornerDerC2f ( deg, cp, kn[i], &p, &dp );
+    if ( !mbs_BCHornerDerC2f ( deg, cp, kn[i], &p, &dp ) )
+      return false;
     jac[i] = (float)sqrt ( dp.x*dp.x+dp.y*dp.y );
   }
+  return true;
 } /*_g1h_TabCurveJacobianf*/
 
 boolean _g1h_LapCoefff ( const vector2f *du, const vector2f *dv,
@@ -299,18 +301,20 @@ failure:
   return false;
 } /*_g1h_TabCurveLapCoeff0f*/
 
-void _g1h_TabCurveLapCoeff1f ( const point2f *sicp, int nkn,
-                               const float *tkn, float *trd )
+boolean _g1h_TabCurveLapCoeff1f ( const point2f *sicp, int nkn,
+                                  const float *tkn, float *trd )
 {
   int i;
   point2f d;
   vector2f du, dv, duu, duv, dvv;
 
   for ( i = 0; i < nkn; i++ ) {
-    mbs_BCHornerDer2Pf ( 3, 3, 2, (float*)sicp, 0.0, tkn[i],
-                         &d.x, &du.x, &dv.x, &duu.x, &duv.x, &dvv.x );
+    if ( !mbs_BCHornerDer2Pf ( 3, 3, 2, (float*)sicp, 0.0, tkn[i],
+                         &d.x, &du.x, &dv.x, &duu.x, &duv.x, &dvv.x ) )
+      return false;
     _g1h_LapCoefff ( &du, &dv, &duu, &duv, &dvv, &trd[5*i] );
   }
+  return true;
 } /*_g1h_TabCurveLapCoeff1f*/
 
 boolean _g1h_Q2TabLaplacianJump0f ( int nkn, const float *tkn,
@@ -437,8 +441,9 @@ boolean _g1h_Q2TabLaplacianJumpf ( int nkn, const float *tkn,
     lapjc00[i] = lapf-lape;
   }
   for ( i = j = 0, k = 1;  i < nkn;  i++, j += 5, k += 2 ) {
-    mbs_BCHornerDer2Pf ( 3, 3, 1, eicp1, 0.0, tkn[i],
-                         &tabeu[1], tabeu, tabev, tabeuu, tabeuv, tabevv );
+    if ( !mbs_BCHornerDer2Pf ( 3, 3, 1, eicp1, 0.0, tkn[i],
+                         &tabeu[1], tabeu, tabev, tabeuu, tabeuv, tabevv ) )
+      goto failure;
     lape = etrdc10[j]*tabeu[0] + etrdc10[j+1]*tabev[0] + etrdc10[j+2]*tabeuu[0] +
            etrdc10[j+3]*tabeuv[0] + etrdc10[j+4]*tabevv[0];
     lapf = ftrdc10[j]*tabfu[k] + ftrdc10[j+1]*tabfv[k] + ftrdc10[j+2]*tabfuu[k] +
@@ -456,8 +461,9 @@ boolean _g1h_Q2TabLaplacianJumpf ( int nkn, const float *tkn,
               NULL, tabfu, tabfv, tabfuu, tabfuv, tabfvv ) )
     goto failure;
   for ( i = j = 0;  i < nkn;  i++, j += 5 ) {
-    mbs_BCHornerDer2Pf ( 3, 3, 1, eicp2, 0.0, tkn[i],
-                         &tabeu[1], tabeu, tabev, tabeuu, tabeuv, tabevv );
+    if ( !mbs_BCHornerDer2Pf ( 3, 3, 1, eicp2, 0.0, tkn[i],
+                         &tabeu[1], tabeu, tabev, tabeuu, tabeuv, tabevv ) )
+      goto failure;
     lape = etrdd10[j]*tabeu[0] + etrdd10[j+1]*tabev[0] + etrdd10[j+2]*tabeuu[0] +
            etrdd10[j+3]*tabeuv[0] + etrdd10[j+4]*tabevv[0];
     lapf = ftrdd10[j]*tabfu[i] + ftrdd10[j+1]*tabfv[i] + ftrdd10[j+2]*tabfuu[i] +

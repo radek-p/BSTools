@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2010                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2010, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -23,7 +23,7 @@
 #include "g1blprivated.h"
 
 /* 
-oblicza współczynniki i węzły kwadratury gaussa-legendrea
+oblicza współczynniki i węzły kwadratury Gaussa-Legendre'a
 nkn - liczba węzłów w kwadraturze
 *bf - wskaźnik do tablicy wartości funkcji bazowych w węzłach kwadratury
  ///////////////////////////////////////////////////////////////////////// */
@@ -71,16 +71,18 @@ case 9:
     pkn_QuadGaussLegendre18d ( 0.0, 1.0, nkn, _knots, _coeff );
     break;
 case 10:
-    pkn_QuadGaussLegendre20d ( 0.0, 1.0, nkn, _knots, _coeff );/*tablicowanie węzły i współczynniki kwad.*/
+    pkn_QuadGaussLegendre20d ( 0.0, 1.0, nkn, _knots, _coeff );
+      /*tablicowanie węzły i współczynniki kwad.*/
     break;
 default:
     exit ( 1 );
   }
-  for ( j = k = 0;  k < 3;  k++ )/* numer wielomianu */
+  for ( j = k = 0;  k < 3;  k++ ) /* numer wielomianu */
     for ( i = 0;  i < nkn;  i++, j++ ) /* wartości ktego wielomianu
  obliczanie funkcji i pochodnych pierwszego i drugiego rzędu */
-      mbs_multiBCHornerDer2d ( 2, 1, 1, 0, &bfcp[3*k], _knots[i],
-                               &_bf[j], &_dbf[j], &_ddbf[j] );
+      if ( !mbs_multiBCHornerDer2d ( 2, 1, 1, 0, &bfcp[3*k], _knots[i],
+                                     &_bf[j], &_dbf[j], &_ddbf[j] ) )
+        return false;
   return true;
 } /*_g1bl_TabBasisFuncd*/
 

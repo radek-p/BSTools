@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2012                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -129,7 +129,8 @@ boolean g1h_ComputeNLNormalf ( GHoleDomainf *domain,
           /* integrate the unit normal vector at the boundary */
       for ( k = 0; k < DENSITY; k++ ) {
         t = (float)(k+k+1)/(float)(2*DENSITY);
-        mbs_BCHornerDerP3f ( 3, 3, bcp, 0.0, t, &p, &pu, &pv );
+        if ( !mbs_BCHornerDerP3f ( 3, 3, bcp, 0.0, t, &p, &pu, &pv ) )
+          goto failure;
         NormalizeVector3f ( &pv );
         CrossProduct3f ( &pu, &pv, &nu );
         AddVector3f ( &nv, &nu, &nv );
@@ -144,7 +145,8 @@ boolean g1h_ComputeNLNormalf ( GHoleDomainf *domain,
           /* integrate the unit normal vector at the boundary */
       for ( k = 0; k < DENSITY; k++ ) {
         t = (float)(k+k+1)/(float)(2*DENSITY);
-        mbs_BCHornerDerP3f ( 3, 3, bcp, 0.0, t, &p, &pu, &pv );
+        if ( !mbs_BCHornerDerP3f ( 3, 3, bcp, 0.0, t, &p, &pu, &pv ) )
+          goto failure;
         CrossProduct3f ( &pu, &pv, &nu );
         if ( DotProduct3f ( &nu, &nv ) <= 0.0 )
           goto failure;
@@ -306,11 +308,12 @@ boolean _g1h_TabNLBasisFunctionsf ( GHoleDomainf *domain, int nkn,
     for ( i = l = 0;  i < nkn;  i++ )
          /* ***** this is not an optimal algorithm, to be improved */
       for ( j = 0;  j < nkn;  j++, l++ ) {
-        mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 2, (float*)di,
+        if ( !mbs_BCHornerDer2Pf ( G1H_FINALDEG, G1H_FINALDEG, 2, (float*)di,
                     tkn[i], tkn[j], (float*)&ddi,
                     (float*)&nlpr->diu[kNQ2+l], (float*)&nlpr->div[kNQ2+l],
                     (float*)&nlpr->diuu[kNQ2+l], (float*)&nlpr->diuv[kNQ2+l],
-                    (float*)&nlpr->divv[kNQ2+l] );
+                    (float*)&nlpr->divv[kNQ2+l] ) )
+          goto failure;
         nlpr->jac[kNQ2+l] = (float)det2f ( &nlpr->diu[kNQ2+l], &nlpr->div[kNQ2+l] );
      }
   }

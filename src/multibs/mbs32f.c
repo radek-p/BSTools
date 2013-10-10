@@ -49,28 +49,32 @@ boolean mbs_multiBCHornerDerf ( int degree, int ncurves, int spdimen, int pitch,
     return false;
 } /*mbs_multiBCHornerDerf*/
 
-void mbs_BCHornerDerC2Rf ( int degree, const point3f *ctlpoints, float t,
-                           point2f *p, vector2f *d )
+boolean mbs_BCHornerDerC2Rf ( int degree, const point3f *ctlpoints, float t,
+                              point2f *p, vector2f *d )
 {
   point3f hp, hd;
 
-  mbs_BCHornerDerC3f ( degree, ctlpoints, t, &hp, &hd );
+  if ( !mbs_BCHornerDerC3f ( degree, ctlpoints, t, &hp, &hd ) )
+    return false;
   Point3to2f ( &hp, p );
   memcpy ( d, &hd, sizeof(vector2f) );
   AddVector2Mf ( d, p, -hd.z, d );
   MultVector2f ( 1.0/hp.z, d, d );
+  return true;
 } /*mbs_BCHornerDerC2Rf*/
 
-void mbs_BCHornerDerC3Rf ( int degree, const point4f *ctlpoints, float t,
-                           point3f *p, vector3f *d )
+boolean mbs_BCHornerDerC3Rf ( int degree, const point4f *ctlpoints, float t,
+                              point3f *p, vector3f *d )
 {
   point4f hp, hd;
 
-  mbs_BCHornerDerC4f ( degree, ctlpoints, t, &hp, &hd );
+  if ( !mbs_BCHornerDerC4f ( degree, ctlpoints, t, &hp, &hd ) )
+    return false;
   Point4to3f ( &hp, p );
   memcpy ( d, &hd, sizeof(vector3f) );
   AddVector3Mf ( d, p, -hd.w, d );
   MultVector3f ( 1.0/hp.w, d, d );
+  return true;
 } /*mbs_BCHornerDerC3Rf*/
 
 boolean mbs_BCHornerDerPf ( int degreeu, int degreev, int spdimen,
@@ -89,12 +93,14 @@ boolean mbs_BCHornerDerPf ( int degreeu, int degreev, int spdimen,
       memset ( dv, 0, spdimen*sizeof(float) );
     }
     else {
-      mbs_multiBCHornerDerf ( degreev, 1, spdimen, 0, ctlpoints, v, p, dv );
+      if ( !mbs_multiBCHornerDerf ( degreev, 1, spdimen, 0, ctlpoints, v, p, dv ) )
+        goto failure;
     }
     memset ( du, 0, spdimen*sizeof(float) );
   }
   else if ( degreev == 0 ) {
-    mbs_multiBCHornerDerf ( degreeu, 1, spdimen, 0, ctlpoints, u, p, du );
+    if ( !mbs_multiBCHornerDerf ( degreeu, 1, spdimen, 0, ctlpoints, u, p, du ) )
+      goto failure;
     memset ( dv, 0, spdimen*sizeof(float) );
   }
   else {
@@ -104,12 +110,15 @@ boolean mbs_BCHornerDerPf ( int degreeu, int degreev, int spdimen,
       goto failure;
     }
     scr = &q[6*spdimen];
-    mbs_multiBCHornerf ( degreeu-1, 2, spdimen*(degreev+1), spdimen*(degreev+1),
-                         ctlpoints, u, scr );
-    mbs_multiBCHornerf ( degreev-1, 2, spdimen, spdimen,
-                         &scr[0], v, &q[0] );
-    mbs_multiBCHornerf ( degreev-1, 2, spdimen, spdimen,
-                         &scr[spdimen*(degreev+1)], v, &q[2*spdimen] );
+    if ( !mbs_multiBCHornerf ( degreeu-1, 2, spdimen*(degreev+1), spdimen*(degreev+1),
+                               ctlpoints, u, scr ) )
+      goto failure; 
+    if ( !mbs_multiBCHornerf ( degreev-1, 2, spdimen, spdimen,
+                               &scr[0], v, &q[0] ) )
+      goto failure;
+    if ( !mbs_multiBCHornerf ( degreev-1, 2, spdimen, spdimen,
+                               &scr[spdimen*(degreev+1)], v, &q[2*spdimen] ) )
+      goto failure;
     pkn_SubtractMatrixf ( 2, spdimen, spdimen, &q[2*spdimen], spdimen, &q[0],
                           spdimen, &q[4*spdimen] );
     pkn_MatrixLinCombf ( 1, spdimen, 0, &q[4*spdimen], (1.0-v)*(float)degreeu,

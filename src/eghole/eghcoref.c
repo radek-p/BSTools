@@ -303,12 +303,15 @@ boolean gh_FindDomSurrndBezPatchesf ( GHoleDomainf *domain )
     for ( j = 0; j < 2; j++ ) {
       if ( !_gh_FindDomSurrndPatchf ( domain, i, j+1, dombezpt ) )
         return false;
-      mbs_multiBCHornerDer2f ( 3, 1, 8, 0, (float*)dombezpt, 0.0,
-          (float*)surrpc, (float*)&surrpc[4], (float*)&surrpc[8] );
-      mbs_multiBCHornerDer2f ( 3, 3, 2, 8, (float*)surrpc, 0.0,
-          (float*)surrpcbc, (float*)&surrpcbc[3], (float*)&surrpcbc[6] );
-      mbs_multiBCHornerDer2f ( 3, 3, 2, 8, (float*)surrpc, 1.0,
-          (float*)&surrpcbc[9], (float*)&surrpcbc[12], (float*)&surrpcbc[15] );
+      if ( !mbs_multiBCHornerDer2f ( 3, 1, 8, 0, (float*)dombezpt, 0.0,
+              (float*)surrpc, (float*)&surrpc[4], (float*)&surrpc[8] ) )
+        return false;
+      if ( !mbs_multiBCHornerDer2f ( 3, 3, 2, 8, (float*)surrpc, 0.0,
+              (float*)surrpcbc, (float*)&surrpcbc[3], (float*)&surrpcbc[6] ) )
+        return false;
+      if ( !mbs_multiBCHornerDer2f ( 3, 3, 2, 8, (float*)surrpc, 1.0,
+              (float*)&surrpcbc[9], (float*)&surrpcbc[12], (float*)&surrpcbc[15] ) )
+        return false;
       dombezpt += 16;
       surrpc += 12;
       surrpcbc += 18;

@@ -297,15 +297,17 @@ double g2h_ExtFunctionalValued ( GHoleDomaind *domain, int spdimen,
       goto failure;
     for ( i = 0; i < G2_NQUAD; i++ )
       for ( j = 0; j < G2_NQUAD; j++ ) {
-        mbs_BCHornerDer3Pd ( G2H_FINALDEG, G2H_FINALDEG, 2, (double*)bdi,
+        if ( !mbs_BCHornerDer3Pd ( G2H_FINALDEG, G2H_FINALDEG, 2, (double*)bdi,
                              tkn[i], tkn[j],
                              &di.x, &diu.x, &div.x, &diuu.x, &diuv.x, &divv.x,
-                             &diuuu.x, &diuuv.x, &diuvv.x, &divvv.x );
-        mbs_BCHornerDer3Pd ( G2H_FINALDEG, G2H_FINALDEG, spdimen,
+                             &diuuu.x, &diuuv.x, &diuvv.x, &divvv.x ) )
+          goto failure;
+        if ( !mbs_BCHornerDer3Pd ( G2H_FINALDEG, G2H_FINALDEG, spdimen,
                              &patches[k*(G2H_FINALDEG+1)*(G2H_FINALDEG+1)*spdimen],
                              tkn[i], tkn[j],
                              pi, piu, piv, piuu, piuv, pivv,
-                             piuuu, piuuv, piuvv, pivvv );
+                             piuuu, piuuv, piuvv, pivvv ) )
+          goto failure;
         if ( !pkn_Comp2iDerivatives3d ( diu.x, diu.y, div.x, div.y, diuu.x, diuu.y,
                                   diuv.x, diuv.y, divv.x, divv.y,
                                   diuuu.x, diuuu.y, diuuv.x, diuuv.y,

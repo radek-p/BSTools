@@ -480,8 +480,8 @@ boolean _g1h_Q2TabLaplacianGrad0f ( int nkn, const float *tkn,
         const float *fd00, const float *fd01,
         const float *trd,
         vector2f *lapgrad );
-void _g1h_TabCurveJacobianf ( int deg, const point2f *cp,
-                              int nkn, const float *kn, float *jac );
+boolean _g1h_TabCurveJacobianf ( int deg, const point2f *cp,
+                                 int nkn, const float *kn, float *jac );
 boolean _g1h_LapCoefff ( const vector2f *du, const vector2f *dv,
                          const vector2f *duu, const vector2f *duv,
                          const vector2f *dvv, float *trd );
@@ -495,8 +495,8 @@ boolean _g1h_TabCurveLapCoeff0f ( const point2f *c00, const vector2f *c01,
                                   const float *adhfunc, const float *addhfunc,
                                   float *trdc00, float *trdc10,
                                   float *trdd00, float *trdd10 );
-void _g1h_TabCurveLapCoeff1f ( const point2f *sicp, int nkn,
-                               const float *tkn, float *trd );
+boolean _g1h_TabCurveLapCoeff1f ( const point2f *sicp, int nkn,
+                                  const float *tkn, float *trd );
 boolean _g1h_TabTensBezPolyDer3f ( int nkn, const float *tkn,
              float *tbez, float *tbezu, float *tbezv,
              float *tbezuu, float *tbezuv, float *tbezvv,

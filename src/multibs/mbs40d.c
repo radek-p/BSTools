@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -20,16 +20,19 @@
 /* /////////////////////////////////////////// */
 /* Horner scheme for Bezier curves and patches */
 
-void mbs_multiBCHornerDer3d ( int degree, int ncurves, int spdimen, int pitch,
-                              const double *ctlpoints, double t,
-                              double *p, double *d1, double *d2, double *d3 )
+boolean mbs_multiBCHornerDer3d ( int degree, int ncurves, int spdimen, int pitch,
+                                 const double *ctlpoints, double t,
+                                 double *p, double *d1, double *d2, double *d3 )
 {
-  int   i;
+  void   *sp;
+  int    i;
   double *a, s;
 
+  sp = pkv_GetScratchMemTop ();
   if ( degree <= 2 ) {
-    mbs_multiBCHornerDer2d ( degree, ncurves, spdimen, pitch, ctlpoints,
-                             t, p, d1, d2 );
+    if ( !mbs_multiBCHornerDer2d ( degree, ncurves, spdimen, pitch, ctlpoints,
+                                   t, p, d1, d2 ) )
+      goto failure;
     memset ( d3, 0, ncurves*spdimen*sizeof(double) );
   }
   else if ( (a = pkv_GetScratchMemd ( 4*spdimen )) ) {
@@ -38,7 +41,8 @@ void mbs_multiBCHornerDer3d ( int degree, int ncurves, int spdimen, int pitch,
           i < ncurves;
           i++, ctlpoints += pitch,
           p += spdimen, d1 += spdimen, d2 += spdimen, d3 += spdimen ) {
-      mbs_multiBCHornerd ( degree-3, 4, spdimen, spdimen, ctlpoints, t, a );
+      if ( !mbs_multiBCHornerd ( degree-3, 4, spdimen, spdimen, ctlpoints, t, a ) )
+        goto failure;
       pkn_SubtractMatrixd ( 1, spdimen, 0, &a[3*spdimen], 0, a, 0, d3 );
       pkn_SubtractMatrixd ( 1, spdimen, 0, &a[spdimen], 0, &a[2*spdimen], 0, d2 );
       pkn_AddMatrixMd ( 1, spdimen, 0, d3, 0, d2, 3.0, 0, d3 );
@@ -61,7 +65,14 @@ void mbs_multiBCHornerDer3d ( int degree, int ncurves, int spdimen, int pitch,
                                (double)degree, 0, d1 );
       pkn_MatrixLinCombd ( 1, spdimen, 0, a, s, 0, &a[spdimen], t, 0, p );
     }
-    pkv_FreeScratchMemd ( 3*spdimen );
   }
+  else
+    goto failure;
+  pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*mbs_multiBCHornerDer3d*/
 

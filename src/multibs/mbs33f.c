@@ -58,12 +58,13 @@ boolean mbs_multiBCHornerDer2f ( int degree, int ncurves, int spdimen, int pitch
     return false;
 } /*mbs_multiBCHornerDer2f*/
 
-void mbs_BCHornerDer2C2Rf ( int degree, const point3f *ctlpoints, float t,
-                            point2f *p, vector2f *d1, vector2f *d2 )
+boolean mbs_BCHornerDer2C2Rf ( int degree, const point3f *ctlpoints, float t,
+                               point2f *p, vector2f *d1, vector2f *d2 )
 {
   point3f hp, hd1, hd2;
 
-  mbs_BCHornerDer2C3f ( degree, ctlpoints, t, &hp, &hd1, &hd2 );
+  if ( !mbs_BCHornerDer2C3f ( degree, ctlpoints, t, &hp, &hd1, &hd2 ) )
+    return false;
   Point3to2f ( &hp, p );
   memcpy ( d1, &hd1, sizeof(vector2f) );
   AddVector2Mf ( d1, p, -hd1.z, d1 );
@@ -72,14 +73,16 @@ void mbs_BCHornerDer2C2Rf ( int degree, const point3f *ctlpoints, float t,
   AddVector2Mf ( d2, d1, -2.0*hd1.z, d2 );
   AddVector2Mf ( d2, p, -hd2.z, d2 );
   MultVector2f ( 1.0/hp.z, d2, d2 );
+  return true;
 } /*mbs_BCHornerDer2C2Rf*/
 
-void mbs_BCHornerDer2C3Rf ( int degree, const point4f *ctlpoints, float t,
-                            point3f *p, vector3f *d1, vector3f *d2 )
+boolean mbs_BCHornerDer2C3Rf ( int degree, const point4f *ctlpoints, float t,
+                               point3f *p, vector3f *d1, vector3f *d2 )
 {
   point4f hp, hd1, hd2;
 
-  mbs_BCHornerDer2C4f ( degree, ctlpoints, t, &hp, &hd1, &hd2 );
+  if ( !mbs_BCHornerDer2C4f ( degree, ctlpoints, t, &hp, &hd1, &hd2 ) )
+    return false;
   Point4to3f ( &hp, p );
   memcpy ( d1, &hd1, sizeof(vector3f) );
   AddVector3Mf ( d1, p, -hd1.w, d1 );
@@ -88,18 +91,21 @@ void mbs_BCHornerDer2C3Rf ( int degree, const point4f *ctlpoints, float t,
   AddVector3Mf ( d2, d1, -2.0*hd1.w, d2 );
   AddVector3Mf ( d2, p, -hd2.w, d2 );
   MultVector3f ( 1.0/hp.w, d2, d2 );
+  return true;
 } /*mbs_BCHornerDer2C3Rf*/
 
-void mbs_BCHornerDer2Pf ( int degreeu, int degreev, int spdimen,   
-                          const float *ctlpoints,   
-                          float u, float v,   
-                          float *p, float *du, float *dv,
-                          float *duu, float *duv, float *dvv )
+boolean mbs_BCHornerDer2Pf ( int degreeu, int degreev, int spdimen,   
+                             const float *ctlpoints,   
+                             float u, float v,   
+                             float *p, float *du, float *dv,
+                             float *duu, float *duv, float *dvv )
 {
+  void  *sp;
   float *q, *r;
   int   n, m, i, k, pitch;
   int   size;
 
+  sp = pkv_GetScratchMemTop ();
   pitch = (degreev+1)*spdimen;
   if ( (r = pkv_GetScratchMemf ( size = 36*spdimen+3*pitch )) ) {
     q = &r[36*spdimen];
@@ -109,7 +115,8 @@ void mbs_BCHornerDer2Pf ( int degreeu, int degreev, int spdimen,
     }
     else {
       n = 3;
-      mbs_multiBCHornerf ( degreeu-2, 3, pitch, pitch, ctlpoints, u, q );
+      if ( !mbs_multiBCHornerf ( degreeu-2, 3, pitch, pitch, ctlpoints, u, q ) )
+        goto failure;
     }
     if ( degreev <= 2 ) {
       m = degreev+1;
@@ -118,8 +125,9 @@ void mbs_BCHornerDer2Pf ( int degreeu, int degreev, int spdimen,
     else {
       m = 3;
       for ( i = 0; i < n; i++ )
-        mbs_multiBCHornerf ( degreev-2, 3, spdimen, spdimen,
-                             &q[i*pitch], v, &r[i*3*spdimen] );
+        if ( !mbs_multiBCHornerf ( degreev-2, 3, spdimen, spdimen,
+                                   &q[i*pitch], v, &r[i*3*spdimen] ) )
+          goto failure;
     }
 
                     /* now the last steps of the de Casteljau algorithm */
@@ -220,21 +228,29 @@ case 1:
       memset ( dv, 0, spdimen*sizeof(float) );
       memset ( dvv, 0, spdimen*sizeof(float) );
     }
-
-    pkv_FreeScratchMemf ( size );
   }
+  else
+    goto failure;
+
+  pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
 } /*mbs_BCHornerDer2Pf*/
 
-void mbs_BCHornerDer2P3Rf ( int degreeu, int degreev, const point4f *ctlpoints,
-                            float u, float v,
-                            point3f *p, vector3f *du, vector3f *dv,
-                            vector3f *duu, vector3f *duv, vector3f *dvv )
+boolean mbs_BCHornerDer2P3Rf ( int degreeu, int degreev, const point4f *ctlpoints,
+                               float u, float v,
+                               point3f *p, vector3f *du, vector3f *dv,
+                               vector3f *duu, vector3f *duv, vector3f *dvv )
 {
   point4f hp, hdu, hdv, hduu, hduv, hdvv;
   float   iw;
 
-  mbs_BCHornerDer2P4f ( degreeu, degreev, ctlpoints, u, v,
-                        &hp, &hdu, &hdv, &hduu, &hduv, &hdvv );
+  if ( !mbs_BCHornerDer2P4f ( degreeu, degreev, ctlpoints, u, v,
+                              &hp, &hdu, &hdv, &hduu, &hduv, &hdvv ) )
+    return false;
   Point4to3f ( &hp, p );
 
   iw = (float)(1.0/hp.w);
@@ -258,5 +274,6 @@ void mbs_BCHornerDer2P3Rf ( int degreeu, int degreev, const point4f *ctlpoints,
   AddVector3Mf ( dvv, dv, -2.0*hdv.w, dvv );
   AddVector3Mf ( dvv, p, -hdvv.w, dvv );
   MultVector3f ( iw, dvv, dvv );
+  return true;
 } /*mbs_BCHornerDer2P3Rf*/
 

@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -20,8 +20,8 @@
 /* /////////////////////////////////////////// */
 /* computing curvature and Frenet frames of Bezier curves */
 
-void mbs_BCFrenetC2d ( int degree, const point2d *ctlpoints, double t,
-                       point2d *cpoint, vector2d *fframe, double *curvature )
+boolean mbs_BCFrenetC2d ( int degree, const point2d *ctlpoints, double t,
+                          point2d *cpoint, vector2d *fframe, double *curvature )
 {
   point2d  c[3];
   vector2d dc0, dc1, dc; 
@@ -40,7 +40,8 @@ void mbs_BCFrenetC2d ( int degree, const point2d *ctlpoints, double t,
   }
   else {
                 /* deal with the curve of degree at least 2 */
-    mbs_multiBCHornerd ( degree-2, 3, 2, 2, (double*)ctlpoints, t, (double*)c );
+    if ( !mbs_multiBCHornerd ( degree-2, 3, 2, 2, (double*)ctlpoints, t, (double*)c ) )
+      return false;
                 /* the last 2 steps of the de Casteljau algorithm */
                 /* and computation of differences */
     SubtractPoints2d ( &c[1], &c[0], &dc0 );
@@ -59,10 +60,11 @@ void mbs_BCFrenetC2d ( int degree, const point2d *ctlpoints, double t,
     denom *= sqrt(denom);
     *curvature = (double)(degree-1)/(double)degree*num/denom;
   }
+  return true;
 } /*mbs_BCFrenetC2d*/
 
-void mbs_BCFrenetC2Rd ( int degree, const point3d *ctlpoints, double t,
-                        point2d *cpoint, vector2d *fframe, double *curvature )
+boolean mbs_BCFrenetC2Rd ( int degree, const point3d *ctlpoints, double t,
+                           point2d *cpoint, vector2d *fframe, double *curvature )
 {
   vector3d c[3];
   vector2d dc;
@@ -85,7 +87,8 @@ void mbs_BCFrenetC2Rd ( int degree, const point3d *ctlpoints, double t,
   }
   else {
                 /* deal with the curve of degree at least 2 */
-    mbs_multiBCHornerd ( degree-2, 3, 3, 3, (double*)ctlpoints, t, (double*)c );
+    if ( !mbs_multiBCHornerd ( degree-2, 3, 3, 3, (double*)ctlpoints, t, (double*)c ) )
+      return false;
                 /* the last 2 steps of the de Casteljau algorithm */
                 /* and computation of the curvature */
     num = det3d ( &c[0], &c[1], &c[2] );
@@ -105,10 +108,11 @@ void mbs_BCFrenetC2Rd ( int degree, const point3d *ctlpoints, double t,
     *curvature = c[0].z*c[0].z*c[0].z*
                  (double)(degree-1)/(double)degree*num/denom;
   }
+  return true;
 } /*mbs_BCFrenetC2Rd*/
 
-void mbs_BCFrenetC3d ( int degree, const point3d *ctlpoints, double t,
-                       point3d *cpoint, vector3d *fframe, double *curvatures )
+boolean mbs_BCFrenetC3d ( int degree, const point3d *ctlpoints, double t,
+                          point3d *cpoint, vector3d *fframe, double *curvatures )
 {
   point3d  c[4];
   vector3d dc0, dc1, dc2;
@@ -118,14 +122,14 @@ void mbs_BCFrenetC3d ( int degree, const point3d *ctlpoints, double t,
   switch ( degree ) {
 case 0:
     *cpoint = ctlpoints[0];
-    return;
+    return true;
 
 case 1:
     InterPoint3d ( &ctlpoints[0], &ctlpoints[1], t, cpoint );
     SubtractPoints3d ( &ctlpoints[1], &ctlpoints[0], &fframe[0] );
     NormalizeVector3d ( &fframe[0] );
     curvatures[0] = curvatures[1] = 0.0;
-    return;
+    return true;
 
 case 2:
     memcpy ( c, ctlpoints, 3*sizeof(point3d) );
@@ -133,7 +137,8 @@ case 2:
     goto tail;
 
 default:
-    mbs_multiBCHornerd ( degree-3, 4, 3, 3, (double*)ctlpoints, t, (double*)c );
+    if ( !mbs_multiBCHornerd ( degree-3, 4, 3, 3, (double*)ctlpoints, t, (double*)c ) )
+      return false;
     SubtractPoints3d ( &c[1], &c[0], &dc0 );
     SubtractPoints3d ( &c[2], &c[1], &dc1 );
     SubtractPoints3d ( &c[3], &c[2], &dc2 );
@@ -160,12 +165,12 @@ tail:
     fframe[2] = dc2;
     NormalizeVector3d ( &fframe[2] );
     CrossProduct3d ( &fframe[2], &fframe[0], &fframe[1] );
-    return;
+    return true;
   }
 } /*mbs_BCFrenetC3d*/
 
-void mbs_BCFrenetC3Rd ( int degree, const point4d *ctlpoints, double t,
-                        point3d *cpoint, vector3d *fframe, double *curvatures )
+boolean mbs_BCFrenetC3Rd ( int degree, const point4d *ctlpoints, double t,
+                           point3d *cpoint, vector3d *fframe, double *curvatures )
 {
   vector4d c[4];
   vector3d dc1, dc2;
@@ -175,7 +180,7 @@ void mbs_BCFrenetC3Rd ( int degree, const point4d *ctlpoints, double t,
   switch ( degree ) {
 case 0:
     Point4to3d ( ctlpoints, cpoint );
-    return;
+    return true;
 
 case 1:
     InterPoint4d ( &ctlpoints[0], &ctlpoints[1], t, &c[0] );
@@ -185,7 +190,7 @@ case 1:
         ctlpoints[1].z*ctlpoints[0].w-ctlpoints[0].z*ctlpoints[1].w );
     NormalizeVector3d ( &fframe[0] );
     curvatures[0] = curvatures[1] = 0.0;
-    return;
+    return true;
 
 case 2:
     memcpy ( c, ctlpoints, 3*sizeof(point4d) );
@@ -193,7 +198,8 @@ case 2:
     goto tail;
 
 default:
-    mbs_multiBCHornerd ( degree-3, 4, 4, 4, (double*)ctlpoints, t, (double*)c );
+    if ( !mbs_multiBCHornerd ( degree-3, 4, 4, 4, (double*)ctlpoints, t, (double*)c ) )
+      return false;
     numt = det4d ( &c[0], &c[1], &c[2], &c[3] );
     for ( i = 0; i < 3; i++ )
       InterPoint4d ( &c[i], &c[i+1], t, &c[i] );
@@ -217,7 +223,7 @@ tail:
     fframe[2] = dc2;
     NormalizeVector3d ( &fframe[2] );
     CrossProduct3d ( &fframe[2], &fframe[0], &fframe[1] );
-    return;
+    return true;
   }
 } /*mbs_BCFrenetC3Rd*/
 

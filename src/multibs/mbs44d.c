@@ -43,15 +43,17 @@ boolean mbs_FindBezPatchDiagFormd ( int degreeu, int degreev, int spdimen,
       PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
       goto failure;
     }
-    mbs_multiBCHornerd ( degreeu-k, k+1, pitch, pitch, cpoints, u, p );
+    if ( !mbs_multiBCHornerd ( degreeu-k, k+1, pitch, pitch, cpoints, u, p ) )
+      goto failure;
   }
   else
     p = cpoints;
   if ( l < degreev ) {
     ptch = (l+1)*spdimen;
     for ( i = 0; i <= k; i++ )
-      mbs_multiBCHornerd ( degreev-l, l+1, spdimen, spdimen, &p[i*pitch], v,
-                           &dfcp[i*ptch] );
+      if ( !mbs_multiBCHornerd ( degreev-l, l+1, spdimen, spdimen, &p[i*pitch], v,
+                                 &dfcp[i*ptch] ) )
+        goto failure;
   }
   else
     memcpy ( dfcp, p, (k+1)*(l+1)*sizeof(double) );
