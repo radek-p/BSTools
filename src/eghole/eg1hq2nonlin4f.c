@@ -248,7 +248,8 @@ static boolean _g1hq2_TabSplNLBasisFunctionsf ( GHoleDomainf *domain,
   dhfunc = &hfunc[4*nkn];
   ddhfunc = &dhfunc[4*nkn];
   dddhfunc = &ddhfunc[4*nkn];
-  mbs_TabCubicHFuncDer3f ( 0.0, 1.0, nkn, tkn, hfunc, dhfunc, ddhfunc, dddhfunc );
+  if ( !mbs_TabCubicHFuncDer3f ( 0.0, 1.0, nkn, tkn, hfunc, dhfunc, ddhfunc, dddhfunc ) )
+    goto failure;
 
         /* compute the Jacobian */
   for ( k = kN = kNQ2 = 0;
@@ -1379,7 +1380,8 @@ static boolean _g1hq2_TabSplNLBasisFJumpsf ( GHoleDomainf *domain,
   memset ( nlpr->cpsiuu, 0, jtabsize*sizeof(float) );
   memset ( nlpr->cpsiuv, 0, jtabsize*sizeof(float) );
   memset ( nlpr->cpsivv, 0, jtabsize*sizeof(float) );
-  mbs_TabCubicHFuncDer2f ( 0.0, 1.0, nakn, aknots, ahfunc, adhfunc, addhfunc );
+  if ( !mbs_TabCubicHFuncDer2f ( 0.0, 1.0, nakn, aknots, ahfunc, adhfunc, addhfunc ) )
+    goto failure;
           /* block A functions */
   for ( fn = 0; fn < nfunc_a; fn++ ) {
     _g1h_GetBFAPatchCurvesf ( domain, fn, hole_k-1, &ec00, &ec01, &ed00, &ed01 );

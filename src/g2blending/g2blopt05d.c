@@ -51,13 +51,15 @@ double g2bl_ClosedSurfNetDiameterSqd ( int lastknotu, int lastknotv,
   knotsa[0] = 0.0;
   for ( i = 1; i < 4; i++ )
     knotsa[i] = 3.0;
-  mbs_multiBSChangeLeftKnotsd ( lastknotu-6, 3, 3, knotsv,
-                                pitch1, ccp, knotsa );
+  if ( !mbs_multiBSChangeLeftKnotsd ( lastknotu-6, 3, 3, knotsv,
+                                      pitch1, ccp, knotsa ) )
+    goto failure;
   for ( i = 0; i < 3; i++ )
     knotsa[i] = (double)(lastknotv-3);
   knotsa[3] = lastknotv;
-  mbs_multiBSChangeRightKnotsd ( lastknotu-6, 3, 3, lastknotv, knotsv,
-                                 pitch1, ccp, knotsa );
+  if ( !mbs_multiBSChangeRightKnotsd ( lastknotu-6, 3, 3, lastknotv, knotsv,
+                                       pitch1, ccp, knotsa ) )
+    goto failure;
 
         /* Now extract the control points, which determine */
         /* the boundary conditions */

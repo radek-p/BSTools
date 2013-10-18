@@ -185,8 +185,9 @@ boolean mbs_multiBSDegRedd ( int ncurves, int spdimen,
   a = pkv_GetScratchMemd ( ncurves*auxpitch );
   if ( !a )
     goto failure;
-  mbs_multiOsloInsertKnotsd ( ncurves, spdimen, indegree, inlastknot, inknots,
-                          inpitch, inctlpoints, Naux, auxknots, auxpitch, a );
+  if ( !mbs_multiOsloInsertKnotsd ( ncurves, spdimen, indegree, inlastknot, inknots,
+                          inpitch, inctlpoints, Naux, auxknots, auxpitch, a ) )
+    goto failure;
   mbs_multiRemoveSuperfluousKnotsd ( ncurves, spdimen, indegree,
                                      &Naux, auxknots, auxpitch, auxpitch, a );
 
@@ -336,8 +337,9 @@ boolean mbs_multiBSDegRedClosedd ( int ncurves, int spdimen,
   a = pkv_GetScratchMemd ( ncurves*auxpitch );
   if ( !a )
     goto failure;
-  mbs_multiOsloInsertKnotsd ( ncurves, spdimen, indegree, inlastknot, inknots,
-                          inpitch, inctlpoints, Naux, auxknots, auxpitch, a );
+  if ( !mbs_multiOsloInsertKnotsd ( ncurves, spdimen, indegree, inlastknot, inknots,
+                          inpitch, inctlpoints, Naux, auxknots, auxpitch, a ) )
+    goto failure;
   mbs_multiRemoveSuperfluousKnotsd ( ncurves, spdimen, indegree,
                                      &Naux, auxknots, auxpitch, auxpitch, a );
         /* skip the degenerate knot intervals at the domain ends */

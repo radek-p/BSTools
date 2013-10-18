@@ -101,8 +101,9 @@ boolean mbs_BezC1CoonsToBezf ( int spdimen,
                               0, &d, &bc[3*(degu+1)*spdimen] ) )
     goto failure;
   pitch = (degu+1)*spdimen;
-  mbs_multiInterp2knHermiteBezf ( 1, pitch, 3, 2, pitch, bc,
-           2, pitch, &bc[2*(degu+1)*spdimen], pitch, p1 );
+  if ( !mbs_multiInterp2knHermiteBezf ( 1, pitch, 3, 2, pitch, bc,
+                       2, pitch, &bc[2*(degu+1)*spdimen], pitch, p1 ) )
+    goto failure;
   pkv_TransposeMatrixc ( 4, degu+1, spdimen*sizeof(float),
                          (degu+1)*spdimen*sizeof(float), (char*)p1,
                          4*spdimen*sizeof(float), (char*)p );
@@ -123,15 +124,17 @@ boolean mbs_BezC1CoonsToBezf ( int spdimen,
                               0, &d, &bc[3*(degv+1)*spdimen] ) )
     goto failure;
   pitch = (degv+1)*spdimen;
-  mbs_multiInterp2knHermiteBezf ( 1, pitch, 3, 2, pitch, bc,
-           2, pitch, &bc[2*(degv+1)*spdimen], pitch, p2 );
+  if ( !mbs_multiInterp2knHermiteBezf ( 1, pitch, 3, 2, pitch, bc,
+                       2, pitch, &bc[2*(degv+1)*spdimen], pitch, p2 ) )
+    goto failure;
   if ( !mbs_BCDegElevPf ( spdimen, 3, degv, p2, degu-3, 0, &du, &dv, p2 ) )
     goto failure;
   pkn_AddMatrixf ( 1, spdimen*(degu+1)*(degv+1), 0, p, 0, p2, 0, p );
 
         /* construct the patch p3 */
-  mbs_BezC1CoonsFindCornersf ( spdimen, degc00, c00, degc01, c01,
-                                 degc10, c10, degc11, c11, pc );
+  if ( !mbs_BezC1CoonsFindCornersf ( spdimen, degc00, c00, degc01, c01,
+                                     degc10, c10, degc11, c11, pc ) )
+    goto failure;
 
   pkv_Selectf ( 2, 4*spdimen, 4*2*spdimen, 4*spdimen, pc, p3 );
   pkv_Selectf ( 2, 4*spdimen, 4*2*spdimen, 4*spdimen, &pc[4*spdimen], &p3[4*2*spdimen] );
@@ -139,10 +142,12 @@ boolean mbs_BezC1CoonsToBezf ( int spdimen,
     pkv_Selectf ( 2, spdimen, 2*spdimen, spdimen, &p3[4*i*spdimen], &bc[4*i*spdimen] );
     pkv_Selectf ( 2, spdimen, 2*spdimen, spdimen, &p3[(4*i+1)*spdimen], &bc[(4*i+2)*spdimen] );
   }
-  mbs_multiInterp2knHermiteBezf ( 1, 4*spdimen, 3, 2, 0, bc,
-                                  2, 0, &bc[4*2*spdimen], 0, p3 );
-  mbs_multiInterp2knHermiteBezf ( 4, spdimen, 3, 2, 4*spdimen, p3,
-                                  2, 4*spdimen, &p3[2*spdimen], 4*spdimen, p2 );
+  if ( !mbs_multiInterp2knHermiteBezf ( 1, 4*spdimen, 3, 2, 0, bc,
+                                        2, 0, &bc[4*2*spdimen], 0, p3 ) )
+    goto failure;
+  if ( !mbs_multiInterp2knHermiteBezf ( 4, spdimen, 3, 2, 4*spdimen, p3,
+                                  2, 4*spdimen, &p3[2*spdimen], 4*spdimen, p2 ) )
+    goto failure;
   if ( mbs_BCDegElevPf ( spdimen, 3, 3, p2, degu-3, degv-3, &du, &dv, p3 ) )
     goto failure;
   pkn_SubtractMatrixf ( 1, spdimen*(degu+1)*(degv+1), 0, p, 0, p3, 0, p );

@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2008, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2008, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -89,9 +89,10 @@ boolean g1h_GetSplFinalPatchCurvesd ( GHoleDomaind *domain, int spdimen,
     }
   }
         /* convert the Bezier representation to the final B-spline */
-  mbs_multiOsloInsertKnotsd ( hole_k, spdimen, G1_CROSS00DEG,
+  if ( !mbs_multiOsloInsertKnotsd ( hole_k, spdimen, G1_CROSS00DEG,
                               2*G1_CROSS00DEG+1, bezknots, spdimen*NCTLP, bcp,
-                              lastomcknot, omcknots, spdimen*NCTLP, y );
+                              lastomcknot, omcknots, spdimen*NCTLP, y ) )
+    goto failure;
   memcpy ( bcp, y, hole_k*spdimen*NCTLP*sizeof(double) );
         /* add the linear combination of the block D functions */
   for ( i = 0; i < hole_k; i++ ) {
@@ -141,9 +142,10 @@ boolean g1h_GetSplABasisFPatchCurved ( GHoleDomaind *domain, int fn, int i,
   *lkn = lastomcknot = sprivate->lastomcknot;
   memcpy ( kn, sprivate->omcknots, (lastomcknot+1)*sizeof(double) );
   bezknots = &sprivate->bezknots[G1H_FINALDEG-G1_CROSS00DEG];
-  mbs_multiOsloInsertKnotsd ( 1, 1, G1_CROSS00DEG,
-                              2*G1_CROSS00DEG+1, bezknots, 0, bc00,
-                              lastomcknot, kn, 0, bfpc );
+  if ( !mbs_multiOsloInsertKnotsd ( 1, 1, G1_CROSS00DEG,
+                                    2*G1_CROSS00DEG+1, bezknots, 0, bc00,
+                                    lastomcknot, kn, 0, bfpc ) )
+    goto failure;
   pkv_SetScratchMemTop ( sp );
   return true;
 
@@ -175,9 +177,10 @@ boolean g1h_GetSplBBasisFPatchCurved ( GHoleDomaind *domain, int fn, int i,
   *lkn = lastomcknot = sprivate->lastomcknot;
   memcpy ( kn, sprivate->omcknots, (lastomcknot+1)*sizeof(double) );
   bezknots = &sprivate->bezknots[G1H_FINALDEG-G1_CROSS00DEG];
-  mbs_multiOsloInsertKnotsd ( 1, 1, G1_CROSS00DEG,
-                              2*G1_CROSS00DEG+1, bezknots, 0, bc00,
-                              lastomcknot, kn, 0, bfpc );
+  if ( !mbs_multiOsloInsertKnotsd ( 1, 1, G1_CROSS00DEG,
+                                    2*G1_CROSS00DEG+1, bezknots, 0, bc00,
+                                    lastomcknot, kn, 0, bfpc ) )
+    goto failure;
   pkv_SetScratchMemTop ( sp );
   return true;
 

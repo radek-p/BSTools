@@ -58,23 +58,27 @@ double g1bl_SurfNetDiameterSqd ( int lastknotu, int lastknotv,
   for ( i = 1; i < 3; i++ )
     knotsa[i] = 2.0;
   /* zamiana punktow kontrolnych na brzegu tak by TYLKO pierwsza kolumna reprezentowala brzeg */
-  mbs_multiBSChangeLeftKnotsd ( lastknotu-DEG, 3, 2, knotsv,
-                                pitch1, ccp, knotsa );
+  if ( !mbs_multiBSChangeLeftKnotsd ( lastknotu-DEG, 3, 2, knotsv,
+                                      pitch1, ccp, knotsa ) )
+    goto failure;
   for ( i = 0; i < 2; i++ )
     knotsa[i] = (double)(lastknotv-DEG);
   knotsa[2] = lastknotv;
-  mbs_multiBSChangeRightKnotsd ( lastknotu-DEG, 3, 2, lastknotv, knotsv,
-                                 pitch1, ccp, knotsa );
+  if ( !mbs_multiBSChangeRightKnotsd ( lastknotu-DEG, 3, 2, lastknotv, knotsv,
+                                       pitch1, ccp, knotsa ) )
+    goto failure;
   knotsa[0] = 0.0;
   for ( i = 1; i < 3; i++ )
     knotsa[i] = 2.0;
-  mbs_multiBSChangeLeftKnotsd ( 1, pitch1, 3, knotsu,
-                                0, ccp, knotsa );
+  if ( !mbs_multiBSChangeLeftKnotsd ( 1, pitch1, 3, knotsu,
+                                      0, ccp, knotsa ) )
+    goto failure;
   for ( i = 0; i < 2; i++ )
     knotsa[i] = (double)(lastknotu-2);
   knotsa[2] = lastknotu;
-  mbs_multiBSChangeRightKnotsd ( 1, pitch1, 2, lastknotu, knotsu,
-                                 0, ccp, knotsa );
+  if ( !mbs_multiBSChangeRightKnotsd ( 1, pitch1, 2, lastknotu, knotsu,
+                                       0, ccp, knotsa ) )
+    goto failure;
 
         /* Now extract the control points, which determine */
         /* the boundary conditions */

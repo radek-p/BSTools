@@ -94,9 +94,9 @@ boolean _rbez_UniquenessTest2f ( int n, int m, int ncp, point2f *mcp,
 #undef eps
 } /*_rbez_UniquenessTest2f*/
 
-boolean _rbez_NewtonMethod2f ( int n, int m, point2f *mcp,
-                               point2f *p, vector2f *pu, vector2f *pv,
-                               point2f *z )
+char _rbez_NewtonMethod2f ( int n, int m, point2f *mcp,
+                            point2f *p, vector2f *pu, vector2f *pv,
+                            point2f *z )
 {
 #define MAXITER 7
 #define EPS     1.0e-6
@@ -106,22 +106,24 @@ boolean _rbez_NewtonMethod2f ( int n, int m, point2f *mcp,
 
   z->x = z->y = 0.5;
   for ( i = 0; i < MAXITER; i++ ) {
-    if ( i )
-      mbs_BCHornerDerP2f ( n, m, mcp, z->x, z->y, p, pu, pv );
+    if ( i ) {
+      if ( !mbs_BCHornerDerP2f ( n, m, mcp, z->x, z->y, p, pu, pv ) )
+        return RBEZ_NEWTON_ERROR;
+    }
     if ( p->x*p->x+p->y*p->y < EPS*EPS )
-      return true;
+      return RBEZ_NEWTON_YES;
     a[0] = pu->x;  a[1] = pv->x;  a[2] = pu->y;  a[3] = pv->y;
     if ( !pkn_multiGaussSolveLinEqf ( 2, a, 1, 1, &p->x ) )
-      return false;
+      return RBEZ_NEWTON_NO;
     s = p->x*p->x+p->y*p->y;
     if ( s > 1.0 )
-      return false;
+      return RBEZ_NEWTON_NO;
     z->x -= p->x;
     z->y -= p->y;
     if ( s < DELTA*DELTA )
-      return true;
+      return RBEZ_NEWTON_YES;
   }
-  return false;
+  return RBEZ_NEWTON_NO;
 #undef EPS
 #undef MAXITER
 } /*_rbez_NewtonMethod2f*/

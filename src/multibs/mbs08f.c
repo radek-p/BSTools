@@ -186,13 +186,15 @@ boolean mbs_multiMaxKnotInsf ( int ncurves, int spdimen, int degree,
     pkv_Selectf ( ncurves, spdimen*(lkn-degree), pitch, outpitch,
                   auxcp, outctlpoints );
 
-  else
+  else {
 /* The last thing - multiple knot insertion, with use of the Oslo algorithm. */
 /* We do not call mbs_OsloKnotsCorrectf, as we have just created the correct */
 /* knot sequences. */
-    mbs_multiOsloInsertKnotsf ( ncurves, spdimen, degree, lkn, auxkn, pitch,
-                                auxcp, j, outknots, outpitch, outctlpoints );
+    if ( !mbs_multiOsloInsertKnotsf ( ncurves, spdimen, degree, lkn, auxkn, pitch,
+                                auxcp, j, outknots, outpitch, outctlpoints ) )
+      goto failure;
 
+  }
 /* Cleanup. */
   pkv_SetScratchMemTop ( stp );
   return true;

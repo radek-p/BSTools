@@ -11,6 +11,10 @@
 #ifndef XGEDIT_H
 #define XGEDIT_H
 
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/cursorfont.h>
+
 #ifndef _LIBC_LIMITS_H_
 #include <limits.h>
 #endif
@@ -1120,10 +1124,10 @@ void xge_DisplayInfoMessage ( char **msglines, int key );
 
 /* ///////////////////////////////////////////////////////////////////////// */
 void xge_OutPixels ( const xpoint *buf, int n );
-void xge_DrawBC2f ( int n, const point2f *cp );
-void xge_DrawBC2Rf ( int n, const point3f *cp );
-void xge_DrawBC2d ( int n, const point2d *cp );
-void xge_DrawBC2Rd ( int n, const point3d *cp );
+boolean xge_DrawBC2f ( int n, const point2f *cp );
+boolean xge_DrawBC2Rf ( int n, const point3f *cp );
+boolean xge_DrawBC2d ( int n, const point2d *cp );
+boolean xge_DrawBC2Rd ( int n, const point3d *cp );
 
 int     xge_NewWindow ( char *title );
 boolean xge_SetWindow ( int win );

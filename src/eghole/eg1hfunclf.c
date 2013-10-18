@@ -66,7 +66,8 @@ static boolean g1h_ComputeBBMatrixf ( GHoleDomainf *domain )
     hfunc = &tkn[G1_NQUAD];         dhfunc = &hfunc[6*G1_NQUAD];
     ddhfunc = &dhfunc[6*G1_NQUAD];
     _gh_PrepareTabKnotsf ( G1_NQUAD, privateG1->opt_quad, tkn );
-    mbs_TabCubicHFuncDer2f ( 0.0, 1.0, G1_NQUAD, tkn, hfunc, dhfunc, ddhfunc );
+    if ( !mbs_TabCubicHFuncDer2f ( 0.0, 1.0, G1_NQUAD, tkn, hfunc, dhfunc, ddhfunc ) )
+      goto failure;
 
     for ( i = 0; i < hole_k; i++ ) {
       _g1h_GetDiPatchCurvesf ( domain, i,

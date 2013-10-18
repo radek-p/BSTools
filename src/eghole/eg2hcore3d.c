@@ -213,12 +213,15 @@ default:
                                 &ndata, &idata, &fdata );
   switch ( option ) {
 case G2H_DEFAULT:
-    mbs_multiInterp2knHermiteBezd ( hole_k, 2, G2_CROSS00DEG,
-         5, 16, (double*)omcbc, 3, 16, (double*)&omcbc[5], 16, (double*)omc );
-    mbs_multiInterp2knHermiteBezd ( hole_k, 2, G2_CROSS00DEG-1,
-         4, 14, (double*)omcbcd, 3, 14, (double*)&omcbcd[4], 14, (double*)omcd );
-    mbs_multiInterp2knHermiteBezd ( hole_k, 2, G2_CROSS00DEG-2,
-         3, 12, (double*)omcbcdd, 3, 12, (double*)&omcbcdd[3], 12, (double*)omcdd );
+    if ( !mbs_multiInterp2knHermiteBezd ( hole_k, 2, G2_CROSS00DEG,
+             5, 16, (double*)omcbc, 3, 16, (double*)&omcbc[5], 16, (double*)omc ) )
+      goto failure;
+    if ( !mbs_multiInterp2knHermiteBezd ( hole_k, 2, G2_CROSS00DEG-1,
+             4, 14, (double*)omcbcd, 3, 14, (double*)&omcbcd[4], 14, (double*)omcd ) )
+      goto failure;
+    if ( !mbs_multiInterp2knHermiteBezd ( hole_k, 2, G2_CROSS00DEG-2,
+             3, 12, (double*)omcbcdd, 3, 12, (double*)&omcbcdd[3], 12, (double*)omcdd ) )
+      goto failure;
     break;
 
 case G2H_DOMAIN_CURVES_DEG4:
@@ -227,8 +230,9 @@ case G2H_DOMAIN_CURVES_DEG4:
       domain->error_code = G2H_ERROR_NO_SCRATCH_MEMORY;
       goto failure;
     }
-    mbs_multiInterp2knHermiteBezd ( hole_k, 2, 4,
-         2, 16, (double*)omcbc, 3, 16, (double*)&omcbc[5], 10, (double*)auxomc );
+    if ( !mbs_multiInterp2knHermiteBezd ( hole_k, 2, 4,
+             2, 16, (double*)omcbc, 3, 16, (double*)&omcbc[5], 10, (double*)auxomc ) )
+      goto failure;
     if ( !mbs_multiBCDegElevd ( hole_k, 2, 10, 4, (double*)auxomc,
                                 G2_CROSS00DEG-4, 16, &ndata, (double*)omc ) )
       goto failure;
@@ -242,8 +246,9 @@ case G2H_DOMAIN_CURVES_DEG4:
       MultVector2d ( 24.0, &auxomc[5*i+4], &omcbc[(G2H_OMCDEG+1)*i+4] );
     }
         /* similarly, first order cross derivatives */
-    mbs_multiInterp2knHermiteBezd ( hole_k, 2, 3,
-         1, 14, (double*)omcbcd, 3, 14, (double*)&omcbcd[4], 10, (double*)auxomc );
+    if ( !mbs_multiInterp2knHermiteBezd ( hole_k, 2, 3,
+             1, 14, (double*)omcbcd, 3, 14, (double*)&omcbcd[4], 10, (double*)auxomc ) )
+      goto failure;
     if ( !mbs_multiBCDegElevd ( hole_k, 2, 10, 3, (double*)auxomc,
                                 G2_CROSS00DEG-1-3, 14, &ndata, (double*)omcd ) )
       goto failure;
@@ -257,8 +262,9 @@ case G2H_DOMAIN_CURVES_DEG4:
     }
 
         /* second order cross derivatives */
-    mbs_multiInterp2knHermiteBezd ( hole_k, 2, 3,
-         1, 12, (double*)omcbcdd, 3, 12, (double*)&omcbcdd[3], 10, (double*)auxomc );
+    if ( !mbs_multiInterp2knHermiteBezd ( hole_k, 2, 3,
+             1, 12, (double*)omcbcdd, 3, 12, (double*)&omcbcdd[3], 10, (double*)auxomc ) )
+      goto failure;
     if ( !mbs_multiBCDegElevd ( hole_k, 2, 10, 3, (double*)auxomc,
                                 G2_CROSS00DEG-2-3, 12, &ndata, (double*)omcdd ) )
       goto failure;

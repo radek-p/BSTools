@@ -3450,4 +3450,11 @@ Wersja 0.32:
 799. Obsluga bledow - ciag dalszy. Tym razem wywolania mbs_multiBCHorner* w
     bibliotekach libmultibs, libeghole, libg1blending i libg2blending.
 
+18.10.2013.
+800. Obsluga bledow - ciag dalszy. W tym momencie wszystkie wywolania
+    procedur z libmultibs w tej i w pozostalych bibliotekach (ale nie w
+    programach demonstracyjnych) sa oblozone sprawdzaniem, czy nie nastapil
+    blad. Pozostalo zrobic to jeszcze z wywolaniami procedur z libeghole i
+    libxgedit.
+
 

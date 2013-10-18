@@ -1375,12 +1375,12 @@ boolean mbs_TabBezC2Coons0Der3f ( int spdimen,
 
 /* ///////////////////////////////////////////////////////////////////////// */
 /* Bicubic B-spline Coons patches */
-void mbs_BSC1CoonsFindCornersf ( int spdimen,
-          int degc00, int lastknotc00, const float *knotsc00, const float *c00,
-          int degc01, int lastknotc01, const float *knotsc01, const float *c01,
-          int degc10, int lastknotc10, const float *knotsc10, const float *c10,
-          int degc11, int lastknotc11, const float *knotsc11, const float *c11,
-          float *pcorners );
+boolean mbs_BSC1CoonsFindCornersf ( int spdimen,
+            int degc00, int lastknotc00, const float *knotsc00, const float *c00,
+            int degc01, int lastknotc01, const float *knotsc01, const float *c01,
+            int degc10, int lastknotc10, const float *knotsc10, const float *c10,
+            int degc11, int lastknotc11, const float *knotsc11, const float *c11,
+            float *pcorners );
 boolean mbs_BSC1CoonsToBSf ( int spdimen,
       int degc00, int lastknotc00, const float *knotsc00, const float *c00,
       int degc01, int lastknotc01, const float *knotsc01, const float *c01,
@@ -1457,14 +1457,14 @@ boolean mbs_TabBSC1Coons0Der3f ( int spdimen,
 
 /* ///////////////////////////////////////////////////////////////////////// */
 /* Biquintic B-spline Coons patches */          
-void mbs_BSC2CoonsFindCornersf ( int spdimen,
-          int degc00, int lastknotc00, const float *knotsc00, const float *c00,
-          int degc01, int lastknotc01, const float *knotsc01, const float *c01,
-          int degc02, int lastknotc02, const float *knotsc02, const float *c02,
-          int degc10, int lastknotc10, const float *knotsc10, const float *c10,
-          int degc11, int lastknotc11, const float *knotsc11, const float *c11,
-          int degc12, int lastknotc12, const float *knotsc12, const float *c12,
-          float *pcorners );
+boolean mbs_BSC2CoonsFindCornersf ( int spdimen,
+            int degc00, int lastknotc00, const float *knotsc00, const float *c00,
+            int degc01, int lastknotc01, const float *knotsc01, const float *c01,
+            int degc02, int lastknotc02, const float *knotsc02, const float *c02,
+            int degc10, int lastknotc10, const float *knotsc10, const float *c10,
+            int degc11, int lastknotc11, const float *knotsc11, const float *c11,
+            int degc12, int lastknotc12, const float *knotsc12, const float *c12,
+            float *pcorners );
 boolean mbs_BSC2CoonsToBSf ( int spdimen,
       int degc00, int lastknotc00, const float *knotsc00, const float *c00,
       int degc01, int lastknotc01, const float *knotsc01, const float *c01,

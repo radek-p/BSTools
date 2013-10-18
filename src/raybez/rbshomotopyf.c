@@ -21,6 +21,8 @@
 #include "multibs.h"
 #include "raybez.h"
 
+#include "raybezprivatef.h"
+
 /* ///////////////////////////////////////////////////////////////////////// */
 #define MAXLEVEL 30
 
@@ -245,11 +247,11 @@ test_failed:
   return false;
 } /*_rbez_UniquenessTestf*/
 
-static boolean _rbez_NewtonMethodf ( int degree,
-                                     point3f *bcp0, point3f *bcp1,
-                                     point3f *bcq0, point3f *bcq1,
-                                     vector3f *f, vector3f *fu,
-                                     vector3f *fv, vector3f *ft, float *z )
+static char _rbez_NewtonMethodf ( int degree,
+                                  point3f *bcp0, point3f *bcp1,
+                                  point3f *bcq0, point3f *bcq1,
+                                  vector3f *f, vector3f *fu,
+                                  vector3f *fv, vector3f *ft, float *z )
 {
 #define MAXITER 7
 #define EPS     1.0e-6
@@ -261,16 +263,20 @@ static boolean _rbez_NewtonMethodf ( int degree,
   z[0] = z[1] = z[2] = 0.5;
   for ( i = 0; i < MAXITER; i++ ) {
     if ( i ) {
-      mbs_BCHornerDerC3f ( degree, bcp0, z[0], &p0, &p0u );
-      mbs_BCHornerDerC3f ( degree, bcp1, z[0], &p1, &p1u );
-      mbs_BCHornerDerC3f ( degree, bcq0, z[1], &q0, &q0v );
-      mbs_BCHornerDerC3f ( degree, bcq1, z[1], &q1, &q1v );
+      if ( !mbs_BCHornerDerC3f ( degree, bcp0, z[0], &p0, &p0u ) )
+        return RBEZ_NEWTON_ERROR;
+      if ( !mbs_BCHornerDerC3f ( degree, bcp1, z[0], &p1, &p1u ) )
+        return RBEZ_NEWTON_ERROR;
+      if ( !mbs_BCHornerDerC3f ( degree, bcq0, z[1], &q0, &q0v ) )
+        return RBEZ_NEWTON_ERROR;
+      if ( !mbs_BCHornerDerC3f ( degree, bcq1, z[1], &q1, &q1v ) )
+        return RBEZ_NEWTON_ERROR;
       SubtractPoints3f ( &p0, &q0, &f0 );
       SubtractPoints3f ( &p1, &q1, &f1 );
       InterPoint3f ( &f0, &f1, z[2], f );
       s = DotProduct3f ( f, f );
       if ( s < EPS*EPS )
-        return true;
+        return RBEZ_NEWTON_YES;
       InterPoint3f ( &p0u, &p1u, z[2], fu );
       InterPoint3f ( &q0v, &q1v, z[2], fv );
       SetVector3f ( fv, -fv->x, -fv->y, -fv->z );
@@ -281,22 +287,22 @@ static boolean _rbez_NewtonMethodf ( int degree,
     else {
       s = DotProduct3f ( f, f );
       if ( s < EPS*EPS )
-        return true;
+        return RBEZ_NEWTON_YES;
     }
     a[0] = fu->x;  a[1] = fv->x;  a[2] = ft->x;
     a[3] = fu->y;  a[4] = fv->y;  a[5] = ft->y;
     a[6] = fu->z;  a[7] = fv->z;  a[8] = ft->z;
     if ( !pkn_multiGaussSolveLinEqf ( 3, a, 1, 1, &f->x ) )
-      return false;
+      return RBEZ_NEWTON_NO;
     z[0] -= f->x;  z[1] -= f->y;  z[2] -= f->z;
     for ( j = 0; j < 3; j++ )
       if ( z[j] < -0.25 || z[j] > 1.25 )
-        return false;
+        return RBEZ_NEWTON_NO;
     s = DotProduct3f ( f, f );
     if ( s < DELTA*DELTA )
-      return true;
+      return RBEZ_NEWTON_YES;
   }
-  return false;
+  return RBEZ_NEWTON_NO;
 #undef DELTA
 #undef EPS
 #undef MAXITER
@@ -512,14 +518,20 @@ static boolean _rbez_HomotopyBCDisjointf ( int degree,
         goto subdivide;
       if ( _rbez_UniquenessTestf ( degree, acp0, acp1, acq0, acq1,
                                   &p, &pu, &pv, &pt, K, error ) ) {
-        if ( _rbez_NewtonMethodf ( degree, acp0, acp1, acq0, acq1,
-                                  &p, &pu, &pv, &pt, z ) ) {
+        switch ( _rbez_NewtonMethodf ( degree, acp0, acp1, acq0, acq1,
+                                       &p, &pu, &pv, &pt, z ) ) {
+      case RBEZ_NEWTON_YES:
           if ( _rbez_SolutionOKf ( z, &st[stp], tfh ) )
             goto test_failed;
           else if ( _rbez_SecondTestf ( degree, K, z ) )
             goto subdivide;
+          break;
+      case RBEZ_NEWTON_NO:
+          goto subdivide;
+      case RBEZ_NEWTON_ERROR:
+          *error = true;
+          goto test_failed;
         }
-        else goto subdivide;
       }
       else {
 subdivide:
@@ -564,13 +576,13 @@ boolean rbez_HomotopicClosedBSC3f ( int degree, int lastknot, float *knots,
   lkn = mbs_LastknotMaxInsf ( degree, lastknot, knots, &ku );
   bcp0 = pkv_GetScratchMem ( 2*ku*(degree+1)*sizeof(point3d) );
   kn = pkv_GetScratchMemf ( lkn+1 );
-  if ( !bcp0 || !kn ) {
-    *error = true;
-    goto test_failed;
-  }
+  if ( !bcp0 || !kn )
+    goto failure;
   bcp1 = &bcp0[ku*(degree+1)];
-  mbs_BSToBezC3f ( degree, lastknot, knots, cpoints0, &ku, &lkn, kn, bcp0 );
-  mbs_BSToBezC3f ( degree, lastknot, knots, cpoints1, &ku, &lkn, kn, bcp1 );
+  if ( !mbs_BSToBezC3f ( degree, lastknot, knots, cpoints0, &ku, &lkn, kn, bcp0 ) )
+    goto failure;
+  if ( !mbs_BSToBezC3f ( degree, lastknot, knots, cpoints1, &ku, &lkn, kn, bcp1 ) )
+    goto failure;
         /* test the homotopy violation */
   for ( i = 0; i < ku; i++ ) {
     u0 = kn[i*(degree+1)+degree];
@@ -602,6 +614,11 @@ boolean rbez_HomotopicClosedBSC3f ( int degree, int lastknot, float *knots,
   return true;
 
 test_failed:
+  pkv_SetScratchMemTop ( sp );
+  return false;
+
+failure:
+  *error = true;
   pkv_SetScratchMemTop ( sp );
   return false;
 } /*rbez_HomotopicClosedBSC3f*/

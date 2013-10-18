@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2010                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -290,8 +290,9 @@ boolean g2h_ComputeExtFormMatrixf ( GHoleDomainf *domain )
   _gh_PrepareTabKnotsf ( G2_NQUAD, privateG2->opt_quad, tkn );
 
         /* prepare the evaluation of basis functions */
-  mbs_TabQuinticHFuncDer3f ( 0.0, 1.0, G2_NQUAD, tkn,
-                             hfunc, dhfunc, ddhfunc, dddhfunc );
+  if ( !mbs_TabQuinticHFuncDer3f ( 0.0, 1.0, G2_NQUAD, tkn,
+                                   hfunc, dhfunc, ddhfunc, dddhfunc ) )
+    goto failure;
   _g2h_TabTensBezPolyDer3f ( G2_NQUAD, tkn, NULL, tbezu, tbezv, tbezuu, tbezuv,
                              tbezvv, tbezuuu, tbezuuv, tbezuvv, tbezvvv );
 

@@ -215,7 +215,8 @@ boolean g1h_ComputeFormMatrixd ( GHoleDomaind *domain )
     goto failure;
   hfunc = &tkn[G1_NQUAD];  dhfunc = &hfunc[4*G1_NQUAD];  ddhfunc = &dhfunc[4*G1_NQUAD];
   _gh_PrepareTabKnotsd ( G1_NQUAD, privateG1->opt_quad, tkn );
-  mbs_TabCubicHFuncDer2d ( 0.0, 1.0, G1_NQUAD, tkn, hfunc, dhfunc, ddhfunc );
+  if ( !mbs_TabCubicHFuncDer2d ( 0.0, 1.0, G1_NQUAD, tkn, hfunc, dhfunc, ddhfunc ) )
+    goto failure;
 
   for ( i = 0; i < hole_k; i++ ) {
     _g1h_GetDiPatchCurvesd ( domain, i, &c00, &c01, &c10, &c11,

@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2010                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -209,8 +209,9 @@ boolean g2h_ComputeFormMatrixd ( GHoleDomaind *domain )
   hfunc = &tkn[G2_NQUAD];         dhfunc = &hfunc[6*G2_NQUAD];
   ddhfunc = &dhfunc[6*G2_NQUAD];  dddhfunc = &ddhfunc[6*G2_NQUAD];
   _gh_PrepareTabKnotsd ( G2_NQUAD, privateG2->opt_quad, tkn );
-  mbs_TabQuinticHFuncDer3d ( 0.0, 1.0, G2_NQUAD, tkn,
-                             hfunc, dhfunc, ddhfunc, dddhfunc );
+  if ( !mbs_TabQuinticHFuncDer3d ( 0.0, 1.0, G2_NQUAD, tkn,
+                                   hfunc, dhfunc, ddhfunc, dddhfunc ) )
+    goto failure;
 
   for ( i = 0; i < hole_k; i++ ) {
     _g2h_GetDiPatchCurvesd ( domain, i,

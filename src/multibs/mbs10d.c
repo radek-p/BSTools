@@ -175,13 +175,15 @@ boolean mbs_multiMultBSCd ( int nscf, int degscf,
   if ( akn[1] != akn[degscf] ) {
     for ( i = 0; i <= degscf; i++ )
       aakn[i] = akn[degscf];
-    mbs_multiBSChangeLeftKnotsd ( nscf, 1, degscf, akn, scfpitch, acp, aakn );
+    if ( !mbs_multiBSChangeLeftKnotsd ( nscf, 1, degscf, akn, scfpitch, acp, aakn ) )
+      goto failure;
   }
   if ( akn[scflastknot-degscf] != akn[scflastknot-1] ) {
     for ( i = 0; i <= degscf; i++ )
       aakn[i] = akn[scflastknot-degscf];
-    mbs_multiBSChangeRightKnotsd ( nscf, 1, degscf, scflastknot, akn,
-                                   scfpitch, acp, aakn );
+    if ( !mbs_multiBSChangeRightKnotsd ( nscf, 1, degscf, scflastknot, akn,
+                                         scfpitch, acp, aakn ) )
+      goto failure;
   }
   mbs_SetKnotPatternd ( lastpknot-2, &prodknots[1], degscf+1,
                         &auxlastkn, auxkn );
@@ -193,9 +195,10 @@ boolean mbs_multiMultBSCd ( int nscf, int degscf,
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     goto failure;
   }
-  mbs_multiOsloInsertKnotsd ( nscf, 1, degscf, scflastknot, akn,
+  if ( !mbs_multiOsloInsertKnotsd ( nscf, 1, degscf, scflastknot, akn,
                               scfpitch, acp, auxlastkn, auxkn,
-                              ascpitch, sauxc );
+                              ascpitch, sauxc ) )
+    goto failure;
 
 /* After that we do not need knots of this representation any more.  */
 /* Now do the same thing with the vector argument of multiplication. */
@@ -211,14 +214,16 @@ boolean mbs_multiMultBSCd ( int nscf, int degscf,
   if ( akn[1] != akn[degvecf] ) {
     for ( i = 0; i <= degvecf; i++ )
       aakn[i] = akn[degvecf];
-    mbs_multiBSChangeLeftKnotsd ( nvecf, spdimen, degvecf, akn,
-                                  vecfpitch, acp, aakn );
+    if ( !mbs_multiBSChangeLeftKnotsd ( nvecf, spdimen, degvecf, akn,
+                                        vecfpitch, acp, aakn ) )
+      goto failure;
   }
   if ( akn[vecflastknot-degvecf] != akn[vecflastknot-1] ) {
     for ( i = 0; i <= degvecf; i++ )
       aakn[i] = akn[vecflastknot-degvecf];
-    mbs_multiBSChangeRightKnotsd ( nvecf, spdimen, degvecf, vecflastknot, akn,
-                                   vecfpitch, acp, aakn );
+    if ( !mbs_multiBSChangeRightKnotsd ( nvecf, spdimen, degvecf, vecflastknot, akn,
+                                         vecfpitch, acp, aakn ) )
+      goto failure;
   }
   mbs_SetKnotPatternd ( lastpknot-2, &prodknots[1], degvecf+1,
                         &auxlastkn, auxkn );
@@ -230,9 +235,10 @@ boolean mbs_multiMultBSCd ( int nscf, int degscf,
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     goto failure;
   }
-  mbs_multiOsloInsertKnotsd ( nvecf, spdimen, degvecf, vecflastknot, akn,
+  if ( !mbs_multiOsloInsertKnotsd ( nvecf, spdimen, degvecf, vecflastknot, akn,
                               vecfpitch, acp, auxlastkn, auxkn,
-                              avecpitch, vauxc );
+                              avecpitch, vauxc ) )
+    goto failure;
 
 /* Now the actual multiplication, preceded by conversion to scaled Bernstein */
 /* bases and followed by conversion of the product to Bernstein basis.       */
@@ -260,10 +266,10 @@ boolean mbs_multiMultBSCd ( int nscf, int degscf,
                         &auxlastkn, auxkn );
   auxkn[0] = prodknots[0];
   auxkn[auxlastkn] = prodknots[lastpknot];
-  mbs_multiOsloRemoveKnotsLSQd ( nprod, spdimen, degpr, auxlastkn, auxkn,
+  if ( !mbs_multiOsloRemoveKnotsLSQd ( nprod, spdimen, degpr, auxlastkn, auxkn,
                                  npp*(degpr+1)*spdimen, auxprod,
-                                 lastpknot, prodknots,
-                                 prodpitch, prodcp );
+                                 lastpknot, prodknots, prodpitch, prodcp ) )
+    goto failure;
 
   pkv_SetScratchMemTop ( stp );
   return true;

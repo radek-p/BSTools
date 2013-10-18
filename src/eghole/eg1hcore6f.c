@@ -238,10 +238,12 @@ default:   /* splines */
   }
 
     /* find basis functions "auxiliary patches" */
-  mbs_multiInterp2knHermiteBezf ( hole_k, 1, G1_CROSS00DEG,
-                    3, 5, br0bc, 2, 5, &br0bc[3], G1_CROSS00DEG+1, br0 );
-  mbs_multiInterp2knHermiteBezf ( hole_k, 1, G1_CROSS00DEG-1,
-                    2, 4, br0cr1bc, 2, 4, &br0cr1bc[2], G1_CROSS00DEG, br0cr1 );
+  if ( !mbs_multiInterp2knHermiteBezf ( hole_k, 1, G1_CROSS00DEG,
+                    3, 5, br0bc, 2, 5, &br0bc[3], G1_CROSS00DEG+1, br0 ) )
+    goto failure;
+  if ( !mbs_multiInterp2knHermiteBezf ( hole_k, 1, G1_CROSS00DEG-1,
+                    2, 4, br0cr1bc, 2, 4, &br0cr1bc[2], G1_CROSS00DEG, br0cr1 ) )
+    goto failure;
 
   pkv_SetScratchMemTop ( sp );
   return true;
@@ -353,10 +355,14 @@ boolean _g1h_GetBBasisAuxpf ( GHoleDomainf *domain, int fn,
     fcomcbcd[i*G1H_OMCDEG+2] = h11*bezbc[(2*i+1)*18+3];
     fcomcbcd[i*G1H_OMCDEG+3] = g11*h11*bezbc[(2*i+1)*18+4];
   }
-  mbs_multiInterp2knHermiteBezf ( hole_k, 1, G1_CROSS00DEG,
-     3, (G1H_OMCDEG+1), (float*)fcomcbc, 2, (G1H_OMCDEG+1), (float*)&fcomcbc[3], (G1H_OMCDEG+1), (float*)fcomc );
-  mbs_multiInterp2knHermiteBezf ( hole_k, 1, G1_CROSS00DEG-1,
-     2, G1H_OMCDEG, (float*)fcomcbcd, 2, G1H_OMCDEG, (float*)&fcomcbcd[2], G1H_OMCDEG, (float*)fcomcd );
+  if ( !mbs_multiInterp2knHermiteBezf ( hole_k, 1, G1_CROSS00DEG,
+           3, (G1H_OMCDEG+1), (float*)fcomcbc, 2, (G1H_OMCDEG+1),
+           (float*)&fcomcbc[3], (G1H_OMCDEG+1), (float*)fcomc ) )
+    goto failure;
+  if ( !mbs_multiInterp2knHermiteBezf ( hole_k, 1, G1_CROSS00DEG-1,
+           2, G1H_OMCDEG, (float*)fcomcbcd, 2, G1H_OMCDEG,
+           (float*)&fcomcbcd[2], G1H_OMCDEG, (float*)fcomcd ) )
+    goto failure;
 
   pkv_SetScratchMemTop ( sp );
   return true;

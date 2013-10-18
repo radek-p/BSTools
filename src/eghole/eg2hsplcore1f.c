@@ -198,8 +198,10 @@ case 0:   /* nonzero is r0 and its derivatives, r0u, r0uu */
                         0, b1b1, 1, 1, G2H_OMCDEG-2, lknr-4, &knr[2], 0, r0uu,
                         &deg2, &lkn2, kn2, 0, aux2 ) )
       goto failure;
-    mbs_multiAddBSCurvesf ( 1, 1, deg1, lkn1, kn1, 0, aux1, deg2, lkn2, kn2, 0, aux2,
-                            &deg3, &lkn3, kn3, 0, aux3 );
+    if ( !mbs_multiAddBSCurvesf ( 1, 1, deg1, lkn1, kn1, 0, aux1,
+                                  deg2, lkn2, kn2, 0, aux2,
+                                  &deg3, &lkn3, kn3, 0, aux3 ) )
+      goto failure;
     mbs_multiAdjustBSCRepf ( 1, 1, deg3, lkn3, kn3, 0, aux3,
                              degpvv, lknpvv, knpvv, 0, pvv );
     break;
@@ -231,8 +233,10 @@ case 1:   /* nonzero is r0s and its derivative, r0us */
                         1, 1, G2H_OMCDEG-2, lknr-4, &knr[2], 0, r0us,
                         &deg2, &lkn2, kn2, 0, aux2 ) )
       goto failure;
-    mbs_multiAddBSCurvesf ( 1, 1, deg1, lkn1, kn1, 0, aux1, deg2, lkn2, kn2, 0, aux2,
-                            &deg3, &lkn3, kn3, 0, aux3 );
+    if ( !mbs_multiAddBSCurvesf ( 1, 1, deg1, lkn1, kn1, 0, aux1,
+                                  deg2, lkn2, kn2, 0, aux2,
+                                  &deg3, &lkn3, kn3, 0, aux3 ) )
+      goto failure;
     mbs_multiAdjustBSCRepf ( 1, 1, deg3, lkn3, kn3, 0, aux3,
                              degpvv, lknpvv, knpvv, 0, pvv );
     break;

@@ -95,8 +95,9 @@ boolean g2h_GetHoleSurrndPatchd ( GHoleDomaind *domain,
     q[k] = hole_cp[ind[k]];
   ukn = &domain->hole_knots[11*((i+hole_k-1) % hole_k)+3 ];
   vkn = &domain->hole_knots[11*i+j];
-  mbs_BSPatchToBezd ( 3, 3, 7, ukn, 3, 7, vkn, 12, (double*)q,
-                      NULL, NULL, NULL, NULL, NULL, NULL, 12, (double*)bcp );
+  if ( !mbs_BSPatchToBezd ( 3, 3, 7, ukn, 3, 7, vkn, 12, (double*)q,
+                            NULL, NULL, NULL, NULL, NULL, NULL, 12, (double*)bcp ) )
+    goto failure;
 
   pkv_SetScratchMemTop ( sp );
   return true;
@@ -338,8 +339,9 @@ boolean _g2h_TabNLBasisFunctionsd ( GHoleDomaind *domain,
   dddhfunc = &ddhfunc[6*G2_NQUAD];
 
   _gh_PrepareTabKnotsd ( G2_NQUAD, privateG2->opt_quad, tkn );
-  mbs_TabQuinticHFuncDer3d ( 0.0, 1.0, G2_NQUAD, tkn,
-                             hfunc, dhfunc, ddhfunc, dddhfunc );
+  if ( !mbs_TabQuinticHFuncDer3d ( 0.0, 1.0, G2_NQUAD, tkn,
+                                   hfunc, dhfunc, ddhfunc, dddhfunc ) )
+    goto failure;
 
   for ( k = kN = kNQ2 = 0;
         k < hole_k;

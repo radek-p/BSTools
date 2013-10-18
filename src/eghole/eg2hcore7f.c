@@ -545,12 +545,18 @@ SINGLE:     p4[0] = (float)(24.0*ddc[k]*a*a*a*a);
   }
 
     /* find basis functions "auxiliary patches" */
-  mbs_multiInterp2knHermiteBezf ( hole_k, 1, G2_CROSS00DEG,
-                    5, (G2H_OMCDEG+1), br0bc, 3, (G2H_OMCDEG+1), &br0bc[5], G2_CROSS00DEG+1, br0 );
-  mbs_multiInterp2knHermiteBezf ( hole_k, 1, G2_CROSS00DEG-1,
-                    4, G2H_OMCDEG, br0cr1bc, 3, G2H_OMCDEG, &br0cr1bc[4], G2_CROSS00DEG, br0cr1 );
-  mbs_multiInterp2knHermiteBezf ( hole_k, 1, G2_CROSS00DEG-2,
-                    3, (G2H_OMCDEG-1), br0cr2bc, 3, (G2H_OMCDEG-1), &br0cr2bc[3], G2_CROSS00DEG-1, br0cr2 );
+  if ( !mbs_multiInterp2knHermiteBezf ( hole_k, 1, G2_CROSS00DEG,
+                    5, (G2H_OMCDEG+1), br0bc, 3, (G2H_OMCDEG+1),
+                    &br0bc[5], G2_CROSS00DEG+1, br0 ) )
+    goto failure;
+  if ( !mbs_multiInterp2knHermiteBezf ( hole_k, 1, G2_CROSS00DEG-1,
+                    4, G2H_OMCDEG, br0cr1bc, 3, G2H_OMCDEG,
+                    &br0cr1bc[4], G2_CROSS00DEG, br0cr1 ) )
+    goto failure;
+  if ( !mbs_multiInterp2knHermiteBezf ( hole_k, 1, G2_CROSS00DEG-2,
+                    3, (G2H_OMCDEG-1), br0cr2bc, 3, (G2H_OMCDEG-1),
+                    &br0cr2bc[3], G2_CROSS00DEG-1, br0cr2 ) )
+    goto failure;
 
   pkv_SetScratchMemTop ( sp );
   return true;
@@ -688,12 +694,18 @@ boolean _g2h_GetBBasisAuxpf ( GHoleDomainf *domain, int fn,
     fcomcbcdd[i*(G2H_OMCDEG-1)+4] = g11*h11p2*bezbc[(2*i+1)*18+7];
     fcomcbcdd[i*(G2H_OMCDEG-1)+5] = g11p2*h11p2*bezbc[(2*i+1)*18+8];
   }
-  mbs_multiInterp2knHermiteBezf ( hole_k, 1, G2_CROSS00DEG,
-     5, (G2H_OMCDEG+1), (float*)fcomcbc, 3, (G2H_OMCDEG+1), (float*)&fcomcbc[5], (G2H_OMCDEG+1), (float*)fcomc );
-  mbs_multiInterp2knHermiteBezf ( hole_k, 1, G2_CROSS00DEG-1,
-     4, G2H_OMCDEG, (float*)fcomcbcd, 3, G2H_OMCDEG, (float*)&fcomcbcd[4], G2H_OMCDEG, (float*)fcomcd );
-  mbs_multiInterp2knHermiteBezf ( hole_k, 1, G2_CROSS00DEG-2,
-     3, (G2H_OMCDEG-1), (float*)fcomcbcdd, 3, (G2H_OMCDEG-1), (float*)&fcomcbcdd[3], (G2H_OMCDEG-1), (float*)fcomcdd );
+  if ( !mbs_multiInterp2knHermiteBezf ( hole_k, 1, G2_CROSS00DEG,
+           5, (G2H_OMCDEG+1), (float*)fcomcbc, 3, (G2H_OMCDEG+1),
+           (float*)&fcomcbc[5], (G2H_OMCDEG+1), (float*)fcomc ) )
+    goto failure;
+  if ( !mbs_multiInterp2knHermiteBezf ( hole_k, 1, G2_CROSS00DEG-1,
+           4, G2H_OMCDEG, (float*)fcomcbcd, 3, G2H_OMCDEG,
+           (float*)&fcomcbcd[4], G2H_OMCDEG, (float*)fcomcd ) )
+    goto failure;
+  if ( !mbs_multiInterp2knHermiteBezf ( hole_k, 1, G2_CROSS00DEG-2,
+           3, (G2H_OMCDEG-1), (float*)fcomcbcdd, 3, (G2H_OMCDEG-1),
+           (float*)&fcomcbcdd[3], (G2H_OMCDEG-1), (float*)fcomcdd ) )
+    goto failure;
 
   pkv_SetScratchMemTop ( sp );
   return true;

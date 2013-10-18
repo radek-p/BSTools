@@ -261,8 +261,9 @@ boolean _gh_FindDomSurrndPatchf ( GHoleDomainf *domain,
   gh_GetBspInd ( hole_k, i, j, ind );
   for ( k = 0; k < 16; k++ )
     q[k] = domain_cp[ind[k]];
-  mbs_BSPatchToBezf ( 2, 3, 7, ukn, 3, 7, vkn, 8, (float*)q,
-                      NULL, NULL, NULL, NULL, NULL, NULL, 8, (float*)bezcp );
+  if ( !mbs_BSPatchToBezf ( 2, 3, 7, ukn, 3, 7, vkn, 8, (float*)q,
+                            NULL, NULL, NULL, NULL, NULL, NULL, 8, (float*)bezcp ) )
+    goto failure;
   if ( j == 1 )
     mbs_multiReverseBSCurvef ( 3, 0, NULL, 4, 2, 8, (float*)bezcp );
 
@@ -366,8 +367,9 @@ boolean _gh_FindDomSurrndBFuncPatchesf ( GHoleDomainf *domain )
         for ( k = 0; k < 16; k++ )
           q[k] = bfc[ind[k]];
         fcp = &domsurrbf[((fn*hole_k+i)*3+j)*16];
-        mbs_BSPatchToBezf ( 1, 3, 7, ukn, 3, 7, vkn, 4, q,
-                            NULL, NULL, NULL, NULL, NULL, NULL, 4, fcp );
+        if ( !mbs_BSPatchToBezf ( 1, 3, 7, ukn, 3, 7, vkn, 4, q,
+                                  NULL, NULL, NULL, NULL, NULL, NULL, 4, fcp ) )
+          goto failure;
         if ( j == 1 )
           mbs_multiReverseBSCurvef ( 3, 0, NULL, 4, 1, 4, fcp );
       }

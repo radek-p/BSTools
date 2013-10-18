@@ -69,7 +69,8 @@ static boolean EnterSolution ( int degree, point3f *cp, int object_id, ray3f *ra
   if ( z->x >= 0.0 && z->x <= 1.0 && z->y >= 0.0 && z->y <= 1.0 ) {
     t = t0 + (t1-t0)*z->x;
     u = fabs ( u0 + (u1-u0)*z->y );
-    mbs_BCHornerC3f ( degree, cp, t, &p );
+    if ( !mbs_BCHornerC3f ( degree, cp, t, &p ) )
+      return false;
     AddVector3Mf ( &ray->p, &ray->v, u, &inters->p );
     SubtractPoints3f ( &inters->p, &p, &inters->nv );
     NormalizeVector3f ( &inters->nv );
@@ -249,16 +250,20 @@ int rbez_FindRayBezcOffsetIntersf ( BezCurveTreefp tree, ray3f *ray,
     mcp = stack[stp].mcp;
     if ( _rbez_ConvexHullTest2f ( ncp, mcp ) ) {
       if ( _rbez_UniquenessTest2f ( deg, 2, ncp, mcp, &p, &pu, &pv, &K1, &K2 ) ) {
-        if ( _rbez_NewtonMethod2f ( deg, 2, mcp, &p, &pu, &pv, &z ) ) {
+        switch ( _rbez_NewtonMethod2f ( deg, 2, mcp, &p, &pu, &pv, &z ) ) {
+      case RBEZ_NEWTON_YES:
           /* regular solution found */
           if ( EnterSolution ( degree, cp, tree->object_id, ray,
                                t0, t1, u0, u1, &z, &inters[_ninters] ) )
             _ninters ++;
           else if ( _rbez_SecondTest2f ( &z, deg, 2, K1, K2 ) )
             goto subdivide;
-        }
-        else
+          break;
+      case RBEZ_NEWTON_NO:
           goto subdivide;
+      case RBEZ_NEWTON_ERROR:
+          goto failure;
+        }
       }
       else {
 subdivide:

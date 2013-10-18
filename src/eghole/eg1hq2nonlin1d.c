@@ -50,8 +50,9 @@ boolean _g1hq2_FindDomSurrndPatchd ( GHoleDomaind *domain,
   gh_GetBspInd ( hole_k, i, j, ind );
   for ( k = 0; k < 16; k++ )
     memcpy ( &q[k], &nlpr->rhole_cp[ind[k]], sizeof(point2d) );
-  mbs_BSPatchToBezd ( 2, 3, 7, ukn, 3, 7, vkn, 8, (double*)q,
-                      NULL, NULL, NULL, NULL, NULL, NULL, 8, (double*)bezcp );
+  if ( !mbs_BSPatchToBezd ( 2, 3, 7, ukn, 3, 7, vkn, 8, (double*)q,
+                            NULL, NULL, NULL, NULL, NULL, NULL, 8, (double*)bezcp ) )
+    goto failure;
   if ( j == 1 )
     mbs_multiReverseBSCurved ( 3, 0, NULL, 4, 2, 8, (double*)bezcp );
 
@@ -259,8 +260,9 @@ boolean _g1hq2_TabNLBasisFunctionsOmegad ( GHoleDomaind *domain, int nkn,
 
   nkn2 = nkn*nkn;
   _gh_PrepareTabKnotsd ( nkn, privateG1->opt_quad, tkn );
-  mbs_TabCubicHFuncDer3d ( 0.0, 1.0, nkn, tkn,
-                           hfunc, dhfunc, ddhfunc, dddhfunc );
+  if ( !mbs_TabCubicHFuncDer3d ( 0.0, 1.0, nkn, tkn,
+                                 hfunc, dhfunc, ddhfunc, dddhfunc ) )
+    goto failure;
 
   for ( k = kN = kNQ2 = 0;
         k < hole_k;
@@ -420,8 +422,9 @@ boolean _g1hq2_TabNLBasisFunctionsGammad ( GHoleDomaind *domain, int nkn,
   dddhfunc = &ddhfunc[4*nkn];
 
   _gh_PrepareTabKnotsd ( nkn, privateG1->opt_quad, tkn );
-  mbs_TabCubicHFuncDer3d ( 0.0, 1.0, nkn, tkn,
-                           hfunc, dhfunc, ddhfunc, dddhfunc );
+  if ( !mbs_TabCubicHFuncDer3d ( 0.0, 1.0, nkn, tkn,
+                                 hfunc, dhfunc, ddhfunc, dddhfunc ) )
+    goto failure;
 
         /* now evaluate the 1st order derivatives and jumps of 2nd order */
         /* derivatives at the boundary curves of the areas Omega_i */
@@ -437,7 +440,8 @@ boolean _g1hq2_TabNLBasisFunctionsGammad ( GHoleDomaind *domain, int nkn,
 
   ahfunc = &atkn[2];  adhfunc = &ahfunc[8];  addhfunc = &adhfunc[8];
   atkn[0] = 0.0;  atkn[1] = 1.0;
-  mbs_TabCubicHFuncDer2d ( 0.0, 1.0, 2, atkn, ahfunc, adhfunc, addhfunc );
+  if ( !mbs_TabCubicHFuncDer2d ( 0.0, 1.0, 2, atkn, ahfunc, adhfunc, addhfunc ) )
+    goto failure;
 
   memset ( ctrd, 0, 3*nkn*38*hole_k*sizeof(double) );
   for ( k = kN = kNQ2 = 0, kk = 1;

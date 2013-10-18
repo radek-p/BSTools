@@ -68,11 +68,13 @@ int mbs_multideBoorDer2f ( int degree, int lastknot, const float *knots,
   }
   memcpy ( &kn1[3], &knots[k+1], 3*sizeof(float) );
   kn2[0] = kn2[1] = kn2[2] = kn1[2];
-  mbs_multiBSChangeLeftKnotsf ( ncurves, spdimen, 2, kn1,
-                                dpitch, d, kn2 );
+  if ( !mbs_multiBSChangeLeftKnotsf ( ncurves, spdimen, 2, kn1,
+                                      dpitch, d, kn2 ) )
+    goto failure;
   kn2[0] = kn2[1] = kn2[2] = kn1[3];
-  mbs_multiBSChangeRightKnotsf ( ncurves, spdimen, 2, 5, kn1,
-                                 dpitch, d, kn2 );
+  if ( !mbs_multiBSChangeRightKnotsf ( ncurves, spdimen, 2, 5, kn1,
+                                       dpitch, d, kn2 ) )
+    goto failure;
 
       /* compute the derivatives as differences, with the */
       /* de Casteljau algorithm */
@@ -157,11 +159,13 @@ int mbs_multideBoorDer3f ( int degree, int lastknot, const float *knots,
   }
   memcpy ( &kn1[4], &knots[k+1], 4*sizeof(float) );
   kn2[0] = kn2[1] = kn2[2] = kn2[3] = kn1[3];
-  mbs_multiBSChangeLeftKnotsf ( ncurves, spdimen, 3, kn1,
-                                dpitch, d, kn2 );
+  if ( !mbs_multiBSChangeLeftKnotsf ( ncurves, spdimen, 3, kn1,
+                                      dpitch, d, kn2 ) )
+    goto failure;
   kn2[0] = kn2[1] = kn2[2] = kn2[3] = kn1[4];
-  mbs_multiBSChangeRightKnotsf ( ncurves, spdimen, 3, 7, kn1,
-                                 dpitch, d, kn2 );
+  if ( !mbs_multiBSChangeRightKnotsf ( ncurves, spdimen, 3, 7, kn1,
+                                       dpitch, d, kn2 ) )
+    goto failure;
 
       /* compute the derivatives as differences, with the */
       /* de Casteljau algorithm */

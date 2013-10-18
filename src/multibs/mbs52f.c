@@ -19,10 +19,12 @@
 #include "pkgeom.h"
 #include "multibs.h"
 
+#include "msgpool.h"
+
 #undef CONST_
 #define CONST_
 
-void mbs_BSC1CoonsFindCornersf ( int spdimen,
+boolean mbs_BSC1CoonsFindCornersf ( int spdimen,
           int degc00, int lastknotc00, const float *knotsc00, const float *c00,
           int degc01, int lastknotc01, const float *knotsc01, const float *c01,
           int degc10, int lastknotc10, const float *knotsc10, const float *c10,
@@ -33,76 +35,35 @@ void mbs_BSC1CoonsFindCornersf ( int spdimen,
 
   u0 = knotsc00[degc00];
   u1 = knotsc00[lastknotc00-degc00];
-  mbs_multideBoorDerf ( degc00, lastknotc00, knotsc00, 1, spdimen, 0, c00, u0,
-      &pcorners[0], &pcorners[spdimen*8] );
-  mbs_multideBoorDerf ( degc00, lastknotc00, knotsc00, 1, spdimen, 0, c00, u1,
-      &pcorners[spdimen*4], &pcorners[spdimen*12] );
-  mbs_multideBoorDerf ( degc10, lastknotc10, knotsc10, 1, spdimen, 0, c10, u0,
-      &pcorners[spdimen*1], &pcorners[spdimen*9] );
-  mbs_multideBoorDerf ( degc10, lastknotc10, knotsc10, 1, spdimen, 0, c10, u1,
-      &pcorners[spdimen*5], &pcorners[spdimen*13] );
-  mbs_multideBoorDerf ( degc01, lastknotc01, knotsc01, 1, spdimen, 0, c01, u0,
-      &pcorners[spdimen*2], &pcorners[spdimen*10] );
-  mbs_multideBoorDerf ( degc01, lastknotc01, knotsc01, 1, spdimen, 0, c01, u1,
-      &pcorners[spdimen*6], &pcorners[spdimen*14] );
-  mbs_multideBoorDerf ( degc11, lastknotc11, knotsc11, 1, spdimen, 0, c11, u0,
-      &pcorners[spdimen*3], &pcorners[spdimen*11] );
-  mbs_multideBoorDerf ( degc11, lastknotc11, knotsc11, 1, spdimen, 0, c11, u1,
-      &pcorners[spdimen*7], &pcorners[spdimen*15] );
+  if ( mbs_multideBoorDerf ( degc00, lastknotc00, knotsc00, 1, spdimen, 0, c00, u0,
+          &pcorners[0], &pcorners[spdimen*8] ) < 0 )
+    goto failure;
+  if ( mbs_multideBoorDerf ( degc00, lastknotc00, knotsc00, 1, spdimen, 0, c00, u1,
+      &pcorners[spdimen*4], &pcorners[spdimen*12] ) < 0 )
+    goto failure;
+  if ( mbs_multideBoorDerf ( degc10, lastknotc10, knotsc10, 1, spdimen, 0, c10, u0,
+      &pcorners[spdimen*1], &pcorners[spdimen*9] ) < 0 )
+    goto failure;
+  if ( mbs_multideBoorDerf ( degc10, lastknotc10, knotsc10, 1, spdimen, 0, c10, u1,
+      &pcorners[spdimen*5], &pcorners[spdimen*13] ) < 0 )
+    goto failure;
+  if ( mbs_multideBoorDerf ( degc01, lastknotc01, knotsc01, 1, spdimen, 0, c01, u0,
+      &pcorners[spdimen*2], &pcorners[spdimen*10] ) < 0 )
+    goto failure;
+  if ( mbs_multideBoorDerf ( degc01, lastknotc01, knotsc01, 1, spdimen, 0, c01, u1,
+      &pcorners[spdimen*6], &pcorners[spdimen*14] ) < 0 )
+    goto failure;
+  if ( mbs_multideBoorDerf ( degc11, lastknotc11, knotsc11, 1, spdimen, 0, c11, u0,
+      &pcorners[spdimen*3], &pcorners[spdimen*11] ) < 0 )
+    goto failure;
+  if ( mbs_multideBoorDerf ( degc11, lastknotc11, knotsc11, 1, spdimen, 0, c11, u1,
+      &pcorners[spdimen*7], &pcorners[spdimen*15] ) < 0 )
+    goto failure;
+  return true;
+
+failure:
+  return false;
 } /*mbs_BSC1CoonsFindCornersf*/
-
-/*
-static void Verify ( int spdimen,
-      int degc00, int lastknotc00, const float *knotsc00, const float *c00,
-      int degc01, int lastknotc01, const float *knotsc01, const float *c01,
-      int degc10, int lastknotc10, const float *knotsc10, const float *c10,
-      int degc11, int lastknotc11, const float *knotsc11, const float *c11,
-      int degd00, int lastknotd00, const float *knotsd00, const float *d00,
-      int degd01, int lastknotd01, const float *knotsd01, const float *d01,
-      int degd10, int lastknotd10, const float *knotsd10, const float *d10,
-      int degd11, int lastknotd11, const float *knotsd11, const float *d11 )
-{
-  void  *sp;
-  float *cc, *cd, *dd;
-  int   i, j;
-
-  sp = pkv_GetScratchMemTop ();
-  cc = pkv_GetScratchMemf ( 16*spdimen );
-  cd = pkv_GetScratchMemf ( 16*spdimen );
-  dd = pkv_GetScratchMemf ( 16*spdimen );
-
-  mbs_BSC1CoonsFindCornersf ( spdimen,
-         degc00, lastknotc00, knotsc00, c00,
-         degc01, lastknotc01, knotsc01, c01,
-         degc10, lastknotc10, knotsc10, c10,
-         degc11, lastknotc11, knotsc11, c11, cc );
-  mbs_BSC1CoonsFindCornersf ( spdimen,
-         degd00, lastknotd00, knotsd00, d00,
-         degd01, lastknotd01, knotsd01, d01,
-         degd10, lastknotd10, knotsd10, d10,
-         degd11, lastknotd11, knotsd11, d11, cd );
-  pkv_TransposeMatrixc ( 4, 4, spdimen*sizeof(float),
-                         4*spdimen*sizeof(float), (char*)cd,
-                         4*spdimen*sizeof(float), (char*)dd );
-  for ( i = 0; i < 4; i++ ) {
-    for ( j = 0; j < 4; j++ )
-      printf ( "%7.4f ", cc[(4*i+j)*spdimen] );
-    printf ( "\n" );
-  }
-  printf ( "\n" );
-  for ( i = 0; i < 4; i++ ) {
-    for ( j = 0; j < 4; j++ )
-      printf ( "%7.4f ", dd[(4*i+j)*spdimen] );
-    printf ( "\n" );
-  }
-  printf ( "\n" );
-  for ( i = 0; i < 4; i++ ) {
-    for ( j = 0; j < 4; j++ )
-      printf ( "%7.4f ", dd[(4*i+j)*spdimen]-cc[(4*i+j)*spdimen] );
-    printf ( "\n" );
-  }
-  pkv_SetScratchMemTop ( sp );
-} / *Verify*/
 
 boolean mbs_BSC1CoonsToBSf ( int spdimen,
       int degc00, int lastknotc00, const float *knotsc00, const float *c00,
@@ -124,13 +85,6 @@ boolean mbs_BSC1CoonsToBSf ( int spdimen,
   float *p1, *p2;
   int   i;
 
-/*
-Verify ( spdimen,
-      degc00, lastknotc00, knotsc00, c00, degc01, lastknotc01, knotsc01, c01,
-      degc10, lastknotc10, knotsc10, c10, degc11, lastknotc11, knotsc11, c11,
-      degd00, lastknotd00, knotsd00, d00, degd01, lastknotd01, knotsd01, d01,
-      degd10, lastknotd10, knotsd10, d10, degd11, lastknotd11, knotsd11, d11 );
-*/
   sp = pkv_GetScratchMemTop ();
       /* find the degree and knot sequences of the final patch */
   degu = degv = 3;
@@ -181,8 +135,9 @@ Verify ( spdimen,
     goto failure;
   for ( i = 0; i < 4; i++ ) avknots[i] = auxvknots[degv];
   for ( i = 4; i < 8; i++ ) avknots[i] = auxvknots[lastvkn-degv];
-  mbs_multiInterp2knHermiteBSf ( 1, ptch, 3, 7, avknots, 2, auxptch, _cd00,
-           2, auxptch, _cd10, ptch, p1 );
+  if ( !mbs_multiInterp2knHermiteBSf ( 1, ptch, 3, 7, avknots, 2, auxptch, _cd00,
+                       2, auxptch, _cd10, ptch, p1 ) )
+    goto failure;
   pkv_TransposeMatrixc ( 4, lastukn-degu, spdimen*sizeof(float),
                          (lastukn-degu)*spdimen*sizeof(float), (char*)p1,
                          4*spdimen*sizeof(float), (char*)p2 );
@@ -208,18 +163,20 @@ Verify ( spdimen,
     goto failure;
   for ( i = 0; i < 4; i++ ) auknots[i] = auxuknots[degu];
   for ( i = 4; i < 8; i++ ) auknots[i] = auxuknots[lastukn-degu];
-  mbs_multiInterp2knHermiteBSf ( 1, ptch, 3, 7, auknots, 2, auxptch, _cd00,
-           2, auxptch, _cd10, ptch, p2 );
+  if ( !mbs_multiInterp2knHermiteBSf ( 1, ptch, 3, 7, auknots, 2, auxptch, _cd00,
+                       2, auxptch, _cd10, ptch, p2 ) )
+    goto failure;
   if ( !mbs_multiAdjustBSCRepf ( 1, ptch, 3, 7, auknots, 0, p2,
             degu, lastukn, auxuknots, 0, p1 ) )
     goto failure;
   pkn_AddMatrixf ( 1, ptch*(lastukn-degu), 0, p, 0, p1, 0, p );
 
         /* construct the patch p3 */
-  mbs_BSC1CoonsFindCornersf ( spdimen,
-        degc00, lastknotc00, knotsc00, c00, degc01, lastknotc01, knotsc01, c01,
-        degc10, lastknotc10, knotsc10, c10, degc11, lastknotc11, knotsc11, c11,
-        pc );
+  if ( !mbs_BSC1CoonsFindCornersf ( spdimen,
+            degc00, lastknotc00, knotsc00, c00, degc01, lastknotc01, knotsc01, c01,
+            degc10, lastknotc10, knotsc10, c10, degc11, lastknotc11, knotsc11, c11,
+            pc ) )
+    goto failure;
 
   pkv_Selectf ( 2, 4*spdimen, 4*2*spdimen, 4*spdimen, pc, p1 );
   pkv_Selectf ( 2, 4*spdimen, 4*2*spdimen, 4*spdimen, &pc[4*spdimen], &p1[4*2*spdimen] );
@@ -227,10 +184,12 @@ Verify ( spdimen,
     pkv_Selectf ( 2, spdimen, 2*spdimen, spdimen, &p1[4*i*spdimen], &bc[4*i*spdimen] );
     pkv_Selectf ( 2, spdimen, 2*spdimen, spdimen, &p1[(4*i+1)*spdimen], &bc[(4*i+2)*spdimen] );
   }
-  mbs_multiInterp2knHermiteBSf ( 1, 4*spdimen, 3, 7, auknots, 2, 0, bc,
-                                 2, 0, &bc[4*2*spdimen], 0, p1 );
-  mbs_multiInterp2knHermiteBSf ( 4, spdimen, 3, 7, avknots, 2, 4*spdimen, p1,
-                                 2, 4*spdimen, &p1[2*spdimen], 4*spdimen, p2 );
+  if ( !mbs_multiInterp2knHermiteBSf ( 1, 4*spdimen, 3, 7, auknots, 2, 0, bc,
+                                 2, 0, &bc[4*2*spdimen], 0, p1 ) )
+    goto failure;
+  if ( !mbs_multiInterp2knHermiteBSf ( 4, spdimen, 3, 7, avknots, 2, 4*spdimen, p1,
+                                 2, 4*spdimen, &p1[2*spdimen], 4*spdimen, p2 ) )
+    goto failure;
   if ( !mbs_multiAdjustBSCRepf ( 4, spdimen, 3, 7, avknots, 4*spdimen, p2,
                degv, lastvkn, auxvknots, (lastvkn-degv)*spdimen, p1 ) )
     goto failure;
@@ -327,10 +286,11 @@ boolean mbs_TabBSC1CoonsDer2f ( int spdimen,
   d = &ddc[ku];  dd = &d[kv];  ddd = &dd[kv];
   pcorners = &ddd[kv];
 
-  mbs_BSC1CoonsFindCornersf ( spdimen,
-          degc00, lastknotc00, knotsc00, c00, degc01, lastknotc01, knotsc01, c01,
-          degc10, lastknotc10, knotsc10, c10, degc11, lastknotc11, knotsc11, c11,
-          pcorners );
+  if ( !mbs_BSC1CoonsFindCornersf ( spdimen,
+            degc00, lastknotc00, knotsc00, c00, degc01, lastknotc01, knotsc01, c01,
+            degc10, lastknotc10, knotsc10, c10, degc11, lastknotc11, knotsc11, c11,
+            pcorners ) )
+    goto failure;
 
   mbs_TabBSCurveDer2f ( spdimen, degc00, lastknotc00, knotsc00, c00, nknu, knu,
       4*spdimen, &c[0], &dc[0], &ddc[0] );

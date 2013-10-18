@@ -904,8 +904,9 @@ boolean g1h_Q2SplComputeFormMatrixf ( GHoleDomainf *domain )
 
           /* prepare the evaluation of basis functions */
   _gh_PrepareTabKnotsf ( nquad, privateG1->opt_quad, tkn );
-  mbs_TabCubicHFuncDer3f ( 0.0, 1.0, nquad, tkn,
-                           hfunc, dhfunc, ddhfunc, dddhfunc );
+  if ( !mbs_TabCubicHFuncDer3f ( 0.0, 1.0, nquad, tkn,
+                                 hfunc, dhfunc, ddhfunc, dddhfunc ) )
+    goto failure;
   if ( !_g1h_TabBSFuncDer3f ( G1H_FINALDEG, lastcknot, cknots,
                               2, G1H_FINALDEG+nk*m2-2, nquad, tkn, fkn, lkn,
                               tbs, tbst, tbstt, tbsttt ) )
@@ -1188,7 +1189,8 @@ default:
     goto failure;
   ahfunc = &atkn[2];  adhfunc = &ahfunc[8];  addhfunc = &adhfunc[8];
   atkn[0] = 0.0;  atkn[1] = 1.0;
-  mbs_TabCubicHFuncDer2f ( 0.0, 1.0, 2, atkn, ahfunc, adhfunc, addhfunc );
+  if ( !mbs_TabCubicHFuncDer2f ( 0.0, 1.0, 2, atkn, ahfunc, adhfunc, addhfunc ) )
+    goto failure;
   bstsize = rr*(nk+2);
   atbs = pkv_GetScratchMemf ( 4*bstsize );
   if ( !atbs )

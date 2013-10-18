@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -75,6 +75,7 @@ int mbs_TrimCVBoundSized ( int nelem, const polycurved *bound )
 void *mbs_CompileTrimPatchBoundd ( int nelem, const polycurved *bound,
                                    void *buffer )
 {
+  void  *sp;
   int   size = 0, inpitch, outpitch;
   char  *bufp, *bp;
   short *bn;
@@ -82,13 +83,14 @@ void *mbs_CompileTrimPatchBoundd ( int nelem, const polycurved *bound,
   int   dim, deg, N, kpcs;
   double *knots, *points, *bpoints;;
 
+  sp = pkv_GetScratchMemTop ();
   if ( !buffer ) {
     size = mbs_TrimCVBoundSized ( nelem, bound );
     if ( !size )
-      return NULL;
+      goto failure;
     buffer = pkv_GetScratchMem ( size );
     if ( !buffer )
-      return NULL;
+      goto failure;
   }
 
   bufp = bp = (char*)buffer;
@@ -98,18 +100,17 @@ void *mbs_CompileTrimPatchBoundd ( int nelem, const polycurved *bound,
 
     bufp[1] = (char)(dim = bound[i].spdimen);
     deg = bound[i].degree;
-    if ( dim < 2 || dim > 3 || deg < 1 ) {
-      pkv_FreeScratchMem ( size );
-      return NULL;
-    }
+    if ( dim < 2 || dim > 3 || deg < 1 )
+      goto failure;
     N       = bound[i].lastknot;
     points  = bound[i].points;
                                    /* recognize the case */
     if ( (knots = bound[i].knots) ) {  /* a B-spline curve */
                                        /* convert it into a sequence */
                                        /* of Bezier curves */
-      mbs_multiBSCurvesToBezd ( dim, 1, deg, N, knots, 0, points,
-                                &kpcs, NULL, NULL, 0, bpoints );
+      if ( !mbs_multiBSCurvesToBezd ( dim, 1, deg, N, knots, 0, points,
+                                      &kpcs, NULL, NULL, 0, bpoints ) )
+        goto failure;
 
             /* rearrange data - cannot use pkv_Rearranged, as this is not */
             /* an array of doubles, though it might work being tricky      */
@@ -149,13 +150,15 @@ void *mbs_CompileTrimPatchBoundd ( int nelem, const polycurved *bound,
       memcpy ( bpoints, points, dim*(N+1)*sizeof(double) );
       bufp += 2 + sizeof(short) + dim*(N+1)*sizeof(double);
     }
-    else {
-      pkv_FreeScratchMem ( size );
-      return NULL;
-    }
+    else
+      goto failure;
   }
   *bufp = 4;
 
   return buffer;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return NULL;
 } /*mbs_CompileTrimPatchBoundd*/
 

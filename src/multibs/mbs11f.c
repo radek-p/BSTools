@@ -170,8 +170,9 @@ boolean mbs_multiBSDegElevf ( int ncurves, int spdimen,
 /* remove knots by calling the procedure, which solves */
 /* the least-squares problem with the Oslo matrix. */
 
-  mbs_multiOsloRemoveKnotsLSQf ( ncurves, spdimen, deg, lkn, akn, auxpitch,
-                                 auxcp, j, outknots, outpitch, outctlpoints );
+  if ( !mbs_multiOsloRemoveKnotsLSQf ( ncurves, spdimen, deg, lkn, akn, auxpitch,
+                                 auxcp, j, outknots, outpitch, outctlpoints ) )
+    goto failure;
 
 /* if these are free end points curves, modify appropriately */
 /* their first and last knots */
@@ -193,8 +194,9 @@ boolean mbs_multiBSDegElevf ( int ncurves, int spdimen,
           break;
       }
     }
-    mbs_multiBSChangeLeftKnotsf ( ncurves, spdimen, *outdegree, outknots,
-                                  outpitch, outctlpoints, akn );
+    if ( !mbs_multiBSChangeLeftKnotsf ( ncurves, spdimen, *outdegree, outknots,
+                                        outpitch, outctlpoints, akn ) )
+      goto failure;
 
         /* generate the last outdegree+1 knots of the final knot sequence */
     for ( k = inlastknot-indegree, t = inknots[k];  t == inknots[k-1];  k-- );
@@ -209,9 +211,10 @@ boolean mbs_multiBSDegElevf ( int ncurves, int spdimen,
           break;
       }
     }
-    mbs_multiBSChangeRightKnotsf ( ncurves, spdimen,
-                                   *outdegree, *outlastknot, outknots,
-                                   outpitch, (float*)outctlpoints, akn );
+    if ( !mbs_multiBSChangeRightKnotsf ( ncurves, spdimen,
+                                         *outdegree, *outlastknot, outknots,
+                                         outpitch, (float*)outctlpoints, akn ) )
+      goto failure;
   }
 
   pkv_SetScratchMemTop ( stp );

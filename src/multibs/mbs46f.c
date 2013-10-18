@@ -46,8 +46,9 @@ boolean mbs_multiBSDegElevClosedf ( int ncurves, int spdimen,
     nlkn[i] = u;
   for ( ; i >= 0; i-- )
     nlkn[i] = min ( outknots[i+K]-T, u );  /* because of rounding errors */
-  mbs_multiBSChangeLeftKnotsf ( ncurves, spdimen, deg, outknots,
-                                outpitch, outctlpoints, nlkn );
+  if ( !mbs_multiBSChangeLeftKnotsf ( ncurves, spdimen, deg, outknots,
+                                      outpitch, outctlpoints, nlkn ) )
+    goto failure;
   for ( i = 0; i < deg; i++ )
     pkv_Movef ( ncurves, spdimen, outpitch, spdimen*K, &outctlpoints[i*spdimen] );
   for ( i = deg+1; i+K <= lkn; i++ )

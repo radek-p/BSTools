@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2008, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2008, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -470,7 +470,8 @@ boolean g1h_ComputeSplFormMatrixf ( GHoleDomainf *domain )
 
         /* prepare the evaluation of basis functions */
   _gh_PrepareTabKnotsf ( nquad, privateG1->opt_quad, tkn );
-  mbs_TabCubicHFuncDer2f ( 0.0, 1.0, nquad, tkn, hfunc, dhfunc, ddhfunc );
+  if ( !mbs_TabCubicHFuncDer2f ( 0.0, 1.0, nquad, tkn, hfunc, dhfunc, ddhfunc ) )
+    goto failure;
 
   if ( !_g1h_TabBSFuncDer2f ( G1H_FINALDEG, sprivate->lastcknot, sprivate->cknots,
                               2, G1H_FINALDEG+nk*m2-2, nquad, tkn, fkn, lkn,

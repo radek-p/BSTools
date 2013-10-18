@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2008                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -200,10 +200,12 @@ default:
                                 &ndata, &idata, &fdata );
   switch ( option ) {
 case G1H_DEFAULT:
-    mbs_multiInterp2knHermiteBezf ( hole_k, 2, G1_CROSS00DEG,
-         3, 10, (float*)omcbc, 2, 10, (float*)&omcbc[3], 10, (float*)omc );
-    mbs_multiInterp2knHermiteBezf ( hole_k, 2, G1_CROSS00DEG-1,
-         2, 8, (float*)omcbcd, 2, 8, (float*)&omcbcd[2], 8, (float*)omcd );
+    if ( !mbs_multiInterp2knHermiteBezf ( hole_k, 2, G1_CROSS00DEG,
+               3, 10, (float*)omcbc, 2, 10, (float*)&omcbc[3], 10, (float*)omc ) )
+      goto failure;
+    if ( !mbs_multiInterp2knHermiteBezf ( hole_k, 2, G1_CROSS00DEG-1,
+               2, 8, (float*)omcbcd, 2, 8, (float*)&omcbcd[2], 8, (float*)omcd ) )
+      goto failure;
     break;
 
 default:

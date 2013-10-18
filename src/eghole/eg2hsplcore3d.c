@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2007, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2007, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -281,11 +281,12 @@ boolean _g2h_OutputSplPatchesd ( GHoleDomaind *domain,
              spdimen*sizeof(double) );
     pkv_Selectd ( nk*m1, spdimen, 3*spdimen, spdimen,
                   &x[(nfunc_c+i*dsize)*spdimen], &y[5*spdimen] );
-    mbs_multiSubtractBSCurvesd ( 1, spdimen, G2_CROSS00DEG, 2*G2_CROSS00DEG+1,
+    if ( !mbs_multiSubtractBSCurvesd ( 1, spdimen, G2_CROSS00DEG, 2*G2_CROSS00DEG+1,
             &bezknots[G2H_FINALDEG-G2_CROSS00DEG], 0,
             &fc00[i*(G2_CROSS00DEG+1)*spdimen],
             G2_CROSS00DEG, lastomcknot, omcknots, 0, y, &degu, &m, z, 0,
-            &sfc00[i*(lastomcknot-G2_CROSS00DEG)*spdimen] );
+            &sfc00[i*(lastomcknot-G2_CROSS00DEG)*spdimen] ) )
+      goto failure;
     memcpy ( &sfd00[l*(lastomcknot-G2_CROSS00DEG)*spdimen],
              &sfc00[i*(lastomcknot-G2_CROSS00DEG)*spdimen],
              (lastomcknot-G2_CROSS00DEG)*spdimen*sizeof(double) );
@@ -322,22 +323,26 @@ boolean _g2h_OutputSplPatchesd ( GHoleDomaind *domain,
       pkn_MultMatrixAddd ( lastpvvknot-G2_CROSS02DEG, 1, 1, puu,
                            spdimen, 0, &xx[2*spdimen], spdimen, yuu );
     }
-    mbs_multiSubtractBSCurvesd ( 1, spdimen, G2_CROSS01DEG, 2*G2_CROSS01DEG+1,
+    if ( !mbs_multiSubtractBSCurvesd ( 1, spdimen, G2_CROSS01DEG, 2*G2_CROSS01DEG+1,
             &bezknots[G2H_FINALDEG-G2_CROSS01DEG], 0, &fc01[i*(G2_CROSS01DEG+1)*spdimen],
             G2_CROSS01DEG, lastpvknot, pvknots, 0, yv, &degu, &m, z, 0,
-            &sfc01[i*(lastpvknot-G2_CROSS01DEG)*spdimen] );
-    mbs_multiSubtractBSCurvesd ( 1, spdimen, G2_CROSS02DEG, 2*G2_CROSS02DEG+1,
+            &sfc01[i*(lastpvknot-G2_CROSS01DEG)*spdimen] ) )
+      goto failure;
+    if ( !mbs_multiSubtractBSCurvesd ( 1, spdimen, G2_CROSS02DEG, 2*G2_CROSS02DEG+1,
             &bezknots[G2H_FINALDEG-G2_CROSS02DEG], 0, &fc02[i*(G2_CROSS02DEG+1)*spdimen],
             G2_CROSS02DEG, lastpvvknot, pvvknots, 0, yvv, &degu, &m, z, 0,
-            &sfc02[i*(lastpvvknot-G2_CROSS02DEG)*spdimen] );
-    mbs_multiSubtractBSCurvesd ( 1, spdimen, G2_CROSS01DEG, 2*G2_CROSS01DEG+1,
+            &sfc02[i*(lastpvvknot-G2_CROSS02DEG)*spdimen] ) )
+      goto failure;
+    if ( !mbs_multiSubtractBSCurvesd ( 1, spdimen, G2_CROSS01DEG, 2*G2_CROSS01DEG+1,
             &bezknots[G2H_FINALDEG-G2_CROSS01DEG], 0, &fd01[l*(G2_CROSS01DEG+1)*spdimen],
             G2_CROSS01DEG, lastpvknot, pvknots, 0, yu, &degv, &m, z, 0,
-            &sfd01[l*(lastpvknot-G2_CROSS01DEG)*spdimen] );
-    mbs_multiSubtractBSCurvesd ( 1, spdimen, G2_CROSS02DEG, 2*G2_CROSS02DEG+1,
+            &sfd01[l*(lastpvknot-G2_CROSS01DEG)*spdimen] ) )
+      goto failure;
+    if ( !mbs_multiSubtractBSCurvesd ( 1, spdimen, G2_CROSS02DEG, 2*G2_CROSS02DEG+1,
             &bezknots[G2H_FINALDEG-G2_CROSS02DEG], 0, &fd02[l*(G2_CROSS02DEG+1)*spdimen],
             G2_CROSS02DEG, lastpvvknot, pvvknots, 0, yuu, &degv, &m, z, 0,
-            &sfd02[l*(lastpvvknot-G2_CROSS02DEG)*spdimen] );
+            &sfd02[l*(lastpvvknot-G2_CROSS02DEG)*spdimen] ) )
+      goto failure;
   }
 
         /* The next step is to find the B-spline representation of the     */

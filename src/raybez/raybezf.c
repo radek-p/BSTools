@@ -180,11 +180,13 @@ BezPatchTreefp
     tree->root = AllocTreeVertexf ( tree, NULL, u0, u1, v0, v1 );
     if ( tree->root ) {
       memcpy ( tree->root->ctlpoints, ctlpoints, tree->cpsize );
-      mbs_BCHornerNvP3f ( n, m, ctlpoints, 0.5, 0.5,
-                          &tree->root->pcent, &tree->root->nvcent );
+      if ( ! mbs_BCHornerNvP3f ( n, m, ctlpoints, 0.5, 0.5,
+                                 &tree->root->pcent, &tree->root->nvcent ) )
+        goto failure;
       FindBoundingBoxf ( tree, tree->root );
     }
     else {
+failure:
       PKV_FREE ( tree );
       return NULL;
     }
@@ -232,24 +234,27 @@ static void DivideVertexf ( BezPatchTreefp tree, BezPatchTreeVertexfp vertex )
                                         vertex->u0, vertex->u1, vertex->v0, h );
     vertex->right = AllocTreeVertexf ( tree, vertex,
                                         vertex->u0, vertex->u1, h, vertex->v1 );
-    if ( !vertex->left || !vertex->right ) {
-dealloc:
-      if ( vertex->left )  PKV_FREE ( vertex->left );
-      if ( vertex->right ) PKV_FREE ( vertex->right );
-      return;
-    }
+    if ( !vertex->left || !vertex->right )
+      goto dealloc;
     memcpy ( vertex->right->ctlpoints, vertex->ctlpoints, tree->cpsize );
     mbs_BisectBP3vf ( tree->n, tree->m,
                       vertex->right->ctlpoints, vertex->left->ctlpoints );
   }
-  mbs_BCHornerNvP3f ( tree->n, tree->m, vertex->left->ctlpoints,
-                      0.5, 0.5, &vertex->left->pcent, &vertex->left->nvcent );
-  mbs_BCHornerNvP3f ( tree->n, tree->m, vertex->right->ctlpoints,
-                      0.5, 0.5, &vertex->right->pcent, &vertex->right->nvcent );
+  if ( !mbs_BCHornerNvP3f ( tree->n, tree->m, vertex->left->ctlpoints,
+                      0.5, 0.5, &vertex->left->pcent, &vertex->left->nvcent ) )
+    goto dealloc;
+  if ( !mbs_BCHornerNvP3f ( tree->n, tree->m, vertex->right->ctlpoints,
+                      0.5, 0.5, &vertex->right->pcent, &vertex->right->nvcent ) )
+    goto dealloc;
   FindBoundingBoxf ( tree, vertex->left );
   FindBoundingBoxf ( tree, vertex->right );
   UpdateBoundingBoxesf ( vertex );
   vertex->leaf = false;
+  return;
+
+dealloc:
+  if ( vertex->left )  PKV_FREE ( vertex->left );
+  if ( vertex->right ) PKV_FREE ( vertex->right );
 } /*DivideVertexf*/
 
 BezPatchTreeVertexfp
@@ -392,12 +397,18 @@ int rbez_FindRayBezPatchIntersf ( BezPatchTreef *tree, ray3f *ray,
       ConvertPatchf ( ncp, vertex->ctlpoints, &ray->p, &nh, sh, auxcp );
       if ( _rbez_ConvexHullTest2f ( ncp, auxcp ) ) {
         if ( _rbez_UniquenessTest2f ( n, m, ncp, auxcp, &p, &du, &dv, &K1, &K2 ) ) {
-          if ( _rbez_NewtonMethod2f ( n, m, auxcp, &p, &du, &dv, &z ) ) {
-            if ( !SolutionOKf ( ray, tree, vertex, &z, ninters, inters ) )
+          switch ( _rbez_NewtonMethod2f ( n, m, auxcp, &p, &du, &dv, &z ) ) {
+        case RBEZ_NEWTON_YES:
+            if ( !SolutionOKf ( ray, tree, vertex, &z, ninters, inters ) ) {
               if ( _rbez_SecondTest2f ( &z, n, m, K1, K2 ) )
                 goto DIVIDE;
+            }
+            break;
+        case RBEZ_NEWTON_NO:
+            goto DIVIDE;
+        case RBEZ_NEWTON_ERROR:
+            goto failure;
           }
-          else goto DIVIDE;
         }
         else {
 DIVIDE:
@@ -417,5 +428,9 @@ DIVIDE:
 
   pkv_FreeScratchMem ( size_auxcp+size_stack );
   return *ninters;
+
+failure:
+  pkv_FreeScratchMem ( size_auxcp+size_stack );
+  return -1;
 } /*rbez_FindRayBezPatchIntersf*/
 

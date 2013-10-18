@@ -231,8 +231,9 @@ static boolean _g2h_TabSplNLBasisFunctionsf ( GHoleDomainf *domain,
   dhfunc = &hfunc[6*nkn];
   ddhfunc = &dhfunc[6*nkn];
   dddhfunc = &ddhfunc[6*nkn];
-  mbs_TabQuinticHFuncDer3f ( 0.0, 1.0, nkn, tkn,
-                             hfunc, dhfunc, ddhfunc, dddhfunc );
+  if ( !mbs_TabQuinticHFuncDer3f ( 0.0, 1.0, nkn, tkn,
+                                   hfunc, dhfunc, ddhfunc, dddhfunc ) )
+    goto failure;
 
         /* compute the Jacobian */
   for ( k = kN = kNQ2 = 0;

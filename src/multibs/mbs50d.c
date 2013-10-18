@@ -126,8 +126,9 @@ boolean mbs_BezC2CoonsToBezd ( int spdimen,
                               0, &d, &bc[5*(degu+1)*spdimen] ) )
     goto failure;
   pitch = (degu+1)*spdimen;
-  mbs_multiInterp2knHermiteBezd ( 1, pitch, 5, 3, pitch, bc,
-           3, pitch, &bc[3*(degu+1)*spdimen], pitch, p1 );
+  if ( !mbs_multiInterp2knHermiteBezd ( 1, pitch, 5, 3, pitch, bc,
+           3, pitch, &bc[3*(degu+1)*spdimen], pitch, p1 ) )
+    goto failure;
   pkv_TransposeMatrixc ( 6, degu+1, spdimen*sizeof(double),
                          (degu+1)*spdimen*sizeof(double), (char*)p1,
                          6*spdimen*sizeof(double), (char*)p );
@@ -154,16 +155,18 @@ boolean mbs_BezC2CoonsToBezd ( int spdimen,
                               0, &d, &bc[5*(degv+1)*spdimen] ) )
     goto failure;
   pitch = (degv+1)*spdimen;
-  mbs_multiInterp2knHermiteBezd ( 1, pitch, 5, 3, pitch, bc,
-           3, pitch, &bc[3*(degv+1)*spdimen], pitch, p2 );
+  if ( !mbs_multiInterp2knHermiteBezd ( 1, pitch, 5, 3, pitch, bc,
+           3, pitch, &bc[3*(degv+1)*spdimen], pitch, p2 ) )
+    goto failure;
   if ( !mbs_BCDegElevPd ( spdimen, 5, degv, p2, degu-5, 0, &du, &dv, p2 ) )
     goto failure;
   pkn_AddMatrixd ( 1, spdimen*(degu+1)*(degv+1), 0, p, 0, p2, 0, p );
 
         /* construct the patch p3 */
-  mbs_BezC2CoonsFindCornersd ( spdimen,
-                                   degc00, c00, degc01, c01, degc02, c02,
-                                   degc10, c10, degc11, c11, degc12, c12, pc );
+  if ( !mbs_BezC2CoonsFindCornersd ( spdimen,
+                                     degc00, c00, degc01, c01, degc02, c02,
+                                     degc10, c10, degc11, c11, degc12, c12, pc ) )
+    goto failure;
 
   pkv_Selectd ( 3, 6*spdimen, 6*2*spdimen, 6*spdimen, pc, p3 );
   pkv_Selectd ( 3, 6*spdimen, 6*2*spdimen, 6*spdimen, &pc[6*spdimen], &p3[6*3*spdimen] );
@@ -171,10 +174,12 @@ boolean mbs_BezC2CoonsToBezd ( int spdimen,
     pkv_Selectd ( 3, spdimen, 2*spdimen, spdimen, &p3[6*i*spdimen], &bc[6*i*spdimen] );
     pkv_Selectd ( 3, spdimen, 2*spdimen, spdimen, &p3[(6*i+1)*spdimen], &bc[(6*i+3)*spdimen] );
   }
-  mbs_multiInterp2knHermiteBezd ( 1, 6*spdimen, 5, 3, 0, bc,
-                                  3, 0, &bc[6*3*spdimen], 0, p3 );
-  mbs_multiInterp2knHermiteBezd ( 6, spdimen, 5, 3, 6*spdimen, p3,
-                                  3, 6*spdimen, &p3[3*spdimen], 6*spdimen, p2 );
+  if ( !mbs_multiInterp2knHermiteBezd ( 1, 6*spdimen, 5, 3, 0, bc,
+                                        3, 0, &bc[6*3*spdimen], 0, p3 ) )
+    goto failure;
+  if ( !mbs_multiInterp2knHermiteBezd ( 6, spdimen, 5, 3, 6*spdimen, p3,
+                                  3, 6*spdimen, &p3[3*spdimen], 6*spdimen, p2 ) )
+    goto failure;
   if ( !mbs_BCDegElevPd ( spdimen, 5, 5, p2, degu-5, degv-5, &du, &dv, p3 ) )
     goto failure;
   pkn_SubtractMatrixd ( 1, spdimen*(degu+1)*(degv+1), 0, p, 0, p3, 0, p );
@@ -316,36 +321,49 @@ boolean mbs_TabBezC2CoonsDer3d ( int spdimen,
   d = &dddc[ku];  dd = &d[kv];  ddd = &dd[kv];  dddd = &ddd[kv];
   pcorners = &dddd[kv];
 
-  mbs_BezC2CoonsFindCornersd ( spdimen,
-          degc00, c00, degc01, c01, degc02, c02,
-          degc10, c10, degc11, c11, degc12, c12,
-          pcorners );
+  if ( !mbs_BezC2CoonsFindCornersd ( spdimen,
+              degc00, c00, degc01, c01, degc02, c02,
+              degc10, c10, degc11, c11, degc12, c12,
+              pcorners ) )
+    goto failure;
 
-  mbs_TabBezCurveDer3d ( spdimen, degc00, c00, nknu, knu, 6*spdimen,
-            &c[0], &dc[0], &ddc[0], &dddc[0] );
-  mbs_TabBezCurveDer3d ( spdimen, degc10, c10, nknu, knu, 6*spdimen,
-            &c[spdimen], &dc[spdimen], &ddc[spdimen], &dddc[spdimen] );
-  mbs_TabBezCurveDer3d ( spdimen, degc01, c01, nknu, knu, 6*spdimen,
-            &c[2*spdimen], &dc[2*spdimen], &ddc[2*spdimen], &dddc[2*spdimen] );
-  mbs_TabBezCurveDer3d ( spdimen, degc11, c11, nknu, knu, 6*spdimen,
-            &c[3*spdimen], &dc[3*spdimen], &ddc[3*spdimen], &dddc[3*spdimen] );
-  mbs_TabBezCurveDer3d ( spdimen, degc02, c02, nknu, knu, 6*spdimen,
-            &c[4*spdimen], &dc[4*spdimen], &ddc[4*spdimen], &dddc[4*spdimen] );
-  mbs_TabBezCurveDer3d ( spdimen, degc12, c12, nknu, knu, 6*spdimen,
-            &c[5*spdimen], &dc[5*spdimen], &ddc[5*spdimen], &dddc[5*spdimen] );
+  if ( !mbs_TabBezCurveDer3d ( spdimen, degc00, c00, nknu, knu, 6*spdimen,
+            &c[0], &dc[0], &ddc[0], &dddc[0] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer3d ( spdimen, degc10, c10, nknu, knu, 6*spdimen,
+            &c[spdimen], &dc[spdimen], &ddc[spdimen], &dddc[spdimen] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer3d ( spdimen, degc01, c01, nknu, knu, 6*spdimen,
+            &c[2*spdimen], &dc[2*spdimen], &ddc[2*spdimen], &dddc[2*spdimen] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer3d ( spdimen, degc11, c11, nknu, knu, 6*spdimen,
+            &c[3*spdimen], &dc[3*spdimen], &ddc[3*spdimen], &dddc[3*spdimen] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer3d ( spdimen, degc02, c02, nknu, knu, 6*spdimen,
+            &c[4*spdimen], &dc[4*spdimen], &ddc[4*spdimen], &dddc[4*spdimen] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer3d ( spdimen, degc12, c12, nknu, knu, 6*spdimen,
+            &c[5*spdimen], &dc[5*spdimen], &ddc[5*spdimen], &dddc[5*spdimen] ) )
+    goto failure;
 
-  mbs_TabBezCurveDer3d ( spdimen, degd00, d00, nknv, knv, 6*spdimen,
-            &d[0], &dd[0], &ddd[0], &dddd[0] );
-  mbs_TabBezCurveDer3d ( spdimen, degd10, d10, nknv, knv, 6*spdimen,
-            &d[spdimen], &dd[spdimen], &ddd[spdimen], &dddd[spdimen] );
-  mbs_TabBezCurveDer3d ( spdimen, degd01, d01, nknv, knv, 6*spdimen,
-            &d[2*spdimen], &dd[2*spdimen], &ddd[2*spdimen], &dddd[2*spdimen] );
-  mbs_TabBezCurveDer3d ( spdimen, degd11, d11, nknv, knv, 6*spdimen,
-            &d[3*spdimen], &dd[3*spdimen], &ddd[3*spdimen], &dddd[3*spdimen] );
-  mbs_TabBezCurveDer3d ( spdimen, degd02, d02, nknv, knv, 6*spdimen,
-            &d[4*spdimen], &dd[4*spdimen], &ddd[4*spdimen], &dddd[4*spdimen] );
-  mbs_TabBezCurveDer3d ( spdimen, degd12, d12, nknv, knv, 6*spdimen,
-            &d[5*spdimen], &dd[5*spdimen], &ddd[5*spdimen], &dddd[5*spdimen] );
+  if ( !mbs_TabBezCurveDer3d ( spdimen, degd00, d00, nknv, knv, 6*spdimen,
+            &d[0], &dd[0], &ddd[0], &dddd[0] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer3d ( spdimen, degd10, d10, nknv, knv, 6*spdimen,
+            &d[spdimen], &dd[spdimen], &ddd[spdimen], &dddd[spdimen] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer3d ( spdimen, degd01, d01, nknv, knv, 6*spdimen,
+            &d[2*spdimen], &dd[2*spdimen], &ddd[2*spdimen], &dddd[2*spdimen] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer3d ( spdimen, degd11, d11, nknv, knv, 6*spdimen,
+            &d[3*spdimen], &dd[3*spdimen], &ddd[3*spdimen], &dddd[3*spdimen] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer3d ( spdimen, degd02, d02, nknv, knv, 6*spdimen,
+            &d[4*spdimen], &dd[4*spdimen], &ddd[4*spdimen], &dddd[4*spdimen] ) )
+    goto failure;
+  if ( !mbs_TabBezCurveDer3d ( spdimen, degd12, d12, nknv, knv, 6*spdimen,
+            &d[5*spdimen], &dd[5*spdimen], &ddd[5*spdimen], &dddd[5*spdimen] ) )
+    goto failure;
 
   if ( p )
     if ( !_mbs_TabBezC2Coonsd ( spdimen, nknu, nknv, c, d, pcorners,

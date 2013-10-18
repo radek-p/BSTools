@@ -169,15 +169,18 @@ boolean mbs_multiAdjustBSCRepf ( int ncurves, int spdimen,
     pkv_Selectf ( ncurves, ptch, inpitch, ptch, inctlpoints, ctlp );
   }
         /* set the end knots as in the final sequence */
-  mbs_multiBSChangeLeftKnotsf ( ncurves, spdimen, outdegree, knt,
-                                ptch, ctlp, outknots );
-  mbs_multiBSChangeRightKnotsf ( ncurves, spdimen, outdegree, lknt, knt,
-                                 ptch, ctlp, &outknots[outlastknot-outdegree] );
+  if ( !mbs_multiBSChangeLeftKnotsf ( ncurves, spdimen, outdegree, knt,
+                                      ptch, ctlp, outknots ) )
+    goto failure;
+  if ( !mbs_multiBSChangeRightKnotsf ( ncurves, spdimen, outdegree, lknt, knt,
+                                       ptch, ctlp, &outknots[outlastknot-outdegree] ) )
+    goto failure;
         /* it is assumed that now the knot sequence of the curve */
         /* is a subsequence of the final knot sequence */
-  mbs_multiOsloInsertKnotsf ( ncurves, spdimen, outdegree,
+  if ( !mbs_multiOsloInsertKnotsf ( ncurves, spdimen, outdegree,
                               lknt, knt, ptch, ctlp,
-                              outlastknot, outknots, outpitch, outctlpoints );
+                              outlastknot, outknots, outpitch, outctlpoints ) )
+    goto failure;
 
   pkv_SetScratchMemTop ( sp );
   return true;

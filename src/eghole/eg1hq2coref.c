@@ -555,8 +555,9 @@ FILE *f;
   hfunc = &tkn[G1_NQUAD];         dhfunc = &hfunc[4*G1_NQUAD];
   ddhfunc = &dhfunc[4*G1_NQUAD];  dddhfunc = &ddhfunc[4*G1_NQUAD];
   _gh_PrepareTabKnotsf ( G1_NQUAD, privateG1->opt_quad, tkn );
-  mbs_TabCubicHFuncDer3f ( 0.0, 1.0, G1_NQUAD, tkn,
-                           hfunc, dhfunc, ddhfunc, dddhfunc );
+  if ( !mbs_TabCubicHFuncDer3f ( 0.0, 1.0, G1_NQUAD, tkn,
+                                 hfunc, dhfunc, ddhfunc, dddhfunc ) )
+    goto failure;
 
         /* integrate the Laplacian gradients */
   for ( i = 0; i < hole_k; i++ ) {
@@ -623,7 +624,8 @@ default:
   ahfunc = &atkn[2];  adhfunc = &ahfunc[8];  addhfunc = &adhfunc[8];
   eicp1 = (float*)sicp;  eicp2 = &eicp1[16];
   atkn[0] = 0.0;  atkn[1] = 1.0;
-  mbs_TabCubicHFuncDer2f ( 0.0, 1.0, 2, atkn, ahfunc, adhfunc, addhfunc );
+  if ( !mbs_TabCubicHFuncDer2f ( 0.0, 1.0, 2, atkn, ahfunc, adhfunc, addhfunc ) )
+    goto failure;
 
   for ( i = 0; i < hole_k; i++ ) {
     j = (i+1) % hole_k;

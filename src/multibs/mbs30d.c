@@ -220,7 +220,8 @@ static boolean _mbs_RasterizeBC2Rd ( int degree, const point3d *cpoints )
     if ( mbs_MonotonicPolylineRd ( 3, degree+1, 3, (double*)cp, (double*)&v ) ) {
 draw_it:
       memcpy ( acp, cpoints, (degree+1)*sizeof(vector3d) );
-      _mbs_RasterizeBCd ( degree, acp );
+      if ( !_mbs_RasterizeBCd ( degree, acp ) )
+        goto failure;
       pkv_FreeScratchMem ( size );
     }
     else {
@@ -256,7 +257,8 @@ static boolean _mbs_RasterizeBC2d ( int degree, const point2d *cpoints )
   pkv_Selectd ( degree+1, 2, 2, 3, (double*)cpoints, (double*)cp );
   for ( i = 0; i <= degree; i++ )
     cp[i].z = 1.0;
-  _mbs_RasterizeBC2Rd ( degree, cp );
+  if ( !_mbs_RasterizeBC2Rd ( degree, cp ) )
+    goto failure;
   pkv_SetScratchMemTop ( sp );
   return true;
 
@@ -339,7 +341,8 @@ boolean mbs_RasterizeBS2d ( int degree, int lastknot, const double *knots,
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     goto failure;
   }
-  mbs_BSToBezC2d ( degree, lastknot, knots, cpoints, &ku, NULL, NULL, cp );
+  if ( !mbs_BSToBezC2d ( degree, lastknot, knots, cpoints, &ku, NULL, NULL, cp ) )
+    goto failure;
 
   _pkv_OutputPixels = output;
   for ( i = 0; i < ku; i++, cp += degree+1 )
@@ -378,7 +381,8 @@ boolean mbs_RasterizeBS2Rd ( int degree, int lastknot, const double *knots,
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     goto failure;
   }
-  mbs_BSToBezC3d ( degree, lastknot, knots, cpoints, &ku, NULL, NULL, cp );
+  if ( !mbs_BSToBezC3d ( degree, lastknot, knots, cpoints, &ku, NULL, NULL, cp ) )
+    goto failure;
 
   _pkv_OutputPixels = output;
   for ( i = 0; i < ku; i++, cp += degree+1 )

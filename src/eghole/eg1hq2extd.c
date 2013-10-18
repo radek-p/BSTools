@@ -316,8 +316,9 @@ boolean g1h_Q2ExtComputeFormMatrixd ( GHoleDomaind *domain )
   lgrb = &lgrc[nfunc_c*G1_NQUADSQ];
 
   _gh_PrepareTabKnotsd ( G1_NQUAD, privateG1->opt_quad, tkn );
-  mbs_TabCubicHFuncDer3d ( 0.0, 1.0, G1_NQUAD, tkn,
-                           hfunc, dhfunc, ddhfunc, dddhfunc );
+  if ( !mbs_TabCubicHFuncDer3d ( 0.0, 1.0, G1_NQUAD, tkn,
+                                 hfunc, dhfunc, ddhfunc, dddhfunc ) )
+    goto failure;
   _g1h_TabTensBezPolyDer3d ( G1_NQUAD, tkn, NULL, tbezu, tbezv, tbezuu, tbezuv,
                              tbezvv, tbezuuu, tbezuuv, tbezuvv, tbezvvv );
 
@@ -430,7 +431,8 @@ default:
   ahfunc = &atkn[2];  adhfunc = &ahfunc[8];  addhfunc = &adhfunc[8];
   eicp1 = (double*)sicp;  eicp2 = &eicp1[16];
   atkn[0] = 0.0;  atkn[1] = 1.0;
-  mbs_TabCubicHFuncDer2d ( 0.0, 1.0, 2, atkn, ahfunc, adhfunc, addhfunc );
+  if ( !mbs_TabCubicHFuncDer2d ( 0.0, 1.0, 2, atkn, ahfunc, adhfunc, addhfunc ) )
+    goto failure;
 
   for ( i = 0; i < hole_k; i++ ) {
     j = (i+1) % hole_k;

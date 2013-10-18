@@ -25,7 +25,7 @@
 #include "raybezprivated.h"
 
 /* ////////////////////////////////////////////////////////////////////////// */
-boolean SubdividePatch ( int n, int m, point2d *p, point2d *q )
+static boolean SubdividePatch ( int n, int m, point2d *p, point2d *q )
 {
   int      i, j, k;
   vector2d v;
@@ -264,17 +264,20 @@ int rbez_FindRayRBezcOffsetIntersd ( RBezCurveTreedp tree, ray3d *ray,
     mcp = stack[stp].mcp;
     if ( _rbez_ConvexHullTest2d ( ncp, mcp ) ) {
       if ( _rbez_UniquenessTest2d ( deg3, 2, ncp, mcp, &p, &pu, &pv, &K1, &K2 ) ) {
-        if ( _rbez_NewtonMethod2d ( deg3, 2, mcp, &p, &pu, &pv, &z ) ) {
+        switch ( _rbez_NewtonMethod2d ( deg3, 2, mcp, &p, &pu, &pv, &z ) ) {
+      case RBEZ_NEWTON_YES:
           /* regular solution found */
-          if ( !EnterSolution ( degree, cp, tree->object_id, ray,
-                                t0, t1, u0, u1, &z, &inters[_ninters] ) ) {
-            if ( _rbez_SecondTest2d ( &z, deg3, 2, K1, K2 ) )
-              goto subdivide;
-          }
-          _ninters ++;
-        }
-        else
+          if ( EnterSolution ( degree, cp, tree->object_id, ray,
+                               t0, t1, u0, u1, &z, &inters[_ninters] ) )
+            _ninters ++;
+          else if ( _rbez_SecondTest2d ( &z, deg3, 2, K1, K2 ) )
+            goto subdivide;
+          break;
+      case RBEZ_NEWTON_NO:
           goto subdivide;
+      case RBEZ_NEWTON_ERROR:
+          goto failure;
+        }
       }
       else {
 subdivide:
