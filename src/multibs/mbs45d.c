@@ -117,7 +117,7 @@ failure:
 
 boolean mbs_ClipBC2d ( int ncplanes, const vector3d *cplanes,
                        int degree, const point2d *cpoints,
-                       void (*output) (int degree, const point2d *cpoints) )
+                       boolean (*output) (int degree, const point2d *cpoints) )
 {
   void    *sp;
   point2d *p, *q;
@@ -169,7 +169,8 @@ for ( i = 0; i <= nt; i++ )
         memcpy ( p, cpoints, (degree+1)*sizeof(point2d) );
         mbs_DivideBC2d ( degree, t[i], p, q );
         mbs_DivideBC2d ( degree, (t[i+1]-t[i])/(1.0-t[i]), p, q );
-        output ( degree, q );
+        if ( !output ( degree, q ) )
+          goto failure;
       }
     }
   }
@@ -185,7 +186,7 @@ failure:
 
 boolean mbs_ClipBC2Rd ( int ncplanes, const vector3d *cplanes,
                         int degree, const point3d *cpoints,
-                        void (*output) (int degree, const point3d *cpoints) )
+                        boolean (*output) (int degree, const point3d *cpoints) )
 {
   void    *sp;
   point3d *p, *q;
@@ -236,7 +237,8 @@ for ( i = 0; i <= nt; i++ )
         memcpy ( p, cpoints, (degree+1)*sizeof(point3d) );
         mbs_DivideBC3d ( degree, t[i], p, q );
         mbs_DivideBC3d ( degree, (t[i+1]-t[i])/(1.0-t[i]), p, q );
-        output ( degree, q );
+        if ( !output ( degree, q ) )
+          goto failure;
       }
     }
   }
@@ -252,7 +254,7 @@ failure:
 
 boolean mbs_ClipBC3d ( int ncplanes, const vector4d *cplanes,
                        int degree, const point3d *cpoints,
-                       void (*output) (int degree, const point3d *cpoints) )
+                       boolean (*output) (int degree, const point3d *cpoints) )
 {
   void    *sp;
   point3d *p, *q;
@@ -304,7 +306,8 @@ for ( i = 0; i <= nt; i++ )
         memcpy ( p, cpoints, (degree+1)*sizeof(point3d) );
         mbs_DivideBC3d ( degree, t[i], p, q );
         mbs_DivideBC3d ( degree, (t[i+1]-t[i])/(1.0-t[i]), p, q );
-        output ( degree, q );
+        if ( !output ( degree, q ) )
+          goto failure;
       }
     }
   }
@@ -320,7 +323,7 @@ failure:
 
 boolean mbs_ClipBC3Rd ( int ncplanes, const vector4d *cplanes,
                         int degree, const point4d *cpoints,
-                        void (*output) (int degree, const point4d *cpoints) )
+                        boolean (*output) (int degree, const point4d *cpoints) )
 {
   void     *sp;
   point4d  *p, *q;
@@ -371,7 +374,8 @@ for ( i = 0; i <= nt; i++ )
         memcpy ( p, cpoints, (degree+1)*sizeof(point4d) );
         mbs_DivideBC4d ( degree, t[i], p, q );
         mbs_DivideBC4d ( degree, (t[i+1]-t[i])/(1.0-t[i]), p, q );
-        output ( degree, q );
+        if ( !output ( degree, q ) )
+          goto failure;
       }
     }
   }

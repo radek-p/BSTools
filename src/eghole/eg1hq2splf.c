@@ -1231,9 +1231,12 @@ default:
           /* compute the curve Jacobians */
     _g1h_GetDiPatchCurvesf ( domain, i,
                              &c00, &c01, &c10, &c11, &d00, &d01, &d10, &d11 );
-    _g1h_TabCurveJacobianf ( G1_CROSS00DEG, c00, nquad, tkn, jac );
-    _g1h_TabCurveJacobianf ( G1_CROSS10DEG, c10, nquad, tkn, &jac[nquad] );
-    _g1h_TabCurveJacobianf ( G1_CROSS10DEG, d10, nquad, tkn, &jac[2*nquad] );
+    if ( !_g1h_TabCurveJacobianf ( G1_CROSS00DEG, c00, nquad, tkn, jac ) )
+      goto failure;
+    if ( !_g1h_TabCurveJacobianf ( G1_CROSS10DEG, c10, nquad, tkn, &jac[nquad] ) )
+      goto failure;
+    if ( !_g1h_TabCurveJacobianf ( G1_CROSS10DEG, d10, nquad, tkn, &jac[2*nquad] ) )
+      goto failure;
     if ( jumpC || jumpD ) {
           /* if necessary, compute the Jacobians for the curves inside */
           /* Omega_i */
@@ -1248,8 +1251,9 @@ default:
         if ( !mbs_multiBCHornerf ( G1H_FINALDEG, G1H_FINALDEG+1, 2, 2*(G1H_FINALDEG+1),
                                    (float*)di, x, (float*)cdi ) )
           goto failure;
-        _g1h_TabCurveJacobianf ( G1H_FINALDEG, cdi, nquad, tkn,
-                                 &jac[(3+k)*nquad] );
+        if ( !_g1h_TabCurveJacobianf ( G1H_FINALDEG, cdi, nquad, tkn,
+                                       &jac[(3+k)*nquad] ) )
+          goto failure;
         if ( !_g1h_Q2TabCurveLapCoeff0f ( di, nquad, tkn, x,
                                           &trdin[5*k*nquad] ) )
           goto failure;
@@ -1259,8 +1263,9 @@ default:
         if ( !mbs_multiBCHornerf ( G1H_FINALDEG, 1, 2*(G1H_FINALDEG+1), 0,
                                    (float*)di, x, (float*)cdi ) )
           goto failure;
-        _g1h_TabCurveJacobianf ( G1H_FINALDEG, cdi, nquad, tkn,
-                                 &jac[(3+nk+k)*nquad] );
+        if ( !_g1h_TabCurveJacobianf ( G1H_FINALDEG, cdi, nquad, tkn,
+                                       &jac[(3+nk+k)*nquad] ) )
+          goto failure;
         if ( !_g1h_Q2TabCurveLapCoeff1f ( di, x, nquad, tkn,
                                           &trdin[5*(nk+k)*nquad] ) )
           goto failure;

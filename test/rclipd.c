@@ -28,7 +28,7 @@ static void SetupCamera ( void )
   CameraMoveGd ( &CPos, &v );
 } /*SetupCamera*/
 
-static void DrawCurve ( int degree, const point4d *cp )
+static boolean DrawCurve ( int degree, const point4d *cp )
 {
 #define DD 100
   void    *sp;
@@ -47,6 +47,7 @@ static void DrawCurve ( int degree, const point4d *cp )
     ps_Draw_Polyline2d ( DD+1, cc );
   }
   pkv_SetScratchMemTop ( sp );
+  return true;
 #undef DD
 } /*DrawCurve*/
 

@@ -439,9 +439,15 @@ default:
           /* compute the curve Jacobians */
     _g1h_GetDiPatchCurvesd ( domain, i,
                              &c00, &c01, &c10, &c11, &d00, &d01, &d10, &d11 );
-    _g1h_TabCurveJacobiand ( G1_CROSS00DEG, c00, G1_NQUAD, tkn, &jac[3*i*G1_NQUAD] );
-    _g1h_TabCurveJacobiand ( G1_CROSS10DEG, c10, G1_NQUAD, tkn, &jac[(3*i+1)*G1_NQUAD] );
-    _g1h_TabCurveJacobiand ( G1_CROSS10DEG, d10, G1_NQUAD, tkn, &jac[(3*i+2)*G1_NQUAD] );
+    if ( !_g1h_TabCurveJacobiand ( G1_CROSS00DEG, c00, G1_NQUAD, tkn,
+                                   &jac[3*i*G1_NQUAD] ) )
+      goto failure;
+    if ( !_g1h_TabCurveJacobiand ( G1_CROSS10DEG, c10, G1_NQUAD, tkn,
+                                   &jac[(3*i+1)*G1_NQUAD] ) )
+      goto failure;
+    if ( !_g1h_TabCurveJacobiand ( G1_CROSS10DEG, d10, G1_NQUAD, tkn,
+                                   &jac[(3*i+2)*G1_NQUAD] ) )
+      goto failure;
           /* compute the coefficients for computing the Laplacians */
     if ( !_g1h_TabCurveLapCoeff0d ( c00, c01, c10, c11, d00, d01, d10, d11,
                             G1_NQUAD, tkn, hfunc, dhfunc, ddhfunc,

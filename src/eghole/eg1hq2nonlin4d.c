@@ -1281,28 +1281,32 @@ static boolean _g1hq2_TabSplNLBasisFJumpsd ( GHoleDomaind *domain,
                          2, dipitch, &di->x, tkn[i], 0.0,
                          &cdi.x, &cdiu.x, &cdiv.x, &cdiuu.x, &cdiuv.x, &cdivv.x );
       nlpr->ctang[kNQ2+i] = cdiu;
-      _g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
-                          &ctrd[38*(kNQ2+i)] );
+      if ( !_g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
+                                &ctrd[38*(kNQ2+i)] ) )
+        goto failure;
       mbs_deBoorDer2Pd ( G1H_FINALDEG, lastfpknot, fpknots,
                          G1H_FINALDEG, lastfpknot, fpknots,
                          2, dipitch, &di->x, tkn[i], 1.0,
                          &cdi.x, &cdiu.x, &cdiv.x, &cdiuu.x, &cdiuv.x, &cdivv.x );
       nlpr->ctang[kNQ2+nkn+i] = cdiu;
-      _g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
-                          &ctrd[38*(kNQ2+nkn+i)] );
+      if ( !_g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
+                                &ctrd[38*(kNQ2+nkn+i)] ) )
+        goto failure;
       mbs_deBoorDer2Pd ( G1H_FINALDEG, lastfpknot, fpknots,
                          G1H_FINALDEG, lastfpknot, fpknots,
                          2, dipitch, &di->x, 1.0, tkn[i],
                          &cdi.x, &cdiu.x, &cdiv.x, &cdiuu.x, &cdiuv.x, &cdivv.x );
       nlpr->ctang[kNQ2+2*nkn+i] = cdiv;
-      _g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
-                          &ctrd[38*(kNQ2+2*nkn+i)] );
+      if ( !_g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
+                                &ctrd[38*(kNQ2+2*nkn+i)] ) )
+        goto failure;
       mbs_deBoorDer2Pd ( G1H_FINALDEG, lastfpknot, fpknots,
                          G1H_FINALDEG, lastfpknot, fpknots,
                          2, dipitch, &di->x, 0.0, tkn[i],
                          &cdi.x, &cdiu.x, &cdiv.x, &cdiuu.x, &cdiuv.x, &cdivv.x );
-      _g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
-                          &ctrd[38*(kk*njcurves*nkn+i)+19] );
+      if ( !_g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
+                                &ctrd[38*(kk*njcurves*nkn+i)+19] ) )
+        goto failure;
     }
     if ( njcurves > 3 ) {
         /* coefficients for the curves inside Omega_i */
@@ -1315,14 +1319,16 @@ static boolean _g1hq2_TabSplNLBasisFJumpsd ( GHoleDomaind *domain,
                     2, dipitch, &di[j*(G1H_FINALDEG-1)].x, tkn[i], uv,
                     &cdi.x, &cdiu.x, &cdiv.x, &cdiuu.x, &cdiuv.x, &cdivv.x );
           nlpr->ctang[kNQ2+(2+j)*nkn+i] = cdiu;
-          _g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
-                              &ctrd[38*(kNQ2+(2+j)*nkn+i)] );
+          if ( !_g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
+                                    &ctrd[38*(kNQ2+(2+j)*nkn+i)] ) )
+            goto failure;
           mbs_deBoorDer2Pd ( G1H_FINALDEG, lastfpknot, fpknots,
                     G1H_FINALDEG, 2*G1H_FINALDEG+1, &fpknots[(j-1)*(G1H_FINALDEG-1)],
                     2, dipitch, &di[(j-1)*(G1H_FINALDEG-1)].x, tkn[i], uv,
                     &cdi.x, &cdiu.x, &cdiv.x, &cdiuu.x, &cdiuv.x, &cdivv.x );
-          _g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
-                              &ctrd[38*(kNQ2+(2+j)*nkn+i)+19] );
+          if ( !_g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
+                                    &ctrd[38*(kNQ2+(2+j)*nkn+i)+19] ) )
+            goto failure;
         }
       }
           /* u == const */
@@ -1336,8 +1342,9 @@ static boolean _g1hq2_TabSplNLBasisFJumpsd ( GHoleDomaind *domain,
                     uv, tkn[i],
                     &cdi.x, &cdiu.x, &cdiv.x, &cdiuu.x, &cdiuv.x, &cdivv.x );
           nlpr->ctang[kNQ2+(2+nk+j)*nkn+i] = cdiv;
-          _g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
-                              &ctrd[38*(kNQ2+(2+nk+j)*nkn+i)] );
+          if ( !_g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
+                                    &ctrd[38*(kNQ2+(2+nk+j)*nkn+i)] ) )
+            goto failure;
           mbs_deBoorDer2Pd ( G1H_FINALDEG, 2*G1H_FINALDEG+1,
                     &fpknots[(j-1)*(G1H_FINALDEG-1)],
                     G1H_FINALDEG, lastfpknot, fpknots, 2, dipitch,
@@ -1345,8 +1352,9 @@ static boolean _g1hq2_TabSplNLBasisFJumpsd ( GHoleDomaind *domain,
                     uv, tkn[i],
                     &cdi.x, &cdiu.x, &cdiv.x, &cdiuu.x, &cdiuv.x, &cdivv.x );
           nlpr->ctang[kNQ2+(2+nk+j)*nkn+i] = cdiv;
-          _g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
-                              &ctrd[38*(kNQ2+(2+nk+j)*nkn+i)+19] );
+          if ( !_g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
+                                    &ctrd[38*(kNQ2+(2+nk+j)*nkn+i)+19] ) )
+            goto failure;
         }
       }
     }
@@ -1358,8 +1366,9 @@ static boolean _g1hq2_TabSplNLBasisFJumpsd ( GHoleDomaind *domain,
                                  0.0, tkn[i], &cdi.x, &cdiu.x, &cdiv.x,
                                  &cdiuu.x, &cdiuv.x, &cdivv.x ) )
         goto failure;
-      _g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
-                          &ctrd[38*(kNQ2+nkn+i)+19] );   
+      if ( !_g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
+                                &ctrd[38*(kNQ2+nkn+i)+19] ) )
+        goto failure;
     }
     if ( !_g1hq2_FindDomSurrndPatchd ( domain, nlpr, k, 2, sicp ) )
       goto failure;
@@ -1368,8 +1377,9 @@ static boolean _g1hq2_TabSplNLBasisFJumpsd ( GHoleDomaind *domain,
                                  0.0, tkn[i], &cdi.x, &cdiu.x, &cdiv.x,
                                  &cdiuu.x, &cdiuv.x, &cdivv.x ) )
         goto failure;
-      _g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
-                          &ctrd[38*(kNQ2+2*nkn+i)+19] ); 
+      if ( !_g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
+                                &ctrd[38*(kNQ2+2*nkn+i)+19] ) )
+        goto failure;
     }
   }
 

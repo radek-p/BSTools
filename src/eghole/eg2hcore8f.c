@@ -46,9 +46,10 @@ boolean _g2h_TabDiPatchJac3f ( int nkn, const float *kn, const float *hfunc,
     goto failure;
 
   for ( i = 0; i < k; i++ )
-    _g2h_DiJacobian3f ( &tabpu[i], &tabpv[i], &tabpuu[i], &tabpuv[i], &tabpvv[i],
-                        &tabpuuu[i], &tabpuuv[i], &tabpuvv[i], &tabpvvv[i],
-                        &jac[i], &trd[18*i] );
+    if ( !_g2h_DiJacobian3f ( &tabpu[i], &tabpv[i], &tabpuu[i], &tabpuv[i], &tabpvv[i],
+                              &tabpuuu[i], &tabpuuv[i], &tabpuvv[i], &tabpvvv[i],
+                              &jac[i], &trd[18*i] ) )
+      goto failure;
 
   pkv_SetScratchMemTop ( sp );
   return true;

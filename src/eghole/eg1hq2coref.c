@@ -82,9 +82,10 @@ boolean _g1h_Q2TabDiPatchJac3f ( int nkn, const float *kn, const float *hfunc,
     goto failure;
 
   for ( i = 0; i < k; i++ )
-    _g2h_DiJacobian3f ( &tabpu[i], &tabpv[i], &tabpuu[i], &tabpuv[i], &tabpvv[i],
-                        &tabpuuu[i], &tabpuuv[i], &tabpuvv[i], &tabpvvv[i],
-                        &jac[i], &trd[18*i] );
+    if ( !_g2h_DiJacobian3f ( &tabpu[i], &tabpv[i], &tabpuu[i], &tabpuv[i], &tabpvv[i],
+                              &tabpuuu[i], &tabpuuv[i], &tabpuvv[i], &tabpvvv[i],
+                              &jac[i], &trd[18*i] ) )
+      goto failure;
 
   pkv_SetScratchMemTop ( sp );
   return true;
@@ -269,11 +270,13 @@ boolean _g1h_TabCurveLapCoeff0f ( const point2f *c00, const vector2f *c01,
                          (float*)tabpuu, (float*)tabpuv, (float*)tabpvv ) )
     goto failure;
   for ( i = ii = 0;  i < nkn;  i++ ) {
-    _g1h_LapCoefff ( &tabpu[ii], &tabpv[ii],
-                     &tabpuu[ii], &tabpuv[ii], &tabpvv[ii], &trdc00[5*i] );
+    if ( !_g1h_LapCoefff ( &tabpu[ii], &tabpv[ii],
+                           &tabpuu[ii], &tabpuv[ii], &tabpvv[ii], &trdc00[5*i] ) )
+      goto failure;
     ii++;
-    _g1h_LapCoefff ( &tabpu[ii], &tabpv[ii],
-                     &tabpuu[ii], &tabpuv[ii], &tabpvv[ii], &trdc10[5*i] );
+    if ( !_g1h_LapCoefff ( &tabpu[ii], &tabpv[ii],
+                           &tabpuu[ii], &tabpuv[ii], &tabpvv[ii], &trdc10[5*i] ) )
+      goto failure;
     ii++;
   }
 
@@ -287,10 +290,12 @@ boolean _g1h_TabCurveLapCoeff0f ( const point2f *c00, const vector2f *c01,
                          (float*)tabpuu, (float*)tabpuv, (float*)tabpvv ) )
     goto failure;
   for ( i = 0, ii = nkn;  i < nkn;  i++, ii++ ) {
-    _g1h_LapCoefff ( &tabpu[i], &tabpv[i],
-                     &tabpuu[i], &tabpuv[i], &tabpvv[i], &trdd00[5*i] );
-    _g1h_LapCoefff ( &tabpu[ii], &tabpv[ii],
-                     &tabpuu[ii], &tabpuv[ii], &tabpvv[ii], &trdd10[5*i] );
+    if ( !_g1h_LapCoefff ( &tabpu[i], &tabpv[i],
+                           &tabpuu[i], &tabpuv[i], &tabpvv[i], &trdd00[5*i] ) )
+      goto failure;
+    if ( !_g1h_LapCoefff ( &tabpu[ii], &tabpv[ii],
+                           &tabpuu[ii], &tabpuv[ii], &tabpvv[ii], &trdd10[5*i] ) )
+      goto failure;
   }
 
   pkv_SetScratchMemTop ( sp );
@@ -312,7 +317,8 @@ boolean _g1h_TabCurveLapCoeff1f ( const point2f *sicp, int nkn,
     if ( !mbs_BCHornerDer2Pf ( 3, 3, 2, (float*)sicp, 0.0, tkn[i],
                          &d.x, &du.x, &dv.x, &duu.x, &duv.x, &dvv.x ) )
       return false;
-    _g1h_LapCoefff ( &du, &dv, &duu, &duv, &dvv, &trd[5*i] );
+    if ( !_g1h_LapCoefff ( &du, &dv, &duu, &duv, &dvv, &trd[5*i] ) )
+      return false;
   }
   return true;
 } /*_g1h_TabCurveLapCoeff1f*/
@@ -632,9 +638,15 @@ default:
           /* compute the curve Jacobians */
     _g1h_GetDiPatchCurvesf ( domain, i,
                              &c00, &c01, &c10, &c11, &d00, &d01, &d10, &d11 );
-    _g1h_TabCurveJacobianf ( G1_CROSS00DEG, c00, G1_NQUAD, tkn, &jac[3*i*G1_NQUAD] );
-    _g1h_TabCurveJacobianf ( G1_CROSS10DEG, c10, G1_NQUAD, tkn, &jac[(3*i+1)*G1_NQUAD] );
-    _g1h_TabCurveJacobianf ( G1_CROSS10DEG, d10, G1_NQUAD, tkn, &jac[(3*i+2)*G1_NQUAD] );
+    if ( !_g1h_TabCurveJacobianf ( G1_CROSS00DEG, c00, G1_NQUAD, tkn,
+                                   &jac[3*i*G1_NQUAD] ) )
+      goto failure;
+    if ( !_g1h_TabCurveJacobianf ( G1_CROSS10DEG, c10, G1_NQUAD, tkn,
+                                   &jac[(3*i+1)*G1_NQUAD] ) )
+      goto failure;
+    if ( !_g1h_TabCurveJacobianf ( G1_CROSS10DEG, d10, G1_NQUAD, tkn,
+                                   &jac[(3*i+2)*G1_NQUAD] ) )
+      goto failure;
           /* compute the coefficients for computing the Laplacians */
     if ( !_g1h_TabCurveLapCoeff0f ( c00, c01, c10, c11, d00, d01, d10, d11,
                             G1_NQUAD, tkn, hfunc, dhfunc, ddhfunc,
@@ -644,10 +656,12 @@ default:
       goto failure;
     if ( !_gh_FindDomSurrndPatchf ( domain, j, 1, sicp ) )
       goto failure;
-    _g1h_TabCurveLapCoeff1f ( sicp, G1_NQUAD, tkn, &trd[(30*i+15)*G1_NQUAD] );
+    if ( !_g1h_TabCurveLapCoeff1f ( sicp, G1_NQUAD, tkn, &trd[(30*i+15)*G1_NQUAD] ) )
+      goto failure;
     if ( !_gh_FindDomSurrndPatchf ( domain, i, 2, sicp ) )
       goto failure;
-    _g1h_TabCurveLapCoeff1f ( sicp, G1_NQUAD, tkn, &trd[(30*i+25)*G1_NQUAD] );
+    if ( !_g1h_TabCurveLapCoeff1f ( sicp, G1_NQUAD, tkn, &trd[(30*i+25)*G1_NQUAD] ) )
+      goto failure;
   }
 
   for ( fn = 0; fn < nfunc_a; fn++ ) {

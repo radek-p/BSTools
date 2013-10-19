@@ -1200,16 +1200,16 @@ boolean mbs_FindPolynomialZerosd ( int degree, const double *coeff,
 
 boolean mbs_ClipBC2d ( int ncplanes, const vector3d *cplanes,
                        int degree, const point2d *cpoints,
-                       void (*output) (int degree, const point2d *cpoints) );               
+                       boolean (*output) (int degree, const point2d *cpoints) );               
 boolean mbs_ClipBC2Rd ( int ncplanes, const vector3d *cplanes,
                         int degree, const point3d *cpoints,   
-                        void (*output) (int degree, const point3d *cpoints) );
+                        boolean (*output) (int degree, const point3d *cpoints) );
 boolean mbs_ClipBC3d ( int ncplanes, const vector4d *cplanes,
                        int degree, const point3d *cpoints,   
-                       void (*output) (int degree, const point3d *cpoints) );
+                       boolean (*output) (int degree, const point3d *cpoints) );
 boolean mbs_ClipBC3Rd ( int ncplanes, const vector4d *cplanes,
                         int degree, const point4d *cpoints,
-                        void (*output) (int degree, const point4d *cpoints) );
+                        boolean (*output) (int degree, const point4d *cpoints) );
 
 /* ///////////////////////////////////////////////////////////////////////// */
 /* Bicubic polynomial Coons patches */

@@ -454,28 +454,32 @@ boolean _g1hq2_TabNLBasisFunctionsGammad ( GHoleDomaind *domain, int nkn,
                                  &cdiuu.x, &cdiuv.x, &cdivv.x ) )
         goto failure;
       nlpr->ctang[kNQ2+i] = cdiu;
-      _g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
-                          &ctrd[38*(kNQ2+i)] );
+      if ( !_g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
+                                &ctrd[38*(kNQ2+i)] ) )
+        goto failure;
       if ( !mbs_BCHornerDer2Pd ( G1H_FINALDEG, G1H_FINALDEG, 2, (double*)di,
                                  tkn[i], 1.0, &cdi.x, &cdiu.x, &cdiv.x,
                                  &cdiuu.x, &cdiuv.x, &cdivv.x ) )
         goto failure;
       nlpr->ctang[kNQ2+nkn+i] = cdiu;
-      _g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
-                          &ctrd[38*(kNQ2+nkn+i)] );
+      if ( !_g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
+                                &ctrd[38*(kNQ2+nkn+i)] ) )
+        goto failure;
       if ( !mbs_BCHornerDer2Pd ( G1H_FINALDEG, G1H_FINALDEG, 2, (double*)di,
                                  1.0, tkn[i], &cdi.x, &cdiu.x, &cdiv.x,
                                  &cdiuu.x, &cdiuv.x, &cdivv.x ) )
         goto failure;
       nlpr->ctang[kNQ2+2*nkn+i] = cdiv;
-      _g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
-                          &ctrd[38*(kNQ2+2*nkn+i)] );
+      if ( !_g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
+                                &ctrd[38*(kNQ2+2*nkn+i)] ) )
+        goto failure;
       if ( !mbs_BCHornerDer2Pd ( G1H_FINALDEG, G1H_FINALDEG, 2, (double*)di,
                                  0.0, tkn[i], &cdi.x, &cdiu.x, &cdiv.x,
                                  &cdiuu.x, &cdiuv.x, &cdivv.x ) )
         goto failure;
-      _g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
-                          &ctrd[38*(kk*3*nkn+i)+19] );
+      if ( !_g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
+                                &ctrd[38*(kk*3*nkn+i)+19] ) )
+        goto failure;
     }
 
     if ( !_g1hq2_FindDomSurrndPatchd ( domain, nlpr, kk, 1, sicp ) )
@@ -485,8 +489,9 @@ boolean _g1hq2_TabNLBasisFunctionsGammad ( GHoleDomaind *domain, int nkn,
                                  0.0, tkn[i], &cdi.x, &cdiu.x, &cdiv.x,
                                  &cdiuu.x, &cdiuv.x, &cdivv.x ) )
         goto failure;
-      _g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
-                          &ctrd[38*(kNQ2+nkn+i)+19] );
+      if ( !_g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
+                                &ctrd[38*(kNQ2+nkn+i)+19] ) )
+        goto failure;
     }
     if ( !_g1hq2_FindDomSurrndPatchd ( domain, nlpr, k, 2, sicp ) )
       goto failure;
@@ -495,8 +500,9 @@ boolean _g1hq2_TabNLBasisFunctionsGammad ( GHoleDomaind *domain, int nkn,
                                  0.0, tkn[i], &cdi.x, &cdiu.x, &cdiv.x,
                                  &cdiuu.x, &cdiuv.x, &cdivv.x ) )
         goto failure;
-      _g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
-                          &ctrd[38*(kNQ2+2*nkn+i)+19] );
+      if ( !_g1hq2_SetupCTrdd ( &cdiu, &cdiv, &cdiuu, &cdiuv, &cdivv,
+                                &ctrd[38*(kNQ2+2*nkn+i)+19] ) )
+        goto failure;
     }
   }
 

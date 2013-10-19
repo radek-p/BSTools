@@ -3457,4 +3457,13 @@ Wersja 0.32:
     blad. Pozostalo zrobic to jeszcze z wywolaniami procedur z libeghole i
     libxgedit.
 
+19.10.2013.
+801. Obsluga bledow - dokonczenie; nie jest oczywiscie doskonala, ale tam,
+    gdzie procedura zamiast wywolac exit po bledzie wraca, procedury z
+    bibliotek przerywaja obliczenia i wracaja z kodem bledu.
+    Programy demonstracyjne w wiekszosci ignoruja powroty z bledem, ale
+    poniewaz w wiekszosci bledy te sa skutkiem za malej puli pamieci scratch
+    i ta pula jest w nich dostatecznie duza, mozna sobie na to pozwolic.
+
+
 

@@ -46,11 +46,12 @@ static void SetForeground ( int i, int dd, int colour1, int colour2 )
 } /*SetForeground*/
 
 /* ///////////////////////////////////////////////////////////////////////// */
-static void DrawArcBC3a ( int degree, const point3f *cpoints )
+static boolean DrawArcBC3a ( int degree, const point3f *cpoints )
 {
   void    *sp;
   int     i;
   point3f *cp;
+  boolean result;
 
   sp = pkv_GetScratchMemTop ();
   cp = pkv_GetScratchMem ( (degree+1)*sizeof(point3f) );
@@ -61,8 +62,9 @@ static void DrawArcBC3a ( int degree, const point3f *cpoints )
     CameraProjectPoint3f ( _CPos, &cpoints[i], &cp[i] );
     cp[i].x *= cp[i].z;  cp[i].y *= cp[i].z;
   }
-  mbs_RasterizeBC2Rf ( degree, cp, OutPixels, true );
+  result = mbs_RasterizeBC2Rf ( degree, cp, OutPixels, true );
   pkv_SetScratchMemTop ( sp );
+  return result;
 } /*DrawArcBC3a*/
 
 void DrawBezPatch3a ( CameraRecf *CPos,
@@ -115,9 +117,9 @@ static void GetPClipRect ( CameraRecf *PPos )
   SetVector3f ( &pplanes[3], 1.0, 0.0, (float)PPos->xmin );
 } /*GetClipRect*/
 
-static void DrawArcBC2 ( int degree, const point2f *cpoints )
+static boolean DrawArcBC2 ( int degree, const point2f *cpoints )
 {
-  mbs_RasterizeBC2f ( degree, cpoints, OutPixels, true );
+  return mbs_RasterizeBC2f ( degree, cpoints, OutPixels, true );
 } /*DrawArcBC2*/
 
 void DrawBezPatch3b ( CameraRecf *PPos,

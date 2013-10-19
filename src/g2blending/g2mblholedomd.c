@@ -113,6 +113,10 @@ boolean g2mbl_SetupHolePatchMatrixd ( int k )
   g2mbl_domainpatchd[i] = g2mbl_domainpatchd[1];
   g2mbl_domainpatchd[1] = NULL;
   s = gh_HoleDomainAread ( g2mbl_domaind[i], true );
+  if ( s <= 0.0 ) {
+    PKV_FREE ( g2mbl_patchmatrixd[i] );
+    return false;
+  }
 #ifdef __DEBUG
 printf ( "%d %f\n", k, s );
 #endif
