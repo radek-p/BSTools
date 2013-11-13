@@ -45,14 +45,16 @@ xge_widget *InitPopup02 ( void )
 
   w = xge_NewTextWidget ( win0, NULL, txtP02DIRSTR, 380, 16, 20+10, 40+10,
                           current_dir );
-  w = xge_NewButton ( win0, w, btnP02SAVE, 58, 19, 20+91, 40+180-30, txtSave );
-  w = xge_NewButton ( win0, w, btnP02CANCEL, 58, 19, 20+251, 40+180-30, txtCancel );
-  w = xge_NewListBox ( win0, w, lbP02DIRLIST, 180, 99, 20+10, 40+40, &dirlist2 );
-  w = xge_NewListBox ( win0, w, lbP02FILELIST, 180, 67, 220+10, 40+72, &filelist2 );
-  w = xge_NewTextWidget ( win0, w, 0, 120, 16, 220+10, 40+35, txtSaveAs );
-  w = xge_NewStringEd ( win0, w, txtedP02FILENAME, 180, 19, 220+10, 40+50,
+  w = xge_NewSwitch ( win0, w, swP02HIDDEN, 54, 16, 20+10, 40+30,
+                      txtHidden, &showhiddenfiles );
+  w = xge_NewButton ( win0, w, btnP02SAVE, 58, 19, 20+91, 40+232-30, txtSave );
+  w = xge_NewButton ( win0, w, btnP02CANCEL, 58, 19, 20+251, 40+232-30, txtCancel );
+  w = xge_NewListBox ( win0, w, lbP02DIRLIST, 180, 131, 20+10, 40+60, &dirlist2 );
+  w = xge_NewListBox ( win0, w, lbP02FILELIST, 180, 131, 220+10, 40+60, &filelist2 );
+  w = xge_NewTextWidget ( win0, w, 0, 42, 16, 220-44+10, 40+30, txtSaveAs );
+  w = xge_NewStringEd ( win0, w, txtedP02FILENAME, 180, 19, 220+10, 40+30,
                         MAX_FILENAME_LGT, filename, &filename_editor );
-  menu = xge_NewFMenu ( win0, NULL, POPUP02, 400, 180, 20, 40, w );
+  menu = xge_NewFMenu ( win0, NULL, POPUP02, 400, 232, 20, 40, w );
   menu->msgproc = xge_PopupMenuMsg;
   return menu;
 } /*InitPopup02*/
@@ -60,9 +62,7 @@ xge_widget *InitPopup02 ( void )
 void Popup02ChangeDir ( void )
 {
   if ( !chdir ( &dirlist2.itemstr[dirlist2.itemind[dirlist2.currentitem]] ) ) {
-    xge_SetupFileList ( &filelist2, ".", file_filter );
-    xge_SetupDirList ( &dirlist2, ".", NULL, current_directory );
-    SetCurrentDir ();
+    PreparePopup02 ();
     xge_SetClipping ( popup02 );
     popup02->redraw ( popup02, true );
   }
@@ -82,9 +82,7 @@ void Popup02ChangeDirAlt ( short x )
     if ( chdir ( current_directory ) )
       current_directory[x] = '/';
     else {
-      xge_SetupFileList ( &filelist2, ".", file_filter );
-      xge_SetupDirList ( &dirlist2, ".", NULL, current_directory );
-      SetCurrentDir ();
+      PreparePopup02 ();
       xge_SetClipping ( popup02 );
       popup02->redraw ( popup02, true );
     }
@@ -114,6 +112,17 @@ case xgemsg_BUTTON_COMMAND:
       return 1;
   case btnP02CANCEL:
       xge_RemovePopup ( true );
+      return 1;
+  default:
+      return 0;
+    }
+
+case xgemsg_SWITCH_COMMAND:
+    switch ( er->id ) {
+  case swP02HIDDEN:
+      PreparePopup02 ();
+      xge_SetClipping ( popup02 );
+      popup02->redraw ( popup02, true );
       return 1;
   default:
       return 0;

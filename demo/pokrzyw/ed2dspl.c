@@ -399,8 +399,8 @@ case xgemsg_BUTTON_COMMAND:
   case btn00pOPEN:  /* Open */
         xge_RemovePopup ( true );
         SetCurrentDir ();
-        xge_SetupFileList ( &filelist, ".", file_filter );
-        xge_SetupDirList ( &dirlist, ".", NULL, NULL );
+        xge_SetupFileList ( &filelist, ".", file_filter, false );
+        xge_SetupDirList ( &dirlist, ".", NULL, false, NULL );
         xge_AddPopup ( popup01 );
         xge_GrabFocus ( popup01, true );
         return true;
@@ -425,7 +425,7 @@ process_save_command:
         xge_RemovePopup ( true );
 open_popup02:
         SetCurrentDir ();
-        xge_SetupDirList ( &dirlist, ".", NULL, NULL );
+        xge_SetupDirList ( &dirlist, ".", NULL, false, NULL );
         xge_AddPopup ( popup02 );
         xge_GrabFocus ( popup02, true );
         return true;
@@ -623,8 +623,8 @@ case xgemsg_LISTBOX_ITEM_PICK:
       switch ( er->id ) {
   case lb01pDIRLIST:
         if ( !chdir ( &dirlist.itemstr[dirlist.itemind[dirlist.currentitem]] ) ) {
-          xge_SetupFileList ( &filelist, ".", file_filter );
-          xge_SetupDirList ( &dirlist, ".", NULL, current_directory );
+          xge_SetupFileList ( &filelist, ".", file_filter, false );
+          xge_SetupDirList ( &dirlist, ".", NULL, false, current_directory );
           SetCurrentDir ();
           xge_SetClipping ( popup01 );
           popup01->redraw ( popup01, true );
@@ -651,7 +651,7 @@ open_the_file:
 
   case lb02pDIRLIST:
         if ( !chdir ( &dirlist.itemstr[dirlist.itemind[dirlist.currentitem]] ) ) {
-          xge_SetupDirList ( &dirlist, ".", NULL, current_directory );
+          xge_SetupDirList ( &dirlist, ".", NULL, false, current_directory );
           SetCurrentDir ();
           xge_SetClipping ( popup02 );
           popup02->redraw ( popup02, true );

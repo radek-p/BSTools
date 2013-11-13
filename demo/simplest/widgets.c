@@ -117,8 +117,8 @@ case xgemsg_BUTTON_COMMAND:
         break;
 
   case 6:
-        xge_SetupFileList ( &filelist, ".", filter );
-        xge_SetupDirList ( &dirlist, ".", NULL, NULL );
+        xge_SetupFileList ( &filelist, ".", filter, false );
+        xge_SetupDirList ( &dirlist, ".", NULL, false, NULL );
         xge_AddPopup ( popupmenu );
         xge_GrabFocus ( popupmenu, true );
         break;
@@ -183,8 +183,8 @@ case xgemsg_LISTBOX_ITEM_PICK:
         printf ( "dir: %s\n",
                  &dirlist.itemstr[dirlist.itemind[dirlist.currentitem]] );
         if ( !chdir ( &dirlist.itemstr[dirlist.itemind[dirlist.currentitem]] ) ) {
-          xge_SetupFileList ( &filelist, ".", filter );
-          xge_SetupDirList ( &dirlist, ".", NULL, NULL );
+          xge_SetupFileList ( &filelist, ".", filter, false );
+          xge_SetupDirList ( &dirlist, ".", NULL, false, NULL );
           dirlist.er->redraw ( dirlist.er, true );
           filelist.er->redraw ( filelist.er, true );
         }

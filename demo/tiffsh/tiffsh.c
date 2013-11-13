@@ -41,9 +41,11 @@ char current_directory[MAX_PATH_LGT+1];
 char current_dir[MAX_PATH_SHRT+1];
 char filename[MAX_FILENAME_LGT+1];
 boolean popup_is_on = false, cursor_is_on = false;
+boolean showhidden = false;
 
 char txtLoad[] = "Load";
 char txtExit[] = "Exit";
+char txtHidden[] = "hidden";
 
 int     animadir = 0, animapos = 0;
 double  acp[4] = {0.0,0.0,1.0,1.0};
@@ -104,7 +106,7 @@ void ReadChapterFile ( void )
 
 void MakeFileList ( void )
 {
-  if ( !xge_SetupFileList ( &flbox, current_directory, file_filter ) ) {
+  if ( !xge_SetupFileList ( &flbox, current_directory, file_filter, showhidden ) ) {
     printf ( "cannot create the file list\n" );
     exit ( 1 );
   }
@@ -369,15 +371,19 @@ void SetCurrentDir ( void )
   }
 } /*SetCurrentDir*/
 
+void SetupTheLists ( void )
+{
+  xge_SetupFileList ( &flbox, ".", file_filter, showhidden );
+  xge_SetupDirList ( &dlbox, ".", NULL, showhidden, current_directory );
+  SetCurrentDir ();
+  DrawBackground ();
+  xge_Redraw ();
+} /*SetupTheLists*/
+
 void ChangeDir ( void )
 {
-  if ( !chdir ( &dlbox.itemstr[dlbox.itemind[dlbox.currentitem]] ) ) {
-    xge_SetupFileList ( &flbox, ".", file_filter );
-    xge_SetupDirList ( &dlbox, ".", NULL, current_directory );
-    SetCurrentDir ();
-    DrawBackground ();
-    xge_Redraw ();
-  }
+  if ( !chdir ( &dlbox.itemstr[dlbox.itemind[dlbox.currentitem]] ) )
+    SetupTheLists ();
 } /*ChangeDir*/
 
 void AltChangeDir ( short x )
@@ -393,13 +399,8 @@ void AltChangeDir ( short x )
     current_directory[x] = 0;
     if ( chdir ( current_directory ) )
       current_directory[x] = '/';
-    else {
-      xge_SetupFileList ( &flbox, ".", file_filter );
-      xge_SetupDirList ( &dlbox, ".", NULL, current_directory );
-      SetCurrentDir ();
-      DrawBackground ();
-      xge_Redraw ();
-    }
+    else
+      SetupTheLists ();
   }
 } /*AltChangeDir*/
 
@@ -524,6 +525,15 @@ case xgemsg_BUTTON_COMMAND:
       return 0;
     }
 
+case xgemsg_SWITCH_COMMAND:
+    switch ( er->id ) {
+  case sw01HIDDEN:
+      SetupTheLists ();
+      return 1;
+  default:
+      return 0;
+    }
+
 case xgemsg_TEXT_WIDGET_CLICK:
     switch ( er->id ) {
   case txtDIRSTR:
@@ -590,15 +600,16 @@ void init_win ( void )
 
     /* setup the popup menu */
   w = xge_NewTextWidget ( 0, NULL, txtDIRSTR, 380, 16, 20+10, 40+10, current_dir );
-  w = xge_NewButton ( 0, w, btnP01LOAD, 58, 19, 20+91, 40+340-30, txtLoad );
-  w = xge_NewButton ( 0, w, btnP01EXIT, 58, 19, 20+251, 40+340-30, txtExit );
-  dlist = xge_NewListBox ( 0, w, lb01DIRLIST, 180, 259, 20+10, 40+40, &dlbox );
-  flist = xge_NewListBox ( 0, dlist, lb01FILELIST, 180, 259, 220+10, 40+40, &flbox );
-  popup = xge_NewFMenu ( 0, NULL, POPUP01, 400, 340, 20, 40, flist );
+  w = xge_NewSwitch ( 0, w, sw01HIDDEN, 60, 16, 20+10, 40+30, txtHidden, &showhidden );
+  w = xge_NewButton ( 0, w, btnP01LOAD, 58, 19, 20+91, 40+360-30, txtLoad );
+  w = xge_NewButton ( 0, w, btnP01EXIT, 58, 19, 20+251, 40+360-30, txtExit );
+  dlist = xge_NewListBox ( 0, w, lb01DIRLIST, 180, 259, 20+10, 40+60, &dlbox );
+  flist = xge_NewListBox ( 0, dlist, lb01FILELIST, 180, 259, 220+10, 40+60, &flbox );
+  popup = xge_NewFMenu ( 0, NULL, POPUP01, 400, 360, 20, 40, flist );
   popup->msgproc = xge_PopupMenuMsg;
   getcwd ( current_directory, MAX_PATH_LGT+1 );
   strncpy ( current_dir, current_directory, MAX_PATH_SHRT );
-  xge_SetupDirList ( &dlbox, ".", NULL, current_directory );
+  xge_SetupDirList ( &dlbox, ".", NULL, false, current_directory );
   MakeFileList ();
   ReadImage ( filename );
   xge_AddPopup ( popup );

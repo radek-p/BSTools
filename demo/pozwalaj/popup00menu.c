@@ -69,15 +69,15 @@ void SetCurrentDir ( void )
 void PreparePopup01 ( void )
 {
   SetCurrentDir ();
-  xge_SetupFileList ( &filelist1, ".", file_filter );
-  xge_SetupDirList ( &dirlist1, ".", NULL, NULL );
+  xge_SetupFileList ( &filelist1, ".", file_filter, showhiddenfiles );
+  xge_SetupDirList ( &dirlist1, ".", NULL, showhiddenfiles, NULL );
 } /*PreparePopup01*/
 
 void PreparePopup02 ( void )
 {
   SetCurrentDir ();
-  xge_SetupFileList ( &filelist2, ".", file_filter );
-  xge_SetupDirList ( &dirlist2, ".", NULL, NULL );
+  xge_SetupFileList ( &filelist2, ".", file_filter, showhiddenfiles );
+  xge_SetupDirList ( &dirlist2, ".", NULL, showhiddenfiles, NULL );
 } /*PreparePopup02*/
 
 boolean FilenameCorrect ( char *fn )

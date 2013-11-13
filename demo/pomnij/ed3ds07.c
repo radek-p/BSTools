@@ -75,8 +75,8 @@ int Win0CallBack ( xge_widget *er, int msg, int key, short x, short y )
     case btn02OPENpopup: /* Open - open box */
         xge_RemovePopup ( true );
         getcwd ( current_directory, MAX_PATH_LGT+1 );
-        xge_SetupFileList ( &filelist, ".", file_filter );
-        xge_SetupDirList ( &dirlist, ".", NULL, NULL );
+        xge_SetupFileList ( &filelist, ".", file_filter, false );
+        xge_SetupDirList ( &dirlist, ".", NULL, false, NULL );
         xge_AddPopup ( popup01 );
         xge_GrabFocus ( popup01, true );
         break;
@@ -96,7 +96,7 @@ process_save_command:
         xge_RemovePopup ( true );
 open_popup02:
         getcwd ( current_directory, MAX_PATH_LGT+1 );
-        xge_SetupDirList ( &dirlist, ".", NULL, NULL );
+        xge_SetupDirList ( &dirlist, ".", NULL, false, NULL );
         xge_AddPopup ( popup02 );
         xge_GrabFocus ( popup02, true );
         break;
@@ -423,8 +423,8 @@ redraw_menu:
       switch ( er->id ) {
     case lb03DIRLIST:  /* change directory - popup 0 3 */
         if ( !chdir ( &dirlist.itemstr[dirlist.itemind[dirlist.currentitem]]) ) {
-          xge_SetupFileList ( &filelist, ".", file_filter );
-          xge_SetupDirList ( &dirlist, ".", NULL, current_directory );
+          xge_SetupFileList ( &filelist, ".", file_filter, false );
+          xge_SetupDirList ( &dirlist, ".", NULL, false, current_directory );
           getcwd ( current_directory, MAX_PATH_LGT+1 );
           xge_SetClipping ( popup01 );
           popup01->redraw ( popup01, true );
@@ -438,7 +438,7 @@ redraw_menu:
 
     case lb04DIRLIST:  /* change directory - popup 0 4 */
         if ( !chdir ( &dirlist.itemstr[dirlist.itemind[dirlist.currentitem]]) ) {
-          xge_SetupDirList ( &dirlist, ".", NULL, current_directory );
+          xge_SetupDirList ( &dirlist, ".", NULL, false, current_directory );
           getcwd ( current_directory, MAX_PATH_LGT+1 );
           xge_SetClipping ( popup01 );
           popup02->redraw ( popup02, true );

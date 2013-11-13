@@ -45,11 +45,13 @@ xge_widget *InitPopup01 ( void )
 
   w = xge_NewTextWidget ( win0, NULL, txtP01DIRSTR, 380, 16, 20+10, 40+10,
                           current_dir );
-  w = xge_NewButton ( win0, w, btnP01OPEN, 58, 19, 20+91, 40+180-30, txtOpen );
-  w = xge_NewButton ( win0, w, btnP01CANCEL, 58, 19, 20+251, 40+180-30, txtCancel );
-  w = xge_NewListBox ( win0, w, lbP01DIRLIST, 180, 99, 20+10, 40+40, &dirlist1 );
-  w = xge_NewListBox ( win0, w, lbP01FILELIST, 180, 99, 220+10, 40+40, &filelist1 );
-  menu = xge_NewFMenu ( win0, NULL, POPUP01, 400, 180, 20, 40, w );
+  w = xge_NewSwitch ( win0, w, swP01HIDDEN, 54, 16, 20+10, 40+30,
+                      txtHidden, &showhiddenfiles );
+  w = xge_NewButton ( win0, w, btnP01OPEN, 58, 19, 20+91, 40+232-30, txtOpen );
+  w = xge_NewButton ( win0, w, btnP01CANCEL, 58, 19, 20+251, 40+232-30, txtCancel );
+  w = xge_NewListBox ( win0, w, lbP01DIRLIST, 180, 131, 20+10, 40+60, &dirlist1 );
+  w = xge_NewListBox ( win0, w, lbP01FILELIST, 180, 131, 220+10, 40+60, &filelist1 );
+  menu = xge_NewFMenu ( win0, NULL, POPUP01, 400, 232, 20, 40, w );
   menu->msgproc = xge_PopupMenuMsg;
   return menu;
 } /*InitPopup01*/
@@ -57,9 +59,7 @@ xge_widget *InitPopup01 ( void )
 void Popup01ChangeDir ( void )
 {
   if ( !chdir ( &dirlist1.itemstr[dirlist1.itemind[dirlist1.currentitem]] ) ) {
-    xge_SetupFileList ( &filelist1, ".", file_filter );
-    xge_SetupDirList ( &dirlist1, ".", NULL, current_directory );
-    SetCurrentDir ();
+    PreparePopup01 ();
     xge_SetClipping ( popup01 );
     popup01->redraw ( popup01, true );
   }
@@ -79,9 +79,7 @@ void Popup01ChangeDirAlt ( short x )
     if ( chdir ( current_directory ) )
       current_directory[x] = '/';
     else {
-      xge_SetupFileList ( &filelist1, ".", file_filter );
-      xge_SetupDirList ( &dirlist1, ".", NULL, current_directory );
-      SetCurrentDir ();
+      PreparePopup01 ();
       xge_SetClipping ( popup01 );
       popup01->redraw ( popup01, true );
     }
@@ -118,6 +116,17 @@ case xgemsg_BUTTON_COMMAND:
       return 1;
   case btnP01CANCEL:
       xge_RemovePopup ( true );
+      return 1;
+  default:
+      return 0;
+    }
+
+case xgemsg_SWITCH_COMMAND:
+    switch ( er->id ) {
+  case swP01HIDDEN:
+      PreparePopup01 ();
+      xge_SetClipping ( popup01 );
+      popup01->redraw ( popup01, true );
       return 1;
   default:
       return 0;

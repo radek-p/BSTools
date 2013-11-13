@@ -131,6 +131,7 @@
 #define btnP01CANCEL                         (POPUP01+3)
 #define lbP01DIRLIST                         (POPUP01+4)
 #define lbP01FILELIST                        (POPUP01+5)
+#define swP01HIDDEN                          (POPUP01+6)
 
   /* Save file as popup */
 #define POPUP02                                9*MENUINC
@@ -140,6 +141,7 @@
 #define lbP02DIRLIST                         (POPUP02+4)
 #define lbP02FILELIST                        (POPUP02+5)
 #define txtedP02FILENAME                     (POPUP02+6)
+#define swP02HIDDEN                          (POPUP02+7)
 
   /* Exit popup */
 #define POPUP03                               10*MENUINC
@@ -434,6 +436,7 @@ extern char txtCoordinates[];
 extern char txtOK[];
 extern char txtCancel[];
 extern char txtExit[];
+extern char txtHidden[];
 extern char txtOpen[];
 extern char txtSave[];
 extern char txtSaveAs[];

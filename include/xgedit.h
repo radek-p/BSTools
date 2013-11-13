@@ -584,9 +584,10 @@ boolean xge_GetCurrentListBoxString ( xge_listbox *lbox, char *string );
 int xge_MoveInListBox ( xge_listbox *lbox, short amount );
 
 boolean xge_SetupFileList ( xge_listbox *lbox, const char *dir,
-                            const char *filter );
+                            const char *filter, boolean hidden );
 boolean xge_SetupDirList ( xge_listbox *lbox, const char *dir,
-                           const char *filter, const char *prevdir );
+                           const char *filter, boolean hidden,
+                           const char *prevdir );
 boolean xge_FilterMatches ( const char *name, const char *filter );
 
 

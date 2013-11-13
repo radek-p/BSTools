@@ -17,6 +17,7 @@
 #define btnP01EXIT   103
 #define lb01DIRLIST  104
 #define lb01FILELIST 105
+#define sw01HIDDEN   106
 
 #define MAXSLIDES   1001
 #define MAXCHAPTERS  101

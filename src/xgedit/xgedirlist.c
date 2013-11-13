@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2007, 2011                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2007, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -130,7 +130,7 @@ found:
 
 /* ///////////////////////////////////////////////////////////////////////// */
 boolean xge_SetupFileList ( xge_listbox *lbox, const char *dir,
-                            const char *filter )
+                            const char *filter, boolean hidden )
 {
   DIR           *dp;
   struct dirent *entry;
@@ -147,9 +147,13 @@ boolean xge_SetupFileList ( xge_listbox *lbox, const char *dir,
     stat ( entry->d_name, &statbuf );
     if ( !(S_ISDIR(statbuf.st_mode)) ) {
       if ( xge_FilterMatches ( entry->d_name, filter ) ) {
+        if ( !hidden && xge_FilterMatches ( entry->d_name, ".*" ) )
+          goto skip1;
         nit ++;
         lsum += strlen ( entry->d_name ) + 1;
       }
+skip1:
+      ;
     }
   }
   closedir ( dp );
@@ -166,12 +170,16 @@ boolean xge_SetupFileList ( xge_listbox *lbox, const char *dir,
     stat ( entry->d_name, &statbuf );
     if ( !(S_ISDIR(statbuf.st_mode)) ) {
       if ( xge_FilterMatches ( entry->d_name, filter ) ) {
+        if ( !hidden && xge_FilterMatches ( entry->d_name, ".*" ) )
+          goto skip2;
         lgt = strlen ( entry->d_name );
         memcpy ( &lbox->itemstr[lsum], entry->d_name, lgt+1 );
         lbox->itemind[nit] = lsum;
         lsum += lgt+1;
         nit++;
       }
+skip2:
+      ;
     }
   }
   closedir ( dp );
@@ -181,7 +189,8 @@ boolean xge_SetupFileList ( xge_listbox *lbox, const char *dir,
 
 /* ///////////////////////////////////////////////////////////////////////// */
 boolean xge_SetupDirList ( xge_listbox *lbox, const char *dir,
-                           const char *filter, const char *prevdir )
+                           const char *filter, boolean hidden,
+                           const char *prevdir )
 {
   DIR           *dp;
   struct dirent *entry;
@@ -200,9 +209,14 @@ boolean xge_SetupDirList ( xge_listbox *lbox, const char *dir,
     if ( (S_ISDIR(statbuf.st_mode)) ) {
       if ( strcmp ( entry->d_name, ".") ) {
         if ( xge_FilterMatches ( entry->d_name, filter ) ) {
+          if ( !hidden && strcmp ( entry->d_name, ".." ) &&
+               xge_FilterMatches ( entry->d_name, ".*" ) )
+            goto skip1;
           nit ++;
           lsum += strlen ( entry->d_name ) + 1;
         }
+skip1:
+        ;
       }
     }
   }
@@ -221,12 +235,17 @@ boolean xge_SetupDirList ( xge_listbox *lbox, const char *dir,
     if ( (S_ISDIR(statbuf.st_mode)) ) {
       if ( strcmp ( entry->d_name, "." ) ) {
         if ( xge_FilterMatches ( entry->d_name, filter ) ) {
+          if ( !hidden && strcmp ( entry->d_name, ".." ) &&
+               xge_FilterMatches ( entry->d_name, ".*" ) )
+            goto skip2;
           lgt = strlen ( entry->d_name );
           memcpy ( &lbox->itemstr[lsum], entry->d_name, lgt+1 );
           lbox->itemind[nit] = lsum;
           lsum += lgt+1;
           nit++;
         }
+skip2:
+        ;
       }
     }
   }

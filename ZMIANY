@@ -3344,36 +3344,36 @@ Wersja 0.32:
 
 
 16.08.2013
-780. Usuniecie drobnych usterek w plikach naglowkowych (te zmiany
+790. Usuniecie drobnych usterek w plikach naglowkowych (te zmiany
     zaproponowal Roman Putanowicz).
 
-781. W libeghole przeniesienie procedury _g1h_ExtendSupport do osobnego
+791. W libeghole przeniesienie procedury _g1h_ExtendSupport do osobnego
     pliku zrodlowego, w celu usuniecia dwoch kopii (procedura jest wspolna
     dla obu wersji numerycznych, float i double, tezmiane zaproponowal Roman
     Putanowicz).
 
-782. W libxgedit zmiana blednej nazwy procedury xge_T2KnotWinfDrawCursorPos
+792. W libxgedit zmiana blednej nazwy procedury xge_T2KnotWinfDrawCursorPos
     na xgle_T2KnotWinfDrawCursorPos w wersji dla aplikacji OpenGL (te zmiane
     zaproponowal Roman Putanowicz).
 
-783. Usuniecie (kilku) nieuzywanych plikow zrodlowych.
+793. Usuniecie (kilku) nieuzywanych plikow zrodlowych.
 
-784. Dodanie obrazka - logo pakietu w wersji angielskiej.
+794. Dodanie obrazka - logo pakietu w wersji angielskiej.
 
 
 18.08.2013.
-785. W programie demonstracyjnym pozwalaj poprawiona procedura
+795. W programie demonstracyjnym pozwalaj poprawiona procedura
     Popup01OpenFile - w razie bledu czytania z pliku nie uaktualniala sie
     lista obiektow wyswietlana w drugim oknie, mimo ze czesc obiektow mogla
     byc wczytana poprawnie.
 
 3.09.2013.
-786. Modyfikacje programu tiffsh: ulatwienie zmiany katalogu (rozwiazanie
+796. Modyfikacje programu tiffsh: ulatwienie zmiany katalogu (rozwiazanie
     podobne do istniejacego w programie pozwalaj) oraz umozliwienie
     przewijania slajdow w zwolnionym tempie.
 
 6.09.2013.
-787. Poczatek powaznych zmian w sposobie sygnalizowania i obslugi bledow
+797. Poczatek powaznych zmian w sposobie sygnalizowania i obslugi bledow
     wykonania. Procedura pkv_SignalError ma zmieniona liste parametrow i jej
     wywolania powinny byc wykonywane za pomoca makra PKV_SIGNALERROR.
     Procedura ta zatrzymuje dzialanie programu (przy uzyciu exit) albo
@@ -3394,22 +3394,22 @@ Wersja 0.32:
     zrodlowych i Makefile.
 
 9.09.2013.
-788. Poprawiony handler bledow w programie pomnij; trzeba bylo zmienic
+798. Poprawiony handler bledow w programie pomnij; trzeba bylo zmienic
     naglowek i tekst wypisywany na podstawie nowych parametrow.
 
-789. Zmiany w bibliotece libpkvaria: przygotowanie do tego, aby procedura
+799. Zmiany w bibliotece libpkvaria: przygotowanie do tego, aby procedura
     obslugi bledu (pkv_SignalError lub napisana w aplikacji) mogla wykonac
     instrukcje powrotu (to samo trzeba bedzie zrobic w pozostalych
      bibliotekach).
 
 10.09.2013.
-790. Zmiany w bibliotekach libpkgeom, libcamera i libpknum: procedury, jesli
+800. Zmiany w bibliotekach libpkgeom, libcamera i libpknum: procedury, jesli
     procedura sygnalizacji bledu wykona powrot, zwroca sterowanie. Zamiast
     typu void, zmienione procedury maja typ wyniku boolean i zwracaja true,
     jesli zaden blad nie zostal wykryty, albo false, jesli jakis zostal.
 
 11.09.2013.
-791. Zmiany w bibliotece libmultibs: obsluga bledow w nowym stylu, tj. po
+801. Zmiany w bibliotece libmultibs: obsluga bledow w nowym stylu, tj. po
     wywolaniu PKV_SIGNALERROR nastepuje powrot z procedury z informacja o
     bledzie. Na ogol to jest wartosc powrotna false, pewna liczba procedur
     ma zmieniony typ wyniku z void na boolean. Tymczasem trzeba to
@@ -3419,51 +3419,62 @@ Wersja 0.32:
     wywoluje exit, ale wlasnie to ma sie zmienic).
 
 12.09.2013.
-792. Zmiany w bibliotece libeghole; usuniete wszystkie wywolania exit, po
+802. Zmiany w bibliotece libeghole; usuniete wszystkie wywolania exit, po
     wykryciu bledow nastepuje powrot.
 
 13.09.2013.
-793. Zmiany w bibliotece libg2blending; zamiast wypisywania komunikatu bledu
+803. Zmiany w bibliotece libg2blending; zamiast wypisywania komunikatu bledu
     bezposrednio przez printf jest wywolanie makra PKV_SIGNALERROR.
 
 15.09.2013.
-794. Zmiana w procedurze pkn_NLMIterf, mozliwy wynik PKN_LMT_NO_PROGRESS,
+804. Zmiana w procedurze pkn_NLMIterf, mozliwy wynik PKN_LMT_NO_PROGRESS,
     ktory oznacza prawdopodobnie osiagniecie maksymalnej granicznej
     dokladnosci.
 
 24.09.2013.
-795. Zmiana w procedurze pkn_NLMIterf, mozliwy wynik PKN_LMT_CROSSED_LIMIT,
+805. Zmiana w procedurze pkn_NLMIterf, mozliwy wynik PKN_LMT_CROSSED_LIMIT,
     ktory oznacza przekroczenie dolnego ograniczenia wartosci
     minimalizowanej funkcji, czyli prawdopodobnie blad.
 
 3.10.2013.
-796. Porcja poprawek obslugi bledow - dodana reakcja na powrot z informacja
+806. Porcja poprawek obslugi bledow - dodana reakcja na powrot z informacja
     o bledzie z niektorych procedur.
 
 4.10.2013.
-797. Porzadkowania obslugi bledow ciag dalszy.
+807. Porzadkowania obslugi bledow ciag dalszy.
 
 8.10.2013.
-798. Kolejna porcja porzadkow w obsludze bledow.
+808. Kolejna porcja porzadkow w obsludze bledow.
 
 10.10.2013.
-799. Obsluga bledow - ciag dalszy. Tym razem wywolania mbs_multiBCHorner* w
+809. Obsluga bledow - ciag dalszy. Tym razem wywolania mbs_multiBCHorner* w
     bibliotekach libmultibs, libeghole, libg1blending i libg2blending.
 
 18.10.2013.
-800. Obsluga bledow - ciag dalszy. W tym momencie wszystkie wywolania
+810. Obsluga bledow - ciag dalszy. W tym momencie wszystkie wywolania
     procedur z libmultibs w tej i w pozostalych bibliotekach (ale nie w
     programach demonstracyjnych) sa oblozone sprawdzaniem, czy nie nastapil
     blad. Pozostalo zrobic to jeszcze z wywolaniami procedur z libeghole i
     libxgedit.
 
 19.10.2013.
-801. Obsluga bledow - dokonczenie; nie jest oczywiscie doskonala, ale tam,
+811. Obsluga bledow - dokonczenie; nie jest oczywiscie doskonala, ale tam,
     gdzie procedura zamiast wywolac exit po bledzie wraca, procedury z
     bibliotek przerywaja obliczenia i wracaja z kodem bledu.
     Programy demonstracyjne w wiekszosci ignoruja powroty z bledem, ale
     poniewaz w wiekszosci bledy te sa skutkiem za malej puli pamieci scratch
     i ta pula jest w nich dostatecznie duza, mozna sobie na to pozwolic.
 
+8.11.2013.
+812. Do procedur xge_SetupFileList i xge_SetupDirList dodany parametr
+    hidden, ktory okresla, czy na lisci maja wystepowac pliki i katalogi
+    ukryte, tj. ktorych nazwy zaczynaja sie od kropki.
+
+13.11.2013.
+813. Poprawka numeracji ostatnich poprawek w tym pliku.
+
+814. W programie pozwalaj zmienione menu czytania i pisania plikow -
+    dorobiony przelacznik pokazywania plikow i katalogow ukrytych, tzn. o
+    nazwach zaczynajacych sie od kropki.
 
 

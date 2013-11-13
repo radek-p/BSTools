@@ -711,8 +711,8 @@ boolean FilenameCorrect ( char *fn )
 void OpenSaveAsPopup ( void )
 {
   SetCurrentDir ();
-  xge_SetupFileList ( &filelist2, ".", file_filter );
-  xge_SetupDirList ( &dirlist2, ".", NULL, NULL );
+  xge_SetupFileList ( &filelist2, ".", file_filter, false );
+  xge_SetupDirList ( &dirlist2, ".", NULL, false, NULL );
   xge_AddPopup ( popup2 );
   xge_GrabFocus ( popup2, true );
 } /*OpenSaveAsPopup*/
@@ -724,8 +724,8 @@ case xgemsg_BUTTON_COMMAND:
     switch ( er->id ) {
   case btnP0OPEN:
       SetCurrentDir ();
-      xge_SetupFileList ( &filelist1, ".", file_filter );
-      xge_SetupDirList ( &dirlist1, ".", NULL, NULL );
+      xge_SetupFileList ( &filelist1, ".", file_filter, false );
+      xge_SetupDirList ( &dirlist1, ".", NULL, false, NULL );
       xge_RemovePopup ( true );
       xge_AddPopup ( popup1 );
       xge_GrabFocus ( popup1, true );
@@ -780,8 +780,8 @@ xge_widget *Popup1Init ( void )
 void Popup1ChangeDir ( void )
 {
   if ( !chdir ( &dirlist1.itemstr[dirlist1.itemind[dirlist1.currentitem]] ) ) {
-    xge_SetupFileList ( &filelist1, ".", file_filter );
-    xge_SetupDirList ( &dirlist1, ".", NULL, current_directory );
+    xge_SetupFileList ( &filelist1, ".", file_filter, false );
+    xge_SetupDirList ( &dirlist1, ".", NULL, false, current_directory );
     SetCurrentDir ();
     xge_SetClipping ( popup1 );
     popup1->redraw ( popup1, true );
@@ -889,8 +889,8 @@ xge_widget *Popup2Init ( void )
 void Popup2ChangeDir ( void )
 {
   if ( !chdir ( &dirlist2.itemstr[dirlist2.itemind[dirlist2.currentitem]] ) ) {
-    xge_SetupFileList ( &filelist2, ".", file_filter );
-    xge_SetupDirList ( &dirlist2, ".", NULL, current_directory );
+    xge_SetupFileList ( &filelist2, ".", file_filter, false );
+    xge_SetupDirList ( &dirlist2, ".", NULL, false, current_directory );
     SetCurrentDir ();
     xge_SetClipping ( popup2 );
     popup1->redraw ( popup2, true );

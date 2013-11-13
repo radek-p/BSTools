@@ -28,6 +28,7 @@ char txtPanZoom[]           = "pan/zoom";
 char txtCoordinates[]       = "coordinates";
 char txtOK[]                = "OK";
 char txtCancel[]            = "Cancel";
+char txtHidden[]            = "hidden";
 char txtExit[]              = "Exit";
 char txtOpen[]              = "Open";
 char txtSave[]              = "Save";

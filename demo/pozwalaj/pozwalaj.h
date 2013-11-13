@@ -42,6 +42,7 @@ extern xge_string_ed  filename_editor;
 extern const char     file_filter[], file_ext[];
 extern char           initial_directory[], current_directory[], current_dir[];
 extern char           filename[];
+extern boolean        showhiddenfiles;
 
 extern xge_2Dwind     g00win2D;
 extern xge_widget     *geom00win2D;

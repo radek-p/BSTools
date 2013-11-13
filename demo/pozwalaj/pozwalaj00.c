@@ -56,6 +56,7 @@ char          initial_directory[MAX_PATH_LGT+1],
               current_directory[MAX_PATH_LGT+1],
               current_dir[MAX_PATH_SHRT+1];
 char          filename[MAX_FILENAME_LGT+1];
+boolean       showhiddenfiles = false;
 
 xge_2Dwind    g00win2D;
 xge_widget    *geom00win2D = NULL;

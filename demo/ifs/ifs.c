@@ -599,8 +599,8 @@ boolean ChangeDir ( xge_widget *popup,
 
   if ( !chdir ( &dirlist->itemstr[dirlist->itemind[dirlist->currentitem]] ) ) {
     if ( filelist )
-      xge_SetupFileList ( filelist, ".", file_filter );
-    xge_SetupDirList ( dirlist, ".", NULL, current_directory );
+      xge_SetupFileList ( filelist, ".", file_filter, false );
+    xge_SetupDirList ( dirlist, ".", NULL, false, current_directory );
     getcwd ( current_directory, MAX_PATH_LGT+1 );
     l = strlen ( current_directory );
     if ( l <= MAX_PATH_SHRT )
@@ -633,8 +633,8 @@ case xgemsg_BUTTON_COMMAND:
   case P0_BTN_OPEN:
         xge_RemovePopup ( true );
         SetCurrentDir ();
-        xge_SetupFileList ( &filelist, ".", file_filter );
-        xge_SetupDirList ( &dirlist, ".", NULL, NULL );
+        xge_SetupFileList ( &filelist, ".", file_filter, false );
+        xge_SetupDirList ( &dirlist, ".", NULL, false, NULL );
         xge_AddPopup ( popup1 );
         xge_GrabFocus ( popup1, true );
         return true;
@@ -642,7 +642,7 @@ case xgemsg_BUTTON_COMMAND:
   case P0_BTN_SAVE:
         xge_RemovePopup ( true );
         SetCurrentDir ();
-        xge_SetupDirList ( &dirlist, ".", NULL, NULL );
+        xge_SetupDirList ( &dirlist, ".", NULL, false, NULL );
         xge_AddPopup ( popup2 );
         xge_GrabFocus ( popup2, true );
         return true;
