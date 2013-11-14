@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2007, 2010                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2007, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -31,7 +31,7 @@
 #include "xgeprivate.h"
 
 
-void xge_T2KnotWindDrawCursorPos ( xge_T2KnotWind *T2win, short x, short y )
+void xgle_T2KnotWindDrawCursorPos ( xge_T2KnotWind *T2win, short x, short y )
 {
   xge_widget *er;
   char       s[10];
@@ -55,5 +55,5 @@ void xge_T2KnotWindDrawCursorPos ( xge_T2KnotWind *T2win, short x, short y )
     y = (short)(max ( y, er->y+10 ));
     xgleDrawString ( s, er->x, y );
   }
-} /*xge_T2KnotWindDrawCursorPos*/
+} /*xgle_T2KnotWindDrawCursorPos*/
 

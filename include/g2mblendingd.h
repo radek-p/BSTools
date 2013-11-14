@@ -191,7 +191,7 @@ boolean g2mbl_MLCPSSuggestNLevels ( int nv, BSMvertex *mv, int *mvhei,
 void g2mbl_MLGetTimes ( void *data,
                         float *time_prep, float *time_h, float *time_cg );
 #endif
-#ifdef __CPLUSPLUS
+#ifdef __cplusplus
 }
 #endif
 

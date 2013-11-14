@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -12,12 +12,15 @@
 /* Bezier patches filling a polygonal hole in a surface made of      */
 /* bicubic Bezier patches                                            */
 
+#ifndef G1HOLED_H
+#define G1HOLED_H
+
 #ifndef CONST_  /* a dirty trick to suppress many compiler warning messages */
 #define CONST_ const
 #endif
 
-#ifndef G1HOLED_H
-#define G1HOLED_H
+#include "pkvaria.h"
+#include "pkgeom.h"
 
 #ifdef __cplusplus   
 extern "C" {

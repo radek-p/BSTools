@@ -20,21 +20,13 @@
 #ifndef BSFILE_H
 #define BSFILE_H
 
-#ifndef PKVARIA_H
+#include <stdio.h>
+
 #include "pkvaria.h"
-#endif
-#ifndef PKNUM_H
 #include "pknum.h"
-#endif
-#ifndef PKGEOM_H
 #include "pkgeom.h"
-#endif
-#ifndef MULTIBS_H
 #include "multibs.h"
-#endif
-#ifndef BSMESH_H
 #include "bsmesh.h"
-#endif
 
 #ifdef __cplusplus
 extern "C" {

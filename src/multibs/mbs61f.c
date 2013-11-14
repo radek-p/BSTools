@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2010, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2010                                  */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -17,6 +17,8 @@
 #include "pknum.h"
 #include "pkgeom.h"
 #include "multibs.h"
+
+#include "msgpool.h"
 
 float mbs_GrevilleAbscissaf ( int degree, float *knots, int i )
 {
