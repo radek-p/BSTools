@@ -22,9 +22,6 @@
 #include "pkvaria.h"
 #include "pkgeom.h"
 
-
-#include "pkvaria.h"
-
 #ifdef __cplusplus   
 extern "C" {
 #endif
