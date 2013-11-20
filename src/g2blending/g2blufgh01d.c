@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2009, 2012                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2009, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -158,8 +158,10 @@ void g2bl_UFuncGradSQd ( int nkn, const double *qcoeff, double *Nitab,
         /* add the quadrature term */
         sum1 += (f + tC*g)*qcoeff[j];
       }
-      else
+      else {
+        BB = 0.0;
         sum1 += f*qcoeff[j];
+      }
 
         /* compute the functional derivatives */
       for ( ii = 0, ip = isq;  ii <  4;  ii++, ip++ )

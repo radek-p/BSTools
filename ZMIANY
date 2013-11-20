@@ -3478,3 +3478,10 @@ Wersja 0.32:
     nazwach zaczynajacych sie od kropki.
 
 
+Wersja 0.33.
+
+815. Dwie poprawki w libg2blending - czyszczenie kodu w celu usuniecia paru
+    zbednych ostrzezen kompilatora.
+
+
+

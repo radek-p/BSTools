@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2010, 2011                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2010, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -328,8 +328,10 @@ void _g2mbl_UFuncGradSQIntegrandd ( int nkn2, int nf, double *Nitab,
     g -= BB/detG;
     *F = first + C*g;
   }
-  else
+  else {
+    BB = 0.0;
     *F = first;
+  }
         /* compute the functional derivatives */
   for ( fn = fn3 = 0;  fn < nf;  fn++, fn3 += 3 )
     if ( nncpi[cpind[fn]] >= 0 ) {
@@ -742,8 +744,10 @@ boolean _g2mbl_UFuncGradHessSQIntegrandd ( int nkn2, int nf, double *Nitab,
     BB = Bstar[9]*Bstar[9] + Bstar[10]*Bstar[10];
     *F = first + C*(g - BB/detG);
   }
-  else
+  else {
+    BB = 0.0;
     *F = first;
+  }
         /* compute the functional derivatives */
   for ( fi = fi3 = 0;  fi < nf;  fi++, fi3 += 3 )
     if ( nncpi[cpind[fi]] >= 0 ) {
