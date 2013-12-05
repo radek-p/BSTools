@@ -3,7 +3,7 @@
 # This file is a part of the BSTools package
 # written by Przemyslaw Kiciak
 # /////////////////////////////////////////////////////////////////////
-# (C) Copyright by Przemyslaw Kiciak, 2010, 2012
+# (C) Copyright by Przemyslaw Kiciak, 2010, 2013
 # this package is distributed under the terms of the
 # Lesser GNU Public License, see the file COPYING.LIB
 # /////////////////////////////////////////////////////////////////////
@@ -25,7 +25,7 @@ OBJECTS = $(SRCDIR)/bsmesh00.o $(SRCDIR)/bsmesh01.o $(SRCDIR)/bsmesh02.o \
   $(SRCDIR)/bsmesh21.o  $(SRCDIR)/bsmesh22.o  $(SRCDIR)/bsmesh23.o \
   $(SRCDIR)/bsmesh24.o  $(SRCDIR)/bsmesh25d.o $(SRCDIR)/bsmesh26d.o \
   $(SRCDIR)/bsmesh27d.o $(SRCDIR)/bsmesh28d.o $(SRCDIR)/bsmesh29.o \
-  $(SRCDIR)/bsmesh30.o
+  $(SRCDIR)/bsmesh30.o  $(SRCDIR)/bsmesh31d.o
 
 TARGET = $(LIBDIR)/libbsmesh.a
 

@@ -3480,8 +3480,18 @@ Wersja 0.32:
 
 Wersja 0.33.
 
+19.11.2013
 815. Dwie poprawki w libg2blending - czyszczenie kodu w celu usuniecia paru
     zbednych ostrzezen kompilatora.
 
+4.12.2013
+816. Nowe procedury w libbsmesh: bsm_ExtractSubmeshVNum i
+    bsm_ExtractSubmeshVd (napisane przez Anne Sierhej), ktorych celem jest
+    wyciaganie podsiatki zlozonej ze scian, ktorych wszystkie wierzcholki sa
+    zaznaczone. Procedury te beda jeszcze zmieniane (na razie nie obsluguja
+    wszystkich potrzebnych przypadkow).
+
+817. Zmiany w programie pozwalaj - dolaczenie procedur ekstrakcji podsiatek,
+    wywolywanych za pomoca odpowiedniego guzika w menu.
 
 

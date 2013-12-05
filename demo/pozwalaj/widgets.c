@@ -169,7 +169,7 @@ char txtMeridian[]          = "meridian";
 char txtSphericalProduct[]  = "Spherical product";
 char txtG1BlendingPatch[]   = "G1 blending patch";
 char txtG2BlendingPatch[]   = "G2 blending patch";
-
+char txtExtrSubmesh[]       = "extract submesh";
 
 char *InfoMsg[5] =
   { "pozwalaj - a simple curve and surface modeller",
@@ -203,4 +203,5 @@ char ErrorMsgMeshCannotBeOptimized[]  = "Error: This mesh cannot be optimized.";
 char ErrorMessageCannotCangeDegree[]  = "Error: Cannot change degree.";
 char ErrorMsgCannotFlip[]             = "Error: Cannot flip the parameters.";
 char ErrorMsgCannotFindObject[]       = "Error: Cannot find this object.";
+char ErrorMsgCouldNotExtractMesh[]    = "Error: Cannot extract this submesh.";
 

@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2010, 2012                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2010, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -273,6 +273,22 @@ boolean bsm_GlueHalfedgeLoopsd ( int spdimen,
                                  int *onv, BSMvertex *omv, int *omvhei, double *ovc,
                                  int *onhe, BSMhalfedge *omhe,
                                  int *onfac, BSMfacet *omfac, int *omfhei );
+
+/* procedures extracting a part of a mesh */
+boolean bsm_ExtractSubmeshVNum ( int inv, const BSMvertex *imv, const int *imvhei,
+                                 int inhe, const BSMhalfedge *imhe,
+                                 int infac, const BSMfacet *imfac, const int *imfhei,
+                                 boolean *vtag,
+                                 int *onv, int *onhe, int *onfac );
+
+boolean bsm_ExtractSubmeshVd ( int spdimen, int inv,
+                               const BSMvertex *imv, const int *imvhei,
+                               double *iptc, int inhe, const BSMhalfedge *imhe,
+                               int infac, const BSMfacet *imfac, const int *imfhei,
+                               boolean *vtag,
+                               int *onv, BSMvertex *omv, int *omvhei,
+                               double *optc, int *onhe, BSMhalfedge *omhe,
+                               int *onfac, BSMfacet *omfac, int *omfhei );
 
 #ifdef __cplusplus
 }

@@ -238,6 +238,79 @@ failure:
   return false;
 } /*GeomObjectBSplineMeshAveraging*/
 
+boolean GeomObjectBSplineMeshExtractSubmesh ( GO_BSplineMesh *obj )
+{
+  void        *sp;
+  int         onv, onhe, onfac;
+  BSMvertex   *omv;
+  BSMhalfedge *omhe;
+  BSMfacet    *omfac;
+  int         *omvhei, *omfhei;
+  double      *omvpc;
+  byte        *mkcp;
+  boolean     *vtag;
+  int         i;
+
+  sp = pkv_GetScratchMemTop ();
+  vtag = pkv_GetScratchMem ( obj->nv*sizeof(boolean) );
+  if ( !vtag )
+    goto failure2;
+  for ( i = 0; i < obj->nv; i++ )
+    vtag[i] = (obj->mkcp[i] & marking_mask) != 0;
+
+  if ( !bsm_CheckMeshIntegrity ( obj->nv, obj->meshv, obj->meshvhei,
+                                 obj->nhe, obj->meshhe,
+                                 obj->nfac, obj->meshfac, obj->meshfhei ) )
+    goto failure2;
+  if ( !bsm_ExtractSubmeshVNum ( obj->nv, obj->meshv,
+                     obj->meshvhei, obj->nhe, obj->meshhe,
+                     obj->nfac, obj->meshfac, obj->meshfhei, vtag,
+                     &onv, &onhe, &onfac ) )
+    goto failure2;
+
+  omv = malloc ( onv*sizeof(BSMvertex) );
+  omhe = malloc ( onhe*sizeof(BSMhalfedge) );
+  omfac = malloc ( onfac*sizeof(BSMfacet) );
+  omvhei = malloc ( onhe*sizeof(int) );
+  omfhei = malloc ( onhe*sizeof(int) );
+  omvpc = malloc ( obj->me.cpdimen*onv*sizeof(double) );
+  mkcp = malloc ( onv );
+  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc || !mkcp )
+    goto failure1;
+  if ( !bsm_ExtractSubmeshVd ( obj->me.cpdimen,
+                         obj->nv, obj->meshv, obj->meshvhei, obj->meshvpc,
+                         obj->nhe, obj->meshhe,
+                         obj->nfac, obj->meshfac, obj->meshfhei, vtag,
+                         &onv, omv, omvhei, omvpc, &onhe, omhe,
+                         &onfac, omfac, omfhei ) )
+    goto failure1;
+  obj->integrity_ok = bsm_CheckMeshIntegrity ( onv, omv, omvhei, onhe, omhe,
+                                 onfac, omfac, omfhei );
+  if ( !obj->integrity_ok )
+    goto failure1;
+  memset ( mkcp, MASK_CP_MOVEABLE, onv );
+  GeomObjectAssignBSplineMesh ( obj, obj->me.spdimen, obj->rational,
+                                onv, omv, omvhei, omvpc, onhe, omhe,
+                                onfac, omfac, omfhei, mkcp );
+  obj->me.dlistmask = 0;
+  obj->spvlist_ok = false;
+  obj->special_patches_ok = false;
+  pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure1:
+  if ( omv ) free ( omv );
+  if ( omhe ) free ( omhe );
+  if ( omfac ) free ( omfac );
+  if ( omvhei ) free ( omvhei );
+  if ( omfhei ) free ( omfhei );
+  if ( omvpc ) free ( omvpc );
+  if ( mkcp ) free ( mkcp );
+failure2:
+  pkv_SetScratchMemTop ( sp );
+  return false;
+} /*GeomObjectBSplineMeshExtractSubmesh*/
+
 boolean GeomObjectBSplineMeshRemoveCurrentVertex ( GO_BSplineMesh *obj )
 {
   int         onv, onhe, onfac;

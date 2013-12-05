@@ -149,6 +149,7 @@ boolean GeomObjectBSplineMeshGetPointCoord ( GO_BSplineMesh *obj, int p,
 boolean GeomObjectBSplineMeshRefinement ( GO_BSplineMesh *obj );
 boolean GeomObjectBSplineMeshDoubling ( GO_BSplineMesh *obj );
 boolean GeomObjectBSplineMeshAveraging ( GO_BSplineMesh *obj );
+boolean GeomObjectBSplineMeshExtractSubmesh ( GO_BSplineMesh *obj );
 boolean GeomObjectBSplineMeshRemoveCurrentVertex ( GO_BSplineMesh *obj );
 boolean GeomObjectBSplineMeshContractCurrentEdge ( GO_BSplineMesh *obj );
 boolean GeomObjectBSplineMeshShrinkCurrentEdge ( GO_BSplineMesh *obj );
