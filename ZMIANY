@@ -3494,4 +3494,9 @@ Wersja 0.33.
 817. Zmiany w programie pozwalaj - dolaczenie procedur ekstrakcji podsiatek,
     wywolywanych za pomoca odpowiedniego guzika w menu.
 
+8.12.2013
+818. Do programu demonstracyjnego pozwalaj dodana mozliwosc wywolywania z
+    parametrami - nazwami plikow z danymi, ktore trzeba przeczytac na
+    poczatek.
+
 

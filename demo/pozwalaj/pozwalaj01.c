@@ -103,8 +103,35 @@ void InitWindow1Widgets ( void )
   xge_SetWinEdRect ( geom10menu );
 } /*InitWindow1Widgets*/
 
-void init_program ( void )
+boolean ProcessCMDLineParameters ( int argc, char *argv[] )
 {
+  boolean result;
+  int     i;
+  char    *sstr;
+
+/* this program may be invoked with parameters - file names, with */
+/* the suffix file_ext (.bs), containing data to be read in. */
+  result = true;
+  for ( i = 1; i < argc; i++ ) {
+    sstr = strstr ( argv[i], file_ext );
+    if ( sstr && !strcmp ( file_ext, sstr ) ) {
+      strncpy ( filename, argv[i], MAX_FILENAME_LGT+1 );
+      if ( !GeomObjectReadFile ( filename ) ) {
+        result = false;
+        break;
+      }
+    }
+  }
+  current_go = first_go;
+  if ( current_go )
+    SetupObjectSpecificMenus ( current_go );
+  return result;
+} /*ProcessCMDLineParameters*/
+
+void init_program ( int argc, char *argv[] )
+{
+  boolean files_ok;
+
   setvbuf ( stdout, NULL, _IONBF, 0 );
   if ( !pkv_InitScratchMem ( SCRATCHMEMSIZE ) ) {
     printf ( "Error: cannot allocate scratch memory stack\n" );
@@ -122,9 +149,13 @@ void init_program ( void )
   InitWindow0Widgets ();
   InitWindow1Widgets ();
   RendInit ();
+  files_ok = ProcessCMDLineParameters ( argc, argv );
   xge_RedrawAll ();
   xge_SetWindow ( win0 );
-  xge_DisplayInfoMessage ( InfoMsg, -1 );
+  if ( files_ok )
+    xge_DisplayInfoMessage ( InfoMsg, -1 );
+  else
+    xge_DisplayErrorMessage ( ErrorMsgCannotOpen, -1 );
 } /*init_program*/
 
 void destroy_program ( void )

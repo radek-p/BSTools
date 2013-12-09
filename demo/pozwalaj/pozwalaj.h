@@ -430,7 +430,8 @@ void SetCircleCursor ( int win );
 void OpenPopup ( xge_widget *er, boolean allwin );
 void InitWindow0Widgets ( void );
 void InitWindow1Widgets ( void );
-void init_program ( void );
+boolean ProcessCMDLineParameters ( int argc, char *argv[] );
+void init_program ( int argc, char *argv[] );
 void destroy_program ( void );
 
 void ResizeWindow0 ( short x, short y );
