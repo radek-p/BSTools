@@ -45,112 +45,66 @@ extern "C" {
 #define BSF_SYMB_STRING    8
 #define BSF_SYMB_COMMA     9
 
-#define BSF_FIRST_KEYWORD  10  /* number of the first keyword */
-#define BSF_SYMB_BCURVE    10  /* consecutive numbers of keywords */
-#define BSF_SYMB_BPATCH    11  /* sorted alphabetically */
-#define BSF_SYMB_BSCURVE   12
-#define BSF_SYMB_BSHOLE    13
-#define BSF_SYMB_BSMESH    14
-#define BSF_SYMB_BSPATCH   15
-#define BSF_SYMB_CLOSED    16
-#define BSF_SYMB_CPOINTS   17
-#define BSF_SYMB_CPOINTSMK 18
-#define BSF_SYMB_DEGREE    19
-#define BSF_SYMB_DIM       20
-#define BSF_SYMB_DOMAIN    21
-#define BSF_SYMB_FACETS    22
-#define BSF_SYMB_HALFEDGES 23
-#define BSF_SYMB_KNOTS     24
-#define BSF_SYMB_KNOTS_U   25
-#define BSF_SYMB_KNOTS_V   26
-#define BSF_SYMB_NAME      27
-#define BSF_SYMB_RATIONAL  28
-#define BSF_SYMB_SIDES     29
-#define BSF_SYMB_UNIFORM   30
-#define BSF_SYMB_VERTICES  31
+/* the subsequent keyword identifiers below must */
+/* match the strings in the table in bsfile00r.c */
+#define BSF_FIRST_KEYWORD    10  /* number of the first keyword */
+#define BSF_SYMB_BCURVE      10  /* consecutive numbers of keywords */
+#define BSF_SYMB_BPATCH      11  /* sorted alphabetically, with uppercase */
+#define BSF_SYMB_BSCURVE     12  /* preceding all lowercase letters (ASCII) */
+#define BSF_SYMB_BSHOLE      13
+#define BSF_SYMB_BSMESH      14
+#define BSF_SYMB_BSPATCH     15
+#define BSF_SYMB_EULERANGLES 16
+#define BSF_SYMB_CAMERA      17
+#define BSF_SYMB_CLOSED      18
+#define BSF_SYMB_COLOR       19  /* it can read both, AE and BE, */
+#define BSF_SYMB_COLOUR      20  /* but it will write in AE */
+#define BSF_SYMB_CPOINTS     21
+#define BSF_SYMB_CPOINTSMK   22
+#define BSF_SYMB_DEGREE      23
+#define BSF_SYMB_DEPTH       24
+#define BSF_SYMB_DIM         25
+#define BSF_SYMB_DOMAIN      26
+#define BSF_SYMB_FACETS      27
+#define BSF_SYMB_FRAME       28
+#define BSF_SYMB_HALFEDGES   29
+#define BSF_SYMB_KNOTS       30
+#define BSF_SYMB_KNOTS_U     31
+#define BSF_SYMB_KNOTS_V     32
+#define BSF_SYMB_NAME        33
+#define BSF_SYMB_PARALLEL    34
+#define BSF_SYMB_PERSPECTIVE 35
+#define BSF_SYMB_POSITION    36
+#define BSF_SYMB_RATIONAL    37
+#define BSF_SYMB_SIDES       38
+#define BSF_SYMB_UNIFORM     39
+#define BSF_SYMB_VERTICES    40
 
-#define BSF_NKEYWORDS 22
+/* namely, this table */
+#define BSF_NKEYWORDS 31
 extern const char *bsf_keyword[BSF_NKEYWORDS];
 
-extern FILE   *bsf_input, *bsf_output;
+/* Below are defined 10 typedefs for function pointers. These typedef's   */
+/* make easier to handle user defined callbacks for reading data from     */
+/* BSTools files to user specified data structures.                       */
+/* The typedefs are:                                                      */
+/*    bsf_BeginRead_fptr -- called at the beginning of reading any object */
+/*    bsf_EndRead_fptr   -- called at the end of reading an object        */
+/*    bsf_BC_fptr        -- for Bezier Curves callback                    */
+/*    bsf_BSC_fptr       -- for BSpline Curves callback                   */
+/*    bsf_BP_fptr        -- for Bezier Patch callback                     */
+/*    bsf_BSP_fptr       -- for BSpline Patch callback                    */
+/*    bsf_BSM_fptr       -- for BS Mesh callback                          */
+/*    bsf_BSH_fptr       -- for BSpline Hole callback                     */
+/*    bsf_Camera_fptr    -- for Camera object callback                    */
+/*    bsf_Colour_fptr    -- for colour attribute callback                 */
 
-extern int    bsf_nextsymbol;
-extern int    bsf_nextint;
-extern double bsf_nextfloat;
-extern char   *bsf_namebuffer;
+typedef void (*bsf_BeginRead_fptr) ( void *userData, int obj_type );
+typedef void (*bsf_EndRead_fptr) ( void *userData, boolean success );
 
-/* ////////////////////////////////////////////////////////////////////////// */
-boolean bsf_OpenInputFile ( const char *filename );
-void bsf_CloseInputFile ( void );
-void bsf_GetNextSymbol ( void );
-
-void bsf_PrintErrorLocation ( void );
-
-boolean bsf_ReadIntNumber ( int *number );
-boolean bsf_ReadDoubleNumber ( double *number );
-boolean bsf_ReadPointd ( int maxcpdimen, double *point, int *cpdimen );
-int bsf_ReadPointsd ( int maxcpdimen, int maxnpoints,
-                      double *points, int *cpdimen );
-int bsf_ReadPointsMK ( int maxnpoints, byte *mk );
-
-boolean bsf_ReadSpaceDim ( int maxdim, int *spdimen );
-boolean bsf_ReadCurveDegree ( int maxdeg, int *degree );
-boolean bsf_ReadPatchDegree ( int maxdeg, int *udeg, int *vdeg );
-
-boolean bsf_ReadKnotSequenced ( int maxlastknot, int *lastknot, double *knots,
-                                boolean *closed );
-
-boolean bsf_ReadBezierCurve4d ( int maxdeg, int *deg, point4d *cpoints,
-                                int *spdimen, boolean *rational,
-                                byte *mk, char *name );
-
-boolean bsf_ReadBSplineCurve4d ( int maxdeg, int maxlastknot, int maxncpoints,
-                                 int *deg, int *lastknot, double *knots,
-                                 boolean *closed, point4d *cpoints,
-                                 int *spdimen, boolean *rational,
-                                 byte *mk, char *name );
-
-boolean bsf_ReadBezierPatch4d ( int maxdeg, int *udeg, int *vdeg,
-                                int *pitch, point4d *cpoints,
-                                int *spdimen, boolean *rational,
-                                byte *mk, char *name );
-
-boolean bsf_ReadBSplinePatch4d ( int maxdeg, int maxlastknot, int maxncpoints,
-                                 int *udeg, int *lastknotu, double *knotsu,
-                                 int *vdeg, int *lastknotv, double *knotsv,
-                                 boolean *closed_u, boolean *closed_v,
-                                 int *pitch, point4d *cpoints,
-                                 int *spdimen, boolean *rational,
-                                 byte *mk, char *name );
-
-boolean bsf_ReadBSMesh4d ( int maxnv, int maxnhe, int maxnfac,
-                           int *degree,
-                           int *nv, BSMvertex *mv, int *mvhei, point4d *vc,
-                           int *nhe, BSMhalfedge *mhe,
-                           int *nfac, BSMfacet *mfac, int *mfhei,
-                           int *spdimen, boolean *rational,
-                           byte *mkv, char *name );
-
-boolean bsf_ReadBSplineHoled ( int maxk, int *hole_k, double *knots,
-                               point2d *domain_cp, point4d *hole_cp,
-                               int *spdimen, boolean *rational,
-                               byte *mk, char *name );
-
-/* Below are defined 6 typedefs for function pointer. These typedef's
-   make easier to hande user defined callbacks for reading data from
-   BSTools files to user specified data structures.
-   The typedefs are:
-      bsf_BC_fptr  -- for Bezier Curves callback
-      bsf_BSC_fptr -- for BSpline Curves callback
-      bsf_BP_fptr  -- for Bezier Patch callback
-      bsf_BSP_fptr -- for BSpline Patch callback
-      bsf_BSM_fptr -- for BS Mesh callback
-      bsf_BSH_fptr -- for BSpline Hole callback
-*/
 typedef void (*bsf_BC_fptr) ( void *userData, const char *name,
                               int degree, const point4d *cpoints,
                               int spdimen, boolean rational, byte *mk );
-
 typedef void (*bsf_BSC_fptr) ( void *userData, const char *name,
                                int degree, int lastknot, const double *knots,
                                boolean closed,
@@ -171,20 +125,25 @@ typedef void (*bsf_BSM_fptr) ( void *userData, const char *name, int degree,
                                int nhe, const BSMhalfedge *mhe,
                                int nfac, const BSMfacet *mfac, const int *mfhei,
                                int spdimen, boolean rational, byte *mkv );
-
 typedef void (*bsf_BSH_fptr) ( void *userData, const char *name, int hole_k,
                                const double *knots,
                                const point2d *domain_cp,
                                const point4d *hole_cp,
                                int spdimen, boolean rational, byte *mk );
+typedef void (*bsf_Camera_fptr) ( void *userData, CameraRecd *Camera );
+typedef void (*bsf_Colour_fptr) ( void *userData, point3d *colour );
 
 typedef struct {
-  bsf_BC_fptr  BezierCurveReader;
-  bsf_BSC_fptr BSplineCurveReader;
-  bsf_BP_fptr  BezierPatchReader;
-  bsf_BSP_fptr BSplinePatchReader;
-  bsf_BSM_fptr BSMeshReader;
-  bsf_BSH_fptr BSplineHoleReader;
+  bsf_BeginRead_fptr BeginReader;
+  bsf_EndRead_fptr   EndReader;
+  bsf_BC_fptr        BezierCurveReader;
+  bsf_BSC_fptr       BSplineCurveReader;
+  bsf_BP_fptr        BezierPatchReader;
+  bsf_BSP_fptr       BSplinePatchReader;
+  bsf_BSM_fptr       BSMeshReader;
+  bsf_BSH_fptr       BSplineHoleReader;
+  bsf_Camera_fptr    CameraReader;
+  bsf_Colour_fptr    ColourReader;
   void *userData;   /* pointer to user data, bsfile library does not
                        use it, it is just passed to reader callbacks */
   int bc_maxdeg;       /* maximal degree of Bezier curves */
@@ -199,9 +158,91 @@ typedef struct {
   int bsm_maxnfac;     /* maximum number of mesh facets */ 
 } bsf_UserReaders;
 
+/* the type definition below is used to make it possible to write       */
+/* additional attributes of objects (curvess nd surfaces), like colour. */
+/* Applications are not required to write such attributes and they may  */
+/* ignore them safely -- which requires some flexibility of the         */
+/* parameter lists and no need of changing them in future.              */
+typedef boolean (*bsf_WriteAttr_fptr) ( void *userData );
+
+/* ////////////////////////////////////////////////////////////////////////// */
+extern FILE            *bsf_input, *bsf_output;
+extern bsf_UserReaders *bsf_current_readers;
+
+extern int    bsf_nextsymbol;
+extern int    bsf_nextint;
+extern double bsf_nextfloat;
+extern char   *bsf_namebuffer;
+
+extern int    bsf_current_indentation;
+
+/* ////////////////////////////////////////////////////////////////////////// */
+boolean bsf_OpenInputFile ( const char *filename );
+void bsf_CloseInputFile ( void );
+
+void bsf_GetNextSymbol ( void );
+void bsf_PrintErrorLocation ( void );
+
+/* read partial data - for internal use */
+boolean bsf_ReadIntNumber ( int *number );
+boolean bsf_ReadDoubleNumber ( double *number );
+boolean bsf_ReadPointd ( int maxcpdimen, double *point, int *cpdimen );
+int bsf_ReadPointsd ( int maxcpdimen, int maxnpoints,
+                      double *points, int *cpdimen );
+int bsf_ReadPointsMK ( int maxnpoints, byte *mk );
+
+boolean bsf_ReadSpaceDim ( int maxdim, int *spdimen );
+boolean bsf_ReadCurveDegree ( int maxdeg, int *degree );
+boolean bsf_ReadPatchDegree ( int maxdeg, int *udeg, int *vdeg );
+
+boolean bsf_ReadKnotSequenced ( int maxlastknot, int *lastknot, double *knots,
+                                boolean *closed );
+
+/* the procedures with headers below are fit to read data */
+/* if the application is sure about the file contents. */
+/* Otherwise set up the proper readers and use bsf_ReadBSFiled. */
+boolean bsf_ReadBezierCurve4d ( int maxdeg, int *deg, point4d *cpoints,
+                                int *spdimen, boolean *rational,
+                                byte *mk, char *name );
+boolean bsf_ReadBSplineCurve4d ( int maxdeg, int maxlastknot, int maxncpoints,
+                                 int *deg, int *lastknot, double *knots,
+                                 boolean *closed, point4d *cpoints,
+                                 int *spdimen, boolean *rational,
+                                 byte *mk, char *name );
+boolean bsf_ReadBezierPatch4d ( int maxdeg, int *udeg, int *vdeg,
+                                int *pitch, point4d *cpoints,
+                                int *spdimen, boolean *rational,
+                                byte *mk, char *name );
+boolean bsf_ReadBSplinePatch4d ( int maxdeg, int maxlastknot, int maxncpoints,
+                                 int *udeg, int *lastknotu, double *knotsu,
+                                 int *vdeg, int *lastknotv, double *knotsv,
+                                 boolean *closed_u, boolean *closed_v,
+                                 int *pitch, point4d *cpoints,
+                                 int *spdimen, boolean *rational,
+                                 byte *mk, char *name );
+boolean bsf_ReadBSMesh4d ( int maxnv, int maxnhe, int maxnfac,
+                           int *degree,
+                           int *nv, BSMvertex *mv, int *mvhei, point4d *vc,
+                           int *nhe, BSMhalfedge *mhe,
+                           int *nfac, BSMfacet *mfac, int *mfhei,
+                           int *spdimen, boolean *rational,
+                           byte *mkv, char *name );
+boolean bsf_ReadBSplineHoled ( int maxk, int *hole_k, double *knots,
+                               point2d *domain_cp, point4d *hole_cp,
+                               int *spdimen, boolean *rational,
+                               byte *mk, char *name );
+
+boolean bsf_ReadCamera ( CameraRecd *Camera );
+boolean bsf_ReadColour ( point3d *colour );
+
 /* Set up readers data structure to an empty state */
 void bsf_ClearReaders ( bsf_UserReaders *readers );
 
+/* register application's reading procedures */
+void bsf_BeginReadingFuncd ( bsf_UserReaders *readers,
+                             bsf_BeginRead_fptr BeginReader );
+void bsf_EndReadingFuncd ( bsf_UserReaders *readers,
+                           bsf_EndRead_fptr EndReader );
 void bsf_BC4ReadFuncd ( bsf_UserReaders *readers, bsf_BC_fptr BCReader,
                         int maxdeg );
 void bsf_BSC4ReadFuncd ( bsf_UserReaders *readers, bsf_BSC_fptr BSCReader,
@@ -213,59 +254,80 @@ void bsf_BSP4ReadFuncd ( bsf_UserReaders *readers, bsf_BSP_fptr BSPReader,
 void bsf_BSM4ReadFuncd ( bsf_UserReaders *readers, bsf_BSM_fptr BSMReader,
                          int maxdeg, int maxnv, int maxnhe, int maxnfac );
 void bsf_BSH4ReadFuncd ( bsf_UserReaders *readers, bsf_BSH_fptr BSHReader );
+void bsf_CameraReadFuncd ( bsf_UserReaders *readers,
+                           bsf_Camera_fptr CameraReader );
+void bsf_ColourReadFuncd ( bsf_UserReaders *readers,
+                           bsf_Colour_fptr ColourReader );
 
+/* read the entire data file */
 boolean bsf_ReadBSFiled ( const char *filename, bsf_UserReaders *readers );
+
+/* auxiliary reading procedures, for internal use */
+boolean _bsf_ReadColour ( bsf_UserReaders *readers );
 
 /* ////////////////////////////////////////////////////////////////////////// */
 boolean bsf_OpenOutputFile ( char *filename, boolean append );
 void bsf_CloseOutputFile ( void );
 
+void bsf_WriteCurrentIndentation ( void );
 void bsf_WriteComment ( char *comment );
+
+/* writing partial data */
 void bsf_WriteDoubleNumber ( double x );
+void bsf_WriteAltDoubleNumber ( double x, int nzf );
 void bsf_WritePointd ( int cpdimen, const double *point );
 void bsf_WritePointsd ( int cpdimen, int cols, int rows, int pitch,
                         const double *points );
 void bsf_WritePointsMK ( int npoints, const byte *mk );
-
 void bsf_WriteSpaceDim ( int spdimen, boolean rational );
 void bsf_WriteCurveDegree ( int degree );
 void bsf_WritePatchDegree ( int udeg, int vdeg );
-
 void bsf_WriteKnotSequenced ( int lastknot, const double *knots, boolean closed );
 
+/* writing the entire geometric objects - curves and surfaces */
+/* at the moment the only additional attribute written by the */
+/* procedure passed as WriteAttr may be the colour, use the   */
+/* bsf_WriteColour procedure for this. If no attributes need  */
+/* to be written, the parameters WriteAttr and userData       */
+/* may be NULL.                                               */
 boolean bsf_WriteBezierCurved ( int spdimen, int cpdimen, boolean rational,
                                 int deg, const double *cpoints,
-                                const byte *mk, const char *name );
-
+                                const byte *mk, const char *name,
+                                bsf_WriteAttr_fptr WriteAttr, void *userData );
 boolean bsf_WriteBSplineCurved ( int spdimen, int cpdimen, boolean rational,
                                  int deg, int lastknot, const double *knots,
                                  boolean closed,
                                  const double *cpoints, const byte *mk,
-                                 const char *name );
-
+                                 const char *name,
+                                 bsf_WriteAttr_fptr WriteAttr, void *userData );
 boolean bsf_WriteBezierPatchd ( int spdimen, int cpdimen, boolean rational,
                                 int udeg, int vdeg,
                                 int pitch, const double *cpoints, const byte *mk,
-                                const char *name );
-
+                                const char *name,
+                                bsf_WriteAttr_fptr WriteAttr, void *userData );
 boolean bsf_WriteBSplinePatchd ( int spdimen, int cpdimen, boolean rational,
                                  int udeg, int lastknotu, const double *knotsu,
                                  int vdeg, int lastknotv, const double *knotsv,
                                  boolean closed_u, boolean closed_v,
                                  int pitch, const double *cpoints, const byte *mk,
-                                 const char *name );
-
+                                 const char *name,
+                                 bsf_WriteAttr_fptr WriteAttr, void *userData );
 boolean bsf_WriteBSMeshd ( int spdimen, int cpdimen, boolean rational, int degree,
                            int nv, const BSMvertex *mv, const int *mvhei,
                            const double *vc,
                            int nhe, const BSMhalfedge *mhe,
                            int nfac, const BSMfacet *mfac, const int *mfhei,
-                           const byte *mkv, const char *name );
-
+                           const byte *mkv, const char *name,
+                           bsf_WriteAttr_fptr WriteAttr, void *userData );
 boolean bsf_WriteBSplineHoled ( int hole_k, const double *knots,
                                 const point2d *domain_cp,
                                 const point3d *hole_cp, const byte *mk,
-                                const char *name );
+                                const char *name,
+                                bsf_WriteAttr_fptr WriteAttr, void *userData );
+
+/* writing other objects */
+boolean bsf_WriteColour ( point3d *colour );
+boolean bsf_WriteCamera ( CameraRecd *Camera );
 
 #ifdef __cplusplus
 }

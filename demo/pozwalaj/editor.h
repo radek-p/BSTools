@@ -63,6 +63,11 @@ typedef struct geom_object {
     char    tag;
   } geom_object;
 
+/* auxiliary data structure for reading data files */
+typedef struct {
+    double colour[3];
+  } rw_object_attributes;
+
 extern geom_object *first_go, *last_go, *current_go, *currentp_go;
 extern int         current_point_ind;
 extern double      *current_point;
@@ -201,6 +206,9 @@ void GeomObjectProject3DPointsOnACylinder ( point3d *p, vector3d *v, double r,
 void GeomObjectOutputToRenderer3D ( boolean all );
 
 /* disk I/O */
+void GeomObjectBeginReading ( void *usrdata, int obj_type );
+void GeomObjectEndReading ( void *usrdata, boolean success );
+void GeomObjectReadColour ( void *usrdata, point3d *colour );
 boolean GeomObjectReadFile ( char *filename );
 boolean GeomObjectWriteObj ( geom_object *go );
 boolean GeomObjectWriteFile ( char *filename, boolean append );

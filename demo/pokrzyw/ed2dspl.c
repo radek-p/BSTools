@@ -125,7 +125,7 @@ boolean SaveBSCurve ( char *filename )
 try_nurbs:
       bsf_WriteBSplineCurved ( 2, 3, true, kwind.degree, kwind.lastknot,
                                knots, kwind.closed, &cpoints[0].x,
-                               cpmark, NULL );
+                               cpmark, NULL, NULL, NULL );
     }
     else {
       buf = pkv_GetScratchMem ( (kwind.lastknot-kwind.degree)*sizeof(point2d) );
@@ -134,7 +134,7 @@ try_nurbs:
       pkv_Selectd ( kwind.lastknot-kwind.degree, 2, 3, 2,
                     &cpoints[0].x, buf );
       bsf_WriteBSplineCurved ( 2, 2, false, kwind.degree, kwind.lastknot,
-                               knots, kwind.closed, buf, cpmark, NULL );
+                               knots, kwind.closed, buf, cpmark, NULL, NULL, NULL );
     }
     bsf_CloseOutputFile ();
     pkv_SetScratchMemTop ( sp );

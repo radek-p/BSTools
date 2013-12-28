@@ -444,7 +444,9 @@ boolean GeomObjectWriteBezierCurve ( GO_BezierCurve *obj )
 {
   return bsf_WriteBezierCurved ( obj->me.spdimen, obj->me.cpdimen,
                                  obj->rational, obj->degree,
-                                 obj->cpoints, obj->mkcp, obj->me.name );
+                                 obj->cpoints, obj->mkcp, obj->me.name,
+                                 (bsf_WriteAttr_fptr)bsf_WriteColour,
+                                 (void*)obj->me.colour );
 } /*GeomObjectWriteBezierCurve*/
 
 void GeomObjectReadBezierCurve ( void *usrdata,

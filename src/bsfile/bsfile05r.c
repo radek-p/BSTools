@@ -113,6 +113,12 @@ case BSF_SYMB_RATIONAL:
       *rational = true;
       break;
 
+case BSF_SYMB_COLOR:
+case BSF_SYMB_COLOUR:
+      if ( !_bsf_ReadColour ( bsf_current_readers ) )
+        goto failure;
+      break;
+
 default:
       goto failure;
     }

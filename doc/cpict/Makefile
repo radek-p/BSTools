@@ -15,7 +15,7 @@ G1DIR = ../../src/projects
 
 include ../../options.mak
 
-LIBS = -lraybez -lcamera -lbsfile -lbsmesh -leghole -lmultibs \
+LIBS = -lraybez -lbsfile -lcamera -lbsmesh -leghole -lmultibs \
   -lpsout -lpkgeom -lpknum -lpkvaria -lm
 
 SOURCES = memory.c memshift.c knotrem.c bsapprox.c oslo.c degel.c \

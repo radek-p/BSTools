@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2009                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2009, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -21,6 +21,14 @@
 #include "camerad.h"
 #include "multibs.h"
 #include "bsfile.h"
+
+int bsf_current_indentation = 0;
+
+void bsf_WriteCurrentIndentation ( void )
+{
+  if ( bsf_current_indentation > 0 )
+    fprintf ( bsf_output, "%*s", bsf_current_indentation, "" );
+} /*bsf_WriteCurrentIndentation*/
 
 void bsf_WritePointd ( int spdimen, const double *point )
 {

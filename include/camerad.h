@@ -58,7 +58,7 @@ extern "C" {
 
 
 typedef struct CameraRecd {
-      /* Data initialised before calling the SetCamera procedure */
+      /* Data initialised before calling the CameraSetMappingd procedure */
   boolean  parallel;        /* if false, a perspective projection.  */
   boolean  upside;          /* if true, upside down.                */
   boolean  c_fixed;         /* if true, then centre is fixed in the */
@@ -73,15 +73,6 @@ typedef struct CameraRecd {
   double   psi, theta, phi; /* Euler angles of the camera.          */
   point3d  g_centre;        /* centre of camera rotations in global */
   point3d  c_centre;        /* and scaled camera coordinates.       */
-
-  double   xscale, yscale;  /* scaling of axes between the   */
-                            /* camera and image coordinates. */
-  trans3d  CTr;             /* affine transformation to the  */
-                            /* scaled camera coordinates.    */
-  trans3d  CTrInv;          /* inversion of CTr.             */
-  char     ncplanes;        /* number of clipping planes.    */
-  vector4d cplane[6];       /* clipping planes               */
-                            /* currently only 4 of them are used */
   double   zmin, zmax;      /* depth range.                  */
   union {
     struct {
@@ -90,11 +81,20 @@ typedef struct CameraRecd {
       double dxi0, deta0;   /* additional shifts in x and y. */
     } persp;
     struct {
-      double   wdt, hgh, diag; /* dimensions of the frame in space */
-      boolean dim_case;
+      double wdt, hgh, diag; /* dimensions of the frame in space */
+      char   dim_case;
     } para;
   } vd;                     /* variant data for perspective  */
                             /* and parallel projections      */
+      /* Data computed from the above and the union below */
+  double   xscale, yscale;  /* scaling of axes between the   */
+                            /* camera and image coordinates. */
+  trans3d  CTr;             /* affine transformation to the  */
+                            /* scaled camera coordinates.    */
+  trans3d  CTrInv;          /* inversion of CTr.             */
+  char     ncplanes;        /* number of clipping planes.    */
+  vector4d cplane[6];       /* clipping planes               */
+                            /* currently only 4 of them are used */
 } CameraRecd;
 
 

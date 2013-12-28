@@ -21,6 +21,7 @@
 #include "pkvaria.h"
 #include "pknum.h"
 #include "pkgeom.h"
+#include "camera.h"
 #include "multibs.h"
 #include "eg2holed.h"  
 #include "bsmesh.h"

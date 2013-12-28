@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2009, 2010                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2009, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -25,7 +25,8 @@
 boolean bsf_WriteBezierPatchd ( int spdimen, int cpdimen, boolean rational,
                                 int udeg, int vdeg,
                                 int pitch, const double *cpoints, const byte *mk,
-                                const char *name )
+                                const char *name,
+                                bsf_WriteAttr_fptr WriteAttr, void *userData )
 {
   fprintf ( bsf_output, "%s\n", "%Bezier patch" );
   fprintf ( bsf_output, "%s {\n", bsf_keyword[BSF_SYMB_BPATCH-BSF_FIRST_KEYWORD] );
@@ -38,6 +39,11 @@ boolean bsf_WriteBezierPatchd ( int spdimen, int cpdimen, boolean rational,
   bsf_WritePointsd ( cpdimen, udeg+1, vdeg+1, pitch, cpoints );
   if ( mk )
     bsf_WritePointsMK ( (udeg+1)*(vdeg+1), mk );
+  if ( WriteAttr ) {
+    bsf_current_indentation = 2;
+    WriteAttr ( userData );
+    bsf_current_indentation = 0;
+  }
   fprintf ( bsf_output, "}\n\n" );
   return true;
 } /*bsf_WriteBezierPatchd*/

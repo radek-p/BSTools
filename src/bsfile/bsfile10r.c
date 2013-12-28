@@ -9,10 +9,11 @@
 /* ///////////////////////////////////////////////////////////////////////// */
 /* changes:                                                                  */
 /* 22.07.2013, R. Putanowicz - static pointers to application reading        */
-/*   procedures replaced by pointers in a bsf_UserReaders structure passed   */ 
+/*   procedures replaced by pointers in a bsf_UserReaders structure passed   */
 /*   by a parameter to the reading procedure.                                */
 /* 24.07.2013, P. Kiciak - changes related with integration of the above     */
-/*   with the package.                                                       */  
+/*   with the package.                                                       */
+/* 27.12.2013, P. Kiciak - adding procedures reading colours and cameras.    */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,6 +30,11 @@
 #include "egholed.h"
 #include "bsmesh.h"
 #include "bsfile.h"
+
+/* ////////////////////////////////////////////////////////////////////////// */
+/* I wanted to avoid declaring this global variable, but alternatives */
+/* are worse. Applications need not be bothered with its existence. */
+bsf_UserReaders *bsf_current_readers = NULL;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static boolean _bsf_ReadBCurve ( bsf_UserReaders *readers )
@@ -49,9 +55,11 @@ static boolean _bsf_ReadBCurve ( bsf_UserReaders *readers )
   if ( !bsf_ReadBezierCurve4d ( readers->bc_maxdeg, &degree, cp,
                                 &spdimen, &rational, mk, name ) )
     goto failure;
-  if ( readers->BezierCurveReader )
-    (readers->BezierCurveReader)( readers->userData, name, degree, cp,
-                                  spdimen, rational, mk );
+  if ( readers ) {
+    if ( readers->BezierCurveReader )
+      readers->BezierCurveReader ( readers->userData, name, degree, cp,
+                                   spdimen, rational, mk );
+  }
   pkv_SetScratchMemTop ( sp );
   return true;
 
@@ -79,9 +87,11 @@ static boolean _bsf_ReadBPatch ( bsf_UserReaders *readers )
   if ( !bsf_ReadBezierPatch4d ( maxdeg, &udeg, &vdeg, &pitch, cp,
                                 &spdimen, &rational, mk, name ) )
     goto failure;
-  if ( readers->BezierPatchReader )
-    (readers->BezierPatchReader)( readers->userData, name, udeg, vdeg, 
-                                  pitch, cp, spdimen, rational, mk );
+  if ( readers ) {
+    if ( readers->BezierPatchReader )
+      readers->BezierPatchReader ( readers->userData, name, udeg, vdeg, 
+                                   pitch, cp, spdimen, rational, mk );
+  }
   pkv_SetScratchMemTop ( sp );
   return true;
 
@@ -113,9 +123,11 @@ static boolean _bsf_ReadBSCurve ( bsf_UserReaders *readers )
                                  &degree, &lastknot, knots, &closed, cp,
                                  &spdimen, &rational, mk, name ) )
     goto failure;
-  if ( readers->BSplineCurveReader )
-    (readers->BSplineCurveReader)( readers->userData, name, degree, lastknot,
-                                   knots, closed, cp, spdimen, rational, mk );
+  if ( readers ) {
+    if ( readers->BSplineCurveReader )
+      readers->BSplineCurveReader ( readers->userData, name, degree, lastknot,
+                                    knots, closed, cp, spdimen, rational, mk );
+  }
   pkv_SetScratchMemTop ( sp );
   return true;
 
@@ -151,10 +163,12 @@ static boolean _bsf_ReadBSPatch ( bsf_UserReaders *readers )
                                  &closed_u, &closed_v, &pitch, cp,
                                  &spdimen, &rational, mk, name ) )
     goto failure;
-  if ( readers->BSplinePatchReader )
-    (readers->BSplinePatchReader)( readers->userData,
+  if ( readers ) {
+    if ( readers->BSplinePatchReader )
+      readers->BSplinePatchReader ( readers->userData,
                name, udeg, lastknotu, knotsu, vdeg, lastknotv, knotsv,
                closed_u, closed_v, pitch, cp, spdimen, rational, mk );
+  }
   pkv_SetScratchMemTop ( sp );
   return true;
 
@@ -195,10 +209,12 @@ static boolean _bsf_ReadBSMesh ( bsf_UserReaders *readers )
                            &nhe, mhe, &nfac, mfac, mfhei, &spdimen, &rational,
                            mkv, name ) )
     goto failure;
-  if ( readers->BSMeshReader )
-    (readers->BSMeshReader)( readers->userData, name, degree, nv, mv, mvhei, 
-                             vc, nhe, mhe, nfac, mfac, mfhei,
-                             spdimen, rational, mkv );
+  if ( readers ) {
+    if ( readers->BSMeshReader )
+      readers->BSMeshReader ( readers->userData, name, degree, nv, mv, mvhei, 
+                              vc, nhe, mhe, nfac, mfac, mfhei,
+                              spdimen, rational, mkv );
+  }
   pkv_SetScratchMemTop ( sp );
   return true;
 
@@ -229,9 +245,11 @@ static boolean _bsf_ReadBSHole ( bsf_UserReaders *readers )
   if ( !bsf_ReadBSplineHoled ( GH_MAX_K, &hole_k, knots, domcp, holecp,
                                &spdimen, &rational, mk, name ) )
     goto failure;
-  if ( readers->BSplineHoleReader )
-    (readers->BSplineHoleReader)( readers->userData, name, hole_k, knots, 
-                                  domcp, holecp, spdimen, rational, mk );
+  if ( readers ) {
+    if ( readers->BSplineHoleReader )
+      readers->BSplineHoleReader ( readers->userData, name, hole_k, knots, 
+                                   domcp, holecp, spdimen, rational, mk );
+  }
   pkv_SetScratchMemTop ( sp );
   return true;
 
@@ -240,45 +258,103 @@ failure:
   return false;
 } /*_bsf_ReadBSHole*/
 
+boolean _bsf_ReadColour ( bsf_UserReaders *readers )
+{
+  point3d colour;
+
+  if ( !bsf_ReadColour ( &colour ) )
+    return false;
+  if ( readers ) {
+    if ( readers->ColourReader )
+      readers->ColourReader ( readers->userData, &colour );
+  }
+  return true;
+} /*_bsf_ReadColour*/
+
+static boolean _bsf_ReadCamera ( bsf_UserReaders *readers )
+{
+  CameraRecd Camera;
+
+  if ( !bsf_ReadCamera ( &Camera ) )
+    return false;
+  if ( readers ) {
+    if ( readers->CameraReader )
+      readers->CameraReader ( readers->userData, &Camera );
+  }
+  return true;
+} /*_bsf_ReadCamera*/
+
 /* procedure of reading an entire file; for each item the application */
 /* routine is called in order to enter the data into the application */
 /* data structures */
-boolean bsf_ReadBSFiled ( const char *filename, bsf_UserReaders *readers)
+boolean bsf_ReadBSFiled ( const char *filename, bsf_UserReaders *readers )
 {
   void    *sp;
+  boolean signal_end;
 
   sp = pkv_GetScratchMemTop ();
   if ( !bsf_OpenInputFile ( filename ) )
     return false;
+  bsf_current_readers = readers;  /* if NULL, then all the input */
+                                  /* will be ignored */
   for (;;) {
+    signal_end = false;
+    if ( readers ) {
+      if ( readers->BeginReader ) {
+        switch ( bsf_nextsymbol ) {
+    case BSF_SYMB_BCURVE:
+    case BSF_SYMB_BPATCH:
+    case BSF_SYMB_BSCURVE:
+    case BSF_SYMB_BSPATCH:
+    case BSF_SYMB_BSMESH:
+    case BSF_SYMB_BSHOLE:
+          readers->BeginReader ( readers->userData, bsf_nextsymbol );
+          signal_end = true;
+          break;
+    default:
+          break;
+        }
+      }
+    }
     switch ( bsf_nextsymbol ) {
 case BSF_SYMB_BCURVE:
-      if ( !_bsf_ReadBCurve (readers) )
+      if ( !_bsf_ReadBCurve ( readers ) )
         goto failure;
       break;
 
 case BSF_SYMB_BPATCH:
-      if ( !_bsf_ReadBPatch (readers) )
+      if ( !_bsf_ReadBPatch ( readers ) )
         goto failure;
       break;
 
 case BSF_SYMB_BSCURVE:
-      if ( !_bsf_ReadBSCurve (readers) )
+      if ( !_bsf_ReadBSCurve ( readers ) )
         goto failure;
       break;
 
 case BSF_SYMB_BSPATCH:
-      if ( !_bsf_ReadBSPatch (readers) )
+      if ( !_bsf_ReadBSPatch ( readers ) )
         goto failure;
       break;
 
 case BSF_SYMB_BSMESH:
-      if ( !_bsf_ReadBSMesh (readers) )
+      if ( !_bsf_ReadBSMesh ( readers ) )
         goto failure;
       break;
 
 case BSF_SYMB_BSHOLE:
-      if ( !_bsf_ReadBSHole (readers) )
+      if ( !_bsf_ReadBSHole ( readers ) )
+        goto failure;
+      break;
+
+case BSF_SYMB_COLOR:
+case BSF_SYMB_COLOUR:
+      if ( !_bsf_ReadColour ( readers ) )
+        goto failure;
+      break;
+
+case BSF_SYMB_CAMERA:
+      if ( !_bsf_ReadCamera ( readers ) )
         goto failure;
       break;
 
@@ -288,14 +364,21 @@ case BSF_SYMB_EOF:
 default:
       goto failure;
     }
+    if ( signal_end && readers->EndReader )
+      readers->EndReader ( readers->userData, true );
   }
+
 finish:
   bsf_CloseInputFile ();
+  bsf_current_readers = NULL;
   pkv_SetScratchMemTop ( sp );
   return true;
 
 failure:
+  if ( signal_end && readers->EndReader )
+    readers->EndReader ( readers->userData, false );
   bsf_CloseInputFile ();
+  bsf_current_readers = NULL;
   pkv_SetScratchMemTop ( sp );
   return false;
 } /*bsf_ReadBSFiled*/
@@ -303,16 +386,20 @@ failure:
 void bsf_ClearReaders ( bsf_UserReaders *readers )
 {
   if ( readers ) {
+    readers->BeginReader = NULL;
+    readers->EndReader = NULL;
     readers->BezierCurveReader = NULL;
     readers->BSplineCurveReader = NULL;
     readers->BezierPatchReader = NULL;
     readers->BSplinePatchReader = NULL;
     readers->BSMeshReader = NULL;
     readers->BSplineHoleReader = NULL;
+    readers->CameraReader = NULL;
+    readers->ColourReader = NULL;
 /*
     if ( readers->userData ) {
       fprintf(stderr, 
-         "Warning -- pointer to use data will be lost (bsf_ClearReaders())\n");
+         "Warning -- pointer to user data will be lost (bsf_ClearReaders())\n");
     } 
 */
     readers->userData = NULL;
@@ -328,6 +415,18 @@ void bsf_ClearReaders ( bsf_UserReaders *readers )
     readers->bsm_maxnfac = 1000;
   }
 } /*bsf_ClearReaders*/
+
+void bsf_BeginReadingFuncd ( bsf_UserReaders *readers,
+                             bsf_BeginRead_fptr BeginReader )
+{
+  readers->BeginReader = BeginReader;
+} /*bsf_BeginReadingFuncd*/
+
+void bsf_EndReadingFuncd ( bsf_UserReaders *readers,
+                           bsf_EndRead_fptr EndReader )
+{
+  readers->EndReader = EndReader;
+} /*bsf_EndReadingFuncd*/
 
 void bsf_BC4ReadFuncd ( bsf_UserReaders *readers, bsf_BC_fptr BCReader,
                         int maxdeg )
@@ -373,4 +472,16 @@ void bsf_BSH4ReadFuncd ( bsf_UserReaders *readers, bsf_BSH_fptr BSHReader )
 {
   readers->BSplineHoleReader = BSHReader;
 } /*bsf_BSH4ReadFuncd*/
+
+void bsf_CameraReadFuncd ( bsf_UserReaders *readers,
+                           bsf_Camera_fptr CameraReader )
+{
+  readers->CameraReader = CameraReader;
+} /*bsf_CameraReadFuncd*/
+
+void bsf_ColourReadFuncd ( bsf_UserReaders *readers,
+                           bsf_Colour_fptr ColourReader )
+{
+  readers->ColourReader = ColourReader;
+} /*bsf_ColourReadFuncd*/
 

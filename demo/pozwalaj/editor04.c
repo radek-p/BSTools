@@ -54,6 +54,7 @@ void GeomObjectDumpBezierPatch ( int spdim, int cpdim, boolean rational,
                                  int udeg, int vdeg, const double *cp )
 {
   bsf_WriteBezierPatchd ( spdim, cpdim, rational,
-                          udeg, vdeg, cpdim*(vdeg+1), cp, NULL, "" );
+                          udeg, vdeg, cpdim*(vdeg+1), cp, NULL, "",
+                          NULL, NULL );
 } /*GeomObjectDumpBezierPatch*/
 

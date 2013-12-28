@@ -3,7 +3,7 @@
 # This file is a part of the BSTools package
 # written by Przemyslaw Kiciak
 # /////////////////////////////////////////////////////////////////////
-# (C) Copyright by Przemyslaw Kiciak, 2009, 2010
+# (C) Copyright by Przemyslaw Kiciak, 2009, 2013
 # this package is distributed under the terms of the
 # Lesser GNU Public License, see the file COPYING.LIB
 # /////////////////////////////////////////////////////////////////////
@@ -19,12 +19,14 @@ OBJECTS = $(SRCDIR)/bsfile00r.o \
   $(SRCDIR)/bsfile01r.o $(SRCDIR)/bsfile02r.o $(SRCDIR)/bsfile03r.o \
   $(SRCDIR)/bsfile04r.o $(SRCDIR)/bsfile05r.o $(SRCDIR)/bsfile06r.o \
   $(SRCDIR)/bsfile07r.o $(SRCDIR)/bsfile08r.o $(SRCDIR)/bsfile09r.o \
-  $(SRCDIR)/bsfile10r.o $(SRCDIR)/bsfile11r.o \
+  $(SRCDIR)/bsfile10r.o $(SRCDIR)/bsfile11r.o $(SRCDIR)/bsfile12r.o \
+  $(SRCDIR)/bsfile13r.o \
   $(SRCDIR)/bsfile00w.o \
   $(SRCDIR)/bsfile01w.o $(SRCDIR)/bsfile02w.o $(SRCDIR)/bsfile03w.o \
   $(SRCDIR)/bsfile04w.o $(SRCDIR)/bsfile05w.o $(SRCDIR)/bsfile06w.o \
   $(SRCDIR)/bsfile07w.o $(SRCDIR)/bsfile08w.o $(SRCDIR)/bsfile09w.o \
-  $(SRCDIR)/bsfile10w.o $(SRCDIR)/bsfile11w.o
+  $(SRCDIR)/bsfile10w.o $(SRCDIR)/bsfile11w.o $(SRCDIR)/bsfile12w.o \
+  $(SRCDIR)/bsfile13w.o
 
 TARGET = $(LIBDIR)/libbsfile.a
 
@@ -60,6 +62,10 @@ $(SRCDIR)/bsfile10r.o: $(SRCDIR)/bsfile10r.c $(INCDIR)/bsfile.h
 
 $(SRCDIR)/bsfile11r.o: $(SRCDIR)/bsfile11r.c $(INCDIR)/bsfile.h
 
+$(SRCDIR)/bsfile12r.o: $(SRCDIR)/bsfile12r.c $(INCDIR)/bsfile.h
+
+$(SRCDIR)/bsfile13r.o: $(SRCDIR)/bsfile13r.c $(INCDIR)/bsfile.h
+
 $(SRCDIR)/bsfile00w.o: $(SRCDIR)/bsfile00w.c $(INCDIR)/bsfile.h
 
 $(SRCDIR)/bsfile01w.o: $(SRCDIR)/bsfile01w.c $(INCDIR)/bsfile.h
@@ -83,6 +89,10 @@ $(SRCDIR)/bsfile09w.o: $(SRCDIR)/bsfile09w.c $(INCDIR)/bsfile.h
 $(SRCDIR)/bsfile10w.o: $(SRCDIR)/bsfile10w.c $(INCDIR)/bsfile.h
 
 $(SRCDIR)/bsfile11w.o: $(SRCDIR)/bsfile11w.c $(INCDIR)/bsfile.h
+
+$(SRCDIR)/bsfile12w.o: $(SRCDIR)/bsfile12w.c $(INCDIR)/bsfile.h
+
+$(SRCDIR)/bsfile13w.o: $(SRCDIR)/bsfile13w.c $(INCDIR)/bsfile.h
 
 clean:
 	rm -f $(OBJECTS)

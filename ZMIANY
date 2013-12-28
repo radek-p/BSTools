@@ -3499,4 +3499,23 @@ Wersja 0.33.
     parametrami - nazwami plikow z danymi, ktore trzeba przeczytac na
     poczatek.
 
+9.12.2103
+819. Zmiana w procedurze pkn_NLMIterf - modyfikacja wartosci powrotnej.
+
+27.12.2013.
+820. Zmiany w bibliotece libbsfile: mozna z kazda krzywa i powierzchnia
+    zapisywac dodatkowe atrybuty i mozna je takze czytac (ale mozna ich nie
+    zapisywac lub, czytajac plik, zignorowac). Na razie jedynym takim
+    atrybutem jest kolor, tj. skladowe RGB.
+
+821. Zmiany w plikach naglowkowych cameraf.h i camerad.h - uporzadkowanie
+    (przez przestawienie) pol struktur CameraRecf i CameraRecd.
+
+822. Zmiany w bibliotece libbsfile: mozna w pliku zapisac, i odczytac,
+    kamere.
+
+823. Konieczne zmiany w aplikacjach (programach demonstracyjnych), w zwiazku
+    ze zmianami naglowkow niektorych procedur w bibliotece libbsfile.
+    Program pozwalaj zapisuje i czyta kolory krzywych i powierzchni.
+
 

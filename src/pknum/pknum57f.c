@@ -180,7 +180,7 @@ int pkn_NLMIterf ( int n, void *usrdata, float *x,
   float   gn, gna, incn, incne, df, dq, rk, lmin, lmax;
   float   ga, gb, gc, gd, ge, fga, fgb, fgc, fgd, fge, fm;
   int     i;
-  boolean went_out;
+  boolean positive, went_out;
   int     result;
 
 #define LMFUNC(nu) \
@@ -231,7 +231,8 @@ int pkn_NLMIterf ( int n, void *usrdata, float *x,
   gn = sqrt ( pkn_ScalarProductf ( n, grad, grad ) );
         /* try to decompose the Hessian */
   memcpy ( lhess, hess, ((n*(n+1))/2)*sizeof(float) );
-  if ( !pkn_CholeskyDecompf ( n, lhess ) ) {
+  positive = pkn_CholeskyDecompf ( n, lhess );
+  if ( !positive ) {
     if ( gn < eps ) {
       result = PKN_LMT_FOUND_ZEROGRAD;
       goto way_out;
@@ -325,7 +326,7 @@ int pkn_NLMIterf ( int n, void *usrdata, float *x,
 
 lm_trajectory:
         /* minimization along the Levenberg-Marquardt trajectory */
-  result = PKN_LMT_CONTINUE_LM;
+  result = positive ? PKN_LMT_CONTINUE_LM_P : PKN_LMT_CONTINUE_LM;
   ga = 0.0;              fga = MYINFINITY;
   gb = ge = MYINFINITY;  fgb = fge = f;
   memcpy ( minx, x, n*sizeof(float) );

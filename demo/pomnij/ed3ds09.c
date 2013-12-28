@@ -45,7 +45,7 @@ boolean SaveBSPatch ( char *filename )
                              degree_v, lastknot_v, knots_v,
                              kwind.closed_u, kwind.closed_v,
                              4*(lastknot_v-degree_v), &cpoints[0].x,
-                             mkpoints, NULL );
+                             mkpoints, NULL, NULL, NULL );
     bsf_CloseOutputFile ();
     return true;
   }

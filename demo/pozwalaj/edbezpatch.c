@@ -491,7 +491,9 @@ boolean GeomObjectWriteBezierPatch ( GO_BezierPatch *obj )
   return bsf_WriteBezierPatchd ( obj->me.spdimen, obj->me.cpdimen,
                                  obj->rational, obj->degree_u, obj->degree_v,
                                  obj->me.cpdimen*(obj->degree_v+1),
-                                 obj->cpoints, obj->mkcp, obj->me.name );
+                                 obj->cpoints, obj->mkcp, obj->me.name,
+                                 (bsf_WriteAttr_fptr)bsf_WriteColour,
+                                 (void*)obj->me.colour );
 } /*GeomObjectWriteBezierPatch*/
 
 void GeomObjectReadBezierPatch ( void *usrdata,

@@ -852,7 +852,9 @@ boolean GeomObjectWriteBSplineCurve ( GO_BSplineCurve *obj )
   return bsf_WriteBSplineCurved ( obj->me.spdimen, obj->me.cpdimen,
                                   obj->rational, obj->degree,
                                   obj->lastknot, obj->knots, obj->closed,
-                                  obj->cpoints, obj->mkcp, obj->me.name );
+                                  obj->cpoints, obj->mkcp, obj->me.name,
+                                  (bsf_WriteAttr_fptr)bsf_WriteColour,
+                                  (void*)obj->me.colour );
 } /*GeomObjectWriteBSplineCurve*/
 
 void GeomObjectReadBSplineCurve ( void *usrdata,

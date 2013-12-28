@@ -58,7 +58,7 @@ extern "C" {
 
 
 typedef struct CameraRecf {
-      /* Data initialised before calling the SetCamera procedure */
+      /* Data initialised before calling the CameraSetMappingf procedure */
   boolean  parallel;        /* if false, a perspective projection.  */
   boolean  upside;          /* if true, upside down.                */
   boolean  c_fixed;         /* if true, then centre is fixed in the */
@@ -73,15 +73,6 @@ typedef struct CameraRecf {
   float    psi, theta, phi; /* Euler angles of the camera.          */
   point3f  g_centre;        /* centre of camera rotations in global */
   point3f  c_centre;        /* and scaled camera coordinates.       */
-
-  float    xscale, yscale;  /* scaling of axes between the   */
-                            /* camera and image coordinates. */
-  trans3f  CTr;             /* affine transformation to the  */
-                            /* scaled camera coordinates.    */
-  trans3f  CTrInv;          /* inversion of CTr.             */
-  char     ncplanes;        /* number of clipping planes.    */
-  vector4f cplane[6];       /* clipping planes               */
-                            /* currently only 4 of them are used */
   float    zmin, zmax;      /* depth range.                  */
   union {
     struct {
@@ -90,11 +81,20 @@ typedef struct CameraRecf {
       float dxi0, deta0;    /* additional shifts in x and y. */
     } persp;
     struct {
-      float   wdt, hgh, diag; /* dimensions of the frame in space */
-      boolean dim_case;
+      float wdt, hgh, diag; /* dimensions of the frame in space */
+      char  dim_case;
     } para;
   } vd;                     /* variant data for perspective  */
                             /* and parallel projections      */
+      /* Data computed from the above */
+  float    xscale, yscale;  /* scaling of axes between the   */
+                            /* camera and image coordinates. */
+  trans3f  CTr;             /* affine transformation to the  */
+                            /* scaled camera coordinates.    */
+  trans3f  CTrInv;          /* inversion of CTr.             */
+  char     ncplanes;        /* number of clipping planes.    */
+  vector4f cplane[6];       /* clipping planes               */
+                            /* currently only 4 of them are used */
 } CameraRecf;
 
 

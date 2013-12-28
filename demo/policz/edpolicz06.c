@@ -101,7 +101,8 @@ void SaveFile ( const char *fn )
   if ( strcmp ( file_ext, &filename[lfn-lex]) )
     strcpy ( &filename[lfn], file_ext );
   if ( bsf_OpenOutputFile ( filename, false ) ) {
-    bsf_WriteBSplineHoled ( hole_k, knots, domain_cp, hole_cp, mkhcp, NULL );
+    bsf_WriteBSplineHoled ( hole_k, knots, domain_cp, hole_cp, mkhcp, NULL,
+                            NULL, NULL );
     bsf_CloseOutputFile ();
     return;
   }

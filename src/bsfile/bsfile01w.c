@@ -63,7 +63,7 @@ void bsf_WriteDoubleNumber ( double x )
 trunc_fract:
     while ( *e == '0' && *(e+1) )
       DeleteChar ( e );
-                           /* delete trailing zerow of the fractional part */
+                           /* delete trailing zeros of the fractional part */
     e = FindChar ( 'e', s )-1;
     while ( *e == '0' )
       DeleteChar ( e-- );
@@ -74,7 +74,7 @@ trunc_fract:
     if ( d-s < 14 )       /* truncate the fractional part */
       s[15] = 0;
                           /* delete trailing zeros */
-    l = strlen ( s )-1;
+    l = strlen ( s ) - 1;
     while ( s[l] == '0' && s[l-1] != '.' )
       s[l--] = 0;
   }
@@ -83,4 +83,18 @@ trunc_fract:
 #undef UX
 #undef EPS
 } /*bsf_WriteDoubleNumber*/
+
+void bsf_WriteAltDoubleNumber ( double x, int nzf )
+{
+  char s[50];
+  int  l;
+
+  if ( nzf > 47 ) nzf = 47; else if ( nzf < 1 ) nzf = 1;
+  sprintf ( s, "%*.*f", nzf+2, nzf, x );
+                          /* delete trailing zeros */
+  l = strlen ( s ) - 1;
+  while ( s[l] == '0' && s[l-1] != '.' )
+    s[l--] = 0;
+  fprintf ( bsf_output, "%s", s );
+} /*bsf_WriteAltDoubleNumber*/
 

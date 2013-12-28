@@ -43,7 +43,9 @@ boolean GeomObjectWriteBSplinePatch ( GO_BSplinePatch *obj )
                obj->degree_u, obj->lastknot_u, obj->knots_u,
                obj->degree_v, obj->lastknot_v, obj->knots_v,
                obj->closed_u, obj->closed_v,
-               pitch, obj->cpoints, obj->mkcp, obj->me.name );
+               pitch, obj->cpoints, obj->mkcp, obj->me.name,
+               (bsf_WriteAttr_fptr)bsf_WriteColour,
+               (void*)obj->me.colour );
 } /*GeomObjectWriteBSplinePatch*/
 
 void GeomObjectReadBSplinePatch ( void *usrdata,

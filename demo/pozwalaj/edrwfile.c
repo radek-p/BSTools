@@ -37,13 +37,50 @@
 #include "editor_bsh.h"
 
 /* ////////////////////////////////////////////////////////////////////////// */
+void GeomObjectBeginReading ( void *usrdata, int obj_type )
+{
+  rw_object_attributes *attrib;
+
+      /* initialise the attributes to default values */
+  attrib = (rw_object_attributes*)usrdata;
+        /* colour: */
+  attrib->colour[0] = attrib->colour[1] = 1.0;
+  attrib->colour[2] = 0.0;
+        /* others - in future */
+} /*GeomObjectBeginReading*/
+
+void GeomObjectEndReading ( void *usrdata, boolean success )
+{
+  rw_object_attributes *attrib;
+
+  if ( success ) {
+      /* the object has been read in, it is the last in the list, */
+      /* assign the attributes */
+    attrib = (rw_object_attributes*)usrdata;
+        /* colour */
+    memcpy ( last_go->colour, attrib->colour, 3*sizeof(double) );
+        /* others - in future */
+  }
+} /*GeomObjectEndReading*/
+
+void GeomObjectReadColour ( void *usrdata, point3d *colour )
+{
+  rw_object_attributes *attrib;
+
+  attrib = (rw_object_attributes*)usrdata;
+  memcpy ( attrib->colour, colour, 3*sizeof(double) );
+} /*GeomObjectReadColour*/
 
 boolean GeomObjectReadFile ( char *filename )
 {
-  bsf_UserReaders readers;
+  bsf_UserReaders      readers;
+  rw_object_attributes attrib;
 
         /* register procedures entering the objects read in */
   bsf_ClearReaders ( &readers );
+  readers.userData = (void*)&attrib;
+  bsf_BeginReadingFuncd ( &readers, GeomObjectBeginReading );
+  bsf_EndReadingFuncd ( &readers, GeomObjectEndReading );
   bsf_BC4ReadFuncd  ( &readers, GeomObjectReadBezierCurve, MAX_DEGREE );
   bsf_BSC4ReadFuncd ( &readers, GeomObjectReadBSplineCurve,
                       MAX_DEGREE, MAX_BSC_KNOTS-1 );
@@ -53,6 +90,7 @@ boolean GeomObjectReadFile ( char *filename )
   bsf_BSM4ReadFuncd ( &readers, GeomObjectReadBSplineMesh, MAX_DEGREE,
                       MAX_BSM_NV, MAX_BSM_NHE, MAX_BSM_NFAC );
   bsf_BSH4ReadFuncd ( &readers, GeomObjectReadBSplineHole );
+  bsf_ColourReadFuncd ( &readers, GeomObjectReadColour );
         /* read the file */
   return bsf_ReadBSFiled ( filename, &readers );
 } /*GeomObjectReadFile*/

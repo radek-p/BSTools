@@ -39,7 +39,9 @@ boolean GeomObjectWriteBSplineMesh ( GO_BSplineMesh *obj )
   return bsf_WriteBSMeshd ( obj->me.spdimen, obj->me.cpdimen, obj->rational,
                   obj->degree, obj->nv, obj->meshv, obj->meshvhei, obj->meshvpc,
                   obj->nhe, obj->meshhe, obj->nfac, obj->meshfac, obj->meshfhei,
-                  obj->mkcp, obj->me.name );
+                  obj->mkcp, obj->me.name,
+                  (bsf_WriteAttr_fptr)bsf_WriteColour,
+                  (void*)obj->me.colour );
 } /*GeomObjectWriteBSplineMesh*/
 
 void GeomObjectReadBSplineMesh ( void *usrdata,

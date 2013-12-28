@@ -86,7 +86,7 @@ void WriteThePatch ( int spdimen, int udeg, int lastknotu, double *knotsu,
   if ( bsf_OpenOutputFile ( "pp.bs", false ) ) {
     bsf_WriteBSplinePatchd ( spdimen, spdimen, false, udeg, lastknotu, knotsu,
                              vdeg, lastknotv, knotsv, false, false,
-                             pitch, cpoints, NULL, NULL );
+                             pitch, cpoints, NULL, NULL, NULL, NULL );
     bsf_CloseOutputFile ();
     printf ( "%s\n", "pp.bs" );
   }
@@ -104,7 +104,7 @@ void WriteTheConstraints ( int spdimen, int nucknots, double *ucknots,
     for ( i = 0; i < nucknots; i++ )  
       bsf_WriteBSplineCurved ( spdimen, spdimen, false,
                                vdeg, lastknotv, knotsv, false,
-                               &cp[i*pitch], NULL, NULL );
+                               &cp[i*pitch], NULL, NULL, NULL, NULL );
     bsf_WriteComment ( "'u' knots of interpolation" );
     bsf_WriteKnotSequenced ( nucknots-1, ucknots, false );
     bsf_CloseOutputFile ();

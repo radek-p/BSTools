@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2009, 2010                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2009, 2013                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -25,7 +25,8 @@
 boolean bsf_WriteBSplineHoled ( int hole_k, const double *knots,
                                 const point2d *domain_cp,
                                 const point3d *hole_cp, const byte *mk,
-                                const char *name )
+                                const char *name,
+                                bsf_WriteAttr_fptr WriteAttr, void *userData )
 {
   int i;
 
@@ -50,6 +51,11 @@ boolean bsf_WriteBSplineHoled ( int hole_k, const double *knots,
   bsf_WritePointsd ( 3, 1, 12*hole_k+1, 0, &hole_cp[0].x );
   if ( mk )
     bsf_WritePointsMK ( 12*hole_k+1, mk );
+  if ( WriteAttr ) {
+    bsf_current_indentation = 2;
+    WriteAttr ( userData );
+    bsf_current_indentation = 0;
+  }
   fprintf ( bsf_output, "}\n\n" );
   return true;
 } /*bsf_WriteBSplineHoled*/
