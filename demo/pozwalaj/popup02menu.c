@@ -25,6 +25,7 @@
 #include "bsmesh.h"
 #include "g2blendingd.h"
 #include "egholed.h"
+#include "bsfile.h"
 #include "xgedit.h"
 #include "xgledit.h"
 
@@ -47,14 +48,26 @@ xge_widget *InitPopup02 ( void )
                           current_dir );
   w = xge_NewSwitch ( win0, w, swP02HIDDEN, 54, 16, 20+10, 40+30,
                       txtHidden, &showhiddenfiles );
-  w = xge_NewButton ( win0, w, btnP02SAVE, 58, 19, 20+91, 40+232-30, txtSave );
-  w = xge_NewButton ( win0, w, btnP02CANCEL, 58, 19, 20+251, 40+232-30, txtCancel );
+  w = xge_NewButton ( win0, w, btnP02SAVE, 58, 19, 20+91, 40+282-30, txtSave );
+  w = xge_NewButton ( win0, w, btnP02CANCEL, 58, 19, 20+251, 40+282-30, txtCancel );
   w = xge_NewListBox ( win0, w, lbP02DIRLIST, 180, 131, 20+10, 40+60, &dirlist2 );
   w = xge_NewListBox ( win0, w, lbP02FILELIST, 180, 131, 220+10, 40+60, &filelist2 );
   w = xge_NewTextWidget ( win0, w, 0, 42, 16, 220-44+10, 40+30, txtSaveAs );
   w = xge_NewStringEd ( win0, w, txtedP02FILENAME, 180, 19, 220+10, 40+30,
                         MAX_FILENAME_LGT, filename, &filename_editor );
-  menu = xge_NewFMenu ( win0, NULL, POPUP02, 400, 232, 20, 40, w );
+  w = xge_NewTextWidget ( win0, w, txtP02OBJECTSTOSAVE, 96, 16, 20+10, 40+200,
+                          txtObjectsToSave );
+  w = xge_NewSwitch ( win0, w, swP02ALL, 60, 16, 20+110, 40+200,
+                      txtAll, &sw_save_all );
+  w = xge_NewSwitch ( win0, w, swP02ACTIVE, 60, 16, 20+190, 40+200,
+                      txtActive, &sw_save_active );
+  w = xge_NewSwitch ( win0, w, swP02CURRENT, 60, 16, 20+270, 40+200,
+                      txtCurrent, &sw_save_current );
+  w = xge_NewSwitch ( win0, w, swP02CAMERA, 60, 16, 20+110, 40+220,
+                      txtCamera, &sw_save_camera );
+  w = xge_NewSwitch ( win0, w, swP02APPEND, 60, 16, 20+10, 40+282-30,
+                      txtAppend, &sw_save_append );
+  menu = xge_NewFMenu ( win0, NULL, POPUP02, 400, 282, 20, 40, w );
   menu->msgproc = xge_PopupMenuMsg;
   return menu;
 } /*InitPopup02*/
@@ -89,11 +102,25 @@ void Popup02ChangeDirAlt ( short x )
   }
 } /*Popup02ChangeDirAlt*/
 
+boolean WriteOtherData ( void *usrdata )
+{
+  if ( sw_save_camera )
+    return bsf_WriteCamera ( &g00win3D.CPos[3] );
+  else
+    return true;
+} /*WriteOtherData*/
+
 void Popup02SaveFile ( void )
 {
         /* this procedure may be called also from a button */
         /* in popup00 and popup03 */
-  if ( !GeomObjectWriteFile ( filename, false ) )
+  char opt;
+
+  if ( sw_save_active )       opt = GO_WRITE_ACTIVE;
+  else if ( sw_save_current ) opt = GO_WRITE_CURRENT;
+  else                        opt = GO_WRITE_ALL;
+  if ( !GeomObjectWriteFile ( filename, opt, WriteOtherData,
+                              NULL, sw_save_append ) )
     xge_DisplayErrorMessage ( ErrorMsgCannotSave, 0 );
 } /*Popup02SaveFile*/
 
@@ -121,8 +148,32 @@ case xgemsg_SWITCH_COMMAND:
     switch ( er->id ) {
   case swP02HIDDEN:
       PreparePopup02 ();
+      goto redraw_popup;
+  case swP02ALL:
+      if ( sw_save_all )
+        sw_save_active = sw_save_current = false;
+      else
+        { sw_save_active = true;  sw_save_current = false; }
+      goto redraw_popup;
+  case swP02ACTIVE:
+      if ( sw_save_active )
+        sw_save_current = sw_save_all = false;
+      else
+        { sw_save_current = true;  sw_save_all = false; }
+      goto redraw_popup;
+  case swP02CURRENT:
+      if ( sw_save_current )
+        sw_save_all = sw_save_active = false;
+      else
+        { sw_save_all = true;  sw_save_active = false; }
+      goto redraw_popup;
+redraw_popup:
       xge_SetClipping ( popup02 );
       popup02->redraw ( popup02, true );
+      return 1;
+  case swP02CAMERA:
+      return 1;
+  case swP02APPEND:
       return 1;
   default:
       return 0;

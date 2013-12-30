@@ -28,6 +28,7 @@
 #include "bsmesh.h"
 #include "g2blendingd.h"
 #include "egholed.h"
+#include "bsfile.h"
 #include "xgedit.h"
 #include "xgledit.h"
 #include "xgeipc.h"
@@ -116,7 +117,7 @@ boolean ProcessCMDLineParameters ( int argc, char *argv[] )
     sstr = strstr ( argv[i], file_ext );
     if ( sstr && !strcmp ( file_ext, sstr ) ) {
       strncpy ( filename, argv[i], MAX_FILENAME_LGT+1 );
-      if ( !GeomObjectReadFile ( filename ) ) {
+      if ( !GeomObjectReadFile ( filename, Popup01CameraReader ) ) {
         result = false;
         break;
       }

@@ -21,6 +21,7 @@
 #include "bsmesh.h"
 #include "camera.h"
 #include "raybezf.h"
+#include "bsfile.h"
 #include "xgedit.h"
 #include "xgledit.h"
 

@@ -24,6 +24,7 @@
 #include "bsmesh.h"
 #include "g2blendingd.h"
 #include "egholed.h"
+#include "bsfile.h"
 #include "xgedit.h"
 #include "xgledit.h"
 
@@ -95,6 +96,9 @@ double         side00fpsi = 0.0, side00ftheta = 0.0, side00fphi = 0.0;
 xge_string_ed  side00fparam_ed[7];
 char           side00fparam_str[7][MAX_PARAM_LGT+1] =
                { "", "", "", "", "", "", "" };
+  /* file saving options */
+boolean        sw_save_all = true, sw_save_active = false, sw_save_current = false,
+               sw_save_camera = false, sw_save_append = false;
 
 /* window 1 widgets and stuff */
 char            whichside10menu = SIDE10MENU_EDIT;

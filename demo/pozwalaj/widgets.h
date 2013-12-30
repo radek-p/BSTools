@@ -135,13 +135,19 @@
 
   /* Save file as popup */
 #define POPUP02                                9*MENUINC
-#define txtP02DIRSTR                         (POPUP02+1)
-#define btnP02SAVE                           (POPUP02+2)
-#define btnP02CANCEL                         (POPUP02+3)
-#define lbP02DIRLIST                         (POPUP02+4)
-#define lbP02FILELIST                        (POPUP02+5)
-#define txtedP02FILENAME                     (POPUP02+6)
-#define swP02HIDDEN                          (POPUP02+7)
+#define txtP02OBJECTSTOSAVE                 0
+#define txtP02DIRSTR                        (POPUP02+ 1)
+#define btnP02SAVE                          (POPUP02+ 2)
+#define btnP02CANCEL                        (POPUP02+ 3)
+#define lbP02DIRLIST                        (POPUP02+ 4)
+#define lbP02FILELIST                       (POPUP02+ 5)
+#define txtedP02FILENAME                    (POPUP02+ 6)
+#define swP02HIDDEN                         (POPUP02+ 7)
+#define swP02ALL                            (POPUP02+ 8)
+#define swP02ACTIVE                         (POPUP02+ 9)
+#define swP02CURRENT                        (POPUP02+10)
+#define swP02CAMERA                         (POPUP02+11)
+#define swP02APPEND                         (POPUP02+12)
 
   /* Exit popup */
 #define POPUP03                               10*MENUINC
@@ -420,6 +426,7 @@
 
 extern char txtNull[];
 extern char txtFile[];
+extern char txtObjects[];
 extern char txtEdit[];
 extern char txtTransform[];
 extern char txtPicture[];
@@ -441,7 +448,10 @@ extern char txtHidden[];
 extern char txtOpen[];
 extern char txtSave[];
 extern char txtSaveAs[];
-extern char txtObjects[];
+extern char txtObjectsToSave[];
+extern char txtAll[];
+extern char txtCurrent[];
+extern char txtAppend[];
 extern char txtOptions[];
 extern char txtView[];
 extern char txtData[];

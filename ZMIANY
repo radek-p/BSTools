@@ -3518,4 +3518,8 @@ Wersja 0.33.
     ze zmianami naglowkow niektorych procedur w bibliotece libbsfile.
     Program pozwalaj zapisuje i czyta kolory krzywych i powierzchni.
 
+30.12.2013.
+824. Zmiany w programie pozwalaj, umozliwiaja zapisywanie w plikach .bs
+    i czytanie kamery (perspektywicznej).
+
 

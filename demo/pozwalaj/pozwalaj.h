@@ -78,6 +78,10 @@ extern double         side00fpsi, side00ftheta, side00fphi;
 extern xge_string_ed  side00fparam_ed[7];
 extern char           side00fparam_str[7][MAX_PARAM_LGT+1];
 
+  /* file saving options */
+extern boolean        sw_save_all, sw_save_active, sw_save_current,
+                      sw_save_camera, sw_save_append;
+
 /* window 1 widgets and stuff */
 extern xge_widget     *top10menu, *side10menu, *bottom10menu, *geom10menu,
                       *geom10win,
@@ -295,12 +299,14 @@ int Popup00CallBack ( xge_widget *er, int msg, int key, short x, short y );
 xge_widget *InitPopup01 ( void );
 void Popup01ChangeDir ( void );
 void Popup01ChangeDirAlt ( short x );
+void Popup01CameraReader ( void *usrdata, CameraRecd *camera );
 void Popup01OpenFile ( void );
 int Popup01CallBack ( xge_widget *er, int msg, int key, short x, short y );
 
 xge_widget *InitPopup02 ( void );
 void Popup02ChangeDir ( void );
 void Popup02ChangeDirAlt ( short x );
+boolean WriteOtherData ( void *usrdata );
 void Popup02SaveFile ( void );
 int Popup02CallBack ( xge_widget *er, int msg, int key, short x, short y );
 

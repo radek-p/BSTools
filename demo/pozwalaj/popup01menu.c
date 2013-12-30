@@ -25,6 +25,7 @@
 #include "bsmesh.h"
 #include "g2blendingd.h"
 #include "egholed.h"
+#include "bsfile.h"
 #include "xgedit.h"
 #include "xgledit.h"
 
@@ -86,12 +87,30 @@ void Popup01ChangeDirAlt ( short x )
   }
 } /*Popup01ChangeDirAlt*/
 
+void Popup01CameraReader ( void *usrdata, CameraRecd *camera )
+{
+  if ( !camera->parallel ) {  /* now only the perspective camera */
+    g00win3D.CPos[4] = g00win3D.CPos[3];  /* save the last projection */
+    g00win3D.CPos[3].position = camera->position;
+    g00win3D.CPos[3].psi      = camera->psi;
+    g00win3D.CPos[3].theta    = camera->theta;
+    g00win3D.CPos[3].phi      = camera->phi;
+    g00win3D.CPos[3].zmin     = camera->zmin;
+    g00win3D.CPos[3].zmax     = camera->zmax;
+    g00win3D.CPos[3].vd.persp.f    = camera->vd.persp.f;
+    g00win3D.CPos[3].vd.persp.xi0  = camera->vd.persp.xi0;
+    g00win3D.CPos[3].vd.persp.eta0 = camera->vd.persp.eta0;
+    if ( !CameraSetMappingd ( &g00win3D.CPos[3] ) )
+      g00win3D.CPos[3] = g00win3D.CPos[4];  /* restore if wrong data */
+  }
+} /*Popup01CameraReader*/
+
 void Popup01OpenFile ( void )
 {
   geom_object *save_current;
 
   save_current = current_go;
-  if ( !GeomObjectReadFile ( filename ) )
+  if ( !GeomObjectReadFile ( filename, Popup01CameraReader ) )
     xge_DisplayErrorMessage ( ErrorMsgCannotOpen, 0 );
   if ( save_current )
     current_go = save_current;

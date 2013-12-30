@@ -185,6 +185,7 @@ case BSF_SYMB_PERSPECTIVE:  /* data for a perspective projection */
 
 case BSF_SYMB_RBRACE:  /* if everything has been read in, */
                        /* setup the camera and return */
+      bsf_GetNextSymbol ();
       if ( !frame || !pos || !orient || !projdata )
         goto failure;
                        /* default values for the other parameters are */
@@ -199,9 +200,9 @@ case BSF_SYMB_RBRACE:  /* if everything has been read in, */
         CameraSetDepthRanged ( Camera, depthrange.x, depthrange.y );
       CameraInitPosd ( Camera );
       Camera->position = position;
-      Camera->psi = angles.x;
+      Camera->psi   = angles.x;
       Camera->theta = angles.y;
-      Camera->phi = angles.z;
+      Camera->phi   = angles.z;
       if ( parallel ) {
         Camera->vd.para.wdt = wdt;
         Camera->vd.para.wdt = hgh;
@@ -214,8 +215,10 @@ case BSF_SYMB_RBRACE:  /* if everything has been read in, */
         Camera->vd.persp.eta0 = eta0;
         Camera->vd.persp.dxi0 = Camera->vd.persp.deta0 = 0.0;
       }
-      CameraSetMappingd ( Camera );
-      goto success;
+      if ( CameraSetMappingd ( Camera ) )
+        goto success;
+      else
+        goto failure;
 
 default:
       goto failure;

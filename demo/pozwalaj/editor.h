@@ -45,6 +45,12 @@
 /* masks for display lists - common to all types of objects */
 #define DLISTMASK_CPOINTS 0x0001
 
+/* options for writing data in files */
+#define GO_WRITE_CURRENT 0
+#define GO_WRITE_ACTIVE  1
+#define GO_WRITE_ALL     2
+
+/* common object attributes */
 typedef struct geom_object {
     struct  geom_object *prev, *next;
     int     maxdn;
@@ -209,9 +215,12 @@ void GeomObjectOutputToRenderer3D ( boolean all );
 void GeomObjectBeginReading ( void *usrdata, int obj_type );
 void GeomObjectEndReading ( void *usrdata, boolean success );
 void GeomObjectReadColour ( void *usrdata, point3d *colour );
-boolean GeomObjectReadFile ( char *filename );
+boolean GeomObjectReadFile ( char *filename, bsf_Camera_fptr CameraReader );
 boolean GeomObjectWriteObj ( geom_object *go );
-boolean GeomObjectWriteFile ( char *filename, boolean append );
+boolean GeomObjectWriteFile ( char *filename, char whattowrite,
+                              boolean (*writeotherdata)( void *usrdata ),
+                              void *usrdata,
+                              boolean append );
 
 /* debugging etc. */
 boolean GeomObjectOpenDumpFile ( void );

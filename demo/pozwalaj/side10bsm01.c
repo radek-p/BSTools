@@ -29,6 +29,7 @@
 #include "g2blendingd.h"
 #include "g2mblendingd.h"
 #include "egholed.h"
+#include "bsfile.h"
 #include "xgedit.h"
 #include "xgledit.h"
 

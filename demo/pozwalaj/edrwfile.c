@@ -71,7 +71,7 @@ void GeomObjectReadColour ( void *usrdata, point3d *colour )
   memcpy ( attrib->colour, colour, 3*sizeof(double) );
 } /*GeomObjectReadColour*/
 
-boolean GeomObjectReadFile ( char *filename )
+boolean GeomObjectReadFile ( char *filename, bsf_Camera_fptr CameraReader )
 {
   bsf_UserReaders      readers;
   rw_object_attributes attrib;
@@ -90,6 +90,7 @@ boolean GeomObjectReadFile ( char *filename )
   bsf_BSM4ReadFuncd ( &readers, GeomObjectReadBSplineMesh, MAX_DEGREE,
                       MAX_BSM_NV, MAX_BSM_NHE, MAX_BSM_NFAC );
   bsf_BSH4ReadFuncd ( &readers, GeomObjectReadBSplineHole );
+  bsf_CameraReadFuncd ( &readers, CameraReader );
   bsf_ColourReadFuncd ( &readers, GeomObjectReadColour );
         /* read the file */
   return bsf_ReadBSFiled ( filename, &readers );
@@ -129,16 +130,44 @@ default:
   return true;
 } /*GeomObjectWriteObj*/
 
-boolean GeomObjectWriteFile ( char *filename, boolean append )
+boolean GeomObjectWriteFile ( char *filename, char whattowrite,
+                              boolean (*writeotherdata)( void *usrdata ),
+                              void *usrdata,
+                              boolean append )
 {
   geom_object *go;
 
   if ( !bsf_OpenOutputFile ( filename, append ) )
     return false;
 
-  for ( go = first_go; go; go = go->next )
-    if ( !GeomObjectWriteObj ( go ) )
+  switch ( whattowrite ) {
+case GO_WRITE_CURRENT:
+    if ( !GeomObjectWriteObj ( current_go ) )
       goto failure;
+    break;
+
+case GO_WRITE_ACTIVE:
+    for ( go = first_go; go; go = go->next )
+      if ( go->active || go == current_go ) {
+        if ( !GeomObjectWriteObj ( go ) )
+          goto failure;
+      }
+    break;
+
+case GO_WRITE_ALL:
+    for ( go = first_go; go; go = go->next )
+      if ( !GeomObjectWriteObj ( go ) )
+        goto failure;
+    break;
+
+default:
+    goto failure;
+  }
+
+  if ( writeotherdata ) {
+    if ( !writeotherdata ( usrdata ) )
+      goto failure;
+  }
 
   bsf_CloseOutputFile ();
   return true;

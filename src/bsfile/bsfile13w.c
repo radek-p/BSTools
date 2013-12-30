@@ -30,7 +30,7 @@ boolean bsf_WriteCamera ( CameraRecd *camera )
             bsf_keyword[BSF_SYMB_FRAME-BSF_FIRST_KEYWORD] );
   fprintf ( bsf_output, "%d, %d, %d, %d }",
             camera->width, camera->height, camera->xmin, camera->ymin );
-  fprintf ( bsf_output, "  %s ",
+  fprintf ( bsf_output, "\n  %s ",
             bsf_keyword[BSF_SYMB_POSITION-BSF_FIRST_KEYWORD] );
   bsf_WritePointd ( 3, &camera->position.x );
   fprintf ( bsf_output, "\n  %s { ",
