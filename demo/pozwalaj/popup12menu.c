@@ -133,6 +133,8 @@ void CleanupPopup12 ( void )
 
 int Popup12CallBack ( xge_widget *er, int msg, int key, short x, short y )
 {
+  int sc;
+
   switch ( msg ) {
 case xgemsg_BUTTON_COMMAND:
     switch ( er->id ) {
@@ -241,6 +243,21 @@ case xgemsg_LISTBOX_ITEM_PICK:
       rendered_picture = false;
       xge_RedrawAll ();
       return 1;
+  default:
+      return 0;
+    }
+
+case xgemsg_LISTBOX_EXCHANGE:
+    switch ( er->id ) {
+  case lbP12OBJLIST:
+      if ( GeomObjectExchangeInTheList ( key == -1 ) ) {
+        sc = objectlist.currentitem;
+        UpdateObjectNameList ();
+        objectlist.currentitem = sc;
+        return 1;
+      }
+      else
+        return 0;
   default:
       return 0;
     }

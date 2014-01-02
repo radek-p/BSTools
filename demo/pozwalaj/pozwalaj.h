@@ -353,6 +353,7 @@ void SetupBSplineMeshWidgets ( GO_BSplineMesh *obj );
 void BlendingMeshOptimizationPrepareData ( GO_BSplineMesh *obj );
 void InitBlendingMeshOptimization ( void );
 void BlendingMeshOptSpecialPatches ( void );
+void Side10MenuBsmResize ( short x, short y );
 int Side10MenuBsmCallBack ( xge_widget *er, int msg, int key, short x, short y );
 
 void InitSide10Menu_BSh ( void );

@@ -239,6 +239,8 @@ case GO_BSPLINE_PATCH:
 case GO_BSPLINE_MESH:
     SetupBSplineMeshWidgets ( (GO_BSplineMesh*)obj );
     xge_SetMenuWidgets ( side10menu, side10wdg_bsm_opt, false );
+    Side10MenuBsmCallBack ( side10menu, xgemsg_RESIZE, 0,
+                            side10menu->w, side10menu->h );
     break;
 case GO_BSPLINE_HOLE:
     SetupBSplineHoleWidgets ( (GO_BSplineHole*)obj );

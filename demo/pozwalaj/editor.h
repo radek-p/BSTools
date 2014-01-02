@@ -95,6 +95,7 @@ boolean GeomObjectSelect ( int objno );
 boolean GeomObjectIsInTheList ( geom_object *obj );
 void GeomObjectDisplayInfoText ( geom_object *obj );
 geom_object *GeomObjectFindByName ( geom_object *obj, const char *name );
+boolean GeomObjectExchangeInTheList ( boolean up );
 
 void GeomObjectSetupIniPoints ( char spdimen, boolean rational,
                                 char *cpdimen,

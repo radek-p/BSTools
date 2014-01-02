@@ -3522,4 +3522,14 @@ Wersja 0.33.
 824. Zmiany w programie pozwalaj, umozliwiaja zapisywanie w plikach .bs
     i czytanie kamery (perspektywicznej).
 
+2.01.2014.
+825. Nowy komunikat w libxgedit, xgemsg_LISTBOX_EXCHANGE, prosba o
+    przestawienie biezacego elementu listy z jednym z sasiadow.
+
+826. Korzystajac z komunikatu xgemsg_LISTBOX_EXCHANGE, program pozwalaj
+    umozliwia zmienianie kolejnosci obiektow w liscie.
+
+827. Poprawka w programie pozwalaj - dorobienie poprawnej reakcji na zmiane
+    wymiarow okna, a dokladniej menu opcji dla siatek w drugim oknie.
+
 

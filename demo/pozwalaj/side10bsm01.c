@@ -431,6 +431,16 @@ void BlendingMeshOptSpecialPatches ( void )
   xge_ReleaseFocus ( xge_null_widget );
 } /*BlendingMeshOptSpecialPatches*/
 
+void Side10MenuBsmResize ( short x, short y )
+{
+  if ( side10menu->data1 == side10wdg_bsm )
+    side10wdg_bsm_editscroll->msgproc ( side10wdg_bsm_editscroll,
+                                        xgemsg_RESIZE, 0, x, y-20 );
+  else if ( side10menu->data1 == side10wdg_bsm_opt3 )
+    side10wdg_bsm_optscroll->msgproc ( side10wdg_bsm_optscroll,
+                                       xgemsg_RESIZE, 0, x, y-60 );
+} /*Side10MenuBsmResize*/
+
 int Side10MenuBsmCallBack ( xge_widget *er, int msg, int key, short x, short y )
 {
   GO_BSplineMesh *obj;
@@ -503,7 +513,10 @@ case xgemsg_SWITCH_COMMAND:
         side10wdg_bsm_opt = side10wdg_bsm_opt3;
       else
         side10wdg_bsm_opt = side10wdg_bsm_opt1;
-      xge_SetMenuWidgets ( side10menu, side10wdg_bsm_opt, true );
+      xge_SetMenuWidgets ( side10menu, side10wdg_bsm_opt, false );
+      Side10MenuBsmResize ( SIDEMENUWIDTH, xge_current_height-TOPMENUHEIGHT );
+      xge_SetClipping ( side10menu );
+      side10menu->redraw ( side10menu, true );
       return 1;
   case swM1BSM_G1:
       if ( sw_hfill_g1 ) sw_hfill_g2 = sw_hfill_g1q2 = false;
@@ -993,12 +1006,7 @@ case xgemsg_TEXT_EDIT_ENTER:
     }
 
 case xgemsg_RESIZE:
-    if ( side10menu->data1 == side10wdg_bsm )
-      side10wdg_bsm_editscroll->msgproc ( side10wdg_bsm_editscroll,
-                                          msg, key, x, y-20 );
-    else if ( side10menu->data1 == side10wdg_bsm_opt3 )
-      side10wdg_bsm_optscroll->msgproc ( side10wdg_bsm_optscroll,
-                                         msg, key, x, y-60 );
+    Side10MenuBsmResize ( x, y );
     return 1;
 
 default:

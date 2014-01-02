@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2007, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2007, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -103,88 +103,89 @@ typedef unsigned int xgecolour_int;
 #define xgemsg_INT_WIDGET_COMMAND            0x112
 #define xgemsg_LISTBOX_ITEM_SET              0x113
 #define xgemsg_LISTBOX_ITEM_PICK             0x114
-#define xgemsg_QUATROTBALL_COMMAND           0x115
-#define xgemsg_TEXT_WIDGET_CLICK             0x116
+#define xgemsg_LISTBOX_EXCHANGE              0x115
+#define xgemsg_QUATROTBALL_COMMAND           0x116
+#define xgemsg_TEXT_WIDGET_CLICK             0x117
 
-#define xgemsg_2DWIN_RESIZE                  0x117
-#define xgemsg_2DWIN_PROJCHANGE              0x118
-#define xgemsg_2DWIN_PICK_POINT              0x119
-#define xgemsg_2DWIN_MOVE_POINT              0x11A
-#define xgemsg_2DWIN_SELECT_POINTS           0x11B
-#define xgemsg_2DWIN_UNSELECT_POINTS         0x11C
-#define xgemsg_2DWIN_SPECIAL_SELECT          0x11D
-#define xgemsg_2DWIN_SPECIAL_UNSELECT        0x11E
-#define xgemsg_2DWIN_CHANGE_TRANS            0x11F
-#define xgemsg_2DWIN_SAVE_POINTS             0x120
-#define xgemsg_2DWIN_TRANSFORM_POINTS        0x121
-#define xgemsg_2DWIN_TRANSFORM_SPECIAL       0x122
-#define xgemsg_2DWIN_FIND_REFBBOX            0x123
-#define xgemsg_2DWIN_UNDO                    0x124
-#define xgemsg_2DWIN_KEY                     0x125
-#define xgemsg_2DWIN_ERROR                   0x126
+#define xgemsg_2DWIN_RESIZE                  0x118
+#define xgemsg_2DWIN_PROJCHANGE              0x119
+#define xgemsg_2DWIN_PICK_POINT              0x11A
+#define xgemsg_2DWIN_MOVE_POINT              0x11B
+#define xgemsg_2DWIN_SELECT_POINTS           0x11C
+#define xgemsg_2DWIN_UNSELECT_POINTS         0x11D
+#define xgemsg_2DWIN_SPECIAL_SELECT          0x11E
+#define xgemsg_2DWIN_SPECIAL_UNSELECT        0x11F
+#define xgemsg_2DWIN_CHANGE_TRANS            0x120
+#define xgemsg_2DWIN_SAVE_POINTS             0x121
+#define xgemsg_2DWIN_TRANSFORM_POINTS        0x122
+#define xgemsg_2DWIN_TRANSFORM_SPECIAL       0x123
+#define xgemsg_2DWIN_FIND_REFBBOX            0x124
+#define xgemsg_2DWIN_UNDO                    0x125
+#define xgemsg_2DWIN_KEY                     0x126
+#define xgemsg_2DWIN_ERROR                   0x127
 
-#define xgemsg_3DWIN_RESIZE                  0x127
-#define xgemsg_3DWIN_PROJCHANGE              0x128
-#define xgemsg_3DWIN_PICK_POINT              0x129
-#define xgemsg_3DWIN_MOVE_POINT              0x12A
-#define xgemsg_3DWIN_SELECT_POINTS           0x12B
-#define xgemsg_3DWIN_UNSELECT_POINTS         0x12C
-#define xgemsg_3DWIN_SPECIAL_SELECT          0x12D
-#define xgemsg_3DWIN_SPECIAL_UNSELECT        0x12E
-#define xgemsg_3DWIN_CHANGE_TRANS            0x12F
-#define xgemsg_3DWIN_SAVE_POINTS             0x130
-#define xgemsg_3DWIN_TRANSFORM_POINTS        0x131
-#define xgemsg_3DWIN_TRANSFORM_SPECIAL       0x132
-#define xgemsg_3DWIN_FIND_REFBBOX            0x133
-#define xgemsg_3DWIN_UNDO                    0x134
-#define xgemsg_3DWIN_KEY                     0x135
-#define xgemsg_3DWIN_ERROR                   0x136
+#define xgemsg_3DWIN_RESIZE                  0x128
+#define xgemsg_3DWIN_PROJCHANGE              0x129
+#define xgemsg_3DWIN_PICK_POINT              0x12A
+#define xgemsg_3DWIN_MOVE_POINT              0x12B
+#define xgemsg_3DWIN_SELECT_POINTS           0x12C
+#define xgemsg_3DWIN_UNSELECT_POINTS         0x12D
+#define xgemsg_3DWIN_SPECIAL_SELECT          0x12E
+#define xgemsg_3DWIN_SPECIAL_UNSELECT        0x12F
+#define xgemsg_3DWIN_CHANGE_TRANS            0x130
+#define xgemsg_3DWIN_SAVE_POINTS             0x131
+#define xgemsg_3DWIN_TRANSFORM_POINTS        0x132
+#define xgemsg_3DWIN_TRANSFORM_SPECIAL       0x133
+#define xgemsg_3DWIN_FIND_REFBBOX            0x134
+#define xgemsg_3DWIN_UNDO                    0x135
+#define xgemsg_3DWIN_KEY                     0x136
+#define xgemsg_3DWIN_ERROR                   0x137
 
-#define xgemsg_KNOTWIN_CHANGE_KNOT           0x137
-#define xgemsg_KNOTWIN_INSERT_KNOT           0x138
-#define xgemsg_KNOTWIN_REMOVE_KNOT           0x139
-#define xgemsg_KNOTWIN_CHANGE_ALTKNOT        0x13A
-#define xgemsg_KNOTWIN_INSERT_ALTKNOT        0x13B
-#define xgemsg_KNOTWIN_REMOVE_ALTKNOT        0x13C
-#define xgemsg_KNOTWIN_MCLICK                0x13D
-#define xgemsg_KNOTWIN_MMOVE                 0x13E
-#define xgemsg_KNOTWIN_CHANGE_MAPPING        0x13F
-#define xgemsg_KNOTWIN_ERROR                 0x140
+#define xgemsg_KNOTWIN_CHANGE_KNOT           0x138
+#define xgemsg_KNOTWIN_INSERT_KNOT           0x139
+#define xgemsg_KNOTWIN_REMOVE_KNOT           0x13A
+#define xgemsg_KNOTWIN_CHANGE_ALTKNOT        0x13B
+#define xgemsg_KNOTWIN_INSERT_ALTKNOT        0x13C
+#define xgemsg_KNOTWIN_REMOVE_ALTKNOT        0x13D
+#define xgemsg_KNOTWIN_MCLICK                0x13E
+#define xgemsg_KNOTWIN_MMOVE                 0x13F
+#define xgemsg_KNOTWIN_CHANGE_MAPPING        0x140
+#define xgemsg_KNOTWIN_ERROR                 0x141
 
-#define xgemsg_T2KNOTWIN_RESIZE              0x141
-#define xgemsg_T2KNOTWIN_PROJCHANGE          0x142
-#define xgemsg_T2KNOTWIN_CHANGE_KNOT_U       0x143
-#define xgemsg_T2KNOTWIN_CHANGE_KNOT_V       0x144
-#define xgemsg_T2KNOTWIN_INSERT_KNOT_U       0x145
-#define xgemsg_T2KNOTWIN_INSERT_KNOT_V       0x146
-#define xgemsg_T2KNOTWIN_REMOVE_KNOT_U       0x147
-#define xgemsg_T2KNOTWIN_REMOVE_KNOT_V       0x148
-#define xgemsg_T2KNOTWIN_CHANGE_ALTKNOT_U    0x149
-#define xgemsg_T2KNOTWIN_CHANGE_ALTKNOT_V    0x14A
-#define xgemsg_T2KNOTWIN_INSERT_ALTKNOT_U    0x14B
-#define xgemsg_T2KNOTWIN_INSERT_ALTKNOT_V    0x14C
-#define xgemsg_T2KNOTWIN_REMOVE_ALTKNOT_U    0x14D
-#define xgemsg_T2KNOTWIN_REMOVE_ALTKNOT_V    0x14E
-#define xgemsg_T2KNOTWIN_SELECT_POINTS       0x14F
-#define xgemsg_T2KNOTWIN_UNSELECT_POINTS     0x150
-#define xgemsg_T2KNOTWIN_CHANGE_MAPPING      0x151
-#define xgemsg_T2KNOTWIN_ERROR               0x152
+#define xgemsg_T2KNOTWIN_RESIZE              0x142
+#define xgemsg_T2KNOTWIN_PROJCHANGE          0x143
+#define xgemsg_T2KNOTWIN_CHANGE_KNOT_U       0x144
+#define xgemsg_T2KNOTWIN_CHANGE_KNOT_V       0x145
+#define xgemsg_T2KNOTWIN_INSERT_KNOT_U       0x146
+#define xgemsg_T2KNOTWIN_INSERT_KNOT_V       0x147
+#define xgemsg_T2KNOTWIN_REMOVE_KNOT_U       0x148
+#define xgemsg_T2KNOTWIN_REMOVE_KNOT_V       0x149
+#define xgemsg_T2KNOTWIN_CHANGE_ALTKNOT_U    0x14A
+#define xgemsg_T2KNOTWIN_CHANGE_ALTKNOT_V    0x14B
+#define xgemsg_T2KNOTWIN_INSERT_ALTKNOT_U    0x14C
+#define xgemsg_T2KNOTWIN_INSERT_ALTKNOT_V    0x14D
+#define xgemsg_T2KNOTWIN_REMOVE_ALTKNOT_U    0x14E
+#define xgemsg_T2KNOTWIN_REMOVE_ALTKNOT_V    0x14F
+#define xgemsg_T2KNOTWIN_SELECT_POINTS       0x150
+#define xgemsg_T2KNOTWIN_UNSELECT_POINTS     0x151
+#define xgemsg_T2KNOTWIN_CHANGE_MAPPING      0x152
+#define xgemsg_T2KNOTWIN_ERROR               0x153
 
 /* message sent when popups are removed */
-#define xgemsg_POPUP_REMOVED                 0x153
-#define xgemsg_POPUPS_REMOVED                0x154
+#define xgemsg_POPUP_REMOVED                 0x154
+#define xgemsg_POPUPS_REMOVED                0x155
 
 /* message sent after an error, warning or info message has been dismissed */
-#define xgemsg_USER_MESSAGE_DISMISSED        0x155
+#define xgemsg_USER_MESSAGE_DISMISSED        0x156
 
 /* message sent to the application by itself, to be delivered */
 /* when there is nothing else to do */
-#define xgemsg_IDLE_COMMAND                  0x156
+#define xgemsg_IDLE_COMMAND                  0x157
 
 /* message sent to the application by a child process */
-#define xgemsg_CHILD_MESSAGE                 0x157
+#define xgemsg_CHILD_MESSAGE                 0x158
 /* message sent after the child process has been terminated */
-#define xgemsg_CHILD_FAILURE                 0x158
+#define xgemsg_CHILD_FAILURE                 0x159
 
 /* additional application messages must be greater than xgemsg_LAST_MESSAGE */
 #define xgemsg_LAST_MESSAGE xgemsg_CHILD_FAILURE

@@ -306,3 +306,39 @@ geom_object *GeomObjectFindByName ( geom_object *obj, const char *name )
   return obj;
 } /*GeomObjectFindByName*/
 
+boolean GeomObjectExchangeInTheList ( boolean up )
+{
+  geom_object *o1, *o2, *a, *b;
+
+  if ( !current_go )
+    return false;
+      /* find the two neighbours to swap */
+  if ( up ) {
+    o1 = current_go->prev;
+    o2 = current_go;
+  }
+  else {
+    o1 = current_go;
+    o2 = current_go->next;
+  }
+  if ( !o1 || !o2 )
+    return false;
+      /* swap them */
+  a = o1->prev;
+  if ( a )
+    a->next = o2;
+  else
+    first_go = o2;
+  b = o2->next;
+  if ( b )
+    b->prev = o1;
+  else
+    last_go = o1;
+  o2->prev = a;
+  o2->next = o1;
+  o1->prev = o2;
+  o1->next = b;
+  return true;
+} /*GeomObjectExchangeInTheList*/
+
+
