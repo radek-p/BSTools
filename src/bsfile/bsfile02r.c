@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */ 
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2009, 1020                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2009, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -76,11 +76,14 @@ int bsf_ReadPointsd ( int maxcpdimen, int maxnpoints,
   return ncp;
 } /*bsf_ReadPointsd*/
 
-int bsf_ReadPointsMK ( int maxnpoints, byte *mk )
+int bsf_ReadPointsMK ( int maxnpoints, unsigned int *mk )
 {
   int np;
   int num;
 
+  if ( bsf_nextsymbol != BSF_SYMB_CPOINTSMK )
+    return 0;
+  bsf_GetNextSymbol ();
   if ( bsf_nextsymbol != BSF_SYMB_LBRACE )
     return 0;
   bsf_GetNextSymbol ();
@@ -88,7 +91,7 @@ int bsf_ReadPointsMK ( int maxnpoints, byte *mk )
     if ( !bsf_ReadIntNumber ( &num ) )
       return 0;
     if ( mk )  /* NULL is allowed here */
-      mk[np++] = (byte)num;
+      mk[np++] = num;
     else
       np ++;
     if ( bsf_nextsymbol != BSF_SYMB_COMMA )

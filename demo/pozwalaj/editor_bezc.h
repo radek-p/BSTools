@@ -58,7 +58,7 @@ boolean GeomObjectWriteBezierCurve ( GO_BezierCurve *obj );
 void GeomObjectReadBezierCurve ( void *usrdata,
                                  const char *name, int degree,
                                  const point4d *cpoints, int spdimen,
-                                 boolean rational, byte *_mkcp );
+                                 boolean rational );
 
 void GeomObjectBezierCurveOutputToRenderer ( GO_BezierCurve *obj );
 void GeomObjectBezierCurveDisplayInfoText ( GO_BezierCurve *obj );

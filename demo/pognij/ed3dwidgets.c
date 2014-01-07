@@ -47,7 +47,7 @@ char *InfoMsg[5] =
   { "3D B-spline & NURBS curve demonstration program",
     "",
     "This program is a part of the BSTools package.",
-    "(C) Copyright by Przemyslaw Kiciak, 2005, 2011",
+    "(C) Copyright by Przemyslaw Kiciak, 2005, 2014",
     NULL };
 
 char MsgReconsider[] = "Please, reconsider it and then proceed.";

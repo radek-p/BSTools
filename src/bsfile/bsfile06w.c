@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2009, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2009, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -24,8 +24,7 @@
 
 boolean bsf_WriteBSplineCurved ( int spdimen, int cpdimen, boolean rational,
                                  int deg, int lastknot, const double *knots,
-                                 boolean closed,
-                                 const double *cpoints, const byte *mk,
+                                 boolean closed, const double *cpoints,
                                  const char *name,
                                  bsf_WriteAttr_fptr WriteAttr, void *userData )
 {
@@ -40,8 +39,6 @@ boolean bsf_WriteBSplineCurved ( int spdimen, int cpdimen, boolean rational,
   bsf_WriteKnotSequenced ( lastknot, knots, closed );
   fprintf ( bsf_output, "  %s\n", bsf_keyword[BSF_SYMB_CPOINTS-BSF_FIRST_KEYWORD] );
   bsf_WritePointsd ( cpdimen, 1, lastknot-deg, 0, cpoints );
-  if ( mk )
-    bsf_WritePointsMK ( lastknot-deg, mk );
   if ( WriteAttr ) {
     bsf_current_indentation = 2;
     WriteAttr ( userData );

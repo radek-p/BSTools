@@ -109,6 +109,24 @@ boolean FilenameCorrect ( const char *filename )
   return (boolean)(filename[0] != 0);
 } /*FilenameCorrect*/
 
+boolean WriteCurveAttributes ( void *usrdata )
+{
+  void         *sp;
+  int          ncp, i;
+  unsigned int *mk;
+
+  sp = pkv_GetScratchMemTop ();
+  ncp = kwind.lastknot-kwind.degree;
+  mk = (unsigned int*)pkv_GetScratchMemi ( ncp );
+  if ( mk ) {
+    for ( i = 0; i < ncp; i++ )
+      mk[i] = (unsigned int)cpmark[i];
+    bsf_WritePointsMK ( ncp, mk );
+  }
+  pkv_SetScratchMemTop ( sp );
+  return true;
+} /*WriteCurveAttributes*/
+
 boolean SaveBSCurve ( char *filename )
 {
   void   *sp;
@@ -124,8 +142,8 @@ boolean SaveBSCurve ( char *filename )
     if ( nurbs ) {
 try_nurbs:
       bsf_WriteBSplineCurved ( 2, 3, true, kwind.degree, kwind.lastknot,
-                               knots, kwind.closed, &cpoints[0].x,
-                               cpmark, NULL, NULL, NULL );
+                               knots, kwind.closed, &cpoints[0].x, NULL,
+                               WriteCurveAttributes, NULL );
     }
     else {
       buf = pkv_GetScratchMem ( (kwind.lastknot-kwind.degree)*sizeof(point2d) );
@@ -134,7 +152,8 @@ try_nurbs:
       pkv_Selectd ( kwind.lastknot-kwind.degree, 2, 3, 2,
                     &cpoints[0].x, buf );
       bsf_WriteBSplineCurved ( 2, 2, false, kwind.degree, kwind.lastknot,
-                               knots, kwind.closed, buf, cpmark, NULL, NULL, NULL );
+                               knots, kwind.closed, buf, NULL,
+                               WriteCurveAttributes, NULL );
     }
     bsf_CloseOutputFile ();
     pkv_SetScratchMemTop ( sp );
@@ -146,66 +165,84 @@ try_nurbs:
   }
 } /*SaveBSCurve*/
 
+void BSCurveReader ( void *userData, const char *name,
+                     int degree, int lastknot, const double *_knots,
+                     boolean closed, const point4d *_cpoints,
+                     int spdimen, boolean rational )
+{
+  bsf_UserReaders *readers;
+  int             i;
+
+  kwind.lastknot = lastknot;
+  memcpy ( knots, _knots, (lastknot+1)*sizeof(double) );
+  kwind.degree = degree;
+  kwind.umin = knots[0];
+  kwind.umax = knots[lastknot-1];
+  npoints = lastknot-degree;
+  pkv_Selectd ( npoints, 3, 4, 3, _cpoints, cpoints );
+  if ( rational ) {
+    switch ( spdimen ) {
+  case 2:
+      for ( i = 0; i < npoints; i++ ) {
+        if ( cpoints[i].z <= 0.0 )
+          return;  /* failure */
+      }
+      break;
+  case 3:
+      for ( i = 0; i < npoints; i++ ) {
+        cpoints[i].z = _cpoints[i].w;
+        if ( cpoints[i].z <= 0.0 )
+          return;  /* failure */
+      }
+      break;
+  default:
+      for ( i = 0; i < npoints; i++ )
+        cpoints[i].z = 1.0;
+      break;
+    }
+  }
+  else {
+    for ( i = 0; i < npoints; i++ )
+      cpoints[i].z = 1.0;
+  }
+  kwind.closed = closed;
+  nurbs = rational;
+  if ( closed ) {
+    kwind.clcK = lastknot - 2*degree;
+    kwind.clcT = knots[lastknot-degree] - knots[degree];
+  } 
+        /* finish after reading the first curve found in the file */
+  readers = (bsf_UserReaders*)userData;
+  readers->done = true;
+} /*BSCurveReader*/
+
+void ReadCPointsMK ( void *userData, int ncp, unsigned int *mk )
+{
+  int i;
+
+  if ( ncp > MAX_DEGREE*MAX_KNOTS )
+    ncp = MAX_DEGREE*MAX_KNOTS;
+  for ( i = 0; i < ncp; i++ )
+    cpmark[i] = (byte)mk[i];
+} /*ReadCPointsMK*/
+
 boolean ReadBSCurve ( char *filename )
 {
-  void    *sp;
-  point4d *cp;
-  double  *kn;
-  int     maxcp, spdimen, degree, lastknot, i;
-  boolean result, closed, rational;
-  byte    *mkcp;
+  bsf_UserReaders readers;
 
-  sp = pkv_GetScratchMemTop ();
-  maxcp = MAX_DEGREE*MAX_KNOTS;
-  cp = pkv_GetScratchMem ( maxcp*sizeof(point4d) );
-  kn = pkv_GetScratchMemd ( MAX_KNOTS );
-  mkcp = pkv_GetScratchMem ( maxcp );
-  if ( !cp || !kn )
+  bsf_ClearReaders ( &readers );
+  bsf_BSC4ReadFuncd ( &readers, BSCurveReader, MAX_DEGREE, MAX_KNOTS );
+  bsf_CPMarkReadFunc ( &readers, ReadCPointsMK );
+  readers.userData = &readers;
+  if ( !bsf_ReadBSFiled ( filename, &readers ) ) {
+    bsf_PrintErrorLocation ();
     goto failure;
-
-  if ( bsf_OpenInputFile ( filename ) ) {
-    result = bsf_ReadBSplineCurve4d ( MAX_DEGREE, MAX_KNOTS, maxcp,
-               &degree, &lastknot, kn, &closed, cp, &spdimen, &rational,
-               mkcp, NULL );
-    bsf_CloseInputFile ();
-    if ( result ) {
-      kwind.lastknot = lastknot;
-      memcpy ( knots, kn, (lastknot+1)*sizeof(double) );
-      kwind.degree = degree;
-      npoints = lastknot-degree;
-      memcpy ( cpmark, mkcp, npoints );
-      pkv_Selectd ( npoints, 3, 4, 3, cp, cpoints );
-      if ( spdimen <= 2 ) {
-        for ( i = 0; i < npoints; i++ )
-          cpoints[i].z = 1.0;
-      }
-      else if ( spdimen == 3 || spdimen == 4 ) {
-        for ( i = 0; i < npoints; i++ ) {
-          cpoints[i].z = cp[i].w;
-          if ( !cpoints[i].z )
-            goto failure;
-        }
-      }
-      kwind.closed = closed;
-      nurbs = rational;
-      if ( closed ) {
-        kwind.clcK = lastknot - 2*degree;
-        kwind.clcT = knots[lastknot-degree] - knots[degree];
-      } 
-    }
-    else
-      bsf_PrintErrorLocation ();
   }
-  else
-    goto failure;
-
   funkcja = false;
-  pkv_SetScratchMemTop ( sp );
-  return result;
+  return true;
 
 failure:
   ResetObject ();
-  pkv_SetScratchMemTop ( sp );
   return false;
 } /*ReadBSCurve*/
 
@@ -638,8 +675,9 @@ open_the_file:
           xge_ClearListBox ( &filelist );
           xge_ClearListBox ( &dirlist );
           if ( ReadBSCurve ( filename ) ) {
+            FindCurveMapping ();
             ResizeObject ();
-/*            ClearPointMarking ();*/
+/*            ClearPointMarking (); */
           }
           else {
             ResetObject ();
@@ -758,6 +796,25 @@ case xgemsg_KNOTWIN_ERROR:
   default:
         break;
       }
+      return false;
+
+case xgemsg_TEXT_EDIT_VERIFY:
+      switch ( er->id ) {
+  case txted02pFILENAME:
+        return true;
+  default:
+        return false;
+      }
+
+case xgemsg_TEXT_EDIT_ENTER:
+      switch ( er->id ) {
+  case txted02pFILENAME:
+        return true;
+  default:
+        return false;
+      }
+
+case xgemsg_TEXT_EDIT_ESCAPE:
       return false;
 
 default:

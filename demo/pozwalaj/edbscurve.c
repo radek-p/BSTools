@@ -852,21 +852,21 @@ boolean GeomObjectWriteBSplineCurve ( GO_BSplineCurve *obj )
   return bsf_WriteBSplineCurved ( obj->me.spdimen, obj->me.cpdimen,
                                   obj->rational, obj->degree,
                                   obj->lastknot, obj->knots, obj->closed,
-                                  obj->cpoints, obj->mkcp, obj->me.name,
-                                  (bsf_WriteAttr_fptr)bsf_WriteColour,
-                                  (void*)obj->me.colour );
+                                  obj->cpoints, obj->me.name,
+                                  GeomObjectWriteAttributes,
+                                  (void*)&obj->me );
 } /*GeomObjectWriteBSplineCurve*/
 
 void GeomObjectReadBSplineCurve ( void *usrdata,
                                   const char *name, int degree, int lastknot,
                                   const double *knots, boolean closed,
                                   const point4d *cpoints, int spdimen,
-                                  boolean rational, byte *_mkcp )
+                                  boolean rational )
 {
   GO_BSplineCurve *obj;
   double          *cp, *wcp, *kn;
   byte            *mkcp;
-  int             ncp, cpdimen, i;
+  int             ncp, cpdimen;
 
   obj = (GO_BSplineCurve*)GeomObjectAddBSplineCurve ( name, spdimen, rational );
   if ( obj ) {
@@ -909,9 +909,6 @@ void GeomObjectReadBSplineCurve ( void *usrdata,
     if ( rational )
       GeomObjectSetupWeightPoints ( cpdimen, ncp, cp, wcp );
     memcpy ( kn, knots, (lastknot+1)*sizeof(double) );
-    memcpy ( mkcp, _mkcp, ncp );
-    for ( i = 0; i < ncp; i++ )
-      mkcp[i] |= MASK_CP_MOVEABLE;
   }
 } /*GeomObjectReadBSplineCurve*/
 

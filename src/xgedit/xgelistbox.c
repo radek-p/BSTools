@@ -135,7 +135,7 @@ case xgemsg_KEY:
       if ( lbox->nitems )  /* bother only if the box is nonempty */
         xge_callback ( er, xgemsg_LISTBOX_ITEM_PICK, 0, 0, 0 );
       break;
-  case 'E':    /* request to move the current item one position up */
+  case 'X':    /* request to move the current item one position up */
       if ( lbox->nitems > 1 && lbox->currentitem > 0 ) {
         if ( xge_callback ( er, xgemsg_LISTBOX_EXCHANGE, -1, 0, 0 ) ) {
           lbox->currentitem --;
@@ -143,7 +143,7 @@ case xgemsg_KEY:
         }
       }
       break;
-  case 'e':    /* request to move the current item one position down */
+  case 'x':    /* request to move the current item one position down */
       if ( lbox->nitems > 1 && lbox->currentitem < lbox->nitems-1 ) {
         if ( xge_callback ( er, xgemsg_LISTBOX_EXCHANGE, +1, 0, 0 ) ) {
           lbox->currentitem ++;

@@ -118,7 +118,15 @@ int Win1CallBack ( xge_widget *er, int msg, int key, short x, short y );
 int CallBack ( xge_widget *er, int msg, int key, short x, short y );
 
 boolean FilenameCorrect ( char *filename );
+boolean WritePatchAttributes ( void *usrdata );
 boolean SaveBSPatch ( char *filename );
+void BSPatchReader ( void *userData, const char *name, 
+                     int udeg, int lastknotu, const double *knotsu, 
+                     int vdeg, int lastknotv, const double *knotsv, 
+                     boolean closed_u, boolean closed_v, 
+                     int pitch, const point4d *cpoints, 
+                     int spdimen, boolean rational );
+void CPMarkReader ( void *userData, int ncp, unsigned int *mk );
 boolean ReadBSPatch ( char *filename );
 
 void ResizeWinStatus ( int win );

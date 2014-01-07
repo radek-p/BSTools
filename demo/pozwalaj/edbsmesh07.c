@@ -39,9 +39,9 @@ boolean GeomObjectWriteBSplineMesh ( GO_BSplineMesh *obj )
   return bsf_WriteBSMeshd ( obj->me.spdimen, obj->me.cpdimen, obj->rational,
                   obj->degree, obj->nv, obj->meshv, obj->meshvhei, obj->meshvpc,
                   obj->nhe, obj->meshhe, obj->nfac, obj->meshfac, obj->meshfhei,
-                  obj->mkcp, obj->me.name,
-                  (bsf_WriteAttr_fptr)bsf_WriteColour,
-                  (void*)obj->me.colour );
+                  obj->me.name,
+                  GeomObjectWriteAttributes,
+                  (void*)&obj->me );
 } /*GeomObjectWriteBSplineMesh*/
 
 void GeomObjectReadBSplineMesh ( void *usrdata,
@@ -50,7 +50,7 @@ void GeomObjectReadBSplineMesh ( void *usrdata,
                     const point4d *vc,
                     int nhe, const BSMhalfedge *mhe,
                     int nfac, const BSMfacet *mfac, const int *mfhei,
-                    int spdimen, boolean rational, byte *_mkcp )
+                    int spdimen, boolean rational )
 {
   GO_BSplineMesh *obj;
   BSMvertex      *vert;
@@ -59,7 +59,7 @@ void GeomObjectReadBSplineMesh ( void *usrdata,
   double         *vpc;
   int            *vhei, *fhei;
   byte           *mkcp;
-  int            cpdimen, i;
+  int            cpdimen;
 
   if ( !bsm_CheckMeshIntegrity ( nv, mv, mvhei, nhe, mhe, nfac, mfac, mfhei ) )
     return;
@@ -84,9 +84,6 @@ void GeomObjectReadBSplineMesh ( void *usrdata,
       GeomObjectDeleteBSplineMesh ( obj );
       return;
     }
-    memcpy ( mkcp, _mkcp, nv );
-    for ( i = 0; i < nv; i++ )
-      mkcp[i] |= MASK_CP_MOVEABLE;
     GeomObjectAssignBSplineMesh ( obj, spdimen, rational,
                       nv, vert, vhei, vpc, nhe, halfe,
                       nfac, fac, fhei, mkcp );

@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2010, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2010, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -27,7 +27,7 @@ boolean bsf_WriteBSMeshd ( int spdimen, int cpdimen, boolean rational, int degre
                            const double *vc,
                            int nhe, const BSMhalfedge *mhe,
                            int nfac, const BSMfacet *mfac, const int *mfhei,
-                           const byte *mkv, const char *name,
+                           const char *name,
                            bsf_WriteAttr_fptr WriteAttr, void *userData )
 {
   int i, j, d, l;
@@ -89,8 +89,6 @@ boolean bsf_WriteBSMeshd ( int spdimen, int cpdimen, boolean rational, int degre
       fprintf ( bsf_output, ",\n" );
   }
   fprintf ( bsf_output, "}\n" );
-  if ( mkv )
-    bsf_WritePointsMK ( nv, mkv );
   if ( WriteAttr ) {
     bsf_current_indentation = 2;
     WriteAttr ( userData );

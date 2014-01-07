@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2009, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2009, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -22,9 +22,9 @@
 #include "multibs.h"
 #include "bsfile.h"
 
-boolean bsf_WriteBSplineHoled ( int hole_k, const double *knots,
-                                const point2d *domain_cp,
-                                const point3d *hole_cp, const byte *mk,
+boolean bsf_WriteBSplineHoled ( int spdimen, int cpdimen, boolean rational,
+                                int hole_k, const double *knots,
+                                const point2d *domain_cp, const double *hole_cp,
                                 const char *name,
                                 bsf_WriteAttr_fptr WriteAttr, void *userData )
 {
@@ -35,6 +35,7 @@ boolean bsf_WriteBSplineHoled ( int hole_k, const double *knots,
   if ( name && *name )
     fprintf ( bsf_output, "  %s \"%s\"\n",
               bsf_keyword[BSF_SYMB_NAME-BSF_FIRST_KEYWORD], name );
+  bsf_WriteSpaceDim ( spdimen, rational );
   fprintf ( bsf_output, "  %s %d\n",
             bsf_keyword[BSF_SYMB_SIDES-BSF_FIRST_KEYWORD], hole_k );
   for ( i = 0; i < hole_k; i++ ) {
@@ -48,9 +49,7 @@ boolean bsf_WriteBSplineHoled ( int hole_k, const double *knots,
   bsf_WritePointsd ( 2, 1, 12*hole_k+1, 0, &domain_cp[0].x );
   fprintf ( bsf_output, "  %s\n",
             bsf_keyword[BSF_SYMB_CPOINTS-BSF_FIRST_KEYWORD] );
-  bsf_WritePointsd ( 3, 1, 12*hole_k+1, 0, &hole_cp[0].x );
-  if ( mk )
-    bsf_WritePointsMK ( 12*hole_k+1, mk );
+  bsf_WritePointsd ( cpdimen, 1, 12*hole_k+1, 0, hole_cp );
   if ( WriteAttr ) {
     bsf_current_indentation = 2;
     WriteAttr ( userData );

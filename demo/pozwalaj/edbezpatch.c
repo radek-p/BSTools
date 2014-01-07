@@ -491,15 +491,15 @@ boolean GeomObjectWriteBezierPatch ( GO_BezierPatch *obj )
   return bsf_WriteBezierPatchd ( obj->me.spdimen, obj->me.cpdimen,
                                  obj->rational, obj->degree_u, obj->degree_v,
                                  obj->me.cpdimen*(obj->degree_v+1),
-                                 obj->cpoints, obj->mkcp, obj->me.name,
-                                 (bsf_WriteAttr_fptr)bsf_WriteColour,
-                                 (void*)obj->me.colour );
+                                 obj->cpoints, obj->me.name,
+                                 GeomObjectWriteAttributes,
+                                 (void*)&obj->me );
 } /*GeomObjectWriteBezierPatch*/
 
 void GeomObjectReadBezierPatch ( void *usrdata,
                                  const char *name, int degreeu, int degreev,
                                  int pitch, const point4d *cpoints, int spdimen,
-                                 boolean rational, byte *_mkcp )
+                                 boolean rational )
 {
   GO_BezierPatch *obj;
   double         *cp;
@@ -532,9 +532,6 @@ void GeomObjectReadBezierPatch ( void *usrdata,
       GeomObjectSetupIniPoints ( spdimen, rational, &obj->me.cpdimen,
                                  degreev+1, &((double*)cpoints)[i*pitch],
                                  &cp[i*cpdimen*(degreev+1)] );
-    memcpy ( mkcp, _mkcp, ncp );
-    for ( i = 0; i < ncp; i++ )
-      mkcp[i] |= MASK_CP_MOVEABLE;
   }
 } /*GeomObjectReadBezierPatch*/
 

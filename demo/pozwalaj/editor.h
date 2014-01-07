@@ -69,8 +69,12 @@ typedef struct geom_object {
     char    tag;
   } geom_object;
 
-/* auxiliary data structure for reading data files */
+/* auxiliary data structure for reading optional object */
+/* attributes from data files; */
 typedef struct {
+    int    obj_type;
+    int    nmk;
+    byte   *mk;
     double colour[3];
   } rw_object_attributes;
 
@@ -92,7 +96,7 @@ boolean GeomObjectCopyCurrent ( void );
 int GeomObjectNumber ( void );
 int GeomObjectCurrentNumber ( void );
 boolean GeomObjectSelect ( int objno );
-boolean GeomObjectIsInTheList ( geom_object *obj );
+boolean GeomObjectIsInTheList ( geom_object *go );
 void GeomObjectDisplayInfoText ( geom_object *obj );
 geom_object *GeomObjectFindByName ( geom_object *obj, const char *name );
 boolean GeomObjectExchangeInTheList ( boolean up );
@@ -217,6 +221,7 @@ void GeomObjectBeginReading ( void *usrdata, int obj_type );
 void GeomObjectEndReading ( void *usrdata, boolean success );
 void GeomObjectReadColour ( void *usrdata, point3d *colour );
 boolean GeomObjectReadFile ( char *filename, bsf_Camera_fptr CameraReader );
+boolean GeomObjectWriteAttributes ( void *usrdata );
 boolean GeomObjectWriteObj ( geom_object *go );
 boolean GeomObjectWriteFile ( char *filename, char whattowrite,
                               boolean (*writeotherdata)( void *usrdata ),

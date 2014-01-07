@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2009, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2009, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -69,17 +69,20 @@ void bsf_WritePointsd ( int spdimen, int cols, int rows, int pitch,
   }
 } /*bsf_WritePointsd*/
 
-void bsf_WritePointsMK ( int npoints, const byte *mk )
+void bsf_WritePointsMK ( int npoints, const unsigned int *mk )
 {
   int i;
 
   if ( mk && npoints > 0 ) {
-    fprintf ( bsf_output, "  %s {",
+    bsf_WriteCurrentIndentation ();
+    fprintf ( bsf_output, "%s {",
               bsf_keyword[BSF_SYMB_CPOINTSMK-BSF_FIRST_KEYWORD] );
     for ( i = 0; i < npoints-1; i++ ) {
       fprintf ( bsf_output, "%d,", mk[i] );
-      if ( !((i+1) % 16) )
-        fprintf ( bsf_output, "\n    " );
+      if ( !((i+1) % 16) ) {
+        fprintf ( bsf_output, "\n  " );
+        bsf_WriteCurrentIndentation ();
+      }
     }
     fprintf ( bsf_output, "%d}\n", mk[npoints-1] );
   }

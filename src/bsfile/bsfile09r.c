@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2009, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2009, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -25,10 +25,10 @@
 boolean bsf_ReadBSplineHoled ( int maxk, int *hole_k, double *knots,
                                point2d *domain_cp, point4d *hole_cp,
                                int *spdimen, boolean *rational,
-                               byte *mk, char *name )
+                               char *name, bsf_UserReaders *readers )
 {
-  boolean _name, sides, domcp, surfcp, _mk;
-  int     ns, nk, ncp, lkn, dim, nmk, cpdimen;
+  boolean _name, sides, dimen, domcp, surfcp;
+  int     ns, nk, ncp, lkn, dim, cpdimen;
 
   if ( bsf_nextsymbol != BSF_SYMB_BSHOLE )
     goto failure;
@@ -38,11 +38,10 @@ boolean bsf_ReadBSplineHoled ( int maxk, int *hole_k, double *knots,
   bsf_GetNextSymbol ();
 
         /* nothing has ben read yet */
-  _name = sides = domcp = surfcp = _mk = *rational = false;
+  _name = sides = dimen = domcp = surfcp = *rational = false;
   if ( name )
     *name = 0;
   ns = nk = 0;
-  nmk = -1;
   for (;;) {
     switch ( bsf_nextsymbol ) {
 case BSF_SYMB_NAME:
@@ -56,6 +55,15 @@ case BSF_SYMB_NAME:
       else
         goto failure;
       _name = true;
+      break;
+
+case BSF_SYMB_DIM:
+      if ( dimen )
+        goto failure;
+      bsf_GetNextSymbol ();
+      if ( !bsf_ReadSpaceDim ( 4, spdimen ) )
+        goto failure;
+      dimen = true;
       break;
 
 case BSF_SYMB_SIDES:
@@ -107,26 +115,13 @@ case BSF_SYMB_CPOINTS:
       surfcp = true;
       break;
 
-case BSF_SYMB_CPOINTSMK:
-      if ( _mk || !sides )
-        goto failure;
-      bsf_GetNextSymbol ();
-      nmk = bsf_ReadPointsMK ( 12*ns+1, mk );
-      _mk = true;
-      break;
-
 case BSF_SYMB_RBRACE:
       bsf_GetNextSymbol ();
-      if ( nmk >= 0 && nmk != 12*ns+1 )
-        goto failure;
-      if ( (*rational && dim < cpdimen+1) || (!*rational && dim < cpdimen) )
+      if ( (*rational && *spdimen < cpdimen+1) ||
+           (!*rational && *spdimen < cpdimen) )
         goto failure;  
-      *spdimen = dim;
-      if ( sides && domcp && surfcp && nk == ns ) {
-        if ( !_mk && mk )
-          memset ( mk, 0, 12*ns+1 );
+      if ( sides && domcp && surfcp && nk == ns )
         return true;
-      }
       else
         goto failure;
 
@@ -135,9 +130,15 @@ case BSF_SYMB_RATIONAL:
       *rational = true;
       break;
 
+        /* optional attributes */
+case BSF_SYMB_CPOINTSMK:
+      if ( !_bsf_ReadCPMark ( readers, 12*maxk+1 ) )
+        goto failure;
+      break;
+
 case BSF_SYMB_COLOR:
 case BSF_SYMB_COLOUR:
-      if ( !_bsf_ReadColour ( bsf_current_readers ) )
+      if ( !_bsf_ReadColour ( readers ) )
         goto failure;
       break;
 

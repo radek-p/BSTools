@@ -34,33 +34,37 @@ boolean FilenameCorrect ( const char *fn )
   return (boolean)(fn[0] != 0);
 } /*FilenameCorrect*/
 
+void BSHoleReader ( void *userData, const char *name, int holek,
+                    const double *kn, const point2d *domaincp,
+                    const point4d *holecp,
+                    int spdimen, boolean rational )
+{
+  bsf_UserReaders *readers;
+
+  if ( spdimen == 3 && !rational && holek >= 3 && holek <= GH_MAX_K ) {
+    hole_k = holek;
+    nctrlp = 12*hole_k+1;
+    pkv_Selectd ( nctrlp, 3, 4, 3, holecp, hole_cp );
+    memcpy ( domain_cp, domaincp, nctrlp*sizeof(point2d) );
+    memset ( mkdcp, 0, nctrlp );
+    memcpy ( knots, kn, 11*holek*sizeof(double) );
+    readers = (bsf_UserReaders*)userData;    
+    readers->done = true;
+  }
+} /*BSHoleReader*/
+
 void OpenFile ( const char *fn )
 {
-  void    *sp;
-  boolean result, rational;
-  point4d *hcp;
-  int     spdimen;
+  bsf_UserReaders readers;
 
-  sp = pkv_GetScratchMemTop ();
-  hcp = pkv_GetScratchMem ( (12*GH_MAX_K+1)*sizeof(point4d) );
-  if ( !hcp )
-    goto failure;
   if ( RenderingIsOn )
     BreakRendering ( false );
-  if ( bsf_OpenInputFile ( filename ) ) {
-    result = bsf_ReadBSplineHoled ( GH_MAX_K, &hole_k, knots,
-                                    domain_cp, hcp, &spdimen, &rational,
-                                    mkhcp, NULL );
-    bsf_CloseInputFile ();
-  }
-  else {
-    bsf_PrintErrorLocation ();
-    result = false;
-  }
-  if ( result && !rational ) {
-    nctrlp = 12*hole_k+1;
-    pkv_Selectd ( nctrlp, 3, 4, 3, hcp, hole_cp );
-    memset ( mkdcp, 0, nctrlp );
+  bsf_ClearReaders ( &readers );
+  bsf_BSH4ReadFuncd ( &readers, BSHoleReader );
+  readers.userData = &readers;
+  readers.done = false;
+  bsf_ReadBSFiled ( filename, &readers );
+  if ( readers.done ) {
 /*    memset ( mkhcp, 0, nctrlp );*/
     FindBoundingBox ( &swind.DefBBox );
     FindDomainBoundingBox ( &domwind.DefBBox );
@@ -85,8 +89,25 @@ failure:
     InitGHObject ( 5 );
     xge_DisplayErrorMessage ( ErrMsgFileReading, -1 );
   }
-  pkv_SetScratchMemTop ( sp );
 } /*OpenFile*/
+
+boolean WriteHoleAttrib ( void *userData )
+{
+  void         *sp;
+  int          ncp, i;
+  unsigned int *mk;
+
+  sp = pkv_GetScratchMemTop ();
+  ncp = 12*hole_k+1;
+  mk = (unsigned int*)pkv_GetScratchMemi ( ncp );
+  if ( mk ) {
+    for ( i = 0; i < ncp; i++ )
+      mk[i] = mkhcp[i];
+    bsf_WritePointsMK ( ncp, mk );
+  }
+  pkv_SetScratchMemTop ( sp );
+  return true;
+} /*WriteHoleAttrib*/
 
 void SaveFile ( const char *fn )
 {
@@ -101,8 +122,8 @@ void SaveFile ( const char *fn )
   if ( strcmp ( file_ext, &filename[lfn-lex]) )
     strcpy ( &filename[lfn], file_ext );
   if ( bsf_OpenOutputFile ( filename, false ) ) {
-    bsf_WriteBSplineHoled ( hole_k, knots, domain_cp, hole_cp, mkhcp, NULL,
-                            NULL, NULL );
+    bsf_WriteBSplineHoled ( 3, 3, false, hole_k, knots, domain_cp, &hole_cp[0].x,
+                            NULL, WriteHoleAttrib, NULL );
     bsf_CloseOutputFile ();
     return;
   }

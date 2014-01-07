@@ -119,7 +119,7 @@ void GeomObjectReadBSplinePatch ( void *usrdata,
                  int degreev, int lastknotv, const double *knotsv,
                  boolean closed_u, boolean closed_v,
                  int pitch, const point4d *cpoints,
-                 int spdimen, boolean rational, byte *_mkcp );
+                 int spdimen, boolean rational );
 void GeomObjectBSplinePatchOutputToRenderer3D ( GO_BSplinePatch *obj );
 
 void GeomObjectBSplinePatchAdjustGeneral ( GO_BSplinePatch *obj );

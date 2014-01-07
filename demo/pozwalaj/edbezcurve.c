@@ -444,20 +444,20 @@ boolean GeomObjectWriteBezierCurve ( GO_BezierCurve *obj )
 {
   return bsf_WriteBezierCurved ( obj->me.spdimen, obj->me.cpdimen,
                                  obj->rational, obj->degree,
-                                 obj->cpoints, obj->mkcp, obj->me.name,
-                                 (bsf_WriteAttr_fptr)bsf_WriteColour,
-                                 (void*)obj->me.colour );
+                                 obj->cpoints, obj->me.name,
+                                 GeomObjectWriteAttributes,
+                                 (void*)&obj->me );
 } /*GeomObjectWriteBezierCurve*/
 
 void GeomObjectReadBezierCurve ( void *usrdata,
                                  const char *name, int degree,
                                  const point4d *cpoints, int spdimen,
-                                 boolean rational, byte *_mkcp )
+                                 boolean rational )
 {
   GO_BezierCurve *obj;
   double         *cp, *wcp;
   byte           *mkcp;
-  int            ncp, cpdimen, i;
+  int            ncp, cpdimen;
 
   obj = (GO_BezierCurve*)GeomObjectAddBezierCurve ( name, spdimen, rational );
   if ( obj ) {
@@ -495,9 +495,6 @@ void GeomObjectReadBezierCurve ( void *usrdata,
     if ( obj->rational )
       GeomObjectSetupWeightPoints ( obj->me.cpdimen, obj->degree+1,
                                     obj->cpoints, obj->weightpoints );
-    memcpy ( mkcp, _mkcp, ncp );
-    for ( i = 0; i < ncp; i++ )
-      mkcp[i] |= MASK_CP_MOVEABLE;
   }
 } /*GeomObjectReadBezierCurve*/
 

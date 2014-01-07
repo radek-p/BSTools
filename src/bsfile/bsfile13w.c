@@ -70,5 +70,5 @@ boolean bsf_WriteCamera ( CameraRecd *camera )
   }
   fprintf ( bsf_output, " }\n}\n" );
   return true;
-} /*bsf_WriteColour*/
+} /*bsf_WriteCamera*/
 

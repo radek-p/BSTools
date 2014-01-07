@@ -62,7 +62,7 @@ boolean GeomObjectWriteBezierPatch ( GO_BezierPatch *obj );
 void GeomObjectReadBezierPatch ( void *usrdata,
                                  const char *name, int degreeu, int degreev,
                                  int pitch, const point4d *cpoints, int spdimen,
-                                 boolean rational, byte *_mkcp );
+                                 boolean rational );
 void GeomObjectBezierPatchOutputToRenderer3D ( GO_BezierPatch *obj );
 
 void GeomObjectBezierPatchDisplayInfoText ( GO_BezierPatch *obj );

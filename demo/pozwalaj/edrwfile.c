@@ -43,23 +43,77 @@ void GeomObjectBeginReading ( void *usrdata, int obj_type )
 
       /* initialise the attributes to default values */
   attrib = (rw_object_attributes*)usrdata;
+  attrib->obj_type = obj_type;
+        /* points marking */
+  attrib->nmk = 0;
+  attrib->mk = NULL;
         /* colour: */
   attrib->colour[0] = attrib->colour[1] = 1.0;
   attrib->colour[2] = 0.0;
         /* others - in future */
 } /*GeomObjectBeginReading*/
 
+static void _GeomObjectGetCPMK ( geom_object *go, int *ncp, byte **mk )
+{
+  switch ( last_go->obj_type ) {
+case GO_BEZIER_CURVE:
+    *ncp = ((GO_BezierCurve*)go)->degree+1;
+    *mk  = ((GO_BezierCurve*)go)->mkcp;
+    break;
+case GO_BEZIER_PATCH:
+    *ncp = (((GO_BezierPatch*)go)->degree_u+1)*(((GO_BezierPatch*)go)->degree_v+1);
+    *mk  = ((GO_BezierPatch*)go)->mkcp;
+    break;
+case GO_BSPLINE_CURVE:
+    *ncp = ((GO_BSplineCurve*)go)->lastknot-((GO_BSplineCurve*)go)->degree;
+    *mk  = ((GO_BSplineCurve*)go)->mkcp;
+    break;
+case GO_BSPLINE_PATCH:
+    *ncp = (((GO_BSplinePatch*)go)->lastknot_u-((GO_BSplinePatch*)go)->degree_u)*
+           (((GO_BSplinePatch*)go)->lastknot_v-((GO_BSplinePatch*)go)->degree_v);
+    *mk  = ((GO_BSplinePatch*)go)->mkcp;
+    break;
+case GO_BSPLINE_MESH:
+    *ncp = ((GO_BSplineMesh*)go)->nv;
+    *mk  = ((GO_BSplineMesh*)go)->mkcp;
+    break;
+case GO_BSPLINE_HOLE:
+    *ncp = 12*((GO_BSplineHole*)go)->hole_k + 1;
+    *mk  = ((GO_BSplineHole*)go)->mkcp;
+    break;
+default:
+    *ncp = 0;
+    *mk = NULL;
+    break;
+  }
+} /*_GeomObjectGetCPMK*/
+
 void GeomObjectEndReading ( void *usrdata, boolean success )
 {
   rw_object_attributes *attrib;
+  byte  *mk;
+  int   i, ncp;
 
+  attrib = (rw_object_attributes*)usrdata;
   if ( success ) {
       /* the object has been read in, it is the last in the list, */
       /* assign the attributes */
-    attrib = (rw_object_attributes*)usrdata;
+        /* point marking */
+    _GeomObjectGetCPMK ( last_go, &ncp, &mk );
+    if ( attrib->nmk && mk &&
+         ncp > 0 && ncp == attrib->nmk )
+      memcpy ( mk, attrib->mk, ncp*sizeof(byte) );
+    else
+      memset ( mk, 0, ncp*sizeof(byte) );
+    for ( i = 0; i < ncp; i++ )
+      mk[i] |= MASK_CP_MOVEABLE;
         /* colour */
     memcpy ( last_go->colour, attrib->colour, 3*sizeof(double) );
         /* others - in future */
+  }
+  if ( attrib->mk ) {
+    free ( attrib->mk );
+    attrib->mk = NULL;
   }
 } /*GeomObjectEndReading*/
 
@@ -71,14 +125,32 @@ void GeomObjectReadColour ( void *usrdata, point3d *colour )
   memcpy ( attrib->colour, colour, 3*sizeof(double) );
 } /*GeomObjectReadColour*/
 
+void GeomObjectReadCPMK ( void *usrdata, int ncp, unsigned int *mk )
+{
+  rw_object_attributes *attrib;
+  int                  i;
+
+  attrib = (rw_object_attributes*)usrdata;
+  if ( !attrib->mk && ncp > 0 ) {
+    attrib->mk = malloc ( ncp*sizeof(byte) );
+    if ( attrib->mk ) {
+      attrib->nmk = ncp;
+      for ( i = 0; i < ncp; i++ )
+        attrib->mk[i] = (byte)mk[i];
+    }
+  }
+} /*GeomObjectReadCPMK*/
+
 boolean GeomObjectReadFile ( char *filename, bsf_Camera_fptr CameraReader )
 {
   bsf_UserReaders      readers;
   rw_object_attributes attrib;
+  boolean              result;
 
         /* register procedures entering the objects read in */
   bsf_ClearReaders ( &readers );
   readers.userData = (void*)&attrib;
+  attrib.mk = NULL;
   bsf_BeginReadingFuncd ( &readers, GeomObjectBeginReading );
   bsf_EndReadingFuncd ( &readers, GeomObjectEndReading );
   bsf_BC4ReadFuncd  ( &readers, GeomObjectReadBezierCurve, MAX_DEGREE );
@@ -90,13 +162,49 @@ boolean GeomObjectReadFile ( char *filename, bsf_Camera_fptr CameraReader )
   bsf_BSM4ReadFuncd ( &readers, GeomObjectReadBSplineMesh, MAX_DEGREE,
                       MAX_BSM_NV, MAX_BSM_NHE, MAX_BSM_NFAC );
   bsf_BSH4ReadFuncd ( &readers, GeomObjectReadBSplineHole );
+  bsf_CPMarkReadFunc ( &readers, GeomObjectReadCPMK );
   bsf_CameraReadFuncd ( &readers, CameraReader );
   bsf_ColourReadFuncd ( &readers, GeomObjectReadColour );
         /* read the file */
-  return bsf_ReadBSFiled ( filename, &readers );
+  result = bsf_ReadBSFiled ( filename, &readers );
+  if ( attrib.mk )      /* in case of failure */
+    free ( attrib.mk );
+  return result;
 } /*GeomObjectReadFile*/
 
 /* ////////////////////////////////////////////////////////////////////////// */
+boolean GeomObjectWriteAttributes ( void *usrdata )
+{
+  void         *sp;
+  geom_object  *go;
+  unsigned int *mkcp;
+  byte         *mk;
+  int          ncp, i;
+
+  sp = pkv_GetScratchMemTop ();
+  go = (geom_object*)usrdata;
+        /* write the object's colour */
+  if ( !bsf_WriteColour ( (void*)go->colour ) )
+    goto failure;
+        /* write the points markings */
+  _GeomObjectGetCPMK ( go, &ncp, &mk );
+  if ( ncp <= 0 )
+    goto failure;
+  mkcp = (unsigned int*)pkv_GetScratchMemi ( ncp );
+  if ( !mkcp )
+    goto failure;
+  for ( i = 0; i < ncp; i++ )
+    mkcp[i] = (unsigned int)mk[i];
+  bsf_WritePointsMK ( ncp, mkcp );
+
+  pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
+} /*GeomObjectWriteAttributes*/
+
 boolean GeomObjectWriteObj ( geom_object *go )
 {
   switch ( go->obj_type ) {

@@ -180,7 +180,7 @@ void GeomObjectReadBSplineMesh ( void *usrdata,
                     const point4d *vc,
                     int nhe, const BSMhalfedge *mhe,
                     int nfac, const BSMfacet *mfac, const int *mfhei,
-                    int spdimen, boolean rational, byte *_mkcp );
+                    int spdimen, boolean rational );
 
 void GeomObjectOutputMeshBSPatchToRenderer3D ( int d, int *vertnum, int *mtab,
                                                void *usrptr );

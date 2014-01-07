@@ -73,7 +73,7 @@ void GeomObjectReadBSplineCurve ( void *usrdata,
                                   const char *name, int degree, int lastknot,
                                   const double *knots, boolean closed,
                                   const point4d *cpoints, int spdimen,
-                                  boolean rational, byte *_mkcp );
+                                  boolean rational );
 
 void GeomObjectBSplineCurveOutputToRenderer ( GO_BSplineCurve *obj );
 void GeomObjectBSplineCurveDisplayInfoText ( GO_BSplineCurve *obj );

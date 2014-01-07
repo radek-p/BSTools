@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2009, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2009, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -24,10 +24,10 @@
 
 boolean bsf_ReadBezierCurve4d ( int maxdeg, int *deg, point4d *cpoints,
                                 int *spdimen, boolean *rational,
-                                byte *mk, char *name )
+                                char *name, bsf_UserReaders *readers )
 {
-  boolean _name, degree, c_points, dimen, _mk;
-  int     ncpoints, nmk, dim, cpdimen;
+  boolean _name, degree, c_points, dimen;
+  int     ncpoints, dim, cpdimen;
 
   if ( bsf_nextsymbol != BSF_SYMB_BCURVE )
     goto failure;
@@ -37,11 +37,10 @@ boolean bsf_ReadBezierCurve4d ( int maxdeg, int *deg, point4d *cpoints,
   bsf_GetNextSymbol ();
 
         /* nothing has been read in yet */
-  _name = degree = c_points = *rational = dimen = _mk = false;
+  _name = degree = c_points = *rational = dimen = false;
   ncpoints = 0;
   if ( name )
     *name = 0;
-  nmk = -1;
   for (;;) {
     switch ( bsf_nextsymbol ) {
 case BSF_SYMB_NAME:
@@ -85,26 +84,13 @@ case BSF_SYMB_CPOINTS:
         goto failure;
       break;
 
-case BSF_SYMB_CPOINTSMK:
-      if ( _mk )
-        goto failure;
-      bsf_GetNextSymbol ();
-      nmk = bsf_ReadPointsMK ( maxdeg+1, mk );
-      _mk = true;
-      break;
-
 case BSF_SYMB_RBRACE:
       bsf_GetNextSymbol ();
-      if ( nmk >= 0 && nmk != ncpoints )
-        goto failure;
       if ( (*rational && dim < cpdimen+1) || (!*rational && dim < cpdimen) )
         goto failure;
       *spdimen = dim;
-      if ( degree && c_points && ncpoints == *deg+1 ) {
-        if ( !_mk && mk )
-          memset ( mk, 0, ncpoints );
+      if ( degree && c_points && ncpoints == *deg+1 )
         return true;
-      }
       else
         goto failure;
 
@@ -113,9 +99,15 @@ case BSF_SYMB_RATIONAL:
       *rational = true;
       break;
 
+        /* optional attributes */
+case BSF_SYMB_CPOINTSMK:
+      if ( !_bsf_ReadCPMark ( readers, maxdeg+1 ) )
+        goto failure;
+      break;
+
 case BSF_SYMB_COLOR:
 case BSF_SYMB_COLOUR:
-      if ( !_bsf_ReadColour ( bsf_current_readers ) )
+      if ( !_bsf_ReadColour ( readers ) )
         goto failure;
       break;
 

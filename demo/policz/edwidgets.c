@@ -106,7 +106,7 @@ char *InfoMsg[6] =
     "bicubic spline surface, with G^1 and G^2 continuity",
     "*** an almost finished version ***",
     "This program is a part of the BSTools package.",
-    "(C) Copyright by Przemyslaw Kiciak, 2008, 2009",
+    "(C) Copyright by Przemyslaw Kiciak, 2008, 2014",
     NULL };
 
 char MsgReconsider[] = "Please, reconsider it and then proceed.";

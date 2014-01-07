@@ -43,9 +43,9 @@ boolean GeomObjectWriteBSplinePatch ( GO_BSplinePatch *obj )
                obj->degree_u, obj->lastknot_u, obj->knots_u,
                obj->degree_v, obj->lastknot_v, obj->knots_v,
                obj->closed_u, obj->closed_v,
-               pitch, obj->cpoints, obj->mkcp, obj->me.name,
-               (bsf_WriteAttr_fptr)bsf_WriteColour,
-               (void*)obj->me.colour );
+               pitch, obj->cpoints, obj->me.name,
+               GeomObjectWriteAttributes,
+               (void*)&obj->me );
 } /*GeomObjectWriteBSplinePatch*/
 
 void GeomObjectReadBSplinePatch ( void *usrdata,
@@ -54,12 +54,12 @@ void GeomObjectReadBSplinePatch ( void *usrdata,
                  int degreev, int lastknotv, const double *knotsv,
                  boolean closed_u, boolean closed_v,
                  int pitch, const point4d *cpoints,
-                 int spdimen, boolean rational, byte *_mkcp )
+                 int spdimen, boolean rational )
 {
   GO_BSplinePatch *obj;
   double          *cp, *knu, *knv;
   byte            *mkcp;
-  int             ncp, cpdimen, i;
+  int             ncp, cpdimen;
 
   obj = (GO_BSplinePatch*)GeomObjectAddBSplinePatch ( name, spdimen, rational );
   if ( obj ) {
@@ -101,9 +101,6 @@ void GeomObjectReadBSplinePatch ( void *usrdata,
                                ncp, (double*)cpoints, cp );
     memcpy ( knu, knotsu, (lastknotu+1)*sizeof(double) );
     memcpy ( knv, knotsv, (lastknotv+1)*sizeof(double) );
-    memcpy ( mkcp, _mkcp, ncp );
-    for ( i = 0; i < ncp; i++ )
-      mkcp[i] |= MASK_CP_MOVEABLE;
   }
 } /*GeomObjectReadBSplinePatch*/
 

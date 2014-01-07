@@ -45,6 +45,24 @@ boolean FilenameCorrect ( const char *filename )
   return (boolean)(filename[0] != 0);
 } /*FilenameCorrect*/
 
+boolean WriteCurveAttributes ( void *usrdata )
+{
+  void         *sp;
+  int          ncp, i;
+  unsigned int *mk;
+
+  sp = pkv_GetScratchMemTop ();
+  ncp = kwind.lastknot-kwind.degree;
+  mk = (unsigned int*)pkv_GetScratchMemi ( ncp );
+  if ( mk ) {
+    for ( i = 0; i < ncp; i++ )
+      mk[i] = (unsigned int)cpmark[i];
+    bsf_WritePointsMK ( ncp, mk );
+  }
+  pkv_SetScratchMemTop ( sp );
+  return true;
+} /*WriteCurveAttributes*/
+
 boolean SaveBSCurve ( char *filename )
 {
   void   *sp;
@@ -60,8 +78,8 @@ boolean SaveBSCurve ( char *filename )
     if ( nurbs ) {
 try_nurbs:
       bsf_WriteBSplineCurved ( 3, 4, true, kwind.degree, kwind.lastknot,
-                               knots, kwind.closed, &cpoints[0].x,
-                               cpmark, NULL, NULL, NULL );
+                               knots, kwind.closed, &cpoints[0].x, NULL,
+                               WriteCurveAttributes, NULL );
     }
     else {
       buf = pkv_GetScratchMem ( (kwind.lastknot-kwind.degree)*sizeof(point3d) );
@@ -70,7 +88,8 @@ try_nurbs:
       pkv_Selectd ( kwind.lastknot-kwind.degree, 3, 4, 3,
                     &cpoints[0].x, buf );
       bsf_WriteBSplineCurved ( 3, 3, false, kwind.degree, kwind.lastknot,
-                               knots, kwind.closed, buf, cpmark, NULL, NULL, NULL );
+                               knots, kwind.closed, buf, NULL,
+                               WriteCurveAttributes, NULL );
     }
     bsf_CloseOutputFile ();
     pkv_SetScratchMemTop ( sp );
@@ -82,65 +101,85 @@ try_nurbs:
   }
 } /*SaveBSCurve*/
 
+void BSCurveReader ( void *userData, const char *name,
+                     int degree, int lastknot, const double *_knots,
+                     boolean closed, const point4d *_cpoints,
+                     int spdimen, boolean rational )
+{
+  bsf_UserReaders *readers;
+  int             i;
+
+  kwind.lastknot = lastknot;
+  memcpy ( knots, _knots, (lastknot+1)*sizeof(double) );
+  kwind.degree = degree;
+  kwind.umin = knots[0];
+  kwind.umax = knots[lastknot-1];
+  npoints = lastknot-degree;
+  memcpy ( cpoints, _cpoints, npoints*sizeof(point4d) );
+  if ( rational ) {
+    switch ( spdimen ) {
+  case 2:
+      for ( i = 0; i < npoints; i++ ) {
+        cpoints[i].w = cpoints[i].z;
+        cpoints[i].z = 0.0;
+        if ( cpoints[i].w <= 0.0 )
+          return;  /* failure */
+      }
+      break;
+  case 3:
+      for ( i = 0; i < npoints; i++ ) {
+        cpoints[i].z = _cpoints[i].w;
+        if ( cpoints[i].z <= 0.0 )
+          return;  /* failure */
+      }
+      break;
+  default:
+      for ( i = 0; i < npoints; i++ )
+        cpoints[i].w = 1.0;
+      break;
+    }
+  }
+  else {
+    for ( i = 0; i < npoints; i++ )
+      cpoints[i].w = 1.0;
+  }
+  kwind.closed = closed;
+  nurbs = rational;
+  if ( closed ) {
+    kwind.clcK = lastknot - 2*degree;
+    kwind.clcT = knots[lastknot-degree] - knots[degree];
+  }
+        /* finish after reading the first curve found in the file */
+  readers = (bsf_UserReaders*)userData;
+  readers->done = true;
+} /*BSCurveReader*/
+
+void ReadCPointsMK ( void *userData, int ncp, unsigned int *mk )
+{
+  int i;
+
+  if ( ncp > MAX_DEGREE*MAX_KNOTS )
+    ncp = MAX_DEGREE*MAX_KNOTS;
+  for ( i = 0; i < ncp; i++ )
+    cpmark[i] = (byte)mk[i];
+} /*ReadCPointsMK*/
+
 boolean ReadBSCurve ( char *filename )
 {
+  bsf_UserReaders readers;
 
-  void    *sp;
-  point4d *cp;
-  double  *kn;
-  int     maxcp, spdimen, degree, lastknot, i;
-  boolean result, closed, rational;
-  byte    *mkcp;
-
-  sp = pkv_GetScratchMemTop ();
-  maxcp = MAX_DEGREE*MAX_KNOTS;
-  cp = pkv_GetScratchMem ( maxcp*sizeof(point4d) );
-  kn = pkv_GetScratchMemd ( MAX_KNOTS );
-  mkcp = pkv_GetScratchMem ( maxcp );
-  if ( !cp || !kn || !mkcp )
+  bsf_ClearReaders ( &readers );
+  bsf_BSC4ReadFuncd ( &readers, BSCurveReader, MAX_DEGREE, MAX_KNOTS );
+  bsf_CPMarkReadFunc ( &readers, ReadCPointsMK );
+  readers.userData = &readers;
+  if ( !bsf_ReadBSFiled ( filename, &readers ) ) {
+    bsf_PrintErrorLocation ();
     goto failure;
-
-  if ( bsf_OpenInputFile ( filename ) ) {
-    result = bsf_ReadBSplineCurve4d ( MAX_DEGREE, MAX_KNOTS, maxcp,
-               &degree, &lastknot, kn, &closed, cp, &spdimen, &rational,
-               mkcp, NULL );
-    bsf_CloseInputFile ();
-    if ( result ) {
-      kwind.lastknot = lastknot;
-      memcpy ( knots, kn, (lastknot+1)*sizeof(double) );
-      kwind.degree = degree;
-      npoints = lastknot-degree;
-      memcpy ( cpoints, cp, npoints*sizeof(point4d) );
-      memcpy ( cpmark, mkcp, npoints );
-      if ( spdimen <= 2 ) {
-        for ( i = 0; i < npoints; i++ ) {
-          cpoints[i].z = 0.0;
-          cpoints[i].w = 1.0;
-        }
-      }
-      for ( i = 0; i < npoints; i++ )
-        if ( !cpoints[i].w )
-          goto failure;
-      kwind.closed = closed;
-      nurbs = rational;
-      if ( closed ) {
-        kwind.clcK = lastknot - 2*degree;
-        kwind.clcT = knots[lastknot-degree] - knots[degree];
-      }
-    }
-    else
-      bsf_PrintErrorLocation ();
   }
-  else
-    goto failure;
-
-  pkv_SetScratchMemTop ( sp );
-  return result;
+  return true;
 
 failure:
   ResetObject ();
-  pkv_SetScratchMemTop ( sp );
-
   return false;
 } /*ReadBSCurve*/
 
@@ -211,6 +250,22 @@ void RysujPOkno ( xge_widget *er, boolean onscreen )
   xge_3DwindDrawGeomWidgets ( er );
   xge_DrawGeomWinFrame ( er, onscreen );
 } /*RysujPOkno*/
+
+void ResetCurveMapping ( void )
+{
+} /*ResetCurveMapping*/
+
+void FindCurveMapping ( void )
+{
+  Box3d box;
+  int   i;
+
+  FindBoundingBox ( &box );
+  xge_3DwindInitProjections ( &cwind, box.x0, box.x1,
+                              box.y0, box.y1, box.z0, box.z1 );
+  for ( i = 0; i < 4; i++ )
+    ProjectCurve ( i );
+} /*FindCurveMapping*/
 
 /* ///////////////////////////////////////////////////////////////////////// */
 void init_edwin ( void )
@@ -629,6 +684,7 @@ open_the_file:
           xge_ClearListBox ( &filelist );
           xge_ClearListBox ( &dirlist );
           if ( ReadBSCurve ( filename ) ) {
+            FindCurveMapping ();
             ResizeObject ();
 /*            ClearPointMarking (); */
           }
@@ -745,6 +801,25 @@ case xgemsg_KNOTWIN_ERROR:
   default:
         break;
       }
+      return false;
+
+case xgemsg_TEXT_EDIT_VERIFY:
+      switch ( er->id ) {
+  case txted02pFILENAME:
+        return true;
+  default:
+        return false;
+      }
+
+case xgemsg_TEXT_EDIT_ENTER:
+      switch ( er->id ) {
+  case txted02pFILENAME:
+        return true;
+  default:
+        return false;
+      }
+
+case xgemsg_TEXT_EDIT_ESCAPE:
       return false;
 
 default:

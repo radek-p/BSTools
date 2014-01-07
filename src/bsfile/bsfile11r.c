@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2010                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2010, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -29,10 +29,10 @@ boolean bsf_ReadBSMesh4d ( int maxnv, int maxnhe, int maxnfac,
                            int *nhe, BSMhalfedge *mhe,      
                            int *nfac, BSMfacet *mfac, int *mfhei,
                            int *spdimen, boolean *rational,
-                           byte *mkv, char *name )
+                           char *name, bsf_UserReaders *readers )
 {
-  boolean _name, deg, vertices, halfedges, facets, dimen, _mkv;
-  int     nitems, nmkv;
+  boolean _name, deg, vertices, halfedges, facets, dimen;
+  int     nitems;
   int     i, k, d;
 
   if ( bsf_nextsymbol != BSF_SYMB_BSMESH )
@@ -43,11 +43,10 @@ boolean bsf_ReadBSMesh4d ( int maxnv, int maxnhe, int maxnfac,
   bsf_GetNextSymbol ();
 
         /* nothing has been read in yet */
-  _name = deg = vertices = halfedges = facets = dimen = *rational = _mkv = false;
+  _name = deg = vertices = halfedges = facets = dimen = *rational = false;
   if ( name )
     *name = 0;
   *degree = 0;
-  nmkv = -1;
   for (;;) {
     switch ( bsf_nextsymbol ) {
 case BSF_SYMB_NAME:
@@ -232,23 +231,10 @@ case BSF_SYMB_FACETS:
       facets = true;
       break;
 
-case BSF_SYMB_CPOINTSMK:
-      if ( _mkv )
-        goto failure;
-      bsf_GetNextSymbol ();
-      nmkv = bsf_ReadPointsMK ( maxnv, mkv );
-      _mkv = true;
-      break;
-
 case BSF_SYMB_RBRACE:
       bsf_GetNextSymbol ();
-      if ( nmkv >= 0 && nmkv != *nv )
-        goto failure;
-      if ( vertices && halfedges && facets ) {
-        if ( !_mkv && mkv )
-          memset ( mkv, 0, *nv );
+      if ( vertices && halfedges && facets )
         return true;
-      }
       else
         goto failure;
 
@@ -257,9 +243,15 @@ case BSF_SYMB_RATIONAL:
       bsf_GetNextSymbol ();
       break;
 
+        /* optional attributes */
+case BSF_SYMB_CPOINTSMK:
+      if ( !_bsf_ReadCPMark ( readers, maxnv ) )
+        goto failure;
+      break;
+
 case BSF_SYMB_COLOR:
 case BSF_SYMB_COLOUR:
-      if ( !_bsf_ReadColour ( bsf_current_readers ) )
+      if ( !_bsf_ReadColour ( readers ) )
         goto failure;
       break;
 

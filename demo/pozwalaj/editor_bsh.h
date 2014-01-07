@@ -51,7 +51,7 @@ void GeomObjectReadBSplineHole ( void *usrdata,
                                  const char *name, int hole_k,
                                  const double *knots,
                                  const point2d *domain_cp, const point4d *hole_cp,
-                                 int spdimen, boolean rational, byte *_mkcp );
+                                 int spdimen, boolean rational );
 
 void GeomObjectBSplineHoleDisplayInfoText ( GO_BSplineHole *obj );
 

@@ -3532,4 +3532,19 @@ Wersja 0.33.
 827. Poprawka w programie pozwalaj - dorobienie poprawnej reakcji na zmiane
     wymiarow okna, a dokladniej menu opcji dla siatek w drugim oknie.
 
+6.01.2014.
+828. Zmiany w libbsfile: oznaczenia punktow kontrolnych sa teraz argumentem
+    opcjonalnym, tj. czytanym i wprowadzanym do aplikacji przez osobna
+    procedure. Poprawione bledy w procedurze czytania danych opisujacych
+    wielokatny otwor (to bylo dawno nietestowane). Beda jeszcze poprawki w
+    libbsfile, majace na celu uporzadkowanie kodu przed dalsza rozbudowa
+    skladni jezyka formatu plikow .bs.
+
+829. Dokonane odpowiednie poprawki w programach demonstracyjnych pokrzyw,
+    pognij, pomnij, policz i pozwalaj, zwiazane ze zmiana sposobu pisania i
+    czytania plikow .bs.
+
+7.01.2014.
+  830. Dalsze porzadki w bibliotece libbsfile.
+
 
