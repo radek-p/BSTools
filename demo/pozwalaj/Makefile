@@ -3,7 +3,7 @@
 # This file is a part of the BSTools package
 # written by Przemyslaw Kiciak
 # /////////////////////////////////////////////////////////////////////
-# (C) Copyright by Przemyslaw Kiciak, 2010, 2013
+# (C) Copyright by Przemyslaw Kiciak, 2010, 2014
 # this package is distributed under the terms of the
 # Lesser GNU Public License, see the file COPYING.LIB
 # /////////////////////////////////////////////////////////////////////
@@ -24,7 +24,8 @@ CC = gcc
 LDFLAGS =
 
 LIBS = -lxgedit -lbsfile -lg1blending -lg2blending -leghole -lbsmesh -lraybez \
-  -lmultibs -lcamera -lpkgeom -lpknum -lpkvaria -lGLU -lGL -lX11 -lpthread -lm
+  -lmultibs -lcamera -lpkgeom -lpknum -lpkvaria \
+  -lGLU -lGL -lX11 -lXext -lpthread -lm
 
 OBJECTS = pozwalaj00.o pozwalaj01.o pozwalaj02.o statustext.o \
   top00menu.o side00menu.o side00bmenu.o side00emenu.o bottom00menu.o \

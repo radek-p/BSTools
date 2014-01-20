@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2007, 2012                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2007, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -397,13 +397,21 @@ default:
 void xge_get_message ( unsigned int *msg, unsigned int *key, short *x, short *y )
 {
   Window         r_w, c_w;
-  int            win;
+  int            win, i;
   int            x_r, y_r;
   short          w, h;
   unsigned int   xbutton_mask;
   unsigned int   newmask = 0;
 
   XNextEvent ( xgedisplay, &xgeevent );
+#ifdef USE_XEXT_SHAPE
+  for ( i = 0; i < 4; i++ )
+    if ( xgeevent.xany.window == xge_specialwin[i].thewindow ) {
+      _xge_SpecialWinEvent ();
+      *msg = xgemsg_NULL;
+      return;
+    }
+#endif
   win = xge_FindWindowNum ( xgeevent.xany.window );
   if ( win != xge_current_win )
     xge_SetWindow ( win );
@@ -528,6 +536,16 @@ case ConfigureNotify:
       xge_windesc[win].thewinrect.width  = w;
       xge_windesc[win].thewinrect.height = h;
     }
+#ifdef USE_XEXT_SHAPE
+    if ( xge_specialwin_in_use && _xge_compspecialwinsizes &&
+         _xge_specialwdg && _xge_specialwdg->window_num == win ) {
+      _xge_compspecialwinsizes ( _xge_special_widget );
+      _xge_RemaskSpecialWin ();
+      _xge_MapSpecialWin ( _xge_specialwdg->window_num, _xge_compspecialwinsizes,
+                           _xge_maskspecialwin, _xge_drawspecialwin,
+                           _xge_specialwdg );
+    }
+#endif
     *msg = xgemsg_NULL;
     break;
 

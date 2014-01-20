@@ -411,7 +411,7 @@ lm_trajectory:
     goto way_out;
   }
   else if ( incne < delta )
-    result = PKN_LMT_FOUND_ZEROGRAD;
+    result = positive ? PKN_LMT_FOUND_ZEROGRAD_P : PKN_LMT_FOUND_ZEROGRAD;
 finish_lmt:
   memcpy ( x, minx, n*sizeof(float) );
 

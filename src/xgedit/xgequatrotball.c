@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2012                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2012, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -149,7 +149,8 @@ static void _xge_QuatRotBallDrawCircle ( short xc, short yc, short r, trans3f *t
   _xge_r_DrawArc ( uvb, va, ec );
 } /*_xge_QuatRotBallDrawCircle*/
 
-void _xge_QuatRotBallDrawCircles ( short xc, short yc, short r, trans3f *tr )
+void _xge_QuatRotBallDrawCircles ( short xc, short yc, short r, trans3f *tr,
+                                   void (*outpixels)(const xpoint *buf, int n) )
 {
   static vector3f z = {0.0, 0.0, 0.0},
     e1 = {1.0, 0.0, 0.0}, e2 = {0.0, 1.0, 0.0}, e3 = {0.0, 0.0, 1.0},
@@ -161,7 +162,7 @@ void _xge_QuatRotBallDrawCircles ( short xc, short yc, short r, trans3f *tr )
   sp = pkv_GetScratchMemTop ();
   _pkv_InitPixelBuffer ();
   if ( _pkv_pixbuf ) {
-    _pkv_OutputPixels = xge_OutPixels;
+    _pkv_OutputPixels = outpixels;
         /* equator */
     _xge_QuatRotBallDrawCircle ( xc, yc, r, tr, &z, &e1, &e2 );
     _xge_QuatRotBallDrawCircle ( xc, yc, r, tr, &c1, &f1, &f2 );
@@ -175,4 +176,80 @@ void _xge_QuatRotBallDrawCircles ( short xc, short yc, short r, trans3f *tr )
   _pkv_DestroyPixelBuffer ();
   pkv_SetScratchMemTop ( sp );
 } /*_xge_QuatRotBallDrawCircles*/
+
+#ifdef USE_XEXT_SHAPE
+void _xge_QuatRotCompSpecialWinSizes ( xge_widget *spqw )
+{
+#define SPWR(i) xge_specialwin[i].thewinrect
+  XRectangle wr;
+  int        w, r, d, i;
+  Window     child;
+
+  wr = xge_windesc[xge_current_win].thewinrect;
+        /* make all special windows empty */
+  for ( i = 0; i < 4; i++ )
+    SPWR(i).width = SPWR(i).height = 0;
+  r = (spqw->h+1)/2;
+        /* compute the left special window size */
+  if ( spqw->x < 0 ) {
+    SPWR(0).width = w = -spqw->x;  SPWR(0).height = spqw->h;
+    SPWR(0).x = spqw->x;  SPWR(0).y = spqw->y;
+    if ( w < r-1 ) {
+      d = r - (int)sqrt ( r*r - w*w );
+      SPWR(0).height -= d+d;
+      SPWR(0).y += d;
+    }
+  }
+        /* compute the right special window size */
+  if ( spqw->x+spqw->w > wr.width ) {
+    SPWR(1).width = w = spqw->x+spqw->w-wr.width;  SPWR(1).height = spqw->h;
+    SPWR(1).x = wr.width;  SPWR(1).y = spqw->y;
+    if ( w < r-1 ) {
+      d = r - (int)sqrt ( r*r - w*w );
+      SPWR(1).height -= d+d;
+      SPWR(1).y += d;
+    }
+  }
+        /* compute the upper special window size */
+  if ( spqw->y < 0 ) {
+    SPWR(2).width = spqw->w;  SPWR(2).height = -spqw->y;
+    SPWR(2).x = spqw->x;  SPWR(2).y = spqw->y;
+    if ( SPWR(2).x < 0 ) { SPWR(2).width += SPWR(2).x;  SPWR(2).x = 0; }
+    if ( SPWR(2).x+SPWR(2).width > wr.width )
+      SPWR(2).width -= SPWR(2).x+SPWR(2).width-wr.width;
+  }
+        /* compute the lower special window size */
+  if ( spqw->y+spqw->h > wr.height ) {
+    SPWR(3).width = spqw->w;  SPWR(3).height = spqw->y+spqw->h-wr.height;
+    SPWR(3).x = spqw->x;  SPWR(3).y = wr.height;
+    if ( SPWR(3).x < 0 ) { SPWR(3).width += SPWR(3).x;  SPWR(3).x = 0; }
+    if ( SPWR(3).x+SPWR(3).width > wr.width )
+      SPWR(3).width -= SPWR(3).x+SPWR(3).width-wr.width;
+  }
+        /* do something with it */
+  for ( i = 0; i < 4; i++ ) {
+    xge_specialwin[i].nonempty = SPWR(i).width > 0 && SPWR(i).height > 0;
+    if ( xge_specialwin[i].nonempty ) {
+      XTranslateCoordinates ( xgedisplay, xgewindow,
+                              DefaultRootWindow(xgedisplay),
+                              SPWR(i).x, SPWR(i).y, &w, &d, &child );
+      xge_specialwin[i].xpos = w;
+      xge_specialwin[i].ypos = d;
+      xge_specialwin[i].xpix = spqw->x-SPWR(i).x;
+      xge_specialwin[i].ypix = spqw->y-SPWR(i).y;
+    }
+  }
+#undef SPWR
+} /*_xge_QuatRotCompSpecialWinSizes*/
+
+void _xge_QuatRotBallDrawSpecialWin ( int w, xge_widget *wdg )
+{
+  XSetForeground ( xgedisplay, xge_specialwingc,
+                   WhitePixel(xgedisplay,DefaultScreen(xgedisplay)) );
+  XFillRectangle ( xgedisplay, xge_specialwin[w].thewindow,
+                   xge_specialwingc, 0, 0,
+                   xge_specialwin[w].thewinrect.width,
+                   xge_specialwin[w].thewinrect.height );
+} /*_xge_QuatRotBallDrawSpecialWin*/
+#endif
 

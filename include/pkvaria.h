@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -137,6 +137,9 @@ boolean pkv_DegreeStrToRad ( char *txt, double *angle );
 
 /* computing binomial coefficients */
 int pkv_Binom ( int n, int k );
+
+/* multiple integer counter for multidimensional tasks */
+boolean pkv_IncMultiCounter ( int dim, const int *limits, int *cnt );
 
 /* Sorting arrays of records with numerical keys.               */
 /* The method is stable, i.e. it does not change the order      */

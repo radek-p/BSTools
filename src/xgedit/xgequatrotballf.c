@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2012                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2012, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -21,12 +21,13 @@
 #include "xgedit.h"
 #include "xgeprivate.h"
 
-
+/* ///////////////////////////////////////////////////////////////////////// */
 void xge_DrawQuatRotBallf ( xge_widget *er, boolean onscreen )
 {
   xge_quatrotballf *qball;
   short            xc, yc, x, y, r1, r2;
   char             *title;
+  xgecolour_int    fc;
 
   qball = (xge_quatrotballf*)er->data0;
   xgeSetForeground ( xgec_MENU_BACKGROUND );
@@ -37,15 +38,19 @@ void xge_DrawQuatRotBallf ( xge_widget *er, boolean onscreen )
   r2 = qball->r2;
   xgeSetForeground ( xgec_Black );
   xgeFillArc ( 2*r2+1, 2*r2+1, xc-r2, yc-r2, 0, 360*64 );
-  if ( er->state == xgestate_NOTHING )
+  if ( er->state == xgestate_NOTHING ) {
     xgeSetForeground ( xgec_Blue3 );
-  else
+    fc = xgec_White;
+  }
+  else {
     xgeSetForeground ( xgec_Blue6 );
+    fc = xgec_Grey2;
+  }
   xgeFillArc ( 2*r1+1, 2*r1+1, xc-r1, yc-r1, 0, 360*64 );
   xgeSetForeground ( xgec_Grey3 );
   xgeDrawArc ( 2*r1+1, 2*r1+1, xc-r1, yc-r1, 0, 360*64 );
-  xgeSetForeground ( xgec_White );
-  _xge_QuatRotBallDrawCircles ( xc, yc, r1, qball->tr );
+  xgeSetForeground ( fc );
+  _xge_QuatRotBallDrawCircles ( xc, yc, r1, qball->tr, xge_OutPixels );
   xgeDrawArc ( 2*r2+1, 2*r2+1, xc-r2, yc-r2, 0, 360*64 );
   if ( (title = er->data1) ) {
     if ( er->w > er->h )  /* title aside */
@@ -178,22 +183,39 @@ static void _xge_QuatRotBallfDrawSpecial ( xge_widget *er, boolean onscreen )
   xgeSetForeground ( xgec_Grey3 );
   xgeDrawArc ( 2*R+1, 2*R+1, xc-R, yc-R, 0, 360*64 );
   xgeSetForeground ( xgec_White );
-  _xge_QuatRotBallDrawCircles ( xc, yc, R, qball->tr );
+  _xge_QuatRotBallDrawCircles ( xc, yc, R, qball->tr, xge_OutPixels );
   if ( onscreen )
     xgeCopyRectOnScreen ( er->w, er->h, er->x, er->y );
 } /*_xge_QuatRotBallfDrawSpecial*/
 
-static void _xge_QuatRotBallfOpenSpecial ( xge_widget *er )
+#ifdef USE_XEXT_SHAPE
+static void _xge_QuatRotBallfMaskSpecialWin ( xge_widget *wdg )
 {
   xge_quatrotballf *qball;
   short            R;
+
+  qball = (xge_quatrotballf*)wdg->data0;
+  R = qball->R;
+  XSetForeground ( xgedisplay, xge_specialpixmapgc, 1 );
+  XDrawArc ( xgedisplay, xge_specialpixmap, xge_specialpixmapgc,
+             0, 0, 2*R+1, 2*R+1, 0, 360*64 );
+  _xge_QuatRotBallDrawCircles ( R, R, R, qball->tr, _xge_OutSpecialMaskPixels );
+} /*_xge_QuatRotBallfMaskSpecialWin*/
+#endif
+
+static void _xge_QuatRotBallfOpenSpecial ( xge_widget *er )
+{
+  xge_quatrotballf *qball;
+  short            R, D;
 
   qball = (xge_quatrotballf*)er->data0;
   R = qball->R;
   _xge_special_widget->msgproc = xge_EmptyMsg;
   _xge_special_widget->redraw = _xge_QuatRotBallfDrawSpecial;
   _xge_special_widget->id = -1;
-  _xge_special_widget->w = _xge_special_widget->h = 2*R+2;
+  D = 2*R+2;
+  _xge_special_widget->w = min ( D, xge_MAX_SPECIAL_WIDTH );
+  _xge_special_widget->h = min ( D, xge_MAX_SPECIAL_HEIGHT );
   _xge_special_widget->x = qball->xc-R;
   _xge_special_widget->y = qball->yc-R;
   _xge_special_widget->data0 = qball;
@@ -204,11 +226,25 @@ static void _xge_QuatRotBallfOpenSpecial ( xge_widget *er )
   _xge_special_widget->state = xgestate_NOTHING;
   _xge_special_widget->next = _xge_special_widget->prev =
   _xge_special_widget->up = NULL;
+#ifdef USE_XEXT_SHAPE
+  if ( xge_specialwin != None && !xge_specialwin_in_use ) {
+    _xge_QuatRotCompSpecialWinSizes ( _xge_special_widget );
+    _xge_MapSpecialWin ( er->window_num,
+                         _xge_QuatRotCompSpecialWinSizes,
+                         _xge_QuatRotBallfMaskSpecialWin,
+                         _xge_QuatRotBallDrawSpecialWin, er );
+  }
+#endif
   xge_AddPopup ( _xge_special_widget );
 } /*_xge_QuatRotBallfOpenSpecial*/
 
 static void _xge_QuatRotBallfCloseSpecial ( void )
 {
+#ifdef USE_XEXT_SHAPE
+  if ( xge_specialwin_in_use ) {
+    _xge_UnmapSpecialWin ();
+  }
+#endif
   xge_RemovePopup ( false );
   _xge_special_widget->msgproc = xge_EmptyMsg;
   _xge_special_widget->redraw = xge_DrawEmpty;
@@ -383,6 +419,10 @@ process_key:
 turn_and_redraw_special:
         xge_callback ( er, xgemsg_QUATROTBALL_COMMAND, 0, x, y );
 redraw_special:
+#ifdef USE_XEXT_SHAPE
+        if ( xge_specialwin_in_use )
+          _xge_RemaskSpecialWin ();
+#endif
         xge_Redraw ();
         return true;
     default:
@@ -419,6 +459,10 @@ xge_widget *xge_NewQuatRotBallf ( char window_num, xge_widget *prev, int id,
 {
   int d;
 
+#ifdef USE_XEXT_SHAPE
+        if ( xge_specialwin_in_use )
+          _xge_RemaskSpecialWin ();
+#endif
   qball->q = q;
   qball->tr = tr;
   d = min ( w, h );

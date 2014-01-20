@@ -15,6 +15,11 @@
 #include <X11/Xutil.h>
 #include <X11/cursorfont.h>
 
+#define USE_XEXT_SHAPE
+#ifdef USE_XEXT_SHAPE
+#include <X11/extensions/shape.h>
+#endif
+
 #ifndef _LIBC_LIMITS_H_
 #include <limits.h>
 #endif
@@ -36,30 +41,40 @@
 extern "C" {
 #endif
 
-typedef unsigned int xgecolour_int;
-
-#define xge_MAX_WINDOWS         8
-#define xge_MAX_CURSORS        16
-
-#define xge_MAX_WIDTH   /*1024*/ 1280
-#define xge_MAX_HEIGHT  /* 768*/  960
-#define xge_WIDTH             480
-#define xge_HEIGHT            360
-
+/* sometimes automatic screen aspect detection produces wrong results; */
+/* that being the case, comment out the #define XGE_AUTO_ASPECT line,  */
+/* perhaps a better solution will some day be found (dealing also      */
+/* with virtual displays of size other than physical screens)          */
 #define XGE_AUTO_ASPECT
 #ifndef XGE_AUTO_ASPECT
-#define XGE_DEFAULT_ASPECT    1.0
+#define XGE_DEFAULT_ASPECT     1.0
 #endif
 
-#define xge_CHAR_WIDTH          6
-#define xge_CHAR_HEIGHT        13
+#define xge_MAX_WINDOWS          8
+#define xge_MAX_CURSORS         16
 
-#define xge_RECT_NONE          -1
-#define xge_MINDIST             8
+/* widget input focus stack capacity */
+#define xge_FOCUS_DEPTH          8
 
-#define xge_FOCUS_DEPTH         8
+/* maximal and initial window sizes */
+#define xge_MAX_WIDTH         1280
+#define xge_MAX_HEIGHT         960
+#define xge_WIDTH              480
+#define xge_HEIGHT             360
+/* maximal special widget size */
+#define xge_MAX_SPECIAL_WIDTH  360
+#define xge_MAX_SPECIAL_HEIGHT 360
 
-#define xge_MAX_STRING_LENGTH 512
+/* size of characters in the fixed font */
+#define xge_CHAR_WIDTH           6
+#define xge_CHAR_HEIGHT         13
+
+/* tolerance of pointing for some widgets */
+#define xge_RECT_NONE           -1
+#define xge_MINDIST              8
+
+/* limit for text editing widgets */
+#define xge_MAX_STRING_LENGTH  512
 
 /* ///////////////////////////////////////////////////////////////////////// */
 /* mouse button states */
@@ -242,7 +257,7 @@ typedef unsigned int xgecolour_int;
 #define xgestate_T2KNOTWIN_UNSELECTING       47
 #define xgestate_LISTBOX_PICKING             48
 /* additional application states must be greater than xge_LAST_STATE */
-#define xgestate_LAST xgestate_LISTBOX_PICKING
+#define xgestate_LAST  xgestate_LISTBOX_PICKING
 
 /* ///////////////////////////////////////////////////////////////////////// */
 /* cursor identifiers */

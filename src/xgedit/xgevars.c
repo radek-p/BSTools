@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2007, 2009                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2007, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -23,6 +23,10 @@
 
 #include "xgedit.h"
 #include "xgeprivate.h"
+
+#ifdef USE_XEXT_SHAPE
+#include <X11/extensions/shape.h>
+#endif
  
 int     xge_winnum = 0;                /* current number of windows */
 int     xge_current_win = -1;          /* window currently active */
@@ -41,6 +45,22 @@ XSizeHints  xgehints;
 short       xge_cursnum = 0;            /* current number of cursors */
 Cursor      xgecursor[xge_MAX_CURSORS];
 KeySym      xgekeysym;
+
+#ifdef USE_XEXT_SHAPE
+/* ///////////////////////////////////////////////////////////////////////// */
+/* If X Window shape extension is available, widgets may be drawn using      */
+/* a special window, which may actually stick beyond the area of the regular */
+/* application window. The window has no border and no title bar.            */
+boolean    xge_try_ext = true,
+           xge_use_specialwin = false,
+           xge_specialwin_in_use = false;
+SpecialWinDesc xge_specialwin[4] =
+  {{None},{None},{None},{None}};
+Pixmap     xge_specialpixmap = None;
+XRectangle xge_specialpixmaprect;
+GC         xge_specialwingc = None, xge_specialpixmapgc = None;
+int        xge_specialevent_base, xge_specialerror_base;
+#endif
 
 unsigned int xge_current_width, xge_current_height;  /* window dimensions */
 unsigned int xge_mouse_buttons = 0;

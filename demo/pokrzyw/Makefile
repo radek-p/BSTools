@@ -3,7 +3,7 @@
 # This file is a part of the BSTools package
 # written by Przemyslaw Kiciak
 # /////////////////////////////////////////////////////////////////////
-# (C) Copyright by Przemyslaw Kiciak, 2005, 2009
+# (C) Copyright by Przemyslaw Kiciak, 2005, 2014
 # this package is distributed under the terms of the
 # Lesser GNU Public License, see the file COPYING.LIB
 # /////////////////////////////////////////////////////////////////////
@@ -19,7 +19,7 @@ include ../../options.mak
 LDFLAGS =
 
 LIBS = -lxgedit -lbsfile -lmultibs -lcamera -lpkgeom -lpknum -lpkvaria \
-  -lX11 -lpthread -lm
+  -lX11 -lXext -lpthread -lm
 
 OBJECTS = $(SRCDIR)/spline2d.o $(SRCDIR)/ed2dwidgets.o
 

@@ -3,7 +3,7 @@
 # This file is a part of the BSTools package
 # written by Przemyslaw Kiciak
 # /////////////////////////////////////////////////////////////////////
-# (C) Copyright by Przemyslaw Kiciak, 2007, 2010
+# (C) Copyright by Przemyslaw Kiciak, 2007, 2014
 # this package is distributed under the terms of the
 # Lesser GNU Public License, see the file COPYING.LIB
 # /////////////////////////////////////////////////////////////////////
@@ -43,7 +43,7 @@ EDINCL_PROC = $(SRCDIR)/pomnijipc.h $(SRCDIR)/pomnij_proc.h \
   $(SRCDIR)/proc_regmem.h
 
 LIBS = -lxgedit -lraybez -lg1blending -lg2blending -lbsfile -lmultibs \
-  -lcamera -lpkgeom -lpknum -lpkvaria -lX11 -lpthread -lm
+  -lcamera -lpkgeom -lpknum -lpkvaria -lX11 -lXext -lpthread -lm
 
 default: $(BINDIR)/pomnij $(BINDIR)/pomnij_proc
 

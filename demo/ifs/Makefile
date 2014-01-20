@@ -3,7 +3,7 @@
 # This file is a part of the BSTools package
 # written by Przemyslaw Kiciak
 # /////////////////////////////////////////////////////////////////////
-# (C) Copyright by Przemyslaw Kiciak, 2012
+# (C) Copyright by Przemyslaw Kiciak, 2012, 2014
 # this package is distributed under the terms of the
 # Lesser GNU Public License, see the file COPYING.LIB
 # /////////////////////////////////////////////////////////////////////
@@ -18,9 +18,11 @@ include ../../options.mak
 
 LDFLAGS =
 
-LIBS = -lxgedit -lmultibs -lcamera -lpkgeom -lpknum -lpkvaria -lX11 -lpthread -lm
+LIBS = -lxgedit -lmultibs -lcamera -lpkgeom -lpknum -lpkvaria \
+  -lX11 -lXext -lpthread -lm
 
-GLIBS = -lxgedit -lmultibs -lcamera -lpkgeom -lpknum -lpkvaria -lGL -lX11 -lpthread -lm
+GLIBS = -lxgedit -lmultibs -lcamera -lpkgeom -lpknum -lpkvaria \
+  -lGL -lX11 -lXext -lpthread -lm
 
 default: $(BINDIR)/ifs
 

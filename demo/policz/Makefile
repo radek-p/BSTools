@@ -3,7 +3,7 @@
 # This file is a part of the BSTools package
 # written by Przemyslaw Kiciak
 # /////////////////////////////////////////////////////////////////////
-# (C) Copyright by Przemyslaw Kiciak, 2008, 2010
+# (C) Copyright by Przemyslaw Kiciak, 2008, 2014
 # this package is distributed under the terms of the
 # Lesser GNU Public License, see the file COPYING.LIB
 # /////////////////////////////////////////////////////////////////////
@@ -26,7 +26,7 @@ OBJECTS = $(SRCDIR)/edwidgets.o $(SRCDIR)/edpolicz01.o $(SRCDIR)/edpolicz02.o \
   $(SRCDIR)/datagend.o  $(SRCDIR)/drawbezd.o $(SRCDIR)/render.o
 
 LIBS = -lraybez -lxgedit -leghole -lbsfile -lmultibs -lcamera \
-  -lpsout -lpkgeom -lpknum -lpkvaria -lX11 -lpthread -lm
+  -lpsout -lpkgeom -lpknum -lpkvaria -lX11 -lXext -lpthread -lm
 
 EDINCL = $(SRCDIR)/splhole.h $(SRCDIR)/edpolicz.h $(SRCDIR)/edwidgets.h \
   $(SRCDIR)/datagend.h $(SRCDIR)/drawbezd.h $(SRCDIR)/render.h

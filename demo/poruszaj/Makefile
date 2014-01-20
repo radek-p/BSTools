@@ -3,7 +3,7 @@
 # This file is a part of the BSTools package
 # written by Przemyslaw Kiciak
 # /////////////////////////////////////////////////////////////////////
-# (C) Copyright by Przemyslaw Kiciak, 2011
+# (C) Copyright by Przemyslaw Kiciak, 2011, 2014
 # this package is distributed under the terms of the
 # Lesser GNU Public License, see the file COPYING.LIB
 # /////////////////////////////////////////////////////////////////////
@@ -18,9 +18,8 @@ include ../../options.mak
 
 LDFLAGS =
 
-LIBS = -lxgedit -lbsfile -lbsmesh -lmultibs -lcamera \
-  -lpkgeom -lpknum -lpkvaria \
-  -lGLU -lGL -lX11 -lpthread -lm
+LIBS = -lxgedit -lbsfile -lbsmesh -lmultibs -lcamera -lpkgeom -lpknum -lpkvaria \
+  -lGLU -lGL -lX11 -lXext -lpthread -lm
 
 OBJECTS = linkage.o ludzik.o glutki.o palm.o lighting.o widgets.o anima.o texture.o
 

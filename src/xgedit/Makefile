@@ -3,7 +3,7 @@
 # This file is a part of the BSTools package
 # written by Przemyslaw Kiciak
 # /////////////////////////////////////////////////////////////////////
-# (C) Copyright by Przemyslaw Kiciak, 2005, 2012
+# (C) Copyright by Przemyslaw Kiciak, 2005, 2014
 # this package is distributed under the terms of the
 # Lesser GNU Public License, see the file COPYING.LIB
 # /////////////////////////////////////////////////////////////////////
@@ -20,7 +20,7 @@ INCGLF = $(INCDIR)/xgedit.h $(INCDIR)/xgledit.h $(INCDIR)/xgergb.h \
   $(SRCDIR)/xgeprivate.h
 
 OBJECTS = xgevars.o xgeinit.o xgekernel.o xgedmsg.o xgergb.o xgecnames.o \
-  xgepixel.o xgefocus.o \
+  xgepixel.o xgefocus.o xgespecialwin.o \
   xgedrect.o xgerepos.o xgeempty.o xgemenu.o xgebutton.o xgeswitch.o \
   xgeslidebarf.o xgeslidebard.o xgevslidebarf.o xgevslidebard.o \
   xgeslidebar2f.o xgeslidebar2d.o xgevslidebar2f.o xgevslidebar2d.o \
@@ -56,6 +56,7 @@ xgergb.o: $(SRCDIR)/xgergb.c $(SRCDIR)/xge_rgb.c $(INCLF)
 xgecnames.o: $(SRCDIR)/xgecnames.c $(INCLF)
 xgepixel.o: $(SRCDIR)/xgepixel.c $(INCLF)
 xgefocus.o: $(SRCDIR)/xgefocus.c $(INCLF)
+xgespecialwin.o: $(SRCDIR)/xgespecialwin.c $(INCLF)
 xgedrect.o: $(SRCDIR)/xgedrect.c $(INCLF)
 xgerepos.o: $(SRCDIR)/xgerepos.c $(INCLF)
 xgeempty.o: $(SRCDIR)/xgeempty.c $(INCLF)

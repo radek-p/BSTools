@@ -3547,4 +3547,25 @@ Wersja 0.33.
 7.01.2014.
   830. Dalsze porzadki w bibliotece libbsfile.
 
+12.01.2014.
+831. Nowa procedura w libpkvaria, pkv_IncMultiCounter.
+
+20.01.2014.
+832. Zmiany w libxgedit: w nowej wersji wihajstry - kulki kwaternionowe,
+    ktore podczas manipulowania moga wystawac poza okno aplikacji, sa
+    rysowane lacznie z wystajacymi czesciami na tle czegokolwiek, co tam
+    jest w sasiedztwie okna. To jest zaprogramowane przy uzyciu rozszerzenia
+    shape, ktore jesli nie jest dostepne, to program ma sie zachowywac jak
+    dotychczas, tj. wystajace czesci sa obcinane.
+
+    Calosc wymagala  dlugich studiow, w celu
+    1. rozpracowania sposobu tworzenia okna o nieprostokatnym ksztalcie,
+    2. rozpracowania sposobu wyperswadowania menagerowi okien tworzenia
+    paska z tytulem okna (niesamowite, jak ten sekret jest zakamuflowany w
+    dokumentacji)
+    3. zwalczenia migotania tla podczas odrysowywania kolejnych obrazow
+    kulki w czasie interakcyjnej animacji - rozwiazanie polega na rysowaniu
+    czesci wihajstra w oknie tak, jak dotychczas (z wykorzystaniem
+    podwojnego buforowania), natomiast czesci wystajace migocza - nie
+    znalazlem na to sposobu, ale ostateczny efekt chyba moze byc.
 

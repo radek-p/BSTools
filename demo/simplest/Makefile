@@ -3,7 +3,7 @@
 # This file is a part of the BSTools package
 # written by Przemyslaw Kiciak
 # /////////////////////////////////////////////////////////////////////
-# (C) Copyright by Przemyslaw Kiciak, 2005, 2010
+# (C) Copyright by Przemyslaw Kiciak, 2005, 2014
 # this package is distributed under the terms of the
 # Lesser GNU Public License, see the file COPYING.LIB
 # /////////////////////////////////////////////////////////////////////
@@ -18,13 +18,16 @@ include ../../options.mak
 
 LDFLAGS =
 
-LIBS = -lxgedit -lmultibs -lcamera -lpkgeom -lpknum -lpkvaria -lX11 -lpthread -lm
+LIBS = -lxgedit -lmultibs -lcamera -lpkgeom -lpknum -lpkvaria \
+  -lX11 -lXext -lpthread -lm
 
-GLIBS = -lxgedit -lmultibs -lcamera -lpkgeom -lpknum -lpkvaria -lGL -lX11 -lpthread -lm
+GLIBS = -lxgedit -lmultibs -lcamera -lpkgeom -lpknum -lpkvaria \
+  -lGL -lX11 -lXext -lpthread -lm
 
 default: $(BINDIR)/simplest $(BINDIR)/widgets $(BINDIR)/ncolours \
   $(BINDIR)/2Dwin $(BINDIR)/3Dwin $(BINDIR)/2Dwind $(BINDIR)/3Dwind \
-  $(BINDIR)/scrollwidg $(BINDIR)/ipc $(BINDIR)/ipc_proc
+  $(BINDIR)/scrollwidg $(BINDIR)/ipc $(BINDIR)/ipc_proc \
+  $(BINDIR)/qbtest
 
 .c.o:
 	$(CC) $(CFLAGS) -c $< -o $*.o
@@ -36,10 +39,14 @@ $(BINDIR)/simplest: $(SRCDIR)/simplest.c $(SRCDIR)/simplest.h
 $(BINDIR)/widgets: $(SRCDIR)/widgets.c $(SRCDIR)/widgets.h
 	$(CC) $(LDFLAGS) $(CFLAGS) -I$(INCDIR) $(SRCDIR)/widgets.c \
   $(LIBDIR) $(LIBS) -o $(BINDIR)/widgets
+	rm -f $(SRCDIR)/widgets
+	ln -s $(BINDIR)/widgets $(SRCDIR)/widgets
 
 $(BINDIR)/ncolours: $(SRCDIR)/ncolours.c $(SRCDIR)/ncolours.h
 	$(CC) $(LDFLAGS) $(CFLAGS) -I$(INCDIR) $(SRCDIR)/ncolours.c \
   $(LIBDIR) $(LIBS) -o $(BINDIR)/ncolours
+	rm -f $(SRCDIR)/ncolours
+	ln -s $(BINDIR)/ncolours $(SRCDIR)/ncolours
 
 $(BINDIR)/2Dwin: $(SRCDIR)/2Dwin.c $(SRCDIR)/2Dwin.h
 	$(CC) $(LDFLAGS) $(CFLAGS) -I$(INCDIR) $(SRCDIR)/2Dwin.c \
@@ -72,6 +79,12 @@ $(BINDIR)/ipc: $(SRCDIR)/ipc.c $(SRCDIR)/ipc.h
 $(BINDIR)/ipc_proc: $(SRCDIR)/ipc_proc.c $(SRCDIR)/ipc_proc.h
 	$(CC) $(LDFLAGS) $(CFLAGS) -I$(INCDIR) $(SRCDIR)/ipc_proc.c \
   $(LIBDIR) $(GLIBS) -o $(BINDIR)/ipc_proc
+
+$(BINDIR)/qbtest: $(SRCDIR)/qbtest.c
+	$(CC) $(LDFLAGS) $(CFLAGS) -I$(INCDIR) $(SRCDIR)/qbtest.c \
+  $(LIBDIR) $(LIBS) -o $(BINDIR)/qbtest
+	rm -f $(SRCDIR)/qbtest
+	ln -s $(BINDIR)/qbtest $(SRCDIR)/qbtest
 
 clean:
 	rm -f *.o

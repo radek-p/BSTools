@@ -3,7 +3,7 @@
 # This file is a part of the BSTools package
 # written by Przemyslaw Kiciak
 # /////////////////////////////////////////////////////////////////////
-# (C) Copyright by Przemyslaw Kiciak, 2005, 2009
+# (C) Copyright by Przemyslaw Kiciak, 2005, 2014
 # this package is distributed under the terms of the
 # Lesser GNU Public License, see the file COPYING.LIB
 # /////////////////////////////////////////////////////////////////////
@@ -22,7 +22,7 @@ OBJECTS = $(SRCDIR)/oldxgedit.o $(SRCDIR)/g2ekernel.o $(SRCDIR)/edg2hole.o \
   $(SRCDIR)/render.o
 
 LIBS = -leghole -lraybez -lmultibs -lcamera -lpsout -lpkgeom -lpknum \
-  -lpkvaria -lm -lX11
+  -lpkvaria -lm -lX11 -lXext
 
 default: $(BINDIR)/polepG2
 

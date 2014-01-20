@@ -3,7 +3,7 @@
 # This file is a part of the BSTools package
 # written by Przemyslaw Kiciak
 # /////////////////////////////////////////////////////////////////////
-# (C) Copyright by Przemyslaw Kiciak, 2008, 2009
+# (C) Copyright by Przemyslaw Kiciak, 2008, 2014
 # this package is distributed under the terms of the
 # Lesser GNU Public License, see the file COPYING.LIB
 # /////////////////////////////////////////////////////////////////////
@@ -22,7 +22,8 @@ LDFLAGS =
 OBJECTS = edtempwidgets.o edtemplate01.o edtemplate02.o edtemplate03.o \
   edtemplate04.o edtemplate05.o edtemplate06.o spltemplate.o
 
-LIBS = -lxgedit -lmultibs -lcamera -lpkgeom -lpknum -lpkvaria -lX11 -lpthread -lm
+LIBS = -lxgedit -lmultibs -lcamera -lpkgeom -lpknum -lpkvaria \
+  -lX11 -lXext -lpthread -lm
 
 EDINCL = $(SRCDIR)/spltemplate.h $(SRCDIR)/edtemplate.h $(SRCDIR)/edtempwidgets.h
 

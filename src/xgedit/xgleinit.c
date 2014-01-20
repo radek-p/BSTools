@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2008, 2012                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2008, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -165,10 +165,13 @@ void xgle_Cleanup ( void )
 {
   int i;
 
-  XFreePixmap ( xgedisplay, xgepixmap );
+#ifdef USE_XEXT_SHAPE
+  _xge_DestroySpecialWin ();
+#endif
   XFreeGC ( xgedisplay, xgegc );
   for ( i = xge_winnum-1; i >= 0; i-- ) {
     xge_SetWindow ( i );
+    XFreePixmap ( xgedisplay, xgepixmap );
     XDestroyWindow ( xgedisplay, xgewindow );
   }
   XCloseDisplay ( xgedisplay );

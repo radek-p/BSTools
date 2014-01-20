@@ -3,13 +3,16 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2007, 2011                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2007, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
 
+/* the definition below  seems to be completely irrelevant, window managers */
+/* ignore it */
 #define xge_BORDER_WIDTH 2
 
+/* xgedit X window descriptor */
 typedef struct {
     Window     thewindow;
     Pixmap     thepixmap;
@@ -72,5 +75,45 @@ void _xge_MakePalette ( void );
 boolean xge_CallMsgProc ( xge_widget **last, xge_widget *er,
                           int msg, int key, short x, short y );
 
-void _xge_QuatRotBallDrawCircles ( short xc, short yc, short r, trans3f *tr );
+void _xge_QuatRotBallDrawCircles ( short xc, short yc, short r, trans3f *tr,
+                                   void (*outpixels)(const xpoint *buf, int n) );
 
+#ifdef USE_XEXT_SHAPE
+/* ///////////////////////////////////////////////////////////////////////// */
+/* If X Window shape extension is available, widgets may be drawn using      */
+/* a special window, which may actually stick beyond the area of the regular */
+/* application window. The window has no border and no title bar.            */
+typedef struct {
+    Window     thewindow;
+    XRectangle thewinrect;
+    short      xpos, ypos, xpix, ypix;
+    boolean    nonempty, mapped;
+  } SpecialWinDesc;
+
+extern boolean        xge_try_ext, xge_use_specialwin, xge_specialwin_in_use;
+extern SpecialWinDesc xge_specialwin[4];
+extern Pixmap         xge_specialpixmap;
+extern XRectangle     xge_specialpixmaprect;
+extern GC             xge_specialwingc, xge_specialpixmapgc;
+extern int            xge_specialevent_base, xge_specialerror_base;
+
+extern void (*_xge_compspecialwinsizes)( xge_widget *wdg );
+extern void (*_xge_maskspecialwin)(xge_widget *wdg);
+extern void (*_xge_drawspecialwin)(int w, xge_widget *wdg);
+extern xge_widget *_xge_specialwdg;
+
+boolean _xge_CreateSpecialWin ( void );
+boolean _xge_MapSpecialWin ( int trwin,
+                             void (*compspecialwinsizes)(xge_widget *wdg),
+                             void (*maskspecialwin)(xge_widget *wdg),
+                             void (*drawspecialwin)(int w, xge_widget *wdg),
+                             xge_widget *wdg );
+void _xge_UnmapSpecialWin ( void );
+void _xge_DestroySpecialWin ( void );
+void _xge_RemaskSpecialWin ( void );
+void _xge_SpecialWinEvent ( void );
+void _xge_OutSpecialMaskPixels ( const xpoint *buf, int n );
+
+void _xge_QuatRotCompSpecialWinSizes ( xge_widget *spqw );
+void _xge_QuatRotBallDrawSpecialWin ( int w, xge_widget *wdg );
+#endif

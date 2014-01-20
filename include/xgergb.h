@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2007                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2007, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -11,10 +11,11 @@
 #ifndef XGERGB_H
 #define XGERGB_H
 
+typedef unsigned int xgecolour_int;
+
 /* The colour names are taken from the file rgb.txt of X. */
 /* The numbers below must match with the entries of the   */
 /* palette declared in the file xgergb.c. */
-
 #define xgec_AliceBlue            xge_palette[0]
 #define xgec_AntiqueWhite         xge_palette[1]
 #define xgec_AntiqueWhite1        xge_palette[2]
