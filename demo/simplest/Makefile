@@ -94,5 +94,5 @@ mrproper:
 	rm -f $(BINDIR)/simplest $(BINDIR)/widgets $(BINDIR)/ncolours \
   $(BINDIR)/2Dwin $(BINDIR)/3Dwin $(BINDIR)/2Dwind $(BINDIR)/3Dwind \
   $(BINDIR)/scrollwidg $(BINDIR)/glsimplest \
-  $(BINDIR)/ipc $(BINDIR)/ipc_proc
+  $(BINDIR)/ipc $(BINDIR)/ipc_proc $(BINDIR)/qbtest
 

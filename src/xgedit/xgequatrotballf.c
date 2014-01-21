@@ -227,7 +227,7 @@ static void _xge_QuatRotBallfOpenSpecial ( xge_widget *er )
   _xge_special_widget->next = _xge_special_widget->prev =
   _xge_special_widget->up = NULL;
 #ifdef USE_XEXT_SHAPE
-  if ( xge_specialwin != None && !xge_specialwin_in_use ) {
+  if ( xge_use_specialwin && !xge_specialwin_in_use ) {
     _xge_QuatRotCompSpecialWinSizes ( _xge_special_widget );
     _xge_MapSpecialWin ( er->window_num,
                          _xge_QuatRotCompSpecialWinSizes,

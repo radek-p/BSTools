@@ -156,10 +156,11 @@ void _xge_DestroySpecialWin ( void )
   int i;
 
   _xge_UnmapSpecialWin ();
-  for ( i = 0; i < 4; i++ ) {
-    XDestroyWindow ( xgedisplay, xge_specialwin[i].thewindow );
-    xge_specialwin[i].thewindow = None;
-  }
+  for ( i = 0; i < 4; i++ )
+    if ( xge_specialwin[i].thewindow != None ) {
+      XDestroyWindow ( xgedisplay, xge_specialwin[i].thewindow );
+      xge_specialwin[i].thewindow = None;
+    }
   if ( xge_specialwingc != None ) {
     XFreeGC ( xgedisplay, xge_specialwingc );
     xge_specialwingc = None;
@@ -186,9 +187,12 @@ void _xge_RemaskSpecialWin ( void )
   if ( _xge_maskspecialwin )
     _xge_maskspecialwin ( _xge_specialwdg );
   for ( i = 0; i < 4; i++ ) {
+/* the change of ShapeClip shape turned out to be unnecessary */
+/*
     XShapeCombineMask ( xgedisplay, xge_specialwin[i].thewindow, ShapeClip,
                         xge_specialwin[i].xpix, xge_specialwin[i].ypix,
                         xge_specialpixmap, ShapeSet );
+*/
     XShapeCombineMask ( xgedisplay, xge_specialwin[i].thewindow, ShapeBounding,
                         xge_specialwin[i].xpix, xge_specialwin[i].ypix,
                         xge_specialpixmap, ShapeSet );

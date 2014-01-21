@@ -107,8 +107,8 @@ void InitWindow1Widgets ( void )
 boolean ProcessCMDLineParameters ( int argc, char *argv[] )
 {
   boolean result;
-  int     i;
-  char    *sstr;
+  int     i, j, l;
+  char    *sstr, *s;
 
 /* this program may be invoked with parameters - file names, with */
 /* the suffix file_ext (.bs), containing data to be read in. */
@@ -116,7 +116,16 @@ boolean ProcessCMDLineParameters ( int argc, char *argv[] )
   for ( i = 1; i < argc; i++ ) {
     sstr = strstr ( argv[i], file_ext );
     if ( sstr && !strcmp ( file_ext, sstr ) ) {
-      strncpy ( filename, argv[i], MAX_FILENAME_LGT+1 );
+        /* remove the path, leaving only the file name */
+      l = strlen ( argv[i] );
+      s = argv[i] + l;
+      for ( j = l; j > 0; j--, s-- ) {
+        if ( *s == '/' ) {
+          s++;
+          break;
+        }
+      }
+      strncpy ( filename, s, MAX_FILENAME_LGT+1 );
       if ( !GeomObjectReadFile ( filename, Popup01CameraReader ) ) {
         result = false;
         break;
