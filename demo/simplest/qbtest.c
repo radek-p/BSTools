@@ -83,7 +83,7 @@ void init_edwin ( void  )
                             &qballf[7], &qf[7], &qtrf[7], NULL );
   w = xge_NewQuatRotBallf ( 0, w, 8, 80, 80, 5, (xge_HEIGHT-80)/2, 80,
                             &qballf[8], &qf[8], &qtrf[8], NULL );
-  m = xge_NewMenu ( 0, NULL, 10, xge_WIDTH, xge_HEIGHT, 0, 0, w );
+  m = xge_NewMenu ( 0, NULL, 10, xge_MAX_WIDTH, xge_MAX_HEIGHT, 0, 0, w );
   xge_SetWinEdRect ( m );
   xge_Redraw ();
 } /*init_edwin*/

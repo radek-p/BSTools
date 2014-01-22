@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2007, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2007, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -405,6 +405,7 @@ static boolean _g2h_FindSplBasisFunctionsDd ( GHoleDomaind *domain )
         b01, c01, f01, g01, b11, c11, f11, g11,
         b02, c02, f02, g02, b12, c12, f12, g12,
         b01b01, twob01c01, c01c01, f01f01, twof01g01, g01g01 );
+  nzc = 0;
   for ( i = fnd = 0, fn = nfunc_a+nfunc_b+nfunc_c;  i < hole_k;  i++ ) {
     l = (i+hole_k-1) % hole_k;
     for ( j = 0; j < nk*m1; j++ )

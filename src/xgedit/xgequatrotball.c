@@ -181,11 +181,11 @@ void _xge_QuatRotBallDrawCircles ( short xc, short yc, short r, trans3f *tr,
 void _xge_QuatRotCompSpecialWinSizes ( xge_widget *spqw )
 {
 #define SPWR(i) xge_specialwin[i].thewinrect
-  XRectangle wr;
-  int        w, r, d, i;
-  Window     child;
+  int          x, y, w, h, r, e, i;
+  unsigned int wdt, hgh, b, d;
+  Window       root, child;
 
-  wr = xge_windesc[xge_current_win].thewinrect;
+  XGetGeometry ( xgedisplay, xgewindow, &root, &x, &y, &wdt, &hgh, &b, &d );
         /* make all special windows empty */
   for ( i = 0; i < 4; i++ )
     SPWR(i).width = SPWR(i).height = 0;
@@ -195,46 +195,55 @@ void _xge_QuatRotCompSpecialWinSizes ( xge_widget *spqw )
     SPWR(0).width = w = -spqw->x;  SPWR(0).height = spqw->h;
     SPWR(0).x = spqw->x;  SPWR(0).y = spqw->y;
     if ( w < r-1 ) {
-      d = r - (int)sqrt ( r*r - w*w );
-      SPWR(0).height -= d+d;
-      SPWR(0).y += d;
+      e = r - (int)(sqrt ( (double)w*(r+r-w) ) + 1.0);
+      SPWR(0).height -= e+e;
+      SPWR(0).y += e;
     }
   }
         /* compute the right special window size */
-  if ( spqw->x+spqw->w > wr.width ) {
-    SPWR(1).width = w = spqw->x+spqw->w-wr.width;  SPWR(1).height = spqw->h;
-    SPWR(1).x = wr.width;  SPWR(1).y = spqw->y;
+  if ( spqw->x+spqw->w > wdt ) {
+    SPWR(1).width = w = spqw->x+spqw->w-wdt;  SPWR(1).height = spqw->h;
+    SPWR(1).x = wdt;  SPWR(1).y = spqw->y;
     if ( w < r-1 ) {
-      d = r - (int)sqrt ( r*r - w*w );
-      SPWR(1).height -= d+d;
-      SPWR(1).y += d;
+      e = r - (int)(sqrt ( (double)w*(r+r-w) ) + 1.0);
+      SPWR(1).height -= e+e;
+      SPWR(1).y += e;
     }
   }
         /* compute the upper special window size */
   if ( spqw->y < 0 ) {
-    SPWR(2).width = spqw->w;  SPWR(2).height = -spqw->y;
+    SPWR(2).width = spqw->w;  SPWR(2).height = h = -spqw->y;
     SPWR(2).x = spqw->x;  SPWR(2).y = spqw->y;
+    if ( h < r-1 ) {
+      e = r - (int)(sqrt ( (double)h*(r+r-h) ) + 1.0);
+      SPWR(2).width -= e+e;
+      SPWR(2).x += e;
+    }
     if ( SPWR(2).x < 0 ) { SPWR(2).width += SPWR(2).x;  SPWR(2).x = 0; }
-    if ( SPWR(2).x+SPWR(2).width > wr.width )
-      SPWR(2).width -= SPWR(2).x+SPWR(2).width-wr.width;
+    if ( SPWR(2).x+SPWR(2).width > wdt )
+      SPWR(2).width -= SPWR(2).x+SPWR(2).width-wdt;
   }
         /* compute the lower special window size */
-  if ( spqw->y+spqw->h > wr.height ) {
-    SPWR(3).width = spqw->w;  SPWR(3).height = spqw->y+spqw->h-wr.height;
-    SPWR(3).x = spqw->x;  SPWR(3).y = wr.height;
+  if ( spqw->y+spqw->h > hgh ) {
+    SPWR(3).width = spqw->w;  SPWR(3).height = h = spqw->y+spqw->h-hgh;
+    SPWR(3).x = spqw->x;  SPWR(3).y = hgh;
+    if ( h < r-1 ) {
+      e = r - (int)(sqrt ( (double)h*(r+r-h) ) + 1.0);
+      SPWR(3).width -= e+e;
+      SPWR(3).x += e;
+    }
     if ( SPWR(3).x < 0 ) { SPWR(3).width += SPWR(3).x;  SPWR(3).x = 0; }
-    if ( SPWR(3).x+SPWR(3).width > wr.width )
-      SPWR(3).width -= SPWR(3).x+SPWR(3).width-wr.width;
+    if ( SPWR(3).x+SPWR(3).width > wdt )
+      SPWR(3).width -= SPWR(3).x+SPWR(3).width-wdt;
   }
         /* do something with it */
   for ( i = 0; i < 4; i++ ) {
     xge_specialwin[i].nonempty = SPWR(i).width > 0 && SPWR(i).height > 0;
     if ( xge_specialwin[i].nonempty ) {
-      XTranslateCoordinates ( xgedisplay, xgewindow,
-                              DefaultRootWindow(xgedisplay),
-                              SPWR(i).x, SPWR(i).y, &w, &d, &child );
-      xge_specialwin[i].xpos = w;
-      xge_specialwin[i].ypos = d;
+      XTranslateCoordinates ( xgedisplay, xgewindow, root,
+                              SPWR(i).x, SPWR(i).y, &x, &y, &child );
+      xge_specialwin[i].xpos = x;
+      xge_specialwin[i].ypos = y;
       xge_specialwin[i].xpix = spqw->x-SPWR(i).x;
       xge_specialwin[i].ypix = spqw->y-SPWR(i).y;
     }

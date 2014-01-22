@@ -179,7 +179,7 @@ char *InfoMsg[5] =
   { "pozwalaj - a simple curve and surface modeller",
     "     *** a program under development ***",
     "This program is a part of the BSTools package.",
-    "(C) Copyright by Przemyslaw Kiciak, 2010, 2013.",
+    "(C) Copyright by Przemyslaw Kiciak, 2010, 2014.",
     NULL };
 
 
