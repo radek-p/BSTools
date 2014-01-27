@@ -143,6 +143,7 @@ int main ( void )
       printf ( "error\n" );
       goto way_out;
   case PKN_LMT_CONTINUE_LM:
+  case PKN_LMT_CONTINUE_LM_P:
       myfunc ( N, NULL, x, &f );
       printf ( "- %3d: x=(%f,%f,%f), f = %f, nu = %f\n", i, x[0], x[1], x[2], f, nu );
       break;
@@ -154,10 +155,20 @@ int main ( void )
       printf ( "found minimum\n" );
       goto way_out;
   case PKN_LMT_FOUND_ZEROGRAD:
+  case PKN_LMT_FOUND_ZEROGRAD_P:
       printf ( "found gradient zero\n" );
       goto way_out;
   case PKN_LMT_FOUND_BARRIER:
       printf ( "found barrier\n" );
+      goto way_out;
+  case PKN_LMT_CROSSED_LIMIT:
+      printf ( "crossed limit\n" );
+      goto way_out;
+  case PKN_LMT_NO_PROGRESS:
+      printf ( "no progress\n" );
+      goto way_out;
+  default:
+      printf ( "something wrong\n" );
       goto way_out;
     }
   }

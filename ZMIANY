@@ -3572,3 +3572,9 @@ Wersja 0.33.
 21.01.2014.
 833. Jeszcze pare poprawek w libxgedit, zwiazanych z ostatnim rozszerzeniem.
 
+27.01.2014.
+834. Nowa procedura w libpknum, pkn_SDIterf, do minimalizacji funkcji metoda
+    najszybszego spadku. Zbiega wolniej niz pkn_LMTIterf, ale nie wymaga
+    obliczania hesjanu minimalizowanej funkcji (tylko wartosc funkcji i
+    gradient).
+

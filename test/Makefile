@@ -3,7 +3,7 @@
 # This file is a part of the BSTools package
 # written by Przemyslaw Kiciak
 # /////////////////////////////////////////////////////////////////////
-# (C) Copyright by Przemyslaw Kiciak, 2005, 2013
+# (C) Copyright by Przemyslaw Kiciak, 2005, 2014
 # this package is distributed under the terms of the
 # Lesser GNU Public License, see the file COPYING.LIB
 # /////////////////////////////////////////////////////////////////////
@@ -32,7 +32,7 @@ TARGET = nvtest knotrem bspdegel bscfe bscfede oslo4 bspbez degel \
   addspld raytestd trimpatchd bsder123d choleskyd clipd rclipd \
   testg2d chknotsd degredd bscoonsd \
   qsort pksort intersf intersd bcoffsetf bcoffsetd \
-  lmttestf lmttestd
+  lmttestf lmttestd sdtestf sdtestd
 
 
 default: $(TARGET)
@@ -351,6 +351,14 @@ lmttestf: lmttestf.c
 lmttestd: lmttestd.c
 	$(CC) $(CFLAGS) -I$(INCDIR) lmttestd.c -L$(LIBDIR) $(LIBS) -o lmttestd
 	./lmttestd
+
+sdtestf: sdtestf.c
+	$(CC) $(CFLAGS) -I$(INCDIR) sdtestf.c -L$(LIBDIR) $(LIBS) -o sdtestf
+	./sdtestf
+
+sdtestd: sdtestd.c
+	$(CC) $(CFLAGS) -I$(INCDIR) sdtestd.c -L$(LIBDIR) $(LIBS) -o sdtestd
+	./sdtestd
 
 alltests:
 	(cd testg1;make)

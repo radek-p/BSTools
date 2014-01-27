@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -699,6 +699,16 @@ boolean pkn_QuadGaussLegendre20f ( float a, float b, int n,
 #define PKN_LMT_NO_PROGRESS      8
 #endif
 
+#ifndef PKN_SD_CONTINUE
+/* return values of pkn_SDIterd */
+#define PKN_SD_ERROR            -1
+#define PKN_SD_CONTINUE          0
+#define PKN_SD_FOUND_ZEROGRAD    1
+#define PKN_SD_FOUND_BARRIER     2
+#define PKN_SD_CROSSED_LIMIT     3
+#define PKN_SD_NO_PROGRESS       4
+#endif
+
 typedef boolean (*pkn_NLMTevalfuncf)( int n, void *usrdata,
                                       float *x, float *f );
 typedef boolean (*pkn_NLMTevalfuncgf)( int n, void *usrdata,
@@ -715,6 +725,15 @@ int pkn_NLMIterf ( int n, void *usrdata, float *x,
                    pkn_NLMTtransfuncf trans, pkn_NLMTtunnelfuncf tunnel,
                    float lowerbound, float eps, float delta,
                    float *nu );
+
+int pkn_SDIterf ( int n, void *usrdata, float *x,
+                  pkn_NLMTevalfuncf funcf, pkn_NLMTevalfuncgf funcfg,
+                  pkn_NLMTtransfuncf trans, pkn_NLMTtunnelfuncf tunnel,
+                  float lowerbound, float eps, float delta,
+                  float *nu );
+
+boolean _pkn_DivideIntervalf ( float *ga, float *gc, float *gd, float *gb,
+                               float *fa, float *fc, float *fd, float *fb );
 
 #ifdef __cplusplus
 }

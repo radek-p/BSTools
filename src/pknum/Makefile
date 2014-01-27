@@ -32,7 +32,7 @@ OBJECTS = pknum01fd.o pknum02fd.o pknum03fd.o pknum04fd.o pknum05fd.o \
   pknum37f.o pknum38f.o pknum39f.o pknum40f.o pknum41f.o pknum42f.o \
   pknum44f.o pknum47f.o pknum48f.o pknum49f.o pknum50f.o pknum51f.o \
   pknum52f.o pknum53f.o pknum54f.o pknum55f.o pknum56f.o pknum57f.o \
-  pknum58f.o \
+  pknum58f.o pknum59f.o pknum60f.o \
   pknum01d.o pknum02d.o pknum03d.o pknum04d.o pknum05d.o pknum06d.o \
   pknum07d.o pknum08d.o pknum09d.o pknum10d.o pknum11d.o pknum12d.o \
   pknum13d.o pknum14d.o pknum15d.o pknum16d.o pknum17d.o pknum18d.o \
@@ -42,7 +42,7 @@ OBJECTS = pknum01fd.o pknum02fd.o pknum03fd.o pknum04fd.o pknum05fd.o \
   pknum37d.o pknum38d.o pknum39d.o pknum40d.o pknum41d.o pknum42d.o \
   pknum44d.o pknum47d.o pknum48d.o pknum49d.o pknum50d.o pknum51d.o \
   pknum52d.o pknum53d.o pknum54d.o pknum55d.o pknum56d.o pknum57d.o \
-  pknum58d.o
+  pknum58d.o pknum59d.o pknum60d.o
 
 TARGET = $(LIBDIR)/libpknum.a
 
