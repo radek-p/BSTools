@@ -32,7 +32,7 @@ static double _pkn_SD_NuFuncd ( int n, void *usrdata,
 {
   double  fnu; 
 
-  pkn_MultMatrixNumd ( 1, n, 0, grad, nu, 0, incr );
+  pkn_MultMatrixNumd ( 1, n, 0, grad, 1.0/nu, 0, incr );
   *incn = sqrt ( pkn_ScalarProductd ( n, incr, incr ) );
   pkn_SubtractMatrixd ( 1, n, 0, x, 0, incr, 0, auxx ); 
   if ( tunnel ) {
@@ -62,7 +62,7 @@ int pkn_SDIterd ( int n, void *usrdata, double *x,
   double  f, *grad, *incr, *minx, *auxx;
   double  incn, incne;
   double  ga, gb, gc, gd, ge, fga, fgb, fgc, fgd, fge, fm;
-  int     i;
+  int     i, j;
   boolean progress, went_out;
   int     result;
 
@@ -74,7 +74,7 @@ int pkn_SDIterd ( int n, void *usrdata, double *x,
 #define RECORD_MIN(nu,fnu) \
   { if ( went_out && incn < delta ) { \
       result = PKN_SD_FOUND_BARRIER; \
-      goto finish_lmt; \
+      goto finish_sd; \
     } \
     if ( fnu < lowerbound ) { \
       result = PKN_SD_CROSSED_LIMIT; \
@@ -83,6 +83,7 @@ int pkn_SDIterd ( int n, void *usrdata, double *x,
     if ( fnu < fge ) { \
       memcpy ( minx, auxx, n*sizeof(double) ); \
       ge = nu;  fge = fnu;  incne = incn; \
+      progress = true; \
     } \
   }
 
@@ -116,7 +117,7 @@ int pkn_SDIterd ( int n, void *usrdata, double *x,
   incne = MYINFINITY;
         /* get the initial nu for bracketing */
   if ( *nu <= 0.0 )
-    gc = 0.001;
+    gc = 1.0;
   else
     gc = *nu;
   fgc = SDFUNC ( gc );
@@ -127,18 +128,39 @@ int pkn_SDIterd ( int n, void *usrdata, double *x,
     gc *= (double)(i+2);  /* trying the Fibonacci sequence */
     fgc = SDFUNC ( gc );
     RECORD_MIN ( gc, fgc );
+    if ( i >= MAXGITER ) {
+      if ( progress ) {
+        *nu = ge;
+        goto finish_sd;
+      }
+      else {
+        result = PKN_SD_NO_PROGRESS;
+        goto way_out;
+      }
+    }
   }
   gd = gc*(double)(i+2);
   fgd = SDFUNC ( gd );
   RECORD_MIN ( gd, fgd );
   if ( fgd < fgc ) {
-    do {
+    for ( j = 0; j < MAXGITER; j++ ) {
       ga = gc;  fga = fgc;
       gc = gd;  fgc = fgd;
       gd = gc*(double)(i+2);  i++;
       fgd = SDFUNC ( gd );
       RECORD_MIN ( gd, fgd );
-    } while ( fgd < fgc );
+      if ( fgd < fgc )
+        goto cont1;
+    }
+    if ( progress ) {
+      *nu = ge;
+      goto finish_sd;
+    }
+    else {
+      result = PKN_SD_NO_PROGRESS;
+      goto way_out;
+    }
+cont1:
     gb = gd;  fgb = fgd;
   }
   else {
@@ -149,9 +171,15 @@ int pkn_SDIterd ( int n, void *usrdata, double *x,
       else                   gd = 0.01*gc;
       fgd = SDFUNC ( gd );
       RECORD_MIN ( gd, fgd );
-      if ( i >= MAXGITER && fge < f ) {
-        *nu = ge;
-        goto finish_lmt;
+      if ( i >= MAXGITER ) {
+        if ( fge < f ) {
+          *nu = ge;
+          goto finish_sd;
+        }
+        else {
+          result = PKN_SD_NO_PROGRESS;
+          goto way_out;
+        }
       }
       if ( fgd >= fga )     { ga = gd;  fga = fgd; }
       else if ( fgd < fgc ) { gb = gc;  fgb = fgc;  gc = gd;  fgc = fgd; }
@@ -193,7 +221,7 @@ int pkn_SDIterd ( int n, void *usrdata, double *x,
   }
   else if ( !progress && incne < delta )
     result = PKN_SD_FOUND_ZEROGRAD;
-finish_lmt:
+finish_sd:
   memcpy ( x, minx, n*sizeof(double) );
 
 way_out:

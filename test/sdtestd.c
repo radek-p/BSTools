@@ -82,10 +82,10 @@ int main ( void )
     printf ( "%14.8f, %14.8f\n", grf[i], grt[i] );
   printf ( "\n" );
 
-  nu = -1.0;
-  for ( i = 0; i < 300; i++ ) {
+  nu = 10.0;
+  for ( i = 0; i < 400; i++ ) {
     switch ( pkn_SDIterd ( N, NULL, x, myfunc, myfuncg, NULL, NULL,
-                           0.0, 1.0e-6, 1.0e-6, &nu ) ) {
+                           0.0, 1.0e-5, 1.0e-5, &nu ) ) {
   case PKN_SD_ERROR:
       printf ( "error\n" );
       goto way_out;

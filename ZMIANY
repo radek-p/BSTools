@@ -3578,3 +3578,7 @@ Wersja 0.33.
     obliczania hesjanu minimalizowanej funkcji (tylko wartosc funkcji i
     gradient).
 
+29.01.2014.
+835. Poprawki w procedurach optymalizacji pkn_NLMIterf i pkn_SDIterf.
+
+

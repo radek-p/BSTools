@@ -102,7 +102,7 @@ int pkn_NLMIterf ( int n, void *usrdata, float *x,
   float   f, *grad, *incr, *minx, *auxx, *auxgr, *hess, *lhess;
   float   gn, gna, incn, incne, df, dq, rk, lmin, lmax;
   float   ga, gb, gc, gd, ge, fga, fgb, fgc, fgd, fge, fm;
-  int     i;
+  int     i, j;
   boolean positive, progress, went_out;
   int     result;
 
@@ -123,6 +123,7 @@ int pkn_NLMIterf ( int n, void *usrdata, float *x,
     if ( fnu < fge ) { \
       memcpy ( minx, auxx, n*sizeof(float) ); \
       ge = nu;  fge = fnu;  incne = incn; \
+      progress = true; \
     } \
   }
 
@@ -272,18 +273,39 @@ lm_trajectory:
     gc *= (float)(i+2);  /* trying the Fibonacci sequence */
     fgc = LMFUNC ( gc );
     RECORD_MIN ( gc, fgc );
+    if ( i >= MAXGITER ) {
+      if ( progress ) {
+        *nu = ge;
+        goto finish_lmt;
+      }
+      else {
+        result = PKN_LMT_NO_PROGRESS;
+        goto way_out;
+      }
+    }
   }
   gd = gc*(float)(i+2);
   fgd = LMFUNC ( gd );
   RECORD_MIN ( gd, fgd );
   if ( fgd < fgc ) {
-    do {
+    for ( j = 0; j < MAXGITER; j++ ) {
       ga = gc;  fga = fgc;
       gc = gd;  fgc = fgd;
       gd = gc*(float)(i+2);  i++;
       fgd = LMFUNC ( gd );
       RECORD_MIN ( gd, fgd );
-    } while ( fgd < fgc );
+      if ( fgd < fgc )
+        goto cont1;
+    }
+    if ( progress ) {
+      *nu = ge;
+      goto finish_lmt;
+    }
+    else {
+      result = PKN_LMT_NO_PROGRESS;
+      goto way_out;
+    }
+cont1:
     gb = gd;  fgb = fgd;
   }
   else {
@@ -294,9 +316,15 @@ lm_trajectory:
       else                   gd = 0.01*gc;
       fgd = LMFUNC ( gd );
       RECORD_MIN ( gd, fgd );
-      if ( i >= MAXGITER && fge < f ) {
-        *nu = ge;
-        goto finish_lmt;
+      if ( i >= MAXGITER ) {
+        if ( fge < f ) {
+          *nu = ge;
+          goto finish_lmt;
+        }
+        else {
+          result = PKN_LMT_NO_PROGRESS;
+          goto way_out;
+        }
       }
       if ( fgd >= fga )     { ga = gd;  fga = fgd; }
       else if ( fgd < fgc ) { gb = gc;  fgb = fgc;  gc = gd;  fgc = fgd; }
