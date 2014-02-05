@@ -194,6 +194,7 @@ int pkn_NLMIterd ( int n, void *usrdata, double *x,
   }
   if ( fga >= f )
     goto lm_trajectory;
+  progress = true;
   memcpy ( x, auxx, n*sizeof(double) );
   df = fga - f;
   if ( !_pkn_ComputeDeltaQd ( n, hess, grad, incr, &dq ) ) {
@@ -201,21 +202,16 @@ int pkn_NLMIterd ( int n, void *usrdata, double *x,
     goto way_out;
   }
   rk = df/dq;
-  f = fga;
-  ge = -1.0;
   gna = sqrt ( pkn_ScalarProductd ( n, auxgr, auxgr ) );
   if ( gna < eps ) {
     result = PKN_LMT_FOUND_MINIMUM;
     goto way_out;
   }
-  else if ( gna > gn ) {
-    progress = true;
-    goto lm_trajectory;
-  }
   else if ( rk < THR1 /*|| gna > 0.5*gn*/ )
     goto way_out;
         /* additional Newton method steps */
   for ( i = 0; i < MAXNITER; i++ ) {
+    f = fga;
     gn = gna;
     pkn_LowerTrMatrixSolved ( n, lhess, 1, 1, auxgr, 1, incr );
     pkn_UpperTrMatrixSolved ( n, lhess, 1, 1, incr, 1, incr );
@@ -240,7 +236,6 @@ int pkn_NLMIterd ( int n, void *usrdata, double *x,
     if ( fga >= f )
       goto way_out;
     memcpy ( x, auxx, n*sizeof(double) );
-    f = fga;
     gna = sqrt ( pkn_ScalarProductd ( n, auxgr, auxgr ) );
     if ( gna < eps ) {
       result = PKN_LMT_FOUND_MINIMUM;
@@ -360,12 +355,13 @@ cont1:
   }
   if ( ge < MYINFINITY )
     *nu = ge;
-  if ( fge >= f ) {
-    result = PKN_LMT_NO_PROGRESS;
+  if ( !progress ) {
+    if ( incne < delta )
+      result = positive ? PKN_LMT_FOUND_ZEROGRAD_P : PKN_LMT_FOUND_ZEROGRAD;
+    else
+      result = PKN_LMT_NO_PROGRESS;
     goto way_out;
   }
-  else if ( !progress && incne < delta )
-    result = positive ? PKN_LMT_FOUND_ZEROGRAD_P : PKN_LMT_FOUND_ZEROGRAD;
 finish_lmt:
   memcpy ( x, minx, n*sizeof(double) );
 
