@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -19,15 +19,15 @@
 /* solving nonlinear equations with one variable */
 /* Illinois algorithm                            */
 
-float pkn_Illinoisf ( float (*f) (float), float a, float b, float eps,
-                      boolean *error )
+float pkn_Illinoisf ( float (*f)(void*,float), void *usrptr,
+                      float a, float b, float eps, boolean *error )
 {
   float c, cb, fa, fb, fc, fab, fbc, beta, d;
   char  sa, sb, sc, sab, sbc;
 
   *error = false;
-  fa = f ( a );  if ( !fa ) return a;
-  fb = f ( b );  if ( !fb ) return b;
+  fa = f ( usrptr, a );  if ( !fa ) return a;
+  fb = f ( usrptr, b );  if ( !fb ) return b;
   sa = pkv_signf ( fa );
   sb = pkv_signf ( fb );
   if ( sa*sb < 0 ) {
@@ -37,7 +37,7 @@ float pkn_Illinoisf ( float (*f) (float), float a, float b, float eps,
     d = fab;
     while ( fabs(b-a) > eps ) {
       c = b - fb/d;  cb = c-b;  if ( !cb ) return c;
-      fc = f ( c );  if ( !fc ) return c;
+      fc = f ( usrptr, c );  if ( !fc ) return c;
       sc = pkv_signf ( fc );
       fbc = (fc-fb)/cb;
       sbc = pkv_signf ( fbc );

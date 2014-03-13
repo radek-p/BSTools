@@ -3584,3 +3584,14 @@ Wersja 0.33.
 5.02.2014.
 836. Kolejne poprawki w procedurach optymalizacji.
 
+13.03.2014.
+837. Zmiana naglowkow procedur pkn_Illinoisf i pkn_GoldenRatf w libpknum -
+    dodatkowy parametr wskaznikowy umozliwia unikniecie usywania przez
+    aplikacje zmiennych statycznych w celu rozwiazania rownania liniowego lub
+    znalezienia minimum funkcji jednej zmiennej.
+
+838. Zmieny w procedurach mbs_FindBoundLineIntersectionsf i
+    mbs_FindPolynomialZerosf w libmultibs, zwiazane ze zmiana naglowka
+    procedury pkn_Illinoisf (w szczegolnosci zmienne statyczne zostaly
+    zastapione przez zmienne lokalne).
+

@@ -304,13 +304,13 @@ boolean pkn_multiSolveUHessenbergLinEqd ( int n, double *ah,
                                           int spdimen, int pitch, double *b );
 
 /* ///////////////////////////////////////////////////////////////////////// */
-double pkn_Illinoisd ( double (*f) (double), double a, double b, double eps,
-                      boolean *error );
+double pkn_Illinoisd ( double (*f)(void*,double), void *usrptr,
+                       double a, double b, double eps, boolean *error );
 
 boolean pkn_SolveSqEqd ( double p, double q, double *x1, double *x2 );
 
-double pkn_GoldenRatd ( double (*f) (double), double a, double b, double eps,     
-                       boolean *error );
+double pkn_GoldenRatd ( double (*f)(void*,double), void *usrptr,
+                        double a, double b, double eps, boolean *error );
 
 
 /* ///////////////////////////////////////////////////////////////////////// */

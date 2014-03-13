@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -38,31 +38,35 @@ static int nsigns ( int n, const double *a )
   return ch;
 } /*nsigns*/
 
-static double *_coeff;
-static int _deg;
+typedef struct {
+    double *coeff;
+    int    deg;
+  } _mbs_polyd;
 
-static double poly ( double x )
+static double poly ( void *usrptr, double x )
 {
   double f;
 
-  mbs_BCHornerC1d ( _deg, _coeff, x, &f );
+  mbs_BCHornerC1d ( ((_mbs_polyd*)usrptr)->deg,
+                    ((_mbs_polyd*)usrptr)->coeff, x, &f );
   return f;
 } /*poly*/
 
 boolean mbs_FindPolynomialZerosd ( int degree, const double *coeff,
                                    int *nzeros, double *zeros, double eps )
 {
-  void    *sp;
-  double   *a, *b, x;
-  int     nz, stp;
-  boolean error;
+  void       *sp;
+  double     *a, *b, x;
+  int        nz, stp;
+  _mbs_polyd ap;
+  boolean    error;
 
   sp = pkv_GetScratchMemTop ();
 
         /* push the interval [0,1] and the related polynomial coefficients */
   if ( !(a = pkv_GetScratchMemd ( degree+3 )) )
     goto failure;
-  _deg = degree;
+  ap.deg = degree;
   memcpy ( &a[2], coeff, (degree+1)*sizeof(double) );
   a[0] = 0.0;
   a[1] = 1.0;
@@ -78,8 +82,8 @@ boolean mbs_FindPolynomialZerosd ( int degree, const double *coeff,
       break;
 
   case 1:    /* one sign change - try to solve */
-      _coeff = &a[2];
-      x = pkn_Illinoisd ( poly, 0.0, 1.0, eps, &error );
+      ap.coeff = &a[2];
+      x = pkn_Illinoisd ( poly, (void*)&ap, 0.0, 1.0, eps, &error );
       if ( error )
         goto divide;
       zeros[nz++] = (1.0-x)*a[0] + x*a[1];

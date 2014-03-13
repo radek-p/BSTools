@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -114,26 +114,29 @@ out:
   return 0.0;
 } /*_mbs_FindLinePolylineIntersf*/
 
-static int   _deg;  /* polynomial degree, for function _mbs_apoly et al. */
-static float *_ac;  /* polynomial coefficients */
-static int   _sp;   /* stack pointer, 0 if stack empty */
-static float *_sd;  /* stack data pointer */
+typedef struct {
+    int   deg;  /* polynomial degree, for function _mbs_apoly et al. */
+    float *ac;  /* polynomial coefficients */
+    int   sp;   /* stack pointer, 0 if stack empty */
+    float *sd;  /* stack data pointer */
+  } _mbs_apolystrf;
 
-static float _mbs_apoly ( float t )
+static float _mbs_apoly ( void *usrptr, float t )
 {
   float value;
 
-  mbs_BCHornerC1f ( _deg, _ac, t, &value );
+  mbs_BCHornerC1f ( ((_mbs_apolystrf*)usrptr)->deg,
+                    ((_mbs_apolystrf*)usrptr)->ac, t, &value );
   return value;
 } /*_mbs_apoly*/
 
-static boolean _mbs_varsign ( float *ac )
+static boolean _mbs_varsign ( int deg, float *ac )
 {
   int  i;
   char s, z;
 
   s = pkv_signf ( ac[0] );
-  for ( i = 1; i <= _deg; i++ ) {
+  for ( i = 1; i <= deg; i++ ) {
     z = pkv_signf ( ac[i] );
     if ( z != s )
       return true;
@@ -141,7 +144,7 @@ static boolean _mbs_varsign ( float *ac )
   return false;
 } /*_mbs_varsign*/
 
-static boolean _mbs_onesignch ( float *ac, boolean *nonzero )
+static boolean _mbs_onesignch ( int deg, float *ac, boolean *nonzero )
 {
   int  i, k;
   char sa, sb;
@@ -149,7 +152,7 @@ static boolean _mbs_onesignch ( float *ac, boolean *nonzero )
   k = 0;
   sa = pkv_signf ( ac[0] );
   *nonzero = (boolean)(sa != 0);
-  for ( i = 1; i <= _deg; i++ ) {
+  for ( i = 1; i <= deg; i++ ) {
     sb = pkv_signf ( ac[i] );
     *nonzero = (boolean)(*nonzero || sb != 0);
     if ( sb != sa ) {
@@ -162,32 +165,39 @@ static boolean _mbs_onesignch ( float *ac, boolean *nonzero )
   return true;
 } /*_mbs_onesignch*/
 
-static boolean _mbs_pushp ( float t0, float t1, float *ac )
+static boolean _mbs_pushp ( _mbs_apolystrf *ap, float t0, float t1, float *ac )
 {
-  _sd = pkv_GetScratchMemf ( _deg+3 );
-  if ( !_sd ) {
+  int   deg;
+  float *sd;
+
+  deg = ap->deg;
+  sd = ap->sd = pkv_GetScratchMemf ( deg+3 );
+  if ( !sd ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_6, ERRMSG_6 );
     return false;
   }
-  _sd[0] = t0;
-  _sd[1] = t1;
-  memcpy ( &_sd[2], ac, (_deg+1)*sizeof(float) );
-  _sp++;
+  sd[0] = t0;
+  sd[1] = t1;
+  memcpy ( &sd[2], ac, (deg+1)*sizeof(float) );
+  ap->sp ++;
   return true;
 } /*_mbs_pushp*/
 
-static boolean _mbs_popp ( float *t0, float *t1, float *ac )
+static boolean _mbs_popp ( _mbs_apolystrf *ap, float *t0, float *t1, float *ac )
 {
-  if ( !_sp ) {
+  int deg;
+
+  if ( !ap->sp ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_6, ERRMSG_6 );
     return false;
   }
-  _sp--;
-  *t0 = _sd[0];
-  *t1 = _sd[1];
-  memcpy ( ac, &_sd[2], (_deg+1)*sizeof(float) );
-  _sd -= _deg+3;
-  pkv_FreeScratchMemf ( _deg+3 );
+  deg = ap->deg;
+  ap->sp--;
+  *t0 = ap->sd[0];
+  *t1 = ap->sd[1];
+  memcpy ( ac, &ap->sd[2], (deg+1)*sizeof(float) );
+  ap->sd -= deg+3;
+  pkv_FreeScratchMemf ( deg+3 );
   return true;
 } /*_mbs_popp*/
 
@@ -216,11 +226,12 @@ static float _mbs_FindLineBezcIntersf ( const point2f *p0, float t0,
                                         signpoint1f *inters, int *ninters )
 {
 #define eps 1.0e-6
-  void    *ssp;
-  int     i, ni, maxinters;
-  float   *ac, *bc;
-  float   u0, u1, u;
-  boolean nonzero, error;
+  void           *ssp;
+  int            i, ni, maxinters;
+  float          *ac, *bc;
+  float          u0, u1, u;
+  _mbs_apolystrf ap;
+  boolean        nonzero, error;
 
   ssp = pkv_GetScratchMemTop ();
 
@@ -228,8 +239,8 @@ static float _mbs_FindLineBezcIntersf ( const point2f *p0, float t0,
   ac = pkv_GetScratchMemf ( 3*(deg+1) );
   if ( !ac )
     goto out;
-  _ac = &ac[deg+1];
-  bc  = &_ac[deg+1];
+  ap.ac = &ac[deg+1];
+  bc  = &ap.ac[deg+1];
 
   ac[0] = a;
   if ( dim == 2 ) {
@@ -245,23 +256,23 @@ static float _mbs_FindLineBezcIntersf ( const point2f *p0, float t0,
                         /* find the polynomial zeros */
   maxinters = *ninters;
   *ninters = ni = 0;
-  _deg = deg;
-  _sp = 0;
-  if ( _mbs_varsign ( ac ) ) {
-    if ( !_mbs_pushp ( 0.0, 1.0, ac ) )
+  ap.deg = deg;
+  ap.sp = 0;
+  if ( _mbs_varsign ( deg, ac ) ) {
+    if ( !_mbs_pushp ( &ap, 0.0, 1.0, ac ) )
       goto out;
     do {
-      if ( !_mbs_popp ( &u0, &u1, _ac ) )
+      if ( !_mbs_popp ( &ap, &u0, &u1, ap.ac ) )
         goto out;
-      if ( _mbs_onesignch ( _ac, &nonzero ) ) {
+      if ( _mbs_onesignch ( deg, ap.ac, &nonzero ) ) {
         if ( nonzero ) {
-          u = pkn_Illinoisf ( _mbs_apoly, 0.0, 1.0, eps, &error );
+          u = pkn_Illinoisf ( _mbs_apoly, (void*)&ap, 0.0, 1.0, eps, &error );
           u = u0 + u*(u1-u0);
 
           if ( ni >= maxinters )
             goto out;
           _mbs_AddLineBezcIntersf ( p0, t0, p1, t1, &inters[ni],
-                                    dim, deg, cpts, u, pkv_signf(_ac[0]) );
+                                    dim, deg, cpts, u, pkv_signf(ap.ac[0]) );
           ni++;
         }
         else {
@@ -276,14 +287,14 @@ static float _mbs_FindLineBezcIntersf ( const point2f *p0, float t0,
       }
       else {
         if ( u1-u0 > eps ) {
-          mbs_BisectBC1f ( deg, _ac, bc );
+          mbs_BisectBC1f ( deg, ap.ac, bc );
           u = (float)(0.5*(u0+u1));
-          if ( _mbs_varsign ( _ac ) ) {
-            if ( !_mbs_pushp ( u, u1, _ac ) )
+          if ( _mbs_varsign ( deg, ap.ac ) ) {
+            if ( !_mbs_pushp ( &ap, u, u1, ap.ac ) )
               goto out;
           }
-          if ( _mbs_varsign ( bc ) ) {
-            if ( !_mbs_pushp ( u0, u, bc ) )
+          if ( _mbs_varsign ( deg, bc ) ) {
+            if ( !_mbs_pushp ( &ap, u0, u, bc ) )
               goto out;
           }
         }
@@ -292,11 +303,11 @@ static float _mbs_FindLineBezcIntersf ( const point2f *p0, float t0,
             goto out;
           _mbs_AddLineBezcIntersf ( p0, t0, p1, t1, &inters[ni],
                                     dim, deg, cpts, (float)(0.5*(u0+u1)),
-                                    pkv_signf(_ac[0]) );
+                                    pkv_signf(ap.ac[0]) );
           ni++;
         }
       }
-    } while ( _sp );
+    } while ( ap.sp );
   }
 
   pkv_SetScratchMemTop ( ssp );
