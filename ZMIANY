@@ -3595,3 +3595,7 @@ Wersja 0.33.
     procedury pkn_Illinoisf (w szczegolnosci zmienne statyczne zostaly
     zastapione przez zmienne lokalne).
 
+1.04.1024.
+839. Poprawka w programie pozwalaj - obsluga oznakowania punktow kontrolnych
+    zamknietych krzywych B-sklejanych.
+

@@ -508,22 +508,31 @@ void GeomObjectBSplineCurveMarkCPoints ( GO_BSplineCurve *obj,
                                          CameraRecd *CPos, Box2s *box,
                                          char mask, boolean clear )
 {
-  int ncp;
+  int deg, ncp;
 
   if ( obj->me.obj_type != GO_BSPLINE_CURVE )
     return;
-  ncp = obj->lastknot - obj->degree;
+  deg = obj->degree;
+  ncp = obj->lastknot - deg;
   GeomObjectMarkPoints ( obj->me.cpdimen, obj->me.spdimen, ncp,
                          obj->mkcp, obj->cpoints, CPos, box, mask, clear );
+  if ( obj->closed )
+    memcpy ( &obj->mkcp[ncp-deg], obj->mkcp, deg*sizeof(byte) );
   obj->me.dlistmask &= ~BSC_DLM_CPOLY;
 } /*GeomObjectBSplineCurveMarkCPoints*/
 
 void GeomObjectBSplineCurveMarkCPoint ( GO_BSplineCurve *obj,
                                         char mask, boolean clear )
 {
+  int deg, ncp;
+
   if ( obj->me.obj_type != GO_BSPLINE_CURVE )
     return;
-  GeomObjectMarkPoint ( obj->lastknot-obj->degree, obj->mkcp, mask, clear );
+  deg = obj->degree;
+  ncp = obj->lastknot - deg;
+  GeomObjectMarkPoint ( ncp, obj->mkcp, mask, clear );
+  if ( obj->closed )
+    memcpy ( &obj->mkcp[ncp-deg], obj->mkcp, deg*sizeof(byte) );
   obj->me.dlistmask &= ~BSC_DLM_CPOLY;
 } /*GeomObjectBezierCurveMarkCPoint*/
 
@@ -637,6 +646,8 @@ boolean GeomObjectBSplineCurveInsertKnot ( GO_BSplineCurve *obj,
   memcpy ( mkcp, obj->mkcp, i );
   mkcp[i] = MASK_CP_MOVEABLE;
   memcpy ( &mkcp[i+1], &obj->mkcp[i], ncp-i );
+  if ( obj->closed )
+    memcpy ( &mkcp[lkn-2*deg], &mkcp, deg*sizeof(byte) );
   free ( obj->knots );
   free ( obj->cpoints );
   free ( obj->mkcp );
@@ -699,6 +710,8 @@ boolean GeomObjectBSplineCurveRemoveKnot ( GO_BSplineCurve *obj,
   if ( i > 1 )
     memcpy ( mkcp, obj->mkcp, i-1 );
   memcpy ( &mkcp[i-1], &obj->mkcp[i], ncp-i );
+  if ( obj->closed )
+    memcpy ( &mkcp[lkn-2*deg], &mkcp, deg*sizeof(byte) );
   free ( obj->knots );
   free ( obj->cpoints );
   free ( obj->mkcp );
@@ -835,6 +848,7 @@ boolean GeomObjectBSplineCurveSetClosed ( GO_BSplineCurve *obj, boolean closed )
   pkn_AddMatrixd ( 1, cpdim*deg, 0, cp, 0, &cp[cpdim*clcK], 0, cp );
   pkn_MultMatrixNumd ( 1, cpdim*deg, 0, cp, 0.5, 0, cp );
   memcpy ( &cp[cpdim*clcK], cp, cpdim*deg*sizeof(double) );
+  memcpy ( &obj->mkcp[clcK], obj->mkcp, deg*sizeof(byte) );
   if ( obj->rational )
     GeomObjectSetupWeightPoints ( cpdim, lkn-deg,
                                   obj->cpoints, obj->weightpoints );
@@ -906,6 +920,8 @@ void GeomObjectReadBSplineCurve ( void *usrdata,
     obj->maxknots = lastknot+1;
     GeomObjectSetupIniPoints ( spdimen, rational, &obj->me.cpdimen,
                                ncp, (double*)cpoints, cp );
+    if ( closed )
+      memcpy ( &mkcp[lastknot-2*degree], mkcp, degree*sizeof(byte) );
     if ( rational )
       GeomObjectSetupWeightPoints ( cpdimen, ncp, cp, wcp );
     memcpy ( kn, knots, (lastknot+1)*sizeof(double) );
