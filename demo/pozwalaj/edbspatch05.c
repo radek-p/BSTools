@@ -43,13 +43,13 @@ boolean GeomObjectWriteBSplinePatch ( GO_BSplinePatch *obj )
                obj->degree_u, obj->lastknot_u, obj->knots_u,
                obj->degree_v, obj->lastknot_v, obj->knots_v,
                obj->closed_u, obj->closed_v,
-               pitch, obj->cpoints, obj->me.name,
+               pitch, obj->cpoints, obj->me.name, obj->me.ident,
                GeomObjectWriteAttributes,
                (void*)&obj->me );
 } /*GeomObjectWriteBSplinePatch*/
 
 void GeomObjectReadBSplinePatch ( void *usrdata,
-                 const char *name,
+                 const char *name, int ident,
                  int degreeu, int lastknotu, const double *knotsu, 
                  int degreev, int lastknotv, const double *knotsv,
                  boolean closed_u, boolean closed_v,
@@ -63,6 +63,7 @@ void GeomObjectReadBSplinePatch ( void *usrdata,
 
   obj = (GO_BSplinePatch*)GeomObjectAddBSplinePatch ( name, spdimen, rational );
   if ( obj ) {
+    obj->me.ident = ident;
     ncp = (lastknotu-degreeu)*(lastknotv-degreev);
     cpdimen = obj->me.cpdimen;
     cp = malloc ( ncp*cpdimen*sizeof(double) );

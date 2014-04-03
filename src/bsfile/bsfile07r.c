@@ -25,9 +25,10 @@
 boolean bsf_ReadBezierPatch4d ( int maxdeg, int *udeg, int *vdeg,
                                 int *pitch, point4d *cpoints,
                                 int *spdimen, boolean *rational,
-                                char *name, bsf_UserReaders *readers )
+                                char *name, int *ident,
+                                bsf_UserReaders *readers )
 {
-  boolean _name, deg, c_points, dimen;
+  boolean _name, deg, c_points, dimen, _id;
   int     ncpoints, dim, cpdimen;
 
   if ( bsf_nextsymbol != BSF_SYMB_BPATCH )
@@ -38,7 +39,7 @@ boolean bsf_ReadBezierPatch4d ( int maxdeg, int *udeg, int *vdeg,
   bsf_GetNextSymbol ();
 
         /* nothing has been read in yet */
-  _name = deg = c_points = dimen = *rational = false;
+  _name = deg = c_points = dimen = *rational = _id = false;
   ncpoints = 0;
   if ( name )
     *name = 0;
@@ -55,6 +56,14 @@ case BSF_SYMB_NAME:
       else
         goto failure;
       _name = true;
+      break;
+
+case BSF_SYMB_IDENT:
+      if ( _id )
+        goto failure;
+      if ( !bsf_ReadIdent ( ident ) )
+        goto failure;
+      _id = true;
       break;
 
 case BSF_SYMB_DEGREE:

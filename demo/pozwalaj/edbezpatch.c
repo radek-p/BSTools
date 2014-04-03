@@ -41,6 +41,7 @@ boolean GeomObjectInitBezierPatch ( GO_BezierPatch *obj,
       1.0,-1.0,0.0,1.0,  1.0,1.0,0.0,1.0};
 
   obj->me.obj_type = GO_BEZIER_PATCH;
+  obj->me.ident = -1;
   obj->me.spdimen = spdimen;
   obj->rational = rational;
   if ( rational )
@@ -111,6 +112,7 @@ geom_object *GeomObjectCopyBezierPatch ( GO_BezierPatch *obj )
     memset ( copy, 0, sizeof(GO_BezierPatch) );
     ncp = (obj->degree_u+1)*(obj->degree_v+1);
     copy->me.obj_type = GO_BEZIER_PATCH;
+    copy->me.ident = -1;
     copy->me.spdimen = obj->me.spdimen;
     copy->me.cpdimen = obj->me.cpdimen;
     copy->me.active = false;
@@ -491,13 +493,13 @@ boolean GeomObjectWriteBezierPatch ( GO_BezierPatch *obj )
   return bsf_WriteBezierPatchd ( obj->me.spdimen, obj->me.cpdimen,
                                  obj->rational, obj->degree_u, obj->degree_v,
                                  obj->me.cpdimen*(obj->degree_v+1),
-                                 obj->cpoints, obj->me.name,
+                                 obj->cpoints, obj->me.name, obj->me.ident,
                                  GeomObjectWriteAttributes,
                                  (void*)&obj->me );
 } /*GeomObjectWriteBezierPatch*/
 
-void GeomObjectReadBezierPatch ( void *usrdata,
-                                 const char *name, int degreeu, int degreev,
+void GeomObjectReadBezierPatch ( void *usrdata, const char *name, int ident,
+                                 int degreeu, int degreev,
                                  int pitch, const point4d *cpoints, int spdimen,
                                  boolean rational )
 {
@@ -508,6 +510,7 @@ void GeomObjectReadBezierPatch ( void *usrdata,
 
   obj = (GO_BezierPatch*)GeomObjectAddBezierPatch ( name, spdimen, rational );
   if ( obj ) {
+    obj->me.ident = ident;
     ncp = (degreeu+1)*(degreev+1);
     cpdimen = obj->me.cpdimen;
     cp = malloc ( ncp*cpdimen*sizeof(double) );

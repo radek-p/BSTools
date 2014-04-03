@@ -39,6 +39,7 @@ boolean GeomObjectInitBezierCurve ( GO_BezierCurve *obj,
   static const double inicp[8] = {-1.0,0.0,0.0,1.0, 1.0,0.0,0.0,1.0};
 
   obj->me.obj_type = GO_BEZIER_CURVE;
+  obj->me.ident = -1;
   obj->me.spdimen = spdimen;
   obj->rational = rational;
   if ( rational ) {
@@ -118,6 +119,7 @@ geom_object *GeomObjectCopyBezierCurve ( GO_BezierCurve *obj )
     ncp = obj->degree+1;
     memset ( copy, 0, sizeof(GO_BezierCurve) );
     copy->me.obj_type = GO_BEZIER_CURVE;
+    copy->me.ident = -1;
     copy->me.spdimen = obj->me.spdimen;
     copy->me.cpdimen = obj->me.cpdimen;
     copy->me.active = false;
@@ -444,13 +446,13 @@ boolean GeomObjectWriteBezierCurve ( GO_BezierCurve *obj )
 {
   return bsf_WriteBezierCurved ( obj->me.spdimen, obj->me.cpdimen,
                                  obj->rational, obj->degree,
-                                 obj->cpoints, obj->me.name,
+                                 obj->cpoints, obj->me.name, obj->me.ident,
                                  GeomObjectWriteAttributes,
                                  (void*)&obj->me );
 } /*GeomObjectWriteBezierCurve*/
 
 void GeomObjectReadBezierCurve ( void *usrdata,
-                                 const char *name, int degree,
+                                 const char *name, int ident, int degree,
                                  const point4d *cpoints, int spdimen,
                                  boolean rational )
 {
@@ -461,6 +463,7 @@ void GeomObjectReadBezierCurve ( void *usrdata,
 
   obj = (GO_BezierCurve*)GeomObjectAddBezierCurve ( name, spdimen, rational );
   if ( obj ) {
+    obj->me.ident = ident;
     ncp = degree+1;
     cpdimen = obj->me.cpdimen;
     cp = malloc ( ncp*cpdimen*sizeof(double) );

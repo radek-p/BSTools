@@ -122,9 +122,8 @@ boolean GeomObjectWriteBSplineHole ( GO_BSplineHole *obj )
   return false;
 } /*GeomObjectWriteBSplineHole*/
 
-void GeomObjectReadBSplineHole ( void *usrdata,
-                                 const char *name, int hole_k,
-                                 const double *knots,
+void GeomObjectReadBSplineHole ( void *usrdata, const char *name, int ident,
+                                 int hole_k, const double *knots,
                                  const point2d *domain_cp, const point4d *hole_cp,
                                  int spdimen, boolean rational )
 {

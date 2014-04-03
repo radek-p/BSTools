@@ -78,7 +78,7 @@ boolean SaveBSCurve ( char *filename )
     if ( nurbs ) {
 try_nurbs:
       bsf_WriteBSplineCurved ( 3, 4, true, kwind.degree, kwind.lastknot,
-                               knots, kwind.closed, &cpoints[0].x, NULL,
+                               knots, kwind.closed, &cpoints[0].x, NULL, -1,
                                WriteCurveAttributes, NULL );
     }
     else {
@@ -88,7 +88,7 @@ try_nurbs:
       pkv_Selectd ( kwind.lastknot-kwind.degree, 3, 4, 3,
                     &cpoints[0].x, buf );
       bsf_WriteBSplineCurved ( 3, 3, false, kwind.degree, kwind.lastknot,
-                               knots, kwind.closed, buf, NULL,
+                               knots, kwind.closed, buf, NULL, -1,
                                WriteCurveAttributes, NULL );
     }
     bsf_CloseOutputFile ();
@@ -101,7 +101,7 @@ try_nurbs:
   }
 } /*SaveBSCurve*/
 
-void BSCurveReader ( void *userData, const char *name,
+void BSCurveReader ( void *userData, const char *name, int ident,
                      int degree, int lastknot, const double *_knots,
                      boolean closed, const point4d *_cpoints,
                      int spdimen, boolean rational )

@@ -34,7 +34,8 @@ boolean FilenameCorrect ( const char *fn )
   return (boolean)(fn[0] != 0);
 } /*FilenameCorrect*/
 
-void BSHoleReader ( void *userData, const char *name, int holek,
+void BSHoleReader ( void *userData, const char *name, int ident,
+                    int holek,
                     const double *kn, const point2d *domaincp,
                     const point4d *holecp,
                     int spdimen, boolean rational )
@@ -123,7 +124,7 @@ void SaveFile ( const char *fn )
     strcpy ( &filename[lfn], file_ext );
   if ( bsf_OpenOutputFile ( filename, false ) ) {
     bsf_WriteBSplineHoled ( 3, 3, false, hole_k, knots, domain_cp, &hole_cp[0].x,
-                            NULL, WriteHoleAttrib, NULL );
+                            NULL, -1, WriteHoleAttrib, NULL );
     bsf_CloseOutputFile ();
     return;
   }

@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2009, 2010                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2009, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -82,4 +82,17 @@ default:
     return false;
   }
 } /*bsf_ReadDoubleNumber*/
+
+boolean bsf_ReadIdent ( int *ident )
+{
+  if ( bsf_nextsymbol != BSF_SYMB_IDENT )
+    return false;
+  bsf_GetNextSymbol ();
+  if ( bsf_nextsymbol != BSF_SYMB_INTEGER )
+    return false;
+  if ( ident )
+    *ident = bsf_nextint;
+  bsf_GetNextSymbol ();
+  return true;
+} /*bsf_ReadIdent*/
 

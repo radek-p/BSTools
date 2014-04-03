@@ -157,6 +157,7 @@ boolean GeomObjectInitBSplineMesh ( GO_BSplineMesh *obj,
                                     char spdimen, boolean rational )
 {
   obj->me.obj_type = GO_BSPLINE_MESH;
+  obj->me.ident = -1;
   obj->me.spdimen = spdimen;
   obj->rational = rational;
   if ( rational )
@@ -243,6 +244,7 @@ geom_object *GeomObjectCopyBSplineMesh ( GO_BSplineMesh *obj )
   if ( copy ) {
     memset ( copy, 0, sizeof(GO_BSplineMesh) );
     copy->me.obj_type = GO_BSPLINE_MESH;
+    copy->me.ident = -1;
     copy->me.spdimen = obj->me.spdimen;
     copy->me.cpdimen = obj->me.cpdimen;
     copy->me.active = false;

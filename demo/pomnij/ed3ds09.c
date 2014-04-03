@@ -63,7 +63,7 @@ boolean SaveBSPatch ( char *filename )
                              degree_v, lastknot_v, knots_v,
                              kwind.closed_u, kwind.closed_v,
                              4*(lastknot_v-degree_v), &cpoints[0].x,
-                             NULL, WritePatchAttributes, NULL );
+                             NULL, -1, WritePatchAttributes, NULL );
     bsf_CloseOutputFile ();
     return true;
   }
@@ -71,7 +71,7 @@ boolean SaveBSPatch ( char *filename )
     return false;
 } /*SaveBSPatch*/
 
-void BSPatchReader ( void *userData, const char *name,
+void BSPatchReader ( void *userData, const char *name, int ident,
                      int udeg, int lastknotu, const double *knotsu,
                      int vdeg, int lastknotv, const double *knotsv,
                      boolean closed_u, boolean closed_v,

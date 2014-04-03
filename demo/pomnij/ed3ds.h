@@ -120,7 +120,7 @@ int CallBack ( xge_widget *er, int msg, int key, short x, short y );
 boolean FilenameCorrect ( char *filename );
 boolean WritePatchAttributes ( void *usrdata );
 boolean SaveBSPatch ( char *filename );
-void BSPatchReader ( void *userData, const char *name, 
+void BSPatchReader ( void *userData, const char *name, int ident,
                      int udeg, int lastknotu, const double *knotsu, 
                      int vdeg, int lastknotv, const double *knotsv, 
                      boolean closed_u, boolean closed_v, 

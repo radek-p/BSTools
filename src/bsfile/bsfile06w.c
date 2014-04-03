@@ -25,7 +25,7 @@
 boolean bsf_WriteBSplineCurved ( int spdimen, int cpdimen, boolean rational,
                                  int deg, int lastknot, const double *knots,
                                  boolean closed, const double *cpoints,
-                                 const char *name,
+                                 const char *name, int ident,
                                  bsf_WriteAttr_fptr WriteAttr, void *userData )
 {
   fprintf ( bsf_output, "%s\n", "%B-spline curve" );
@@ -33,6 +33,7 @@ boolean bsf_WriteBSplineCurved ( int spdimen, int cpdimen, boolean rational,
   if ( name && *name )
     fprintf ( bsf_output, "  %s \"%s\"\n",
               bsf_keyword[BSF_SYMB_NAME-BSF_FIRST_KEYWORD], name );
+  bsf_WriteIdent ( ident );
   bsf_WriteSpaceDim ( spdimen, rational );
   bsf_WriteCurveDegree ( deg );
   fprintf ( bsf_output, "  %s", bsf_keyword[BSF_SYMB_KNOTS-BSF_FIRST_KEYWORD] );

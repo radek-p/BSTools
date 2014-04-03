@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2009, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2009, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -57,6 +57,7 @@ const char *bsf_keyword[BSF_NKEYWORDS] = /* this table must be sorted alphabetic
     "facets",
     "frame",
     "halfedges",
+    "ident",
     "knots",
     "knots_u",
     "knots_v",

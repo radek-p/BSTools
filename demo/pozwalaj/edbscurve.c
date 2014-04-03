@@ -40,6 +40,7 @@ boolean GeomObjectInitBSplineCurve ( GO_BSplineCurve *obj,
   static const double inicp[8] = {-1.0,0.0,0.0,1.0, 1.0,0.0,0.0,1.0};
 
   obj->me.obj_type = GO_BSPLINE_CURVE;
+  obj->me.ident = -1;
   obj->me.spdimen = spdimen;
   obj->rational = rational;
   if ( rational ) {
@@ -125,6 +126,7 @@ geom_object *GeomObjectCopyBSplineCurve ( GO_BSplineCurve *obj )
     ncp = obj->lastknot - obj->degree;
     memset ( copy, 0, sizeof(GO_BSplineCurve) );
     copy->me.obj_type = GO_BSPLINE_CURVE;
+    copy->me.ident = -1;
     copy->me.spdimen = obj->me.spdimen;
     copy->me.cpdimen = obj->me.cpdimen;
     copy->me.active = false;
@@ -866,13 +868,13 @@ boolean GeomObjectWriteBSplineCurve ( GO_BSplineCurve *obj )
   return bsf_WriteBSplineCurved ( obj->me.spdimen, obj->me.cpdimen,
                                   obj->rational, obj->degree,
                                   obj->lastknot, obj->knots, obj->closed,
-                                  obj->cpoints, obj->me.name,
+                                  obj->cpoints, obj->me.name, obj->me.ident,
                                   GeomObjectWriteAttributes,
                                   (void*)&obj->me );
 } /*GeomObjectWriteBSplineCurve*/
 
-void GeomObjectReadBSplineCurve ( void *usrdata,
-                                  const char *name, int degree, int lastknot,
+void GeomObjectReadBSplineCurve ( void *usrdata, const char *name, int ident,
+                                  int degree, int lastknot,
                                   const double *knots, boolean closed,
                                   const point4d *cpoints, int spdimen,
                                   boolean rational )
@@ -884,6 +886,7 @@ void GeomObjectReadBSplineCurve ( void *usrdata,
 
   obj = (GO_BSplineCurve*)GeomObjectAddBSplineCurve ( name, spdimen, rational );
   if ( obj ) {
+    obj->me.ident = ident;
     ncp = lastknot - degree;
     cpdimen = obj->me.cpdimen;
     cp = malloc ( ncp*cpdimen*sizeof(double) );

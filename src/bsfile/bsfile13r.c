@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2013                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2013, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -23,9 +23,9 @@
 #include "bsmesh.h"
 #include "bsfile.h"
 
-boolean bsf_ReadCamera ( CameraRecd *Camera )
+boolean bsf_ReadCamera ( CameraRecd *Camera, int *ident )
 {
-  boolean frame, pos, orient, depth, projdata, parallel;
+  boolean frame, pos, orient, depth, projdata, parallel, _id;
   int     width, height, xmin, ymin, dim;
   point3d position, angles;
   point2d depthrange;
@@ -40,9 +40,17 @@ boolean bsf_ReadCamera ( CameraRecd *Camera )
   bsf_GetNextSymbol ();
 
         /* nothing has been read yet */
-  frame = pos = orient = depth = projdata = false;
+  frame = pos = orient = depth = projdata = _id = false;
   for (;;) {
     switch ( bsf_nextsymbol ) {
+case BSF_SYMB_IDENT:
+      if ( _id )
+        goto failure;
+      if ( !bsf_ReadIdent ( ident ) )
+        goto failure;
+      _id = true;
+      break;
+
 case BSF_SYMB_FRAME: /* pixel dimensions of the camera frame */
            /* two, three or four integers in braces are expected */
       if ( frame )

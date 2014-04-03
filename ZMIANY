@@ -3599,3 +3599,12 @@ Wersja 0.33.
 839. Poprawka w programie pozwalaj - obsluga oznakowania punktow kontrolnych
     zamknietych krzywych B-sklejanych.
 
+3.04.2014.
+840. Do procedur czytajacych i piszacych w libbsfile dodany parametr ident
+    krzywych, powierzchni i kamer - opcjonalny identyfikator, ktory jest
+    liczba calkowita. Identyfikator ten ma w zamierzeniu umozliwiac
+    zapisywanie w plikach zaleznosci miedzy obiektami (np. jesli plat jest
+    produktem sferycznym krzywych, to w pliku bedzie mozna zapisac razem z
+    platem identyfikatory tych krzywych). Trzeba to bedzie oprogramowac do
+    konca w programie pozwalaj.
+

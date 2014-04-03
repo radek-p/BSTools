@@ -299,7 +299,7 @@ int Popup00CallBack ( xge_widget *er, int msg, int key, short x, short y );
 xge_widget *InitPopup01 ( void );
 void Popup01ChangeDir ( void );
 void Popup01ChangeDirAlt ( short x );
-void Popup01CameraReader ( void *usrdata, CameraRecd *camera );
+void Popup01CameraReader ( void *usrdata, int ident, CameraRecd *camera );
 void Popup01OpenFile ( void );
 int Popup01CallBack ( xge_widget *er, int msg, int key, short x, short y );
 

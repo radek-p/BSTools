@@ -27,7 +27,7 @@ boolean bsf_WriteBSplinePatchd ( int spdimen, int cpdimen, boolean rational,
                                  int vdeg, int lastknotv, const double *knotsv,
                                  boolean closed_u, boolean closed_v,
                                  int pitch, const double *cpoints,
-                                 const char *name,
+                                 const char *name, int ident,
                                  bsf_WriteAttr_fptr WriteAttr, void *userData )
 {
   fprintf ( bsf_output, "%s\n", "%B-spline patch" );
@@ -35,6 +35,7 @@ boolean bsf_WriteBSplinePatchd ( int spdimen, int cpdimen, boolean rational,
   if ( name && *name )
     fprintf ( bsf_output, "  %s \"%s\"\n",
               bsf_keyword[BSF_SYMB_NAME-BSF_FIRST_KEYWORD], name );
+  bsf_WriteIdent ( ident );
   bsf_WriteSpaceDim ( spdimen, rational );
   bsf_WritePatchDegree ( udeg, vdeg );
   fprintf ( bsf_output, "  %s", bsf_keyword[BSF_SYMB_KNOTS_U-BSF_FIRST_KEYWORD] );

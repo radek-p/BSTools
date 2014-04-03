@@ -35,12 +35,13 @@ boolean     m1ok = false;
 
 CameraRecd CPos;
 
-void InputMesh ( void *userdata,
-                 const char *name, int degree,
+void InputMesh ( void *userdata, const char *name, int ident,
+                 int degree,
                  int nv, const BSMvertex *mv, const int *mvhei,
-                 const point4d *vc, int nhe, const BSMhalfedge *mhe,
+                 const point4d *vc,
+                 int nhe, const BSMhalfedge *mhe,
                  int nfac, const BSMfacet *mfac, const int *mfhei,
-                 int spdimen, boolean rational, byte *mkv )
+                 int spdimen, boolean rational )
 {
   int i;
 

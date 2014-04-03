@@ -24,7 +24,7 @@
 
 boolean bsf_WriteBezierPatchd ( int spdimen, int cpdimen, boolean rational,
                                 int udeg, int vdeg, int pitch, const double *cpoints,
-                                const char *name,
+                                const char *name, int ident,
                                 bsf_WriteAttr_fptr WriteAttr, void *userData )
 {
   fprintf ( bsf_output, "%s\n", "%Bezier patch" );
@@ -32,6 +32,7 @@ boolean bsf_WriteBezierPatchd ( int spdimen, int cpdimen, boolean rational,
   if ( name && *name )
     fprintf ( bsf_output, "  %s \"%s\"\n",
               bsf_keyword[BSF_SYMB_NAME-BSF_FIRST_KEYWORD], name );
+  bsf_WriteIdent ( ident );
   bsf_WriteSpaceDim ( spdimen, rational );
   bsf_WritePatchDegree ( udeg, vdeg );
   fprintf ( bsf_output, "  %s\n", bsf_keyword[BSF_SYMB_CPOINTS-BSF_FIRST_KEYWORD] );

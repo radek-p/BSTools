@@ -105,7 +105,7 @@ void Popup02ChangeDirAlt ( short x )
 boolean WriteOtherData ( void *usrdata )
 {
   if ( sw_save_camera )
-    return bsf_WriteCamera ( &g00win3D.CPos[3] );
+    return bsf_WriteCamera ( &g00win3D.CPos[3], -1 );
   else
     return true;
 } /*WriteOtherData*/

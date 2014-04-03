@@ -29,9 +29,10 @@ boolean bsf_ReadBSMesh4d ( int maxnv, int maxnhe, int maxnfac,
                            int *nhe, BSMhalfedge *mhe,      
                            int *nfac, BSMfacet *mfac, int *mfhei,
                            int *spdimen, boolean *rational,
-                           char *name, bsf_UserReaders *readers )
+                           char *name, int *ident,
+                           bsf_UserReaders *readers )
 {
-  boolean _name, deg, vertices, halfedges, facets, dimen;
+  boolean _name, deg, vertices, halfedges, facets, dimen, _id;
   int     nitems;
   int     i, k, d;
 
@@ -43,7 +44,7 @@ boolean bsf_ReadBSMesh4d ( int maxnv, int maxnhe, int maxnfac,
   bsf_GetNextSymbol ();
 
         /* nothing has been read in yet */
-  _name = deg = vertices = halfedges = facets = dimen = *rational = false;
+  _name = deg = vertices = halfedges = facets = dimen = *rational = _id = false;
   if ( name )
     *name = 0;
   *degree = 0;
@@ -60,6 +61,14 @@ case BSF_SYMB_NAME:
       else
         goto failure;
       _name = true;
+      break;
+
+case BSF_SYMB_IDENT:
+      if ( _id )
+        goto failure;
+      if ( !bsf_ReadIdent ( ident ) )
+        goto failure;
+      _id = true;
       break;
 
 case BSF_SYMB_DIM:

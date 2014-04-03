@@ -114,7 +114,7 @@ boolean GeomObjectBSplinePatchSetClosedV ( GO_BSplinePatch *obj, boolean closed 
 boolean GeomObjectBSplinePatchFlipUV ( GO_BSplinePatch *obj );
 boolean GeomObjectWriteBSplinePatch ( GO_BSplinePatch *obj );
 void GeomObjectReadBSplinePatch ( void *usrdata,
-                 const char *name,
+                 const char *name, int ident,
                  int degreeu, int lastknotu, const double *knotsu,
                  int degreev, int lastknotv, const double *knotsv,
                  boolean closed_u, boolean closed_v,

@@ -38,6 +38,7 @@ static boolean _bsf_ReadBCurve ( bsf_UserReaders *readers )
   char    *name;
   point4d *cp;
   int     degree, spdimen;
+  int     ident;
   boolean rational;
 
   sp = pkv_GetScratchMemTop ();
@@ -45,12 +46,13 @@ static boolean _bsf_ReadBCurve ( bsf_UserReaders *readers )
   cp = pkv_GetScratchMem ( (readers->bc_maxdeg+1)*sizeof(point4d) );
   if ( !name || !cp )
     goto failure;
+  ident = -1;
   if ( !bsf_ReadBezierCurve4d ( readers->bc_maxdeg, &degree, cp,
-                                &spdimen, &rational, name, readers ) )
+                                &spdimen, &rational, name, &ident, readers ) )
     goto failure;
   if ( readers ) {
     if ( readers->BezierCurveReader )
-      readers->BezierCurveReader ( readers->userData, name, degree, cp,
+      readers->BezierCurveReader ( readers->userData, name, ident, degree, cp,
                                    spdimen, rational );
   }
   pkv_SetScratchMemTop ( sp );
@@ -67,6 +69,7 @@ static boolean _bsf_ReadBPatch ( bsf_UserReaders *readers )
   char    *name;
   point4d *cp;
   int     udeg, vdeg, pitch, spdimen, maxdeg;
+  int     ident;
   boolean rational;
 
   sp = pkv_GetScratchMemTop ();
@@ -75,12 +78,13 @@ static boolean _bsf_ReadBPatch ( bsf_UserReaders *readers )
   cp = pkv_GetScratchMem ( (maxdeg+1)*(maxdeg+1)*sizeof(point4d) );
   if ( !name || !cp )
     goto failure;
+   ident = -1;
   if ( !bsf_ReadBezierPatch4d ( maxdeg, &udeg, &vdeg, &pitch, cp,
-                                &spdimen, &rational, name, readers ) )
+                                &spdimen, &rational, name, &ident, readers ) )
     goto failure;
   if ( readers ) {
     if ( readers->BezierPatchReader )
-      readers->BezierPatchReader ( readers->userData, name, udeg, vdeg, 
+      readers->BezierPatchReader ( readers->userData, name, ident, udeg, vdeg, 
                                    pitch, cp, spdimen, rational );
   }
   pkv_SetScratchMemTop ( sp );
@@ -98,6 +102,7 @@ static boolean _bsf_ReadBSCurve ( bsf_UserReaders *readers )
   point4d *cp;
   double  *knots;
   int     degree, lastknot, spdimen, maxdeg, maxlkn;
+  int     ident;
   boolean rational, closed;
 
   sp = pkv_GetScratchMemTop ();
@@ -108,13 +113,14 @@ static boolean _bsf_ReadBSCurve ( bsf_UserReaders *readers )
   knots = pkv_GetScratchMemd ( maxlkn+1 );
   if ( !name || !cp || !knots )
     goto failure;
+   ident = -1;
   if ( !bsf_ReadBSplineCurve4d ( maxdeg, maxlkn, maxlkn,
                                  &degree, &lastknot, knots, &closed, cp,
-                                 &spdimen, &rational, name, readers ) )
+                                 &spdimen, &rational, name, &ident, readers ) )
     goto failure;
   if ( readers ) {
     if ( readers->BSplineCurveReader )
-      readers->BSplineCurveReader ( readers->userData, name, degree, lastknot,
+      readers->BSplineCurveReader ( readers->userData, name, ident, degree, lastknot,
                                     knots, closed, cp, spdimen, rational );
   }
   pkv_SetScratchMemTop ( sp );
@@ -132,6 +138,7 @@ static boolean _bsf_ReadBSPatch ( bsf_UserReaders *readers )
   point4d *cp;
   double  *knotsu, *knotsv;
   int     spdimen, udeg, vdeg, lastknotu, lastknotv, pitch, maxdeg, maxlkn;
+  int     ident;
   boolean closed_u, closed_v, rational;
 
   sp = pkv_GetScratchMemTop ();
@@ -143,16 +150,17 @@ static boolean _bsf_ReadBSPatch ( bsf_UserReaders *readers )
   knotsv = pkv_GetScratchMemd ( maxlkn );
   if ( !name || !cp || !knotsu || !knotsv )
     goto failure;
+  ident = -1;
   if ( !bsf_ReadBSplinePatch4d ( maxdeg, maxlkn, maxlkn*maxlkn,
                                  &udeg, &lastknotu, knotsu,
                                  &vdeg, &lastknotv, knotsv,
                                  &closed_u, &closed_v, &pitch, cp,
-                                 &spdimen, &rational, name, readers ) )
+                                 &spdimen, &rational, name, &ident, readers ) )
     goto failure;
   if ( readers ) {
     if ( readers->BSplinePatchReader )
       readers->BSplinePatchReader ( readers->userData,
-               name, udeg, lastknotu, knotsu, vdeg, lastknotv, knotsv,
+               name, ident, udeg, lastknotu, knotsu, vdeg, lastknotv, knotsv,
                closed_u, closed_v, pitch, cp, spdimen, rational );
   }
   pkv_SetScratchMemTop ( sp );
@@ -173,6 +181,7 @@ static boolean _bsf_ReadBSMesh ( bsf_UserReaders *readers )
   int         *mvhei, *mfhei;
   point4d     *vc;
   int         nv, nhe, nfac, spdimen, degree, maxnv, maxnhe, maxnfac;
+  int         ident;
   boolean     rational;
 
   sp = pkv_GetScratchMemTop ();
@@ -188,14 +197,16 @@ static boolean _bsf_ReadBSMesh ( bsf_UserReaders *readers )
   mfhei = pkv_GetScratchMemi ( maxnhe );
   if ( !name || !mv || !mhe || !mfac || !vc || !mvhei || !mfhei )
     goto failure;
+  ident = -1;
   if ( !bsf_ReadBSMesh4d ( maxnv, maxnhe, maxnfac,
                            &degree, &nv, mv, mvhei, vc,
                            &nhe, mhe, &nfac, mfac, mfhei, &spdimen, &rational,
-                           name, readers ) )
+                           name, &ident, readers ) )
     goto failure;
   if ( readers ) {
     if ( readers->BSMeshReader )
-      readers->BSMeshReader ( readers->userData, name, degree, nv, mv, mvhei, 
+      readers->BSMeshReader ( readers->userData, name, ident,
+                              degree, nv, mv, mvhei, 
                               vc, nhe, mhe, nfac, mfac, mfhei,
                               spdimen, rational );
   }
@@ -215,6 +226,7 @@ static boolean _bsf_ReadBSHole ( bsf_UserReaders *readers )
   double  *knots;
   point2d *domcp;
   point4d *holecp;
+  int     ident;
   boolean rational;
 
   sp = pkv_GetScratchMemTop ();
@@ -224,12 +236,14 @@ static boolean _bsf_ReadBSHole ( bsf_UserReaders *readers )
   holecp = pkv_GetScratchMem ( (12*GH_MAX_K+1)*sizeof(point4d) );
   if ( !knots || !domcp || !holecp )
     goto failure;
+  ident = -1;
   if ( !bsf_ReadBSplineHoled ( GH_MAX_K, &hole_k, knots, domcp, holecp,
-                               &spdimen, &rational, name, readers ) )
+                               &spdimen, &rational, name, &ident, readers ) )
     goto failure;
   if ( readers ) {
     if ( readers->BSplineHoleReader )
-      readers->BSplineHoleReader ( readers->userData, name, hole_k, knots, 
+      readers->BSplineHoleReader ( readers->userData, name, ident,
+                                   hole_k, knots, 
                                    domcp, holecp, spdimen, rational );
   }
   pkv_SetScratchMemTop ( sp );
@@ -283,12 +297,14 @@ boolean _bsf_ReadColour ( bsf_UserReaders *readers )
 static boolean _bsf_ReadCamera ( bsf_UserReaders *readers )
 {
   CameraRecd Camera;
+  int        ident;
 
-  if ( !bsf_ReadCamera ( &Camera ) )
+  ident = -1;
+  if ( !bsf_ReadCamera ( &Camera, &ident ) )
     return false;
   if ( readers ) {
     if ( readers->CameraReader )
-      readers->CameraReader ( readers->userData, &Camera );
+      readers->CameraReader ( readers->userData, ident, &Camera );
   }
   return true;
 } /*_bsf_ReadCamera*/

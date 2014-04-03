@@ -69,8 +69,8 @@ boolean GeomObjectBSplineCurveSetUniformKnots ( GO_BSplineCurve *obj, boolean un
 boolean GeomObjectBSplineCurveRefine ( GO_BSplineCurve *obj );
 boolean GeomObjectBSplineCurveSetClosed ( GO_BSplineCurve *obj, boolean closed );
 boolean GeomObjectWriteBSplineCurve ( GO_BSplineCurve *obj );
-void GeomObjectReadBSplineCurve ( void *usrdata,
-                                  const char *name, int degree, int lastknot,
+void GeomObjectReadBSplineCurve ( void *usrdata, const char *name, int ident,
+                                  int degree, int lastknot,
                                   const double *knots, boolean closed,
                                   const point4d *cpoints, int spdimen,
                                   boolean rational );

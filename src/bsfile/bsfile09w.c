@@ -25,7 +25,7 @@
 boolean bsf_WriteBSplineHoled ( int spdimen, int cpdimen, boolean rational,
                                 int hole_k, const double *knots,
                                 const point2d *domain_cp, const double *hole_cp,
-                                const char *name,
+                                const char *name, int ident,
                                 bsf_WriteAttr_fptr WriteAttr, void *userData )
 {
   int i;

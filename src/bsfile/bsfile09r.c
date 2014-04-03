@@ -25,9 +25,10 @@
 boolean bsf_ReadBSplineHoled ( int maxk, int *hole_k, double *knots,
                                point2d *domain_cp, point4d *hole_cp,
                                int *spdimen, boolean *rational,
-                               char *name, bsf_UserReaders *readers )
+                               char *name, int *ident,
+                               bsf_UserReaders *readers )
 {
-  boolean _name, sides, dimen, domcp, surfcp;
+  boolean _name, sides, dimen, domcp, surfcp, _id;
   int     ns, nk, ncp, lkn, dim, cpdimen;
 
   if ( bsf_nextsymbol != BSF_SYMB_BSHOLE )
@@ -38,7 +39,7 @@ boolean bsf_ReadBSplineHoled ( int maxk, int *hole_k, double *knots,
   bsf_GetNextSymbol ();
 
         /* nothing has ben read yet */
-  _name = sides = dimen = domcp = surfcp = *rational = false;
+  _name = sides = dimen = domcp = surfcp = *rational = _id = false;
   if ( name )
     *name = 0;
   ns = nk = 0;
@@ -55,6 +56,14 @@ case BSF_SYMB_NAME:
       else
         goto failure;
       _name = true;
+      break;
+
+case BSF_SYMB_IDENT:
+      if ( _id )
+        goto failure;
+      if ( !bsf_ReadIdent ( ident ) )
+        goto failure;
+      _id = true;
       break;
 
 case BSF_SYMB_DIM:

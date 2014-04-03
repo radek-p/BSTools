@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2013                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2013, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -22,10 +22,11 @@
 #include "multibs.h"
 #include "bsfile.h"
 
-boolean bsf_WriteCamera ( CameraRecd *camera )
+boolean bsf_WriteCamera ( CameraRecd *camera, int ident )
 {
   fprintf ( bsf_output, "%s {\n",
             bsf_keyword[BSF_SYMB_CAMERA-BSF_FIRST_KEYWORD] );
+  bsf_WriteIdent ( ident );
   fprintf ( bsf_output, "  %s { ",
             bsf_keyword[BSF_SYMB_FRAME-BSF_FIRST_KEYWORD] );
   fprintf ( bsf_output, "%d, %d, %d, %d }",

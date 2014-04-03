@@ -27,7 +27,7 @@ boolean bsf_WriteBSMeshd ( int spdimen, int cpdimen, boolean rational, int degre
                            const double *vc,
                            int nhe, const BSMhalfedge *mhe,
                            int nfac, const BSMfacet *mfac, const int *mfhei,
-                           const char *name,
+                           const char *name, int ident,
                            bsf_WriteAttr_fptr WriteAttr, void *userData )
 {
   int i, j, d, l;

@@ -41,6 +41,7 @@ boolean GeomObjectInitBSplinePatch ( GO_BSplinePatch *obj,
       1.0,-1.0,0.0,1.0,  1.0,1.0,0.0,1.0};
 
   obj->me.obj_type = GO_BSPLINE_PATCH;
+  obj->me.ident = -1;
   obj->me.spdimen = spdimen;
   obj->rational = rational;
   if ( rational )
@@ -125,6 +126,7 @@ geom_object *GeomObjectCopyBSplinePatch ( GO_BSplinePatch *obj )
     memset ( copy, 0, sizeof(GO_BSplinePatch) );
     ncp = (obj->lastknot_u-obj->degree_u)*(obj->lastknot_v-obj->degree_v);
     copy->me.obj_type = GO_BSPLINE_PATCH;
+    copy->me.ident = -1;
     copy->me.spdimen = obj->me.spdimen;
     copy->me.cpdimen = obj->me.cpdimen;
     copy->me.active = false;

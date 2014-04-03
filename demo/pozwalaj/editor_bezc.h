@@ -56,7 +56,7 @@ boolean GeomObjectBezierCurveGetPointCoord ( GO_BezierCurve *obj, int p,
 
 boolean GeomObjectWriteBezierCurve ( GO_BezierCurve *obj );
 void GeomObjectReadBezierCurve ( void *usrdata,
-                                 const char *name, int degree,
+                                 const char *name, int ident, int degree,
                                  const point4d *cpoints, int spdimen,
                                  boolean rational );
 

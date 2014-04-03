@@ -53,6 +53,7 @@
 /* common object attributes */
 typedef struct geom_object {
     struct  geom_object *prev, *next;
+    int     ident;
     int     maxdn;
     struct  geom_object **dependencies;
     struct  geom_object *dep_list;

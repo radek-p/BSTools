@@ -24,9 +24,10 @@
 
 boolean bsf_ReadBezierCurve4d ( int maxdeg, int *deg, point4d *cpoints,
                                 int *spdimen, boolean *rational,
-                                char *name, bsf_UserReaders *readers )
+                                char *name, int *ident,
+                                bsf_UserReaders *readers )
 {
-  boolean _name, degree, c_points, dimen;
+  boolean _name, degree, c_points, dimen, _id;
   int     ncpoints, dim, cpdimen;
 
   if ( bsf_nextsymbol != BSF_SYMB_BCURVE )
@@ -37,7 +38,7 @@ boolean bsf_ReadBezierCurve4d ( int maxdeg, int *deg, point4d *cpoints,
   bsf_GetNextSymbol ();
 
         /* nothing has been read in yet */
-  _name = degree = c_points = *rational = dimen = false;
+  _name = degree = c_points = *rational = dimen = _id = false;
   ncpoints = 0;
   if ( name )
     *name = 0;
@@ -54,6 +55,14 @@ case BSF_SYMB_NAME:
       else
         goto failure;
       _name = true;
+      break;
+
+case BSF_SYMB_IDENT:
+      if ( _id )
+        goto failure;
+      if ( !bsf_ReadIdent ( ident ) )
+        goto failure;
+      _id = true;
       break;
 
 case BSF_SYMB_DEGREE:

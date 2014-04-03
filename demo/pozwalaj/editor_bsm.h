@@ -175,7 +175,7 @@ boolean GeomObjectBSplineMeshFillBicubicHole ( GO_BSplineMesh *obj,
 
 boolean GeomObjectWriteBSplineMesh ( GO_BSplineMesh *obj );
 void GeomObjectReadBSplineMesh ( void *usrdata,
-                    const char *name, int degree,
+                    const char *name, int ident, int degree,
                     int nv, const BSMvertex *mv, const int *mvhei,
                     const point4d *vc,
                     int nhe, const BSMhalfedge *mhe,

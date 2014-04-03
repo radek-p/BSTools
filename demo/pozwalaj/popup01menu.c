@@ -87,7 +87,7 @@ void Popup01ChangeDirAlt ( short x )
   }
 } /*Popup01ChangeDirAlt*/
 
-void Popup01CameraReader ( void *usrdata, CameraRecd *camera )
+void Popup01CameraReader ( void *usrdata, int ident, CameraRecd *camera )
 {
   if ( !camera->parallel ) {  /* now only the perspective camera */
     g00win3D.CPos[4] = g00win3D.CPos[3];  /* save the last projection */

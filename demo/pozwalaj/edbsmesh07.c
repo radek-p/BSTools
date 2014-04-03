@@ -39,13 +39,13 @@ boolean GeomObjectWriteBSplineMesh ( GO_BSplineMesh *obj )
   return bsf_WriteBSMeshd ( obj->me.spdimen, obj->me.cpdimen, obj->rational,
                   obj->degree, obj->nv, obj->meshv, obj->meshvhei, obj->meshvpc,
                   obj->nhe, obj->meshhe, obj->nfac, obj->meshfac, obj->meshfhei,
-                  obj->me.name,
+                  obj->me.name, obj->me.ident,
                   GeomObjectWriteAttributes,
                   (void*)&obj->me );
 } /*GeomObjectWriteBSplineMesh*/
 
 void GeomObjectReadBSplineMesh ( void *usrdata,
-                    const char *name, int degree,
+                    const char *name, int ident, int degree,
                     int nv, const BSMvertex *mv, const int *mvhei,
                     const point4d *vc,
                     int nhe, const BSMhalfedge *mhe,
@@ -65,6 +65,7 @@ void GeomObjectReadBSplineMesh ( void *usrdata,
     return;
   obj = (GO_BSplineMesh*)GeomObjectAddBSplineMesh ( name, spdimen, rational );
   if ( obj ) {
+    obj->me.ident = ident;
     cpdimen = obj->me.cpdimen;
     vert = malloc ( nv*sizeof(BSMvertex) );
     halfe = malloc ( nhe*sizeof(BSMhalfedge) );
