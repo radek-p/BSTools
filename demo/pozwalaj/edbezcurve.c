@@ -442,6 +442,11 @@ boolean GeomObjectBezierCurveGetPointCoord ( GO_BezierCurve *obj, int p,
   return true;
 } /*GeomObjectBezierCurveGetPointCoord*/
 
+boolean GeomObjectWriteBCAttributes ( GO_BezierCurve *obj )
+{
+  return true;
+} /*GeomObjectWriteBCAttributes*/
+
 boolean GeomObjectWriteBezierCurve ( GO_BezierCurve *obj )
 {
   return bsf_WriteBezierCurved ( obj->me.spdimen, obj->me.cpdimen,
@@ -450,6 +455,11 @@ boolean GeomObjectWriteBezierCurve ( GO_BezierCurve *obj )
                                  GeomObjectWriteAttributes,
                                  (void*)&obj->me );
 } /*GeomObjectWriteBezierCurve*/
+
+boolean GeomObjectBCResolveDependencies ( GO_BezierCurve *obj )
+{
+  return true;
+} /*GeomObjectBCResolveDependencies*/
 
 void GeomObjectReadBezierCurve ( void *usrdata,
                                  const char *name, int ident, int degree,

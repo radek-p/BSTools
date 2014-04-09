@@ -112,7 +112,10 @@ boolean GeomObjectBSplinePatchSetUniformKnotsV ( GO_BSplinePatch *obj );
 boolean GeomObjectBSplinePatchSetClosedU ( GO_BSplinePatch *obj, boolean closed );
 boolean GeomObjectBSplinePatchSetClosedV ( GO_BSplinePatch *obj, boolean closed );
 boolean GeomObjectBSplinePatchFlipUV ( GO_BSplinePatch *obj );
+
+boolean GeomObjectWriteBSPAttributes ( GO_BSplinePatch *obj );
 boolean GeomObjectWriteBSplinePatch ( GO_BSplinePatch *obj );
+boolean GeomObjectBSPResolveDependencies ( GO_BSplinePatch *obj );
 void GeomObjectReadBSplinePatch ( void *usrdata,
                  const char *name, int ident,
                  int degreeu, int lastknotu, const double *knotsu,
@@ -120,6 +123,7 @@ void GeomObjectReadBSplinePatch ( void *usrdata,
                  boolean closed_u, boolean closed_v,
                  int pitch, const point4d *cpoints,
                  int spdimen, boolean rational );
+
 void GeomObjectBSplinePatchOutputToRenderer3D ( GO_BSplinePatch *obj );
 
 void GeomObjectBSplinePatchAdjustGeneral ( GO_BSplinePatch *obj );

@@ -31,7 +31,7 @@ boolean bsf_ReadBSplinePatch4d ( int maxdeg, int maxlastknot, int maxncpoints,
                                  char *name, int *ident,
                                  bsf_UserReaders *readers )
 {
-  boolean _name, deg, knots_u, knots_v, c_points, dimen, _id;
+  boolean _name, deg, knots_u, knots_v, c_points, dimen, _id, dep;
   int     ncpoints, dim, cpdimen;
 
   if ( bsf_nextsymbol != BSF_SYMB_BSPATCH )
@@ -42,7 +42,8 @@ boolean bsf_ReadBSplinePatch4d ( int maxdeg, int maxlastknot, int maxncpoints,
   bsf_GetNextSymbol ();
 
         /* nothing has been read in yet */
-  _name = deg = knots_u = knots_v = c_points = *rational = dimen = false;
+  _name = deg = knots_u = knots_v = c_points = *rational =
+  dimen = _id = dep = false;
   ncpoints = 0;
   if ( name )
     *name = 0;
@@ -143,6 +144,15 @@ case BSF_SYMB_COLOR:
 case BSF_SYMB_COLOUR:
       if ( !_bsf_ReadColour ( readers ) )
         goto failure;
+      break;
+
+        /* dependencies */
+case BSF_SYMB_SPHERICAL_PRODUCT:
+      if ( dep )
+        goto failure;
+      if ( !bsf_ReadDependencies ( readers ) )
+        goto failure;
+      dep = true;
       break;
 
 default:

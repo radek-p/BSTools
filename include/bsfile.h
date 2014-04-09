@@ -49,55 +49,58 @@ extern "C" {
 
 #define BSF_MAX_NAME_LENGTH 64
 
-#define BSF_SYMB_EOF       0
-#define BSF_SYMB_ERROR     1
-#define BSF_SYMB_INTEGER   2
-#define BSF_SYMB_FLOAT     3
-#define BSF_SYMB_LBRACE    4
-#define BSF_SYMB_RBRACE    5
-#define BSF_SYMB_PLUS      6
-#define BSF_SYMB_MINUS     7
-#define BSF_SYMB_STRING    8
-#define BSF_SYMB_COMMA     9
+#define BSF_SYMB_EOF               0
+#define BSF_SYMB_ERROR             1
+#define BSF_SYMB_INTEGER           2
+#define BSF_SYMB_FLOAT             3
+#define BSF_SYMB_LBRACE            4
+#define BSF_SYMB_RBRACE            5
+#define BSF_SYMB_PLUS              6
+#define BSF_SYMB_MINUS             7
+#define BSF_SYMB_STRING            8
+#define BSF_SYMB_COMMA             9
 
 /* the subsequent keyword identifiers below must */
 /* match the strings in the table in bsfile00r.c */
-#define BSF_FIRST_KEYWORD    10  /* number of the first keyword */
-#define BSF_SYMB_BCURVE      10  /* consecutive numbers of keywords */
-#define BSF_SYMB_BPATCH      11  /* sorted alphabetically, with uppercase */
-#define BSF_SYMB_BSCURVE     12  /* preceding all lowercase letters (ASCII) */
-#define BSF_SYMB_BSHOLE      13
-#define BSF_SYMB_BSMESH      14
-#define BSF_SYMB_BSPATCH     15
-#define BSF_SYMB_EULERANGLES 16
-#define BSF_SYMB_CAMERA      17
-#define BSF_SYMB_CLOSED      18
-#define BSF_SYMB_COLOR       19  /* it can read both, AE and BE, */
-#define BSF_SYMB_COLOUR      20  /* but it will write in BE */
-#define BSF_SYMB_CPOINTS     21
-#define BSF_SYMB_CPOINTSMK   22
-#define BSF_SYMB_DEGREE      23
-#define BSF_SYMB_DEPTH       24
-#define BSF_SYMB_DIM         25
-#define BSF_SYMB_DOMAIN      26
-#define BSF_SYMB_FACETS      27
-#define BSF_SYMB_FRAME       28
-#define BSF_SYMB_HALFEDGES   29
-#define BSF_SYMB_IDENT       30
-#define BSF_SYMB_KNOTS       31
-#define BSF_SYMB_KNOTS_U     32
-#define BSF_SYMB_KNOTS_V     33
-#define BSF_SYMB_NAME        34
-#define BSF_SYMB_PARALLEL    35
-#define BSF_SYMB_PERSPECTIVE 36
-#define BSF_SYMB_POSITION    37
-#define BSF_SYMB_RATIONAL    38
-#define BSF_SYMB_SIDES       39
-#define BSF_SYMB_UNIFORM     40
-#define BSF_SYMB_VERTICES    41
+#define BSF_FIRST_KEYWORD          10  /* number of the first keyword */
+#define BSF_SYMB_BCURVE            10  /* consecutive numbers of keywords */
+#define BSF_SYMB_BPATCH            11  /* sorted alphabetically, with uppercase */
+#define BSF_SYMB_BSCURVE           12  /* preceding all lowercase letters (ASCII) */
+#define BSF_SYMB_BSHOLE            13
+#define BSF_SYMB_BSMESH            14
+#define BSF_SYMB_BSPATCH           15
+#define BSF_SYMB_EULERANGLES       16
+#define BSF_SYMB_CAMERA            17
+#define BSF_SYMB_CLOSED            18
+#define BSF_SYMB_COLOR             19  /* it can read both, AE and BE, */
+#define BSF_SYMB_COLOUR            20  /* but it will write in BE */
+#define BSF_SYMB_CPOINTS           21
+#define BSF_SYMB_CPOINTSMK         22
+#define BSF_SYMB_DEGREE            23
+#define BSF_SYMB_DEPTH             24
+#define BSF_SYMB_DIM               25
+#define BSF_SYMB_DOMAIN            26
+#define BSF_SYMB_FACETS            27
+#define BSF_SYMB_FRAME             28
+#define BSF_SYMB_HALFEDGES         29
+#define BSF_SYMB_IDENT             30
+#define BSF_SYMB_KNOTS             31
+#define BSF_SYMB_KNOTS_U           32
+#define BSF_SYMB_KNOTS_V           33
+#define BSF_SYMB_NAME              34
+#define BSF_SYMB_PARALLEL          35
+#define BSF_SYMB_PERSPECTIVE       36
+#define BSF_SYMB_POSITION          37
+#define BSF_SYMB_RATIONAL          38
+#define BSF_SYMB_SIDES             39
+#define BSF_SYMB_SPHERICAL_PRODUCT 40
+#define BSF_SYMB_UNIFORM           41
+#define BSF_SYMB_VERTICES          42
+#define BSF_LAST_KEYWORD           42  /* number of the last keyword */
 
 /* namely, this table */
-#define BSF_NKEYWORDS 32
+#define BSF_NKEYWORDS (BSF_LAST_KEYWORD-BSF_FIRST_KEYWORD+1)
+
 extern const char *bsf_keyword[BSF_NKEYWORDS];
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -164,40 +167,44 @@ typedef void (*bsf_BSH_fptr) ( void *userData, const char *name, int ident,
                                const point2d *domain_cp,
                                const point4d *hole_cp,
                                int spdimen, boolean rational );
+typedef void (*bsf_dependency_fptr) ( void *userData,
+                                      int depname, int ndep, int *dep );
 typedef void (*bsf_CPMark_fptr) ( void *userData, int ncp, unsigned int *mk );
 typedef void (*bsf_Camera_fptr) ( void *userData, int ident, CameraRecd *Camera );
 typedef void (*bsf_Colour_fptr) ( void *userData, point3d *colour );
 
 typedef struct {
-  void    *userData;   /* pointer to user data, bsfile library does not */
-                       /* use it, it is just passed to reader callbacks */
-  boolean done;        /* may be assigned true to stop reading */
+    void    *userData;   /* pointer to user data, bsfile library does not */
+                         /* use it, it is just passed to reader callbacks */
+    boolean done;        /* may be assigned true to stop reading */
 
-                       /* data size limits */
-  int     bc_maxdeg;   /* maximal degree of Bezier curves */
-  int     bsc_maxdeg;  /* maximal degree of B-spline curves */
-  int     bsc_maxlkn;  /* maximum number of the last knot for B-spline curves */
-  int     bp_maxdeg;   /* maximal degree of Bezier patches */
-  int     bsp_maxdeg;  /* maximal degree of B-spline patches */
-  int     bsp_maxlkn;  /* maximal number of the last knot for B-spline patches */
-  int     bsm_maxdeg;  /* maximal degree of mesh-represented surfaces */
-  int     bsm_maxnv;   /* maximum number of mesh vertices */
-  int     bsm_maxnhe;  /* maximum number of mesh halfedges */
-  int     bsm_maxnfac; /* maximum number of mesh facets */ 
+                         /* data size limits */
+    int     bc_maxdeg;   /* maximal degree of Bezier curves */
+    int     bsc_maxdeg;  /* maximal degree of B-spline curves */
+    int     bsc_maxlkn;  /* maximum number of the last knot for B-spline curves */
+    int     bp_maxdeg;   /* maximal degree of Bezier patches */
+    int     bsp_maxdeg;  /* maximal degree of B-spline patches */
+    int     bsp_maxlkn;  /* maximal number of the last knot for B-spline patches */
+    int     bsm_maxdeg;  /* maximal degree of mesh-represented surfaces */
+    int     bsm_maxnv;   /* maximal number of mesh vertices */
+    int     bsm_maxnhe;  /* maximal number of mesh halfedges */
+    int     bsm_maxnfac; /* maximal number of mesh facets */ 
+    int     maxdep;      /* maximal number of dependencies for one object */
 
-                       /* pointers to application procedures */
-  bsf_BeginRead_fptr BeginReader;
-  bsf_EndRead_fptr   EndReader;
-  bsf_BC_fptr        BezierCurveReader;
-  bsf_BSC_fptr       BSplineCurveReader;
-  bsf_BP_fptr        BezierPatchReader;
-  bsf_BSP_fptr       BSplinePatchReader;
-  bsf_BSM_fptr       BSMeshReader;
-  bsf_BSH_fptr       BSplineHoleReader;
-  bsf_CPMark_fptr    CPMarkReader;
-  bsf_Camera_fptr    CameraReader;
-  bsf_Colour_fptr    ColourReader;
-} bsf_UserReaders;
+                         /* pointers to application procedures */
+    bsf_BeginRead_fptr  BeginReader;
+    bsf_EndRead_fptr    EndReader;
+    bsf_BC_fptr         BezierCurveReader;
+    bsf_BSC_fptr        BSplineCurveReader;
+    bsf_BP_fptr         BezierPatchReader;
+    bsf_BSP_fptr        BSplinePatchReader;
+    bsf_BSM_fptr        BSMeshReader;
+    bsf_BSH_fptr        BSplineHoleReader;
+    bsf_CPMark_fptr     CPMarkReader;
+    bsf_Camera_fptr     CameraReader;
+    bsf_Colour_fptr     ColourReader;
+    bsf_dependency_fptr DepReader;
+  } bsf_UserReaders;
 
 /* set up readers data structure to an empty state */
 void bsf_ClearReaders ( bsf_UserReaders *readers );
@@ -218,6 +225,8 @@ void bsf_BSP4ReadFuncd ( bsf_UserReaders *readers, bsf_BSP_fptr BSPReader,
 void bsf_BSM4ReadFuncd ( bsf_UserReaders *readers, bsf_BSM_fptr BSMReader,
                          int maxdeg, int maxnv, int maxnhe, int maxnfac );
 void bsf_BSH4ReadFuncd ( bsf_UserReaders *readers, bsf_BSH_fptr BSHReader );
+void bsf_DependencyReadFunc ( bsf_UserReaders *readers,
+                              bsf_dependency_fptr DepReader, int maxdep );
 void bsf_CPMarkReadFunc ( bsf_UserReaders *readers,
                           bsf_CPMark_fptr CPMarkReader );
 void bsf_CameraReadFuncd ( bsf_UserReaders *readers,
@@ -227,7 +236,9 @@ void bsf_ColourReadFuncd ( bsf_UserReaders *readers,
 
 /* read the entire data file */
 boolean bsf_ReadBSFiled ( const char *filename, bsf_UserReaders *readers );
-
+boolean bsf_ReadIdentifiers ( const char *filename, void *usrdata,
+                              boolean (*readident)( void *usrdata,
+                                                    int objtype, int ident ) );
 /* auxiliary reading procedures, for internal use */
 boolean _bsf_ReadCPMark ( bsf_UserReaders *readers, int maxnpoints );
 boolean _bsf_ReadColour ( bsf_UserReaders *readers );
@@ -251,6 +262,8 @@ boolean bsf_ReadPatchDegree ( int maxdeg, int *udeg, int *vdeg );
 
 boolean bsf_ReadKnotSequenced ( int maxlastknot, int *lastknot, double *knots,
                                 boolean *closed );
+
+boolean bsf_ReadDependencies ( bsf_UserReaders *readers );
 
 boolean bsf_ReadCPMark ( int maxcp, unsigned int *mk );
 boolean bsf_ReadCamera ( CameraRecd *Camera, int *ident );
@@ -329,6 +342,7 @@ void bsf_WriteCurveDegree ( int degree );
 void bsf_WritePatchDegree ( int udeg, int vdeg );
 void bsf_WriteKnotSequenced ( int lastknot, const double *knots, boolean closed );
 void bsf_WriteIdent ( int ident );
+void bsf_WriteDependencies ( int depname, int ndep, const int *dep );
 
 /* writing the entire geometric objects - curves and surfaces */
 /* at the moment the only additional attribute written by the */

@@ -50,6 +50,10 @@ void GeomObjectBeginReading ( void *usrdata, int obj_type )
         /* colour: */
   attrib->colour[0] = attrib->colour[1] = 1.0;
   attrib->colour[2] = 0.0;
+        /* dependency identifiers */
+  attrib->filedepname = -1;
+  attrib->filedepnum = 0;
+  attrib->filedepid = NULL;
         /* others - in future */
 } /*GeomObjectBeginReading*/
 
@@ -109,8 +113,18 @@ void GeomObjectEndReading ( void *usrdata, boolean success )
       mk[i] |= MASK_CP_MOVEABLE;
         /* colour */
     memcpy ( last_go->colour, attrib->colour, 3*sizeof(double) );
+        /* move the dependencies */
+    last_go->filedepname = attrib->filedepname;
+    last_go->filedepnum = attrib->filedepnum;
+    last_go->filedepid = attrib->filedepid;
         /* others - in future */
   }
+  else {
+    if ( attrib->filedepid ) free ( attrib->filedepid );
+  }
+  attrib->filedepname = -1;
+  attrib->filedepnum = 0;
+  attrib->filedepid = NULL;
   if ( attrib->mk ) {
     free ( attrib->mk );
     attrib->mk = NULL;
@@ -141,6 +155,61 @@ void GeomObjectReadCPMK ( void *usrdata, int ncp, unsigned int *mk )
   }
 } /*GeomObjectReadCPMK*/
 
+boolean GeomObjectResolveDependencies ( void )
+{
+  geom_object *go;
+  boolean     success;
+
+  success = true;
+  for ( go = first_go; go; go = go->next )
+    if ( go->filedepid ) {
+      switch ( go->obj_type ) {
+    case GO_BEZIER_CURVE:
+        success &= GeomObjectBCResolveDependencies ( (GO_BezierCurve*)go );
+        break;
+    case GO_BEZIER_PATCH:
+        success &= GeomObjectBPResolveDependencies ( (GO_BezierPatch*)go );
+        break;
+    case GO_BSPLINE_CURVE:
+        success &= GeomObjectBSCResolveDependencies ( (GO_BSplineCurve*)go );
+        break;
+    case GO_BSPLINE_PATCH:
+        success &= GeomObjectBSPResolveDependencies ( (GO_BSplinePatch*)go );
+        break;
+    case GO_BSPLINE_MESH:
+        success &= GeomObjectBSMResolveDependencies ( (GO_BSplineMesh*)go );
+        break;
+    case GO_BSPLINE_HOLE:
+        success &= GeomObjectBSHResolveDependencies ( (GO_BSplineHole*)go );
+        break;
+    default:
+        break;
+      }
+      free ( go->filedepid );
+      go->filedepid = NULL;
+      go->filedepnum = 0;
+      go->filedepname = 0;
+    }
+  return success;
+} /*GeomObjectResolveDependencies*/
+
+void GeomObjectReadDependency ( void *usrdata,
+                                int depname, int ndep, int *dep )
+{
+  rw_object_attributes *rw;
+
+  rw = (rw_object_attributes*)usrdata;
+  rw->filedepname = depname;
+  rw->filedepnum = ndep;
+  if ( ndep > 0 ) {
+    rw->filedepid = malloc ( ndep*sizeof(int) );
+    if ( rw->filedepid )
+      memcpy ( rw->filedepid, dep, ndep*sizeof(int) );
+  }
+  else
+    rw->filedepid = NULL;
+} /*GeomObjectReadDependency*/
+
 boolean GeomObjectReadFile ( char *filename, bsf_Camera_fptr CameraReader )
 {
   bsf_UserReaders      readers;
@@ -163,12 +232,14 @@ boolean GeomObjectReadFile ( char *filename, bsf_Camera_fptr CameraReader )
                       MAX_BSM_NV, MAX_BSM_NHE, MAX_BSM_NFAC );
   bsf_BSH4ReadFuncd ( &readers, GeomObjectReadBSplineHole );
   bsf_CPMarkReadFunc ( &readers, GeomObjectReadCPMK );
+  bsf_DependencyReadFunc ( &readers, GeomObjectReadDependency, MAX_DEPNUM );
   bsf_CameraReadFuncd ( &readers, CameraReader );
   bsf_ColourReadFuncd ( &readers, GeomObjectReadColour );
         /* read the file */
   result = bsf_ReadBSFiled ( filename, &readers );
   if ( attrib.mk )      /* in case of failure */
     free ( attrib.mk );
+  result &= GeomObjectResolveDependencies ();
   return result;
 } /*GeomObjectReadFile*/
 
@@ -183,6 +254,30 @@ boolean GeomObjectWriteAttributes ( void *usrdata )
 
   sp = pkv_GetScratchMemTop ();
   go = (geom_object*)usrdata;
+        /* write the object's dependencies information and other */
+        /* object-specific attributes */
+  switch ( go->obj_type ) {
+case GO_BEZIER_CURVE:
+    GeomObjectWriteBCAttributes ( (GO_BezierCurve*)go );
+    break;
+case GO_BEZIER_PATCH:
+    GeomObjectWriteBPAttributes ( (GO_BezierPatch*)go );
+    break;
+case GO_BSPLINE_CURVE:
+    GeomObjectWriteBSCAttributes ( (GO_BSplineCurve*)go );
+    break;
+case GO_BSPLINE_PATCH:
+    GeomObjectWriteBSPAttributes ( (GO_BSplinePatch*)go );
+    break;
+case GO_BSPLINE_MESH:
+    GeomObjectWriteBSMAttributes ( (GO_BSplineMesh*)go );
+    break;
+case GO_BSPLINE_HOLE:
+    GeomObjectWriteBSHAttributes ( (GO_BSplineHole*)go );
+    break;
+default:  /* this should never happen, but ignore just in case */
+    break;
+  }
         /* write the object's colour */
   if ( !bsf_WriteColour ( (void*)go->colour ) )
     goto failure;
@@ -238,6 +333,82 @@ default:
   return true;
 } /*GeomObjectWriteObj*/
 
+typedef struct {
+    int n, nmax;
+    int *id;
+  } ident_table;
+
+static boolean _GeomObjectReadIdent ( void *usrdata, int objtype, int ident )
+{
+  ident_table *idt;
+
+  idt = (ident_table*)usrdata;
+  if ( idt->n >= idt->nmax ) {
+    idt->id = realloc ( idt->id, (idt->nmax+256)*sizeof(int) );
+    if ( idt->id )
+      idt->nmax += 256;
+    else
+      return false;
+  }
+  idt->id[idt->n] = ident;
+  idt->n ++;
+  return true;
+} /*_GeomObjectReadIdent*/
+
+boolean GeomObjectMakeIdentifiers ( char *filename, boolean append )
+{
+  void        *sp;
+  ident_table idt;
+  geom_object *go;
+  int         ident;
+  int         i, j;
+
+  sp = pkv_GetScratchMemTop ();
+  idt.n = idt.nmax = 0;
+  idt.id = NULL;
+  if ( append ) {
+        /* read the identifiers already present in the file */
+        /* in order to avoid generating them */
+    if ( !bsf_ReadIdentifiers ( filename, (void*)&idt, _GeomObjectReadIdent ) )
+      goto failure;
+    if ( idt.n > 1 )
+      if ( pkv_SortFast ( sizeof(int), ID_SIGNED_INT, sizeof(int), 0,
+                       idt.n, (void*)idt.id ) != SORT_OK )
+        goto failure;
+  }
+        /* now assign identifiers to objects present in the dependency lists */
+  for ( go = first_go; go; go = go->next )
+    go->ident = -1;
+  ident = 0;
+  j = 0;
+  for ( go = first_go; go; go = go->next )
+    if ( go->dependencies ) {
+      for ( i = 0; i < go->maxdn; i++ )
+        if ( go->dependencies[i] ) {
+          if ( go->dependencies[i]->ident == -1 ) {
+              /* generate the next identifier */
+            while ( j < idt.n && ident == idt.id[j] ) {
+              ident ++;
+              j ++;
+            }
+            go->dependencies[i]->ident = ident;
+            ident ++;
+          }
+        }
+    }
+
+  if ( idt.id )
+    free ( idt.id );
+  pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  if ( idt.id )
+    free ( idt.id );
+  pkv_SetScratchMemTop ( sp );
+  return false;
+} /*GeomObjectMakeIdentifiers*/
+
 boolean GeomObjectWriteFile ( char *filename, char whattowrite,
                               boolean (*writeotherdata)( void *usrdata ),
                               void *usrdata,
@@ -245,6 +416,8 @@ boolean GeomObjectWriteFile ( char *filename, char whattowrite,
 {
   geom_object *go;
 
+  if ( !GeomObjectMakeIdentifiers ( filename, append ) )
+    return false;
   if ( !bsf_OpenOutputFile ( filename, append ) )
     return false;
 

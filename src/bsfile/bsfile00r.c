@@ -67,6 +67,7 @@ const char *bsf_keyword[BSF_NKEYWORDS] = /* this table must be sorted alphabetic
     "position",
     "rational",
     "sides",
+    "spherical_product",
     "uniform",
     "vertices" };
 

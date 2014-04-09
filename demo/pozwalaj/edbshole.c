@@ -117,10 +117,20 @@ boolean GeomObjectBSplineHoleGetPointCoord ( GO_BSplineHole *obj, int p,
   return false;
 } /*GeomObjectBSplineHoleGetPointCoord*/
 
+boolean GeomObjectWriteBSHAttributes ( GO_BSplineHole *obj )
+{
+  return true;
+} /*GeomObjectWriteBSHAttributes*/
+
 boolean GeomObjectWriteBSplineHole ( GO_BSplineHole *obj )
 {
   return false;
 } /*GeomObjectWriteBSplineHole*/
+
+boolean GeomObjectBSHResolveDependencies ( GO_BSplineHole *obj )
+{
+  return true;
+} /*GeomObjectBSHResolveDependencies*/
 
 void GeomObjectReadBSplineHole ( void *usrdata, const char *name, int ident,
                                  int hole_k, const double *knots,

@@ -861,6 +861,11 @@ boolean GeomObjectBSplineCurveSetClosed ( GO_BSplineCurve *obj, boolean closed )
   return true;
 } /*GeomObjectBSplineCurveSetClosed*/
 
+boolean GeomObjectWriteBSCAttributes ( GO_BSplineCurve *obj )
+{
+  return true;
+} /*GeomObjectWriteBSCAttributes*/
+
 boolean GeomObjectWriteBSplineCurve ( GO_BSplineCurve *obj )
 {
   if ( obj->me.obj_type != GO_BSPLINE_CURVE )
@@ -872,6 +877,11 @@ boolean GeomObjectWriteBSplineCurve ( GO_BSplineCurve *obj )
                                   GeomObjectWriteAttributes,
                                   (void*)&obj->me );
 } /*GeomObjectWriteBSplineCurve*/
+
+boolean GeomObjectBSCResolveDependencies ( GO_BSplineCurve *obj )
+{
+  return true;
+} /*GeomObjectBSCResolveDependencies*/
 
 void GeomObjectReadBSplineCurve ( void *usrdata, const char *name, int ident,
                                   int degree, int lastknot,

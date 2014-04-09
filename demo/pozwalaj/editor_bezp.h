@@ -58,7 +58,9 @@ void GeomObjectBezierPatchTransformCPoints ( GO_BezierPatch *obj,
 boolean GeomObjectBezierPatchGetPointCoord ( GO_BezierPatch *obj, int p,
                           int *spdimen, int *cpdimen, double **pc );
 
+boolean GeomObjectWriteBPAttributes ( GO_BezierPatch *obj );
 boolean GeomObjectWriteBezierPatch ( GO_BezierPatch *obj );
+boolean GeomObjectBPResolveDependencies ( GO_BezierPatch *obj );
 void GeomObjectReadBezierPatch ( void *usrdata, const char *name, int ident,
                                  int degreeu, int degreev,
                                  int pitch, const point4d *cpoints, int spdimen,

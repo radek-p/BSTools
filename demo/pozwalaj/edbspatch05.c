@@ -32,6 +32,44 @@
 #include "editor_bsp.h"
 
 
+boolean GeomObjectWriteBSPAttributes ( GO_BSplinePatch *obj )
+{
+  void *sp;
+  int  *ident;
+  int  i, maxdn;
+
+  sp = pkv_GetScratchMemTop ();
+  maxdn = obj->me.maxdn;
+  if ( maxdn && obj->me.dependencies ) {  /* there are dependencies to write */
+    ident = pkv_GetScratchMemi ( maxdn );
+    if ( !ident )
+      goto failure;
+    for ( i = 0; i < maxdn; i++ )
+      if ( obj->me.dependencies[i] )
+        ident[i] = obj->me.dependencies[i]->ident;
+      else
+        ident[i] = -1;
+    switch ( obj->bsp_type ) {
+  case BSP_TYPE_SPHERICAL:
+                     /* write the identifiers of the two curves */
+      if ( ident[0] >= 0 && ident[1] >= 0 &&
+           obj->me.dependencies[0]->obj_type == GO_BSPLINE_CURVE &&
+           obj->me.dependencies[1]->obj_type == GO_BSPLINE_CURVE ) {
+        bsf_WriteDependencies ( BSF_SYMB_SPHERICAL_PRODUCT, 2, ident );
+      }
+      break;
+  default:
+      break;
+    }
+  }
+  pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
+} /*GeomObjectWriteBSPAttributes*/
+
 boolean GeomObjectWriteBSplinePatch ( GO_BSplinePatch *obj )
 {
   int pitch;
@@ -104,4 +142,63 @@ void GeomObjectReadBSplinePatch ( void *usrdata,
     memcpy ( knv, knotsv, (lastknotv+1)*sizeof(double) );
   }
 } /*GeomObjectReadBSplinePatch*/
+
+boolean GeomObjectBSPResolveDependencies ( GO_BSplinePatch *obj )
+{
+  geom_object *go, *eq, *mer;
+
+  switch ( obj->me.filedepname ) {
+case BSF_SYMB_SPHERICAL_PRODUCT:
+    if ( obj->me.filedepnum != 2 ||
+         obj->me.filedepid[0] < 0 || obj->me.filedepid[1] < 0 )
+      goto failure;
+        /* try to find the equator and meridian */
+    eq = mer = NULL;
+    for ( go = first_go; go; go = go->next ) {
+      if ( go->ident == obj->me.filedepid[0] ) {
+        if ( go->obj_type == GO_BSPLINE_CURVE ) {
+          if ( eq )
+            goto failure;
+          else
+            eq = go;
+        }
+      }
+      else if ( go->ident == obj->me.filedepid[1] ) {
+        if ( go->obj_type == GO_BSPLINE_CURVE ) {
+          if ( mer )
+            goto failure;
+          else
+            mer = go;
+        }
+      }
+    }
+        /* both curves found; setup the spherical product */
+    if ( eq && mer ) {
+      if ( obj->me.maxdn != 2 )
+        GeomObjectDeleteDependencies ( (geom_object*)obj );
+      if ( !GeomObjectAddDependency ( (geom_object*)obj, 2, 0, eq ) )
+        goto failure;
+      if ( !GeomObjectAddDependency ( (geom_object*)obj, 2, 1, mer ) )
+        goto failure;
+          /* names of the two curves must be nonempty */
+      if ( !eq->name[0] ) strcpy ( eq->name, "eq" );
+      if ( !mer->name[0] ) strcpy ( mer->name, "mer" );
+      strncpy ( obj->eqname, eq->name, MAX_NAME_LENGTH );
+      strncpy ( obj->mername, mer->name, MAX_NAME_LENGTH );
+      obj->bsp_type = BSP_TYPE_SPHERICAL;
+      if ( !GeomObjectBSplinePatchGenSphericalProduct ( obj ) )
+        goto failure;
+    }
+    break;
+
+default:
+    break;
+  }
+  return true;
+
+failure:
+  GeomObjectDeleteDependencies ( (geom_object*)obj );
+  obj->bsp_type = BSP_TYPE_GENERAL;
+  return false;
+} /*GeomObjectBSPResolveDependencies*/
 

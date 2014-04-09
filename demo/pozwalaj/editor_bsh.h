@@ -46,7 +46,9 @@ void GeomObjectBSplineHoleTransformCPoints ( GO_BSplineHole *obj,
 boolean GeomObjectBSplineHoleGetPointCoord ( GO_BSplineHole *obj, int p,  
                           int *spdimen, int *cpdimen, double **pc );
 
+boolean GeomObjectWriteBSHAttributes ( GO_BSplineHole *obj );
 boolean GeomObjectWriteBSplineHole ( GO_BSplineHole *obj );
+boolean GeomObjectBSHResolveDependencies ( GO_BSplineHole *obj );
 void GeomObjectReadBSplineHole ( void *usrdata, const char *name, int ident,
                                  int hole_k, const double *knots,
                                  const point2d *domain_cp, const point4d *hole_cp,

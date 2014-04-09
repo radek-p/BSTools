@@ -32,6 +32,11 @@
 #include "editor_bsm.h"
 
 
+boolean GeomObjectWriteBSMAttributes ( GO_BSplineMesh *obj )
+{
+  return true;
+} /*GeomObjectWriteBSMAttributes*/
+
 boolean GeomObjectWriteBSplineMesh ( GO_BSplineMesh *obj )
 {
   if ( obj->me.obj_type != GO_BSPLINE_MESH )
@@ -43,6 +48,11 @@ boolean GeomObjectWriteBSplineMesh ( GO_BSplineMesh *obj )
                   GeomObjectWriteAttributes,
                   (void*)&obj->me );
 } /*GeomObjectWriteBSplineMesh*/
+
+boolean GeomObjectBSMResolveDependencies ( GO_BSplineMesh *obj )
+{
+  return true;
+} /*GeomObjectBSMResolveDependencies*/
 
 void GeomObjectReadBSplineMesh ( void *usrdata,
                     const char *name, int ident, int degree,

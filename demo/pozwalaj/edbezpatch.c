@@ -488,6 +488,11 @@ boolean GeomObjectBezierPatchGetPointCoord ( GO_BezierPatch *obj, int p,
   return true;
 } /*GeomObjectBezierPatchGetPointCoord*/
 
+boolean GeomObjectWriteBPAttributes ( GO_BezierPatch *obj )
+{
+  return true;
+} /*GeomObjectWriteBPAttributes*/
+
 boolean GeomObjectWriteBezierPatch ( GO_BezierPatch *obj )
 {
   return bsf_WriteBezierPatchd ( obj->me.spdimen, obj->me.cpdimen,
@@ -497,6 +502,11 @@ boolean GeomObjectWriteBezierPatch ( GO_BezierPatch *obj )
                                  GeomObjectWriteAttributes,
                                  (void*)&obj->me );
 } /*GeomObjectWriteBezierPatch*/
+
+boolean GeomObjectBPResolveDependencies ( GO_BezierPatch *obj )
+{
+  return true;
+} /*GeomObjectBPResolveDependencies*/
 
 void GeomObjectReadBezierPatch ( void *usrdata, const char *name, int ident,
                                  int degreeu, int degreev,

@@ -14,6 +14,8 @@
 #define MAX_PNET_DENSITY  16
   /* maximal subdivision level for images of subdivision surfaces */
 #define MAX_SUBDIV_LEVEL   5
+  /* maximal number of dependencies */
+#define MAX_DEPNUM       256
 
 /* object type identifiers */
 #define GO_BEZIER_CURVE    1
@@ -68,6 +70,10 @@ typedef struct geom_object {
     boolean display_pretrans;
     trans3d pretrans;
     char    tag;
+        /* dependencies read in from a file, before resolving */
+    int     filedepname;
+    int     filedepnum;
+    int     *filedepid;
   } geom_object;
 
 /* auxiliary data structure for reading optional object */
@@ -77,6 +83,10 @@ typedef struct {
     int    nmk;
     byte   *mk;
     double colour[3];
+        /* dependencies read in from a file */
+    int    filedepname;
+    int    filedepnum;
+    int    *filedepid;
   } rw_object_attributes;
 
 extern geom_object *first_go, *last_go, *current_go, *currentp_go;
@@ -221,9 +231,13 @@ void GeomObjectOutputToRenderer3D ( boolean all );
 void GeomObjectBeginReading ( void *usrdata, int obj_type );
 void GeomObjectEndReading ( void *usrdata, boolean success );
 void GeomObjectReadColour ( void *usrdata, point3d *colour );
+void GeomObjectReadDependency ( void *usrdata,
+                                int depname, int ndep, int *dep );
+boolean GeomObjectResolveDependencies ( void );
 boolean GeomObjectReadFile ( char *filename, bsf_Camera_fptr CameraReader );
 boolean GeomObjectWriteAttributes ( void *usrdata );
 boolean GeomObjectWriteObj ( geom_object *go );
+boolean GeomObjectMakeIdentifiers ( char *filename, boolean append );
 boolean GeomObjectWriteFile ( char *filename, char whattowrite,
                               boolean (*writeotherdata)( void *usrdata ),
                               void *usrdata,

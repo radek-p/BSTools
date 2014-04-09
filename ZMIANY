@@ -3608,3 +3608,14 @@ Wersja 0.33.
     platem identyfikatory tych krzywych). Trzeba to bedzie oprogramowac do
     konca w programie pozwalaj.
 
+7.04.2014.
+841. Nowa procedura w libbsfile - bsf_ReadIdentifiers, do obslugi
+    identyfikatorow obiektow w plikach z danymi.
+
+8.04.2014.
+842. Procedury czytania i pisania w plikach .bs zaleznosci miedzy obiektami.
+
+9.04.2014.
+843. Do programu pozwalaj dorobione zapisywanie i czytanie z plikow
+    zaleznosci miedzy obiektami - na razie produkt sferyczny krzywych.
+

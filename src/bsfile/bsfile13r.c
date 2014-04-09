@@ -41,6 +41,7 @@ boolean bsf_ReadCamera ( CameraRecd *Camera, int *ident )
 
         /* nothing has been read yet */
   frame = pos = orient = depth = projdata = _id = false;
+  parallel = false;
   for (;;) {
     switch ( bsf_nextsymbol ) {
 case BSF_SYMB_IDENT:

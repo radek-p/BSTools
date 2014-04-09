@@ -54,7 +54,9 @@ void GeomObjectBezierCurveTransformCPoints ( GO_BezierCurve *obj,
 boolean GeomObjectBezierCurveGetPointCoord ( GO_BezierCurve *obj, int p,
                           int *spdimen, int *cpdimen, double **pc );
 
+boolean GeomObjectWriteBCAttributes ( GO_BezierCurve *obj );
 boolean GeomObjectWriteBezierCurve ( GO_BezierCurve *obj );
+boolean GeomObjectBCResolveDependencies ( GO_BezierCurve *obj );
 void GeomObjectReadBezierCurve ( void *usrdata,
                                  const char *name, int ident, int degree,
                                  const point4d *cpoints, int spdimen,

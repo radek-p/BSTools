@@ -418,6 +418,7 @@ void bsf_ClearReaders ( bsf_UserReaders *readers )
     readers->BSplinePatchReader = NULL;
     readers->BSMeshReader = NULL;
     readers->BSplineHoleReader = NULL;
+    readers->DepReader = NULL;
     readers->CPMarkReader = NULL;
     readers->CameraReader = NULL;
     readers->ColourReader = NULL;
@@ -434,6 +435,7 @@ void bsf_ClearReaders ( bsf_UserReaders *readers )
     readers->bsm_maxnv   = 1000;
     readers->bsm_maxnhe  = 2000;
     readers->bsm_maxnfac = 1000;
+    readers->maxdep      = 10;
   }
 } /*bsf_ClearReaders*/
 
@@ -493,6 +495,13 @@ void bsf_BSH4ReadFuncd ( bsf_UserReaders *readers, bsf_BSH_fptr BSHReader )
 {
   readers->BSplineHoleReader = BSHReader;
 } /*bsf_BSH4ReadFuncd*/
+
+void bsf_DependencyReadFunc ( bsf_UserReaders *readers,
+                              bsf_dependency_fptr DepReader, int maxdep )
+{
+  readers->DepReader = DepReader;
+  readers->maxdep = maxdep;
+} /*bsf_DependencyReadFunc*/
 
 void bsf_CPMarkReadFunc ( bsf_UserReaders *readers,
                           bsf_CPMark_fptr CPMarkReader )

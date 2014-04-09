@@ -68,7 +68,10 @@ boolean GeomObjectBSplineCurveRemoveKnot ( GO_BSplineCurve *obj,
 boolean GeomObjectBSplineCurveSetUniformKnots ( GO_BSplineCurve *obj, boolean uniform );
 boolean GeomObjectBSplineCurveRefine ( GO_BSplineCurve *obj );
 boolean GeomObjectBSplineCurveSetClosed ( GO_BSplineCurve *obj, boolean closed );
+
+boolean GeomObjectWriteBSCAttributes ( GO_BSplineCurve *obj );
 boolean GeomObjectWriteBSplineCurve ( GO_BSplineCurve *obj );
+boolean GeomObjectBSCResolveDependencies ( GO_BSplineCurve *obj );
 void GeomObjectReadBSplineCurve ( void *usrdata, const char *name, int ident,
                                   int degree, int lastknot,
                                   const double *knots, boolean closed,
