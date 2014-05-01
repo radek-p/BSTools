@@ -3,7 +3,7 @@
 # This file is a part of the BSTools package
 # written by Przemyslaw Kiciak
 # /////////////////////////////////////////////////////////////////////
-# (C) Copyright by Przemyslaw Kiciak, 2010, 2013
+# (C) Copyright by Przemyslaw Kiciak, 2010, 2014
 # this package is distributed under the terms of the
 # Lesser GNU Public License, see the file COPYING.LIB
 # /////////////////////////////////////////////////////////////////////
@@ -98,6 +98,8 @@ $(SRCDIR)/bsmesh28d.o: $(SRCDIR)/bsmesh28d.c $(INCDIR)/bsmesh.h $(SRCDIR)/bsmpri
 $(SRCDIR)/bsmesh29.o: $(SRCDIR)/bsmesh29.c $(INCDIR)/bsmesh.h $(SRCDIR)/bsmprivate.h
 
 $(SRCDIR)/bsmesh30.o: $(SRCDIR)/bsmesh30.c $(INCDIR)/bsmesh.h $(SRCDIR)/bsmprivate.h
+
+$(SRCDIR)/bsmesh31d.o: $(SRCDIR)/bsmesh31d.c $(INCDIR)/bsmesh.h $(SRCDIR)/bsmprivate.h
 
 clean:
 	rm -f $(OBJECTS)

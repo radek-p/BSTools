@@ -3619,3 +3619,10 @@ Wersja 0.33.
 843. Do programu pozwalaj dorobione zapisywanie i czytanie z plikow
     zaleznosci miedzy obiektami - na razie produkt sferyczny krzywych.
 
+1.05.2014.
+844. Zmiany w procedurach bsm_ExtractSubmeshVNum i bsm_ExtractSubmeshVd,
+    sluzacych do wybierania podsiatki z zaznaczonymi wierzcholkami. Zmiany
+    maja na celu umozliwienie podzialu wierzcholka, jesliby w wybranej
+    podsiatce wychodzily z niego dwie lub wiecej krawedzi brzegowych.
+    Autorem zmian jest Anna Sierhej.
+
