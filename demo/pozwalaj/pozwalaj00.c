@@ -48,6 +48,7 @@ xge_widget    *top00menu = NULL, *side00menu = NULL, *bottom00menu = NULL,
               *geom00menu = NULL, *geom00win = NULL,
               *popup00 = NULL, *popup01 = NULL, *popup02 = NULL,
               *popup03 = NULL;
+boolean       side00menu_wide = false;
 
 xge_listbox   dirlist1, filelist1, dirlist2, filelist2;
 xge_string_ed filename_editor;
@@ -101,7 +102,8 @@ boolean        sw_save_all = true, sw_save_active = false, sw_save_current = fal
                sw_save_camera = false, sw_save_append = false;
 
 /* window 1 widgets and stuff */
-char            whichside10menu = SIDE10MENU_EDIT;
+char           whichside10menu = SIDE10MENU_EDIT;
+boolean        side10menu_wide = false;
 
 xge_widget      *top10menu = NULL, *side10menu = NULL, *bottom10menu = NULL,
                 *geom10menu = NULL, *geom10win = NULL,
@@ -109,11 +111,11 @@ xge_widget      *top10menu = NULL, *side10menu = NULL, *bottom10menu = NULL,
                 *popup14 = NULL, *popup15 = NULL;
 
 xge_widget      *side10wdg_none = NULL,
-                *side10wdg_bezc = NULL, *side10wdg_bsc = NULL, *side10wdg_bezp = NULL,
-                *side10wdg_bsp = NULL,
+                *side10wdg_bezc_edit = NULL, *side10wdg_bsc_edit = NULL,
+                *side10wdg_bezp_edit = NULL, *side10wdg_bsp_edit = NULL,
                 *side10wdg_bsm_editscroll = NULL, *side10wdg_bsm_editcontents = NULL,
-                *side10wdg_bsm = NULL,
-                *side10wdg_bsh = NULL,
+                *side10wdg_bsm_edit = NULL,
+                *side10wdg_bsh_edit = NULL,
                 *geom10wdg_bezc = NULL, *geom10wdg_bsc = NULL, *geom10wdg_bezp = NULL,
                 *geom10wdg_bsp = NULL, *geom10wdg_bsm = NULL, *geom10wdg_bsh = NULL;
 xge_scroll_widget side10_bsm_editsw, side10_bsm_optsw;

@@ -57,7 +57,7 @@ void InitSide10Menu_Bezc ( void )
   w = xge_NewSwitch ( win1, w, swM11COMMAND, 16, 16, 20, xge_HEIGHT-16,
                       txtNull, &win1commandline );
   xge_SetWidgetPositioning ( w, 2, 20, -16 );
-  side10wdg_bezc = w;
+  side10wdg_bezc_edit = w;
           /* view */
   w = xge_NewSwitch ( win1, NULL, btnM1BEZC_VIEW_CURVE, 109, 16, 0, 22,
                       txtCurve, &sw_view_curve );
@@ -80,6 +80,15 @@ void InitSide10Menu_Bezc ( void )
   xge_SetWidgetPositioning ( w, 2, 20, -16 );
   side10wdg_bezc_data = w;
 } /*InitSide10Menu_Bezc*/
+
+boolean ChangeSide10MenuWidth_Bezc ( short h )
+{
+  boolean result;
+
+  result = side10menu_wide;
+  side10menu_wide = false;
+  return result;
+} /*ChangeSide10MenuWidth_Bezc*/
 
 void SetupBezierCurveWidgets ( GO_BezierCurve *obj )
 {

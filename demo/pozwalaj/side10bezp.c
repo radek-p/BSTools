@@ -60,7 +60,7 @@ void InitSide10Menu_Bezp ( void )
   w = xge_NewSwitch ( win1, w, swM11COMMAND, 16, 16, 20, xge_HEIGHT-16,
                       txtNull, &win1commandline );
   xge_SetWidgetPositioning ( w, 2, 20, -16 );
-  side10wdg_bezp = w;
+  side10wdg_bezp_edit = w;
           /* view */
   w = xge_NewSwitch ( win1, NULL, swM1BEZP_VIEW_SURF, 109, 16, 0, 22,
                       txtSurface, &sw_view_surf );
@@ -89,6 +89,15 @@ void InitSide10Menu_Bezp ( void )
   xge_SetWidgetPositioning ( w, 2, 20, -16 );
   side10wdg_bezp_data = w;
 } /*InitSide10Menu_Bezp*/
+
+boolean ChangeSide10MenuWidth_Bezp ( short h )
+{
+  boolean result;
+
+  result = side10menu_wide;
+  side10menu_wide = false;
+  return result;
+} /*ChangeSide10MenuWidth_Bezp*/
 
 void SetupBezierPatchWidgets ( GO_BezierPatch *obj )
 {

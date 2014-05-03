@@ -46,37 +46,37 @@ xge_widget *InitGeom10Menu ( xge_widget *prev )
   xge_widget *menu;
 
   geom10win2D = xge_New2Dwind ( win1, NULL, GEOMWIN1_2D,
-                                xge_WIDTH-SIDEMENUWIDTH,
+                                xge_WIDTH-SIDEMENUWIDTH0,
                                 xge_HEIGHT-TOPMENUHEIGHT,
-                                SIDEMENUWIDTH, TOPMENUHEIGHT,
+                                SIDEMENUWIDTH0, TOPMENUHEIGHT,
                                 &g10win2D, DrawG10win2D );
         /* knots for B-spline curves */
   geom10knotwin = xge_NewKnotWind ( win1, NULL, GEOMWIN1_KN,
-                                    xge_WIDTH-SIDEMENUWIDTH, 5*MAX_DEGREE+6,
-                                    SIDEMENUWIDTH, TOPMENUHEIGHT,
+                                    xge_WIDTH-SIDEMENUWIDTH0, 5*MAX_DEGREE+6,
+                                    SIDEMENUWIDTH0, TOPMENUHEIGHT,
                                     &g10knotwin, 0, NULL );
         /* knots and domain for B-spline patches */
   geom10t2knotwin = xge_NewT2KnotWind ( win1, NULL, GEOMWIN1_T2KN,
-                                        xge_WIDTH-SIDEMENUWIDTH,
+                                        xge_WIDTH-SIDEMENUWIDTH0,
                                         xge_HEIGHT-TOPMENUHEIGHT,
-                                        SIDEMENUWIDTH, TOPMENUHEIGHT,
+                                        SIDEMENUWIDTH0, TOPMENUHEIGHT,
                                         5*MAX_DEGREE,
                                         &g10t2knotwin, DrawG10winT2KN,
                                         0, NULL, 0, NULL );
         /* knots and windows for B-spline curves, which define the */
         /* spherical product */
   geom10win2Deqmer = xge_New2Dwind ( win1, NULL, GEOMWIN1_2DEQMER,
-                                     xge_WIDTH-SIDEMENUWIDTH,
+                                     xge_WIDTH-SIDEMENUWIDTH0,
                                      xge_HEIGHT-TOPMENUHEIGHT-5*MAX_DEGREE-10,
-                                     SIDEMENUWIDTH, TOPMENUHEIGHT,
+                                     SIDEMENUWIDTH0, TOPMENUHEIGHT,
                                      &g10win2Deqmer, DrawG10win2Deqmer );
   geom10knotwineqmer = xge_NewKnotWind ( win1, geom10win2Deqmer, GEOMWIN1_KNEQMER,
-                                     xge_WIDTH-SIDEMENUWIDTH, 5*MAX_DEGREE+6,
-                                     SIDEMENUWIDTH, TOPMENUHEIGHT+geom10win2Deqmer->h+4,
+                                     xge_WIDTH-SIDEMENUWIDTH0, 5*MAX_DEGREE+6,
+                                     SIDEMENUWIDTH0, TOPMENUHEIGHT+geom10win2Deqmer->h+4,
                                      &g10knotwineqmer, 0, NULL );
   geom10win = NULL;
-  menu = xge_NewFMenu ( win1, prev, GEOMMENU1, xge_WIDTH-SIDEMENUWIDTH,
-                       xge_HEIGHT-TOPMENUHEIGHT, SIDEMENUWIDTH, TOPMENUHEIGHT,
+  menu = xge_NewFMenu ( win1, prev, GEOMMENU1, xge_WIDTH-SIDEMENUWIDTH0,
+                       xge_HEIGHT-TOPMENUHEIGHT, SIDEMENUWIDTH0, TOPMENUHEIGHT,
                        geom10win );
   return menu;
 } /*InitGeom10Menu*/

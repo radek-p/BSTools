@@ -47,20 +47,20 @@ xge_widget *InitGeom00Menu ( xge_widget *prev )
   xge_widget *menu;
 
   geom00win3D = xge_New3Dwind ( win0, NULL, GEOMWIN3D0,
-                                xge_WIDTH-SIDEMENUWIDTH,
+                                xge_WIDTH-SIDEMENUWIDTH0,
                                 xge_HEIGHT-TOPMENUHEIGHT,
-                                SIDEMENUWIDTH, TOPMENUHEIGHT,
+                                SIDEMENUWIDTH0, TOPMENUHEIGHT,
                                 &g00win3D, DrawG00win3Dpar, DrawG00win3Dpersp );
 
   geom00win2D = xge_New2Dwind ( win0, NULL, GEOMWIN2D0,
-                                xge_WIDTH-SIDEMENUWIDTH,
+                                xge_WIDTH-SIDEMENUWIDTH0,
                                 xge_HEIGHT-TOPMENUHEIGHT,
-                                SIDEMENUWIDTH, TOPMENUHEIGHT,
+                                SIDEMENUWIDTH0, TOPMENUHEIGHT,
                                 &g00win2D, DrawG00win2D );
 
   geom00win = geom00win3D;
-  menu = xge_NewMenu ( win0, prev, GEOMMENU0, xge_WIDTH-SIDEMENUWIDTH,
-                       xge_HEIGHT-TOPMENUHEIGHT, SIDEMENUWIDTH, TOPMENUHEIGHT,
+  menu = xge_NewMenu ( win0, prev, GEOMMENU0, xge_WIDTH-SIDEMENUWIDTH0,
+                       xge_HEIGHT-TOPMENUHEIGHT, SIDEMENUWIDTH0, TOPMENUHEIGHT,
                        geom00win );
   return menu;
 } /*InitGeom00Menu*/

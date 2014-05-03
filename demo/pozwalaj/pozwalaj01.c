@@ -182,7 +182,7 @@ void destroy_program ( void )
 
 void ResizeWindow0 ( short x, short y )
 {
-  short w1, y1, h0, h1;
+  short w1, y1, h0, h1, smw;
 
   h1 = 0;
   if ( win0statusline )
@@ -191,12 +191,13 @@ void ResizeWindow0 ( short x, short y )
     h1 += BOTTOMMENUHEIGHT1;
   h0 = y - TOPMENUHEIGHT - h1;
   y1 = TOPMENUHEIGHT + h0;
-  w1 = x-SIDEMENUWIDTH;
+  ChangeSide00MenuWidth ( y-TOPMENUHEIGHT );
+  smw = side00menu_wide ? SIDEMENUWIDTH1 : SIDEMENUWIDTH0;
+  w1 = x-smw;
   top00menu->msgproc ( top00menu, xgemsg_RESIZE, 0, x, TOPMENUHEIGHT );
-  side00menu->msgproc ( side00menu, xgemsg_RESIZE, 0,
-                        SIDEMENUWIDTH, y-TOPMENUHEIGHT );
+  side00menu->msgproc ( side00menu, xgemsg_RESIZE, 0, smw, y-TOPMENUHEIGHT );
   if ( side00menu->data1 == side00ewidgets )
-    Side00eMenuCallBack ( NULL, xgemsg_RESIZE, 0, SIDEMENUWIDTH, y-TOPMENUHEIGHT );
+    Side00eMenuCallBack ( NULL, xgemsg_RESIZE, 0, smw, y-TOPMENUHEIGHT );
   bottom00menu->y = y1;
   if ( win0statusline ) {
     win0statl->w = w1;
@@ -217,6 +218,7 @@ void ResizeWindow0 ( short x, short y )
       win0cmdl->yofs = BOTTOMMENUHEIGHT1 - win0cmdl->h;
     }
   }
+  bottom00menu->x = geom00menu->x = geom00win->x = smw;
   bottom00menu->msgproc ( bottom00menu, xgemsg_RESIZE, 0, w1, h1 );
   geom00menu->msgproc ( geom00menu, xgemsg_RESIZE, 0, w1, h0 );
   geom00win->msgproc ( geom00win, xgemsg_RESIZE, 0, w1, h0 );
@@ -265,7 +267,7 @@ default:
 
 void ResizeWindow1 ( short x, short y )
 {
-  short w1, y1, h0, h1;
+  short w1, y1, h0, h1, smw;
 
   h1 = 0;
   if ( win1statusline )
@@ -274,14 +276,15 @@ void ResizeWindow1 ( short x, short y )
     h1 += BOTTOMMENUHEIGHT1;
   h0 = y - TOPMENUHEIGHT - h1;
   y1 = TOPMENUHEIGHT + h0;
-  w1 = x-SIDEMENUWIDTH;
+  ChangeSide10MenuWidth ( y-TOPMENUHEIGHT );
+  smw = side10menu_wide ? SIDEMENUWIDTH1 : SIDEMENUWIDTH0;
+  w1 = x-smw;
   top10menu->msgproc ( top10menu, xgemsg_RESIZE, 0, x, TOPMENUHEIGHT );
-  side10menu->msgproc ( side10menu, xgemsg_RESIZE, 0,
-                        SIDEMENUWIDTH, y-TOPMENUHEIGHT );
-  if ( side10menu->data1 == side10wdg_bsm ||
+  side10menu->msgproc ( side10menu, xgemsg_RESIZE, 0, smw, y-TOPMENUHEIGHT );
+  if ( side10menu->data1 == side10wdg_bsm_edit ||
        side10menu->data1 == side10wdg_bsm_opt3 )
     Side10MenuBsmCallBack ( side10menu, xgemsg_RESIZE, 0,
-                            SIDEMENUWIDTH, y-TOPMENUHEIGHT );
+                            smw, y-TOPMENUHEIGHT );
   bottom10menu->y = y1;
   if ( win1statusline ) {
     win1statl->w = w1;
@@ -302,8 +305,9 @@ void ResizeWindow1 ( short x, short y )
       win1cmdl->yofs = BOTTOMMENUHEIGHT1 - win1cmdl->h;
     }
   }
-  bottom10menu->msgproc ( bottom10menu, xgemsg_RESIZE, 0, x-SIDEMENUWIDTH, h1 );
-  geom10menu->msgproc ( geom10menu, xgemsg_RESIZE, 0, x-SIDEMENUWIDTH, h0 );
+  bottom10menu->x = geom10menu->x = smw;
+  bottom10menu->msgproc ( bottom10menu, xgemsg_RESIZE, 0, x-smw, h1 );
+  geom10menu->msgproc ( geom10menu, xgemsg_RESIZE, 0, x-smw, h0 );
   Geom10MenuResize ();
   xge_Redraw ();
 } /*ResizeWindow1*/

@@ -173,7 +173,7 @@ char txtMeridian[]          = "meridian";
 char txtSphericalProduct[]  = "Spherical product";
 char txtG1BlendingPatch[]   = "G1 blending patch";
 char txtG2BlendingPatch[]   = "G2 blending patch";
-char txtExtrSubmesh[]       = "extract submesh";
+char txtGetSubmesh[]        = "get submesh";
 
 char *InfoMsg[5] =
   { "pozwalaj - a simple curve and surface modeller",

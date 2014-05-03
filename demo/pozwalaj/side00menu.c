@@ -106,12 +106,35 @@ xge_widget *InitSide00Menu ( xge_widget *prev )
 
   InitSide00bMenu ();
   InitSide00eMenu ();
-  menu = xge_NewMenu ( win0, prev, SIDEMENU0, SIDEMENUWIDTH,
+  menu = xge_NewMenu ( win0, prev, SIDEMENU0, SIDEMENUWIDTH0,
                        xge_HEIGHT-TOPMENUHEIGHT, 0, TOPMENUHEIGHT,
                        side00widgets );
-  
-  return menu;
+    return menu;
 } /*InitSide00Menu*/
+
+boolean ChangeSide00MenuWidth ( short h )
+{
+  boolean wide, result;
+
+  if ( side00menu->data1 == side00awidgets )
+    wide = false;
+  else if ( side00menu->data1 == side00bwidgets )
+    wide = false;
+  else if ( side00menu->data1 == side00cwidgets )
+    wide = false;
+  else if ( side00menu->data1 == side00dwidgets )
+    wide = false;
+  else if ( side00menu->data1 == side00ewidgets )
+    wide = side00esw.contents->h > h-40;
+  else if ( side00menu->data1 == side00fwidgets )
+    wide = false;
+  else
+    wide = false;
+    
+  result = wide != side00menu_wide;
+  side00menu_wide = wide;
+  return result;
+} /*ChangeSide00MenuWidth*/
 
 void SetupWin0StatusLine ( void )
 {

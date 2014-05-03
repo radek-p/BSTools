@@ -14,7 +14,8 @@
 #define TOPMENUHEIGHT      20
 #define BOTTOMMENUHEIGHT0  16
 #define BOTTOMMENUHEIGHT1  21
-#define SIDEMENUWIDTH     110
+#define SIDEMENUWIDTH0    110
+#define SIDEMENUWIDTH1    122
 
     /* identifiers of side menus in the domain (win1) window */
 #define SIDE10MENU_EDIT     1
@@ -36,6 +37,7 @@ extern int           win0, win1;
 extern xge_widget     *top00menu, *side00menu, *bottom00menu,
                       *geom00menu, *geom00win,
                       *popup00, *popup01, *popup02, *popup03;
+extern boolean        side00menu_wide;
 
 extern xge_listbox    dirlist1, filelist1, dirlist2, filelist2;
 extern xge_string_ed  filename_editor;
@@ -87,13 +89,15 @@ extern xge_widget     *top10menu, *side10menu, *bottom10menu, *geom10menu,
                       *geom10win,
                       *popup10, *popup11, *popup12, *popup13, *popup14, *popup15;
 
+extern boolean        side10menu_wide;
+
 extern char           whichside10menu;
 extern xge_widget     *side10wdg_none,
-                      *side10wdg_bezc, *side10wdg_bsc, *side10wdg_bezp,
-                      *side10wdg_bsp,
+                      *side10wdg_bezc_edit, *side10wdg_bsc_edit, *side10wdg_bezp_edit,
+                      *side10wdg_bsp_edit,
                       *side10wdg_bsm_editscroll, *side10wdg_bsm_editcontents,
-                      *side10wdg_bsm,
-                      *side10wdg_bsh,
+                      *side10wdg_bsm_edit,
+                      *side10wdg_bsh_edit,
                       *geom10wdg_bezc, *geom10wdg_bsc, *geom10wdg_bezp,
                       *geom10wdg_bsp, *geom10wdg_bsm, *geom10wdg_bsh;
 extern xge_scroll_widget side10_bsm_editsw, side10_bsm_optsw;
@@ -239,6 +243,7 @@ xge_widget *InitTop00Menu ( xge_widget *prev );
 int Top00MenuCallBack ( xge_widget *er, int msg, int key, short x, short y );
 
 xge_widget *InitSide00Menu ( xge_widget *prev );
+boolean ChangeSide00MenuWidth ( short h );
 void SetupWin0StatusLine ( void );
 void SetupWin0CommandLine ( void );
 void SelectGeomTool ( char tool, boolean *sw );
@@ -319,23 +324,28 @@ int Top10MenuCallBack ( xge_widget *er, int msg, int key, short x, short y );
 
 void InitNameEditor ( xge_string_ed *ed, char *name );
 xge_widget *InitSide10Menu ( xge_widget *prev );
+boolean ChangeSide10MenuWidth ( short h );
 void SetupWin1StatusLine ( void );
 void SetupWin1CommandLine ( void );
 int Side10MenuCallBack ( xge_widget *er, int msg, int key, short x, short y );
 
 void InitSide10Menu_Bezc ( void );
+boolean ChangeSide10MenuWidth_Bezc ( short h );
 void SetupBezierCurveWidgets ( GO_BezierCurve *obj );
 int Side10MenuBezcCallBack ( xge_widget *er, int msg, int key, short x, short y );
 
 void InitSide10Menu_Bezp ( void );
+boolean ChangeSide10MenuWidth_Bezp ( short h );
 void SetupBezierPatchWidgets ( GO_BezierPatch *obj );
 int Side10MenuBezpCallBack ( xge_widget *er, int msg, int key, short x, short y );
 
 void InitSide10Menu_BSc ( void );
+boolean ChangeSide10MenuWidth_BSc ( short h );
 void SetupBSplineCurveWidgets ( GO_BSplineCurve *obj );
 int Side10MenuBscCallBack ( xge_widget *er, int msg, int key, short x, short y );
 
 void InitSide10Menu_BSp ( void );
+boolean ChangeSide10MenuWidth_BSp ( short h );
 void SetupBSplinePatchWidgets ( GO_BSplinePatch *obj );
 void BSPatchSetupGeneralOptions ( GO_BSplinePatch *obj );
 void BSPatchSetupSphericalOptions ( GO_BSplinePatch *obj );
@@ -348,6 +358,7 @@ void SuggestOptLevels ( GO_BSplineMesh *obj, boolean multilevel );
 int Side10MenuBspCallBack ( xge_widget *er, int msg, int key, short x, short y );
 
 void InitSide10Menu_BSm ( void );
+boolean ChangeSide10MenuWidth_BSm ( short h );
 void SetupBSplineMeshVEFnum ( GO_BSplineMesh *obj );
 void SetupBSplineMeshWidgets ( GO_BSplineMesh *obj );
 void BlendingMeshOptimizationPrepareData ( GO_BSplineMesh *obj );
@@ -357,6 +368,7 @@ void Side10MenuBsmResize ( short x, short y );
 int Side10MenuBsmCallBack ( xge_widget *er, int msg, int key, short x, short y );
 
 void InitSide10Menu_BSh ( void );
+boolean ChangeSide10MenuWidth_BSh ( short h );
 void SetupBSplineHoleWidgets ( GO_BSplineHole *obj );
 int Side10MenuBshCallBack ( xge_widget *er, int msg, int key, short x, short y );
 

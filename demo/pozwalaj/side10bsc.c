@@ -61,7 +61,7 @@ void InitSide10Menu_BSc ( void )
   w = xge_NewSwitch ( win1, w, swM11COMMAND, 16, 16, 20, xge_HEIGHT-16,
                       txtNull, &win1commandline );
   xge_SetWidgetPositioning ( w, 2, 20, -16 );
-  side10wdg_bsc = w;
+  side10wdg_bsc_edit = w;
           /* view */
   w = xge_NewSwitch ( win1, NULL, btnM1BSC_VIEW_CURVE, 109, 16, 0, 22,
                       txtCurve, &sw_view_curve );
@@ -85,6 +85,15 @@ void InitSide10Menu_BSc ( void )
   side10wdg_bsc_data = w;
 
 } /*InitSide10Menu_BSc*/
+
+boolean ChangeSide10MenuWidth_BSc ( short h )
+{
+  boolean result;
+
+  result = side10menu_wide;
+  side10menu_wide = false;
+  return result;
+} /*ChangeSide10MenuWidth_BSc*/
 
 void SetupBSplineCurveWidgets ( GO_BSplineCurve *obj )
 {

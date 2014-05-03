@@ -75,20 +75,22 @@ void SetupObjectSpecificMenus ( geom_object *obj )
     switch ( whichside10menu ) {
   case SIDE10MENU_EDIT:
       SetObjectEditMenu ( obj );
-      return;
+      break;
   case SIDE10MENU_VIEW:
       SetObjectViewMenu ( obj );
-      return;
+      break;
   case SIDE10MENU_DATA:
       SetObjectDataMenu ( obj );
-      return;
+      break;
   case SIDE10MENU_OPTIONS:
       SetObjectOptionsMenu ( obj );
-      return;
+      break;
   default:
       xge_SetMenuWidgets ( side10menu, NULL, false );
-      return;
+      break;
     }
+    if ( ChangeSide10MenuWidth ( side10menu->h ) )
+      ResizeWindow1 ( xge_current_width, xge_current_height );
   }
 } /*SetupObjectSpecificMenus*/
 
@@ -102,29 +104,29 @@ void SetObjectEditMenu ( geom_object *obj )
   whichside10menu = SIDE10MENU_EDIT;
   switch ( obj->obj_type ) {
 case GO_BEZIER_CURVE:
-    xge_SetMenuWidgets ( side10menu, side10wdg_bezc, false );
+    xge_SetMenuWidgets ( side10menu, side10wdg_bezc_edit, false );
     SetupBezierCurveWidgets ( (GO_BezierCurve*)obj );
     break;
 case GO_BSPLINE_CURVE:
-    xge_SetMenuWidgets ( side10menu, side10wdg_bsc, false );
+    xge_SetMenuWidgets ( side10menu, side10wdg_bsc_edit, false );
     SetupBSplineCurveWidgets ( (GO_BSplineCurve*)obj );
     break;
 case GO_BEZIER_PATCH:
-    xge_SetMenuWidgets ( side10menu, side10wdg_bezp, false );
+    xge_SetMenuWidgets ( side10menu, side10wdg_bezp_edit, false );
     SetupBezierPatchWidgets ( (GO_BezierPatch*)obj );
     break;
 case GO_BSPLINE_PATCH:
-    xge_SetMenuWidgets ( side10menu, side10wdg_bsp, false );
+    xge_SetMenuWidgets ( side10menu, side10wdg_bsp_edit, false );
     SetupBSplinePatchWidgets ( (GO_BSplinePatch*)obj );
     break;
 case GO_BSPLINE_MESH:
-    xge_SetMenuWidgets ( side10menu, side10wdg_bsm, false );
+    xge_SetMenuWidgets ( side10menu, side10wdg_bsm_edit, false );
     SetupBSplineMeshWidgets ( (GO_BSplineMesh*)obj );
     Side10MenuBsmCallBack ( side10menu, xgemsg_RESIZE, 0,
                             side10menu->w, side10menu->h );
     break;
 case GO_BSPLINE_HOLE:
-    xge_SetMenuWidgets ( side10menu, side10wdg_bsh, false );
+    xge_SetMenuWidgets ( side10menu, side10wdg_bsh_edit, false );
     SetupBSplineHoleWidgets ( (GO_BSplineHole*)obj );
     break;
 default:

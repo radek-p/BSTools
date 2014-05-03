@@ -64,19 +64,20 @@ case xgemsg_BUTTON_COMMAND:
       return 1;
   case btnM10EDIT:
       SetObjectEditMenu ( current_go );
-      xge_Redraw ();
-      return 1;
+      goto resize_and_redraw;
   case btnM10VIEW:
       SetObjectViewMenu ( current_go );
-      xge_Redraw ();
-      return 1;
+      goto resize_and_redraw;
   case btnM10DATA:
       SetObjectDataMenu ( current_go );
-      xge_Redraw ();
-      return 1;
+      goto resize_and_redraw;
   case btnM10OPTIONS:
       SetObjectOptionsMenu ( current_go );
-      xge_Redraw ();
+resize_and_redraw:
+      if ( ChangeSide10MenuWidth ( side10menu->h ) )
+        ResizeWindow1 ( xge_current_width, xge_current_height );
+      else
+        xge_Redraw ();
       return 1;
   default:
       return 0;

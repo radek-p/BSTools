@@ -96,10 +96,11 @@ void InitSide00eMenu ( void )
   w->redraw = DrawButtonArrowDown;
   for ( ww = w; ww; ww = ww->prev )
     xge_SetWidgetPositioning ( ww, 0, ww->x, ww->y );
-  side00econtents = xge_NewMenu ( win0, NULL, scwM01CONTENTS, 110, 404, 0, 20, w );
+  side00econtents = xge_NewMenu ( win0, NULL, scwM01CONTENTS,
+                                  SIDEMENUWIDTH0, 407, 0, 20, w );
   side00escroll = xge_NewScrollWidget ( win0, NULL, scwM01SCROLL,
-                                        110, xge_HEIGHT-TOPMENUHEIGHT-40, 0, 20,
-                                        &side00esw, side00econtents );
+                                  SIDEMENUWIDTH0, xge_HEIGHT-TOPMENUHEIGHT-40, 0, 20,
+                                  &side00esw, side00econtents );
 
         /* status & command line on/off */
   w = xge_NewSwitch ( win0, side00escroll, swM01COORDINATES, 100, 16, 0, xge_HEIGHT-36,

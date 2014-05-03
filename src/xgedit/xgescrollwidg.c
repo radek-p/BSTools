@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2009                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2009, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -86,6 +86,10 @@ both:
       clipw->y++;  clipw->h--;  clipw->x++;  clipw->w -= 2;
     }
   }
+  if ( sw->xslon || sw->yslon ) {
+    contents->x += 2;
+    contents->y += 2;
+  }
   contents->msgproc ( contents, xgemsg_RESIZE, 0, contents->w, contents->h );
 } /*xge_SetupScrollWidgetPos*/
 
@@ -100,7 +104,7 @@ void xge_DrawScrollWidget ( xge_widget *er, boolean onscreen )
   sw->contents->redraw ( sw->contents, false );
   if ( sw->xslon || sw->yslon ) {
     xge_SetClipping ( er );
-    xgeSetForeground ( xgec_White );
+    xgeSetForeground ( xgec_Grey2 );
     xgeDrawRectangle ( er->w-1, er->h-1, er->x, er->y );
     if ( sw->xslon ) {
       xge_SetClipping ( sw->xsl );

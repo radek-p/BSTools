@@ -44,18 +44,18 @@ xge_widget *InitBottom10Menu ( xge_widget *prev )
 {
   xge_widget *menu;
 
-  win1statl = xge_NewTextWidget ( win1, NULL, 0, xge_WIDTH-SIDEMENUWIDTH, 16, 0, 0,
-                                  status1 );
+  win1statl = xge_NewTextWidget ( win1, NULL, 0,
+                                  xge_WIDTH-SIDEMENUWIDTH0, 16, 0, 0, status1 );
   xge_SetWidgetPositioning ( win1statl, 0, 0, 0 );
   win1cmdl = xge_NewStringEd ( win1, win1statl, textedM12COMMAND,
-                               xge_WIDTH-SIDEMENUWIDTH, 19, 0, 0,
+                               xge_WIDTH-SIDEMENUWIDTH0, 19, 0, 0,
                                MAX_COMMAND_LGT, command1, &command1_editor );
   xge_SetWidgetPositioning ( win1cmdl, 0, 0, BOTTOMMENUHEIGHT1-19 );
 
         /* initially this menu is empty, one of the above widgets is */
         /* placed in it when needed */
-  menu = xge_NewMenu ( win1, prev, BOTTOMMENU1, xge_WIDTH-SIDEMENUWIDTH,
-                       0, SIDEMENUWIDTH, xge_HEIGHT, win1cmdl );
+  menu = xge_NewMenu ( win1, prev, BOTTOMMENU1, xge_WIDTH-SIDEMENUWIDTH0,
+                       0, SIDEMENUWIDTH0, xge_HEIGHT, win1cmdl );
   return menu;
 } /*InitBottom10Menu*/
 

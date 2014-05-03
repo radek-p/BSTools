@@ -64,7 +64,7 @@ void InitSide10Menu_BSm ( void )
   w = xge_NewButton ( win1, w, btnM1BSM_DOUBLING, 79, 19, 0, 80, txtDouble );
   w = xge_NewButton ( win1, w, btnM1BSM_AVERAGING, 79, 19, 0, 100, txtAverage );
   w = xge_NewButton ( win1, w, btnM1BSM_EXTRACTSUBMESH, 79, 19, 0, 120,
-                      txtExtrSubmesh );
+                      txtGetSubmesh );
   w = xge_NewIntWidget ( win1, w, intwM1BSM_VERTEX0, 75, 19, 0, 144,
                          -2, 10, &intw_bsm_vert0, txtVertex, &bsm_vertex_num0 );
   w = xge_NewIntWidget ( win1, w, intwM1BSM_VERTEX1, 35, 19, 74, 144,
@@ -98,9 +98,9 @@ void InitSide10Menu_BSm ( void )
   for ( ww = w; ww; ww = ww->prev )
     xge_SetWidgetPositioning ( ww, 0, ww->x, ww->y );
   side10wdg_bsm_editcontents = xge_NewMenu ( win1, NULL, scwM1BSM_ECONTENTS,
-                      110, 372, 0, 20, w );
+                      SIDEMENUWIDTH0, 375, 0, 20, w );
   side10wdg_bsm_editscroll = xge_NewScrollWidget ( win1, NULL, scwM1BSM_ESCROLL,
-                      110, xge_HEIGHT-TOPMENUHEIGHT-20, 0, 20,
+                      SIDEMENUWIDTH0, xge_HEIGHT-TOPMENUHEIGHT-20, 0, 20,
                       &side10_bsm_editsw, side10wdg_bsm_editcontents );
   w = xge_NewSwitch ( win1, side10wdg_bsm_editscroll, swM11STATUS,
                       16, 16, 0, xge_HEIGHT-16, txtNull, &win1statusline );
@@ -108,7 +108,7 @@ void InitSide10Menu_BSm ( void )
   w = xge_NewSwitch ( win1, w, swM11COMMAND, 16, 16, 20, xge_HEIGHT-16,
                       txtNull, &win1commandline );
   xge_SetWidgetPositioning ( w, 2, 20, -16 );
-  side10wdg_bsm = w;
+  side10wdg_bsm_edit = w;
           /* view */
   w = xge_NewSwitch ( win1, NULL, swM1BSM_VIEW_CNET, 109, 16, 0, 22,
                       txtControlNet, &sw_view_cnet );
@@ -244,9 +244,9 @@ void InitSide10Menu_BSm ( void )
   for ( ww = w; ww; ww = ww->prev )
     xge_SetWidgetPositioning ( ww, 0, ww->x, ww->y );
   side10wdg_bsm_optcontents = xge_NewMenu ( win1, NULL, scwM1BSM_ECONTENTS,
-                      110, 297, 0, 20, w );
+                      SIDEMENUWIDTH0, 300, 0, 20, w );
   side10wdg_bsm_optscroll = xge_NewScrollWidget ( win1, sw, scwM1BSM_ESCROLL,
-                      110, xge_HEIGHT-TOPMENUHEIGHT-60, 0, 60,
+                      SIDEMENUWIDTH0, xge_HEIGHT-TOPMENUHEIGHT-60, 0, 60,
                       &side10_bsm_optsw, side10wdg_bsm_optcontents );
   w = xge_NewSwitch ( win1, side10wdg_bsm_optscroll, swM11STATUS,
                       16, 16, 0, xge_HEIGHT-16, txtNull, &win1statusline );
@@ -256,6 +256,22 @@ void InitSide10Menu_BSm ( void )
   xge_SetWidgetPositioning ( w, 2, 20, -16 );
   side10wdg_bsm_opt3 = w;
 } /*InitSide10Menu_BSm*/
+
+boolean ChangeSide10MenuWidth_BSm ( short h )
+{
+  boolean wide, result;
+
+  wide = false;
+  if ( side10menu->data1 == side10wdg_bsm_edit )
+    wide = side10_bsm_editsw.contents->h > h-20;
+  else if ( side10menu->data1 == side10wdg_bsm_opt3 )
+    wide = side10_bsm_optsw.contents->h > h-60;
+  else
+    wide = false;
+  result = wide != side10menu_wide;
+  side10menu_wide = wide;
+  return result;
+} /*ChangeSide10MenuWidth_BSm*/
 
 void SetupBSplineMeshVEFnum ( GO_BSplineMesh *obj )
 {
@@ -433,7 +449,7 @@ void BlendingMeshOptSpecialPatches ( void )
 
 void Side10MenuBsmResize ( short x, short y )
 {
-  if ( side10menu->data1 == side10wdg_bsm )
+  if ( side10menu->data1 == side10wdg_bsm_edit )
     side10wdg_bsm_editscroll->msgproc ( side10wdg_bsm_editscroll,
                                         xgemsg_RESIZE, 0, x, y-20 );
   else if ( side10menu->data1 == side10wdg_bsm_opt3 )
@@ -498,8 +514,12 @@ case xgemsg_SWITCH_COMMAND:
         side10wdg_bsm_opt = side10wdg_bsm_opt1;
       xge_SetMenuWidgets ( side10menu, side10wdg_bsm_opt, false );
       bsm_sw_blending = obj->blending;
-      xge_SetClipping ( side10menu );
-      side10menu->redraw ( side10menu, true );
+      if ( ChangeSide10MenuWidth ( side00menu->h ) )
+        ResizeWindow1 ( xge_current_width, xge_current_height );
+      else {
+        xge_SetClipping ( side10menu );
+        side10menu->redraw ( side10menu, true );
+      }
       return 1;
   case swM1BSM_BLENDING:
       if ( GeomObjectBSplineMeshSetBlending ( obj, bsm_sw_blending ) ) {
@@ -514,9 +534,13 @@ case xgemsg_SWITCH_COMMAND:
       else
         side10wdg_bsm_opt = side10wdg_bsm_opt1;
       xge_SetMenuWidgets ( side10menu, side10wdg_bsm_opt, false );
-      Side10MenuBsmResize ( SIDEMENUWIDTH, xge_current_height-TOPMENUHEIGHT );
-      xge_SetClipping ( side10menu );
-      side10menu->redraw ( side10menu, true );
+      Side10MenuBsmResize ( SIDEMENUWIDTH0, xge_current_height-TOPMENUHEIGHT );
+      if ( ChangeSide10MenuWidth ( side00menu->h ) )
+        ResizeWindow1 ( xge_current_width, xge_current_height );
+      else {
+        xge_SetClipping ( side10menu );
+        side10menu->redraw ( side10menu, true );
+      }
       return 1;
   case swM1BSM_G1:
       if ( sw_hfill_g1 ) sw_hfill_g2 = sw_hfill_g1q2 = false;

@@ -65,13 +65,19 @@ case xgemsg_BUTTON_COMMAND:
   case btnM00EDIT:
       xge_SetMenuWidgets ( side00menu, side00widgets, false );
       editing_shapefunc = editing_lights = false;
-      xge_Redraw ();
+      if ( ChangeSide00MenuWidth ( side00menu->h ) )
+        ResizeWindow0 ( xge_current_width, xge_current_height );
+      else
+        xge_Redraw ();
       return 1;
   case btnM00TRANSFORM:
       xge_SetMenuWidgets ( side00menu, side00ewidgets, false );
       editing_shapefunc = editing_lights = false;
       Side00eMenuCallBack ( NULL, xgemsg_RESIZE, 0, side00menu->w, side00menu->h );
-      xge_Redraw ();
+      if ( ChangeSide00MenuWidth ( side00menu->h ) )
+        ResizeWindow0 ( xge_current_width, xge_current_height );
+      else
+        xge_Redraw ();
       return 1;
   case btnM00PICTURE:
       if ( picture_lights ) {
@@ -84,7 +90,10 @@ case xgemsg_BUTTON_COMMAND:
         editing_lights = false;
         editing_shapefunc = true;
       }
-      xge_Redraw ();
+      if ( ChangeSide00MenuWidth ( side00menu->h ) )
+        ResizeWindow0 ( xge_current_width, xge_current_height );
+      else
+        xge_Redraw ();
       return 1;
   case btnM00ABOUT:
       xge_DisplayInfoMessage ( InfoMsg, -1 );

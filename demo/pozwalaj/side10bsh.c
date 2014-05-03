@@ -53,7 +53,7 @@ void InitSide10Menu_BSh ( void )
   w = xge_NewSwitch ( win1, w, swM11COMMAND, 16, 16, 20, xge_HEIGHT-16,
                       txtNull, &win1commandline );
   xge_SetWidgetPositioning ( w, 2, 20, -16 );
-  side10wdg_bsh = w;
+  side10wdg_bsh_edit = w;
           /* view */
   w = xge_NewSwitch ( win1, NULL, btnM1BSH_VIEW_SURF, 109, 16, 0, 22,
                       txtSurface, &sw_view_surf );
@@ -75,6 +75,15 @@ void InitSide10Menu_BSh ( void )
   xge_SetWidgetPositioning ( w, 2, 20, -16 );
   side10wdg_bsh_data = w;
 } /*InitSide10Menu_BSh*/
+
+boolean ChangeSide10MenuWidth_BSh ( short h )
+{
+  boolean result;
+
+  result = side10menu_wide;
+  side10menu_wide = false;
+  return result;
+} /*ChangeSide10MenuWidth_BSh*/
 
 void SetupBSplineHoleWidgets ( GO_BSplineHole *obj )
 {

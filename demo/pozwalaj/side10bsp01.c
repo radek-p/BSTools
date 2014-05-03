@@ -73,7 +73,7 @@ void InitSide10Menu_BSp ( void )
   w = xge_NewSwitch ( win1, w, swM11COMMAND, 16, 16, 20, xge_HEIGHT-16,
                       txtNull, &win1commandline );
   xge_SetWidgetPositioning ( w, 2, 20, -16 );
-  side10wdg_bsp = w;
+  side10wdg_bsp_edit = w;
           /* view */
   w = xge_NewSwitch ( win1, NULL, swM1BSP_VIEW_SURF, 109, 16, 0, 22,
                       txtSurface, &sw_view_surf );
@@ -279,4 +279,13 @@ void InitSide10Menu_BSp ( void )
   xge_SetWidgetPositioning ( w, 2, 20, -16 );
   side10wdg_bsp_opt_blendingG2 = w;
 } /*InitSide10Menu_BSp*/
+
+boolean ChangeSide10MenuWidth_BSp ( short h )
+{
+  boolean result;
+
+  result = side10menu_wide;
+  side10menu_wide = false;
+  return result;
+} /*ChangeSide10MenuWidth_BSp*/
 

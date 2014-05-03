@@ -588,7 +588,7 @@ extern char txtMeridian[];
 extern char txtSphericalProduct[];
 extern char txtG1BlendingPatch[];
 extern char txtG2BlendingPatch[];
-extern char txtExtrSubmesh[];
+extern char txtGetSubmesh[];
 
 extern char *InfoMsg[];
 

@@ -71,11 +71,31 @@ xge_widget *InitSide10Menu ( xge_widget *prev )
         /* widgets specific for B-spline holes */
   InitSide10Menu_BSh ();
 
-  menu = xge_NewMenu ( win1, prev, SIDEMENU1, SIDEMENUWIDTH,
+  menu = xge_NewMenu ( win1, prev, SIDEMENU1, SIDEMENUWIDTH0,
                        xge_HEIGHT-TOPMENUHEIGHT, 0, TOPMENUHEIGHT,
                        side10wdg_none );
   return menu;
 } /*InitSide10Menu*/
+
+boolean ChangeSide10MenuWidth ( short h )
+{
+  switch ( current_go->obj_type ) {
+case GO_BEZIER_CURVE:
+    return ChangeSide10MenuWidth_Bezc ( h );
+case GO_BSPLINE_CURVE:
+    return ChangeSide10MenuWidth_BSc ( h );
+case GO_BEZIER_PATCH:
+    return ChangeSide10MenuWidth_Bezp ( h );
+case GO_BSPLINE_PATCH:
+    return ChangeSide10MenuWidth_BSp ( h );
+case GO_BSPLINE_MESH:
+    return ChangeSide10MenuWidth_BSm ( h );
+case GO_BSPLINE_HOLE:
+    return ChangeSide10MenuWidth_BSh ( h );
+default:
+    return false;
+  }
+} /*ChangeSide10MenuWidth*/
 
 void SetupWin1StatusLine ( void )
 {
