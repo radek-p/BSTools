@@ -3631,3 +3631,6 @@ Wersja 0.33.
     menu, ktore w wersji dotychczasowej byly czesciowo zaslaniane przez
     suwak, co bylo bardzo niewygodne i nieladne.
 
+5.05.2014.
+846. Poprawiony blad w procedurze bsm_ExtractSubmeshVd.
+

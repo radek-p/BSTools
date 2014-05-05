@@ -245,11 +245,12 @@ for ( i = 0; i < inv; i++ ) {
               V1[imfhei[imfac[face].firsthalfedge+heIter]] = currentVertex;
             }
           }
-          heOut = imhe[heIn.otherhalf];
-          if ( heIn.otherhalf != -1 )
+          if ( heIn.otherhalf >= 0 ) {
             V0[heIn.otherhalf] = currentVertex;
-          face = heOut.facetnum;
-          while ( isFacetInResultingNet[face]>-1 && heIn.otherhalf >= 0 ) {
+            heOut = imhe[heIn.otherhalf];
+            face = heOut.facetnum;
+          }
+          while ( heIn.otherhalf >= 0 && isFacetInResultingNet[face] >= 0 ) {
             omv[currentVertex].degree ++;
             omvhei[omvheiIter] = isHalfedgeInResultingNet[heIn.otherhalf];
             omvheiIter ++;
@@ -259,13 +260,15 @@ for ( i = 0; i < inv; i++ ) {
                 V1[imfhei[imfac[face].firsthalfedge+heIter]] = currentVertex;
               }
             }
+            if ( heIn.otherhalf < 0 )
+              break;
             heOut = imhe[heIn.otherhalf];
             V0[heIn.otherhalf] = currentVertex;
             face = heOut.facetnum;
           }
           omv[currentVertex].firsthalfedge = boundaryHalfedge;
           omvhei[omvheiIter] = omvheiEntry;
-          zDrugiejStrony=2;
+          zDrugiejStrony = 2;
           for ( a = omv[currentVertex].firsthalfedge;
                 a < omv[currentVertex].firsthalfedge+omv[currentVertex].degree/2;
                 a++ ) {
