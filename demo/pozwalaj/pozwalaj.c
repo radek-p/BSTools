@@ -42,7 +42,8 @@
 int main ( int argc, char *argv[] )
 {
   prog_argv = argv;
-  xgle_Init ( argc, argv, CallBack, NULL, true, false, false );
+  xgle_Init ( argc, argv, CallBack, NULL,
+              XGLE_WANTED, XGLE_NOT_NEEDED, XGLE_NOT_NEEDED );
   init_program ( argc, argv );
   xge_MessageLoop ();
   destroy_program ();

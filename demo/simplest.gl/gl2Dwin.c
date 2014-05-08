@@ -307,7 +307,8 @@ void destroy_edwin ( void )
 
 int main ( int argc, char *argv[] )
 {
-  xgle_Init ( argc, argv, CallBack, NULL, true, false, false );
+  xgle_Init ( argc, argv, CallBack, NULL,
+              XGLE_WANTED, XGLE_NOT_NEEDED, XGLE_NOT_NEEDED );
   init_edwin ();
   xge_MessageLoop ();
   destroy_edwin ();  

@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2010, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2010, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -41,6 +41,10 @@
 #include "xglergb.h"
 #endif
 
+#define XGLE_NOT_NEEDED    0
+#define XGLE_WANTED        1
+#define XGLE_WOULD_BE_NICE 2
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -56,10 +60,14 @@ extern void        *xglecontext;
 
 extern GLfloat xgle_palette[XGLE_PALETTE_LENGTH][3];
 
-void xgle_Init ( int argc, char *argv[],
-                 int (*callback)(xge_widget*,int,int,short,short),
-                 char *title,
-                 boolean depth, boolean accum, boolean stencil );
+/* information about missing requested GL resources, left by xgle_Init */
+extern boolean _xgle_no_depth, _xgle_no_accum, _xgle_no_stencil;
+
+
+boolean xgle_Init ( int argc, char *argv[],
+                    int (*callback)(xge_widget*,int,int,short,short),
+                    char *title,
+                    boolean depth, boolean accum, boolean stencil );
 void xgle_Cleanup ( void );
 
 void xgle_SetIdentMapping ( xge_widget *er );

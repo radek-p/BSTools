@@ -3634,3 +3634,8 @@ Wersja 0.33.
 5.05.2014.
 846. Poprawiony blad w procedurze bsm_ExtractSubmeshVd.
 
+8.05.2014.
+847. Zmiana w procedurze xgle_Init. Obecnie aplikacja moze dzialac bez
+    niektorych zasobow OpenGL (buforow glebokosci, akumulacji i obcinania),
+    jesli wskaze je za potrzebne, ale niekonieczne.
+

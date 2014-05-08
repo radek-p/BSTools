@@ -36,13 +36,47 @@
 #define DB GLX_DOUBLEBUFFER
 #define ST GLX_STENCIL_SIZE
 
-void xgle_Init ( int argc, char *argv[],
-                 int (*callback)(xge_widget*,int,int,short,short),
-                 char *title,
-                 boolean depth, boolean accum, boolean stencil )
+
+boolean _xgle_no_depth = false, _xgle_no_accum = false, _xgle_no_stencil = false;
+
+static void _xgle_InitAttr ( boolean depth, boolean accum, boolean stencil,
+                             int *nattr, int *attrs, int rgb_bits )
 {
-  int attrs[32] = { GLX_RGBA, R,8, G,8, B,8, A,8, 0 };
-  int errorBase, eventBase, nattr;
+  int n;
+
+  attrs[2] = attrs[4] = attrs[6] = attrs[8] = rgb_bits;
+  n = 9;
+  if ( depth ) {
+    attrs[n++] = D;
+    attrs[n++] = 8;
+  }
+  if ( accum ) {
+    attrs[n++] = AR;
+    attrs[n++] = 8;
+    attrs[n++] = AG;
+    attrs[n++] = 8;
+    attrs[n++] = AB;
+    attrs[n++] = 8;
+    attrs[n++] = AA;
+    attrs[n++] = 8;
+  }
+  if ( stencil ) {
+    attrs[n++] = ST;
+    attrs[n++] = 1;
+  }
+  attrs[n] = 0;
+  *nattr = n;
+} /*_xgle_InitAttr*/
+
+boolean xgle_Init ( int argc, char *argv[],
+                    int (*callback)(xge_widget*,int,int,short,short),
+                    char *title,
+                    boolean depth, boolean accum, boolean stencil )
+{
+  int     attrs[32] = { GLX_RGBA, R,8, G,8, B,8, A,8, 0 };
+  int     rgb_bits[2] = { 8, 5 };
+  int     errorBase, eventBase, nattr, i;
+  boolean result;
 
   _xge_argc = argc;
   _xge_argv = argv;
@@ -68,35 +102,47 @@ void xgle_Init ( int argc, char *argv[],
   xgehints.y = 100;
   xgehints.min_height = xge_HEIGHT / 2;
   xgehints.min_width = xge_WIDTH / 2;
-  nattr = 9;
-  if ( depth ) {
-    attrs[nattr++] = D;
-    attrs[nattr++] = 8;
+        /* negotiate the GL resources */
+  result = true;
+  _xgle_no_depth = _xgle_no_accum = _xgle_no_stencil = false;
+  for ( i = 0; i < 2; i++ ) {
+    _xgle_InitAttr ( depth != XGLE_NOT_NEEDED, accum != XGLE_NOT_NEEDED,
+                     stencil != XGLE_NOT_NEEDED, &nattr, attrs, rgb_bits[i] );
+    if ( (xgevisualinfo = glXChooseVisual ( xgedisplay, xgescreen, attrs )) )
+      goto success;
   }
-  if ( accum ) {
-    attrs[nattr++] = AR;
-    attrs[nattr++] = 8;
-    attrs[nattr++] = AG;
-    attrs[nattr++] = 8;
-    attrs[nattr++] = AB;
-    attrs[nattr++] = 8;
-    attrs[nattr++] = AA;
-    attrs[nattr++] = 8;
-  }
-  if ( stencil ) {
-    attrs[nattr++] = ST;
-    attrs[nattr++] = 1;
-  }
-  attrs[nattr] = 0;
-  xgevisualinfo = glXChooseVisual ( xgedisplay, xgescreen, attrs );
-  if ( !xgevisualinfo ) {
-    attrs[2] = attrs[4] = attrs[6] = attrs[8] = 5;
-    xgevisualinfo = glXChooseVisual ( xgedisplay, xgescreen, attrs );
-    if ( !xgevisualinfo ) {
-      printf ( "Error: No matching visual\n" );
-      exit ( 1 );
+  if ( depth == XGLE_WOULD_BE_NICE ) {
+    result = false;  _xgle_no_depth = true;
+    for ( i = 0; i < 2; i++ ) {
+      _xgle_InitAttr ( false, accum != XGLE_NOT_NEEDED,
+                       stencil != XGLE_NOT_NEEDED, &nattr, attrs, rgb_bits[i] );
+      if ( (xgevisualinfo = glXChooseVisual ( xgedisplay, xgescreen, attrs )) )
+        goto success;
     }
   }
+  if ( accum == XGLE_WOULD_BE_NICE ) {
+    result = false;  _xgle_no_accum = true;
+    for ( i = 0; i < 2; i++ ) {
+      _xgle_InitAttr ( depth != XGLE_NOT_NEEDED, false,
+                       stencil != XGLE_NOT_NEEDED, &nattr, attrs, rgb_bits[i] );
+      if ( (xgevisualinfo = glXChooseVisual ( xgedisplay, xgescreen, attrs )) )
+        goto success;
+    }
+  }
+  if ( stencil == XGLE_WOULD_BE_NICE ) {
+    result = false;  _xgle_no_stencil = true;
+    for ( i = 0; i < 2; i++ ) {
+      _xgle_InitAttr ( depth != XGLE_NOT_NEEDED, accum != XGLE_NOT_NEEDED,
+                       false, &nattr, attrs, rgb_bits[i] );
+      if ( (xgevisualinfo = glXChooseVisual ( xgedisplay, xgescreen, attrs )) )
+        goto success;
+    }
+  }
+        /* negotiations failed, no sense to continue */
+  printf ( "Error: No matching visual\n" );
+  exit ( 1 );
+
+success:
   xgevisual = xgevisualinfo->visual;
   xge_nplanes = XDisplayPlanes ( xgedisplay, xgescreen );
   xgecolormap = XCreateColormap ( xgedisplay,
@@ -159,6 +205,7 @@ default:
                                            _xge_background_msg, xge_DrawEmpty );
   _xge_special_widget = xge_NewEmptyWidget ( -1, NULL, -1, 1, 1, -1, -1 );
   xge_null_widget  = xge_NewEmptyWidget ( -1, NULL, -1, 1, 1, -1, -1 );
+  return result;
 } /*xgle_Init*/
 
 void xgle_Cleanup ( void )

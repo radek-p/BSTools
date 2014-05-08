@@ -230,6 +230,8 @@ case xgemsg_SWITCH_COMMAND:
   case swS0bSPLNET:
       goto redraw;
   case swS0bANTIALIAS:
+      if ( _xgle_no_accum )
+        sw_antialias = false;
 redraw:
       xge_Redraw ();
       return 1;
@@ -299,7 +301,7 @@ void RysujOkno ( xge_widget *er, boolean onscreen )
   glXWaitX ();
   id = er->id & 0x03;
 
-  if ( sw_antialias ) {
+  if ( sw_antialias && !_xgle_no_accum ) {
     glClear ( GL_ACCUM_BUFFER_BIT );
     for ( i = 0; i < NTR; i++ ) {
       xgle_DrawGeomWinBackground ( er, GL_DEPTH_BUFFER_BIT );
@@ -1137,7 +1139,8 @@ void destroy_edwin ( void )
 int main ( int argc, char *argv[] )
 {
   setvbuf ( stdout, NULL, _IONBF, 0 );
-  xgle_Init ( argc, argv, CallBack, NULL, true, true, false );
+  xgle_Init ( argc, argv, CallBack, NULL,
+              XGLE_WANTED, XGLE_WOULD_BE_NICE, XGLE_NOT_NEEDED );
   init_edwin ();
   xge_MessageLoop ();
   destroy_edwin ();
