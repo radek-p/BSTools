@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2010, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2010, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -289,6 +289,23 @@ boolean bsm_ExtractSubmeshVd ( int spdimen, int inv,
                                int *onv, BSMvertex *omv, int *omvhei,
                                double *optc, int *onhe, BSMhalfedge *omhe,
                                int *onfac, BSMfacet *omfac, int *omfhei );
+
+/* procedures sealing a hole in a mesh with a single facet */
+boolean bsm_SealMeshHoleNum ( int inv, const BSMvertex *imv, const int *imvhei,
+                              int inhe, const BSMhalfedge *imhe,
+                              int infac, const BSMfacet *imfac, const int *imfhei,
+                              int nbhe,
+                              int *onv, int *onhe, int *onfac );
+
+boolean bsm_SealMeshHoled ( int spdimen,
+                            int inv, const BSMvertex *imv, const int *imvhei,
+                            const double *iptc,
+                            int inhe, const BSMhalfedge *imhe,
+                            int infac, const BSMfacet *imfac, const int *imfhei,
+                            int nbhe,
+                            int *onv, BSMvertex *omv, int *omvhei, double *optc,
+                            int *onhe, BSMhalfedge *omhe,
+                            int *onfac, BSMfacet *omfac, int *omfhei );
 
 #ifdef __cplusplus
 }

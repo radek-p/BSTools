@@ -3639,3 +3639,13 @@ Wersja 0.33.
     niektorych zasobow OpenGL (buforow glebokosci, akumulacji i obcinania),
     jesli wskaze je za potrzebne, ale niekonieczne.
 
+19.05.2014.
+848. Nowe procedury edycji topologii siatek w libbsmesh -
+    bsm_SealMeshHoleNum i bsm_SealMeshHoled. Procedury te sluza do
+    "zaklejenia" brzegu siatki jedna sciana.
+
+849. Do programu pozwalaj dodana mozliwosc "zaklejania" otworu w siatce za
+    pomoca procedury bsm_SealMeshHoled. Trzeba to jeszcze solidnie
+     potestowac.
+
+
