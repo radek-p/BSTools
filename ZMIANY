@@ -3646,6 +3646,16 @@ Wersja 0.33.
 
 849. Do programu pozwalaj dodana mozliwosc "zaklejania" otworu w siatce za
     pomoca procedury bsm_SealMeshHoled. Trzeba to jeszcze solidnie
-     potestowac.
+    potestowac.
+
+22.05.2014.
+850. Nowe procedury edycji topologii siatek w libbsmesh -
+    bsm_GlueTwoHalfedgesNum i bsm_GlueTwoHalfedgesd. Procedury te sluza do
+    "sklejania" krawedzi brzegowych (tzn. laczenia odpowiednich polkrawedzi
+    w pare) przy jednoczesnym utozsamieniu odpowiednich wierzcholkow.
+
+851. Do programu pozwalaj dodana mozliwosc "sklejania" krawedzi brzegowych
+    za pomoca procedury bsm_GlueTwoHalfedgesd. Trzeba to jeszcze solidnie
+    potestowac.
 
 

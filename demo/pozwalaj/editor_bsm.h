@@ -153,6 +153,7 @@ boolean GeomObjectBSplineMeshExtractSubmesh ( GO_BSplineMesh *obj );
 boolean GeomObjectBSplineMeshRemoveCurrentVertex ( GO_BSplineMesh *obj );
 boolean GeomObjectBSplineMeshContractCurrentEdge ( GO_BSplineMesh *obj );
 boolean GeomObjectBSplineMeshShrinkCurrentEdge ( GO_BSplineMesh *obj );
+boolean GeomObjectBSplineMeshGlueEdges ( GO_BSplineMesh *obj );
 boolean GeomObjectBSplineMeshGlueEdgeLoops ( GO_BSplineMesh *obj );
 boolean GeomObjectBSplineMeshSealHole ( GO_BSplineMesh *obj );
 boolean GeomObjectBSplineMeshRemoveCurrentFacet ( GO_BSplineMesh *obj );

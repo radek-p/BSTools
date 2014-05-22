@@ -307,6 +307,23 @@ boolean bsm_SealMeshHoled ( int spdimen,
                             int *onhe, BSMhalfedge *omhe,
                             int *onfac, BSMfacet *omfac, int *omfhei );
 
+/* procedures glueing two boundary halfedges */
+boolean bsm_GlueTwoHalfedgesNum ( int inv, const BSMvertex *imv, const int *imvhei,
+                                  int inhe, const BSMhalfedge *imhe,
+                                  int infac, const BSMfacet *imfac, const int *imfhei,
+                                  int he1, int he2,
+                                  int *onv, int *onhe, int *onfac );
+
+boolean bsm_GlueTwoHalfedgesd ( int spdimen,
+                                int inv, const BSMvertex *imv, const int *imvhei,
+                                const double *ivc,
+                                int inhe, const BSMhalfedge *imhe,
+                                int infac, const BSMfacet *imfac, const int *imfhei,
+                                int he1, int he2,
+                                int *onv, BSMvertex *omv, int *omvhei, double *ovc,
+                                int *onhe, BSMhalfedge *omhe,
+                                int *onfac, BSMfacet *omfac, int *omfhei );
+
 #ifdef __cplusplus
 }
 #endif

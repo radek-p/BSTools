@@ -492,6 +492,66 @@ boolean GeomObjectBSplineMeshShrinkCurrentEdge ( GO_BSplineMesh *obj )
   return true;
 } /*GeomObjectBSplineMeshShrinkCurrentEdge*/
 
+boolean GeomObjectBSplineMeshGlueEdges ( GO_BSplineMesh *obj )
+{
+  int         onv, onhe, onfac;
+  BSMvertex   *omv;
+  BSMhalfedge *omhe;
+  BSMfacet    *omfac;
+  int         *omvhei, *omfhei;
+  double      *omvpc;
+  byte        *mkcp;
+  
+  if ( !bsm_CheckMeshIntegrity ( obj->nv, obj->meshv, obj->meshvhei,
+                                 obj->nhe, obj->meshhe,
+                                 obj->nfac, obj->meshfac, obj->meshfhei ) )
+    return false;
+  mkcp = NULL;
+  if ( !bsm_GlueTwoHalfedgesNum ( obj->nv, obj->meshv, obj->meshvhei,
+                        obj->nhe, obj->meshhe, obj->nfac, obj->meshfac, obj->meshfhei,
+                        obj->current_edge[0], obj->current_edge[1],
+                        &onv, &onhe, &onfac ) )
+    return false;
+  omv = malloc ( onv*sizeof(BSMvertex) );
+  omhe = malloc ( onhe*sizeof(BSMhalfedge) );
+  omfac = malloc ( onfac*sizeof(BSMfacet) );
+  omvhei = malloc ( onhe*sizeof(int) );
+  omfhei = malloc ( onhe*sizeof(int) );
+  omvpc = malloc ( obj->me.cpdimen*onv*sizeof(double) );
+  mkcp = malloc ( onv );
+  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc || !mkcp )
+    goto failure;
+  if ( !bsm_GlueTwoHalfedgesd ( obj->me.cpdimen,
+              obj->nv, obj->meshv, obj->meshvhei, obj->meshvpc,
+              obj->nhe, obj->meshhe, obj->nfac, obj->meshfac, obj->meshfhei,
+              obj->current_edge[0], obj->current_edge[1],
+              &onv, omv, omvhei, omvpc, &onhe, omhe, &onfac, omfac, omfhei ) )
+    goto failure;
+  obj->integrity_ok = bsm_CheckMeshIntegrity ( onv, omv, omvhei, onhe, omhe,
+                                 onfac, omfac, omfhei );
+  if ( !obj->integrity_ok )
+    goto failure;
+  memcpy ( mkcp, obj->mkcp, onv );
+  GeomObjectAssignBSplineMesh ( obj, obj->me.spdimen, obj->rational,
+                                onv, omv, omvhei, omvpc, onhe, omhe,
+                                onfac, omfac, omfhei, mkcp );
+  obj->current_edge[0] = obj->current_edge[1] = -1;
+  obj->me.dlistmask = 0;
+  obj->spvlist_ok = false;
+  obj->special_patches_ok = false;
+  return true;
+
+failure:
+  if ( omv ) free ( omv );
+  if ( omhe ) free ( omhe );
+  if ( omfac ) free ( omfac );
+  if ( omvhei ) free ( omvhei );
+  if ( omfhei ) free ( omfhei );
+  if ( omvpc ) free ( omvpc );
+  if ( mkcp ) free ( mkcp );
+  return false;
+} /*GeomObjectBSplineMeshGlueEdges*/
+
 boolean GeomObjectBSplineMeshGlueEdgeLoops ( GO_BSplineMesh *obj )
 {
   int         onv, onhe, onfac, llgt;

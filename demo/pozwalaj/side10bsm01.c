@@ -85,22 +85,24 @@ void InitSide10Menu_BSm ( void )
                       txtShrink );
   w = xge_NewButton ( win1, w, btnM1BSM_CONTRACT_EDGE, 79, 19, 0, 268,
                       txtContract );
-  w = xge_NewButton ( win1, w, btnM1BSM_GLUE_EDGE_LOOPS, 79, 19, 0, 288,
+  w = xge_NewButton ( win1, w, btnM1BSM_GLUE_EDGES, 79, 19, 0, 288,
+                      txtGlueEdges );
+  w = xge_NewButton ( win1, w, btnM1BSM_GLUE_EDGE_LOOPS, 79, 19, 0, 308,
                       txtGlueLoops );
-  w = xge_NewButton ( win1, w, btnM1BSM_SEAL_HOLE, 79, 19, 0, 308,
+  w = xge_NewButton ( win1, w, btnM1BSM_SEAL_HOLE, 79, 19, 0, 328,
                       txtSealHole );
-  w = xge_NewIntWidget ( win1, w, intwM1BSM_FACET0, 75, 19, 0, 332,
+  w = xge_NewIntWidget ( win1, w, intwM1BSM_FACET0, 75, 19, 0, 352,
                          -2, 10, &intw_bsm_fac0, txtFacet, &bsm_facet_num0 );
-  w = xge_NewIntWidget ( win1, w, intwM1BSM_FACET1, 35, 19, 74, 332,
+  w = xge_NewIntWidget ( win1, w, intwM1BSM_FACET1, 35, 19, 74, 352,
                          -2, 10, &intw_bsm_fac1, NULL, &bsm_facet_num1 );
-  w = xge_NewButton ( win1, w, btnM1BSM_REMOVE_FACET, 79, 19, 0, 352,
+  w = xge_NewButton ( win1, w, btnM1BSM_REMOVE_FACET, 79, 19, 0, 372,
                       txtRemove );
-  w = xge_NewButton ( win1, w, btnM1BSM_DOUBLE_FAC_EDGES, 79, 19, 0, 372,
+  w = xge_NewButton ( win1, w, btnM1BSM_DOUBLE_FAC_EDGES, 79, 19, 0, 392,
                       txtDoubleEdges );
   for ( ww = w; ww; ww = ww->prev )
     xge_SetWidgetPositioning ( ww, 0, ww->x, ww->y );
   side10wdg_bsm_editcontents = xge_NewMenu ( win1, NULL, scwM1BSM_ECONTENTS,
-                      SIDEMENUWIDTH0, 395, 0, 20, w );
+                      SIDEMENUWIDTH0, 415, 0, 20, w );
   side10wdg_bsm_editscroll = xge_NewScrollWidget ( win1, NULL, scwM1BSM_ESCROLL,
                       SIDEMENUWIDTH0, xge_HEIGHT-TOPMENUHEIGHT-20, 0, 20,
                       &side10_bsm_editsw, side10wdg_bsm_editcontents );
@@ -738,6 +740,15 @@ case xgemsg_BUTTON_COMMAND:
         xge_DisplayErrorMessage ( ErrorMsgMeshIntegrity, 0 );
       else
         xge_DisplayErrorMessage ( ErrorMsgCannotContractEdge, 0 );
+      return 1;
+  case btnM1BSM_GLUE_EDGES:
+      if ( GeomObjectBSplineMeshGlueEdges ( obj ) ) {
+        SetupBSplineMeshVEFnum ( obj );
+        rendered_picture = false;
+        xge_RedrawAll ();
+      }
+      else
+        xge_DisplayErrorMessage ( ErrorMsgCannotGlueEdges, 0 );
       return 1;
   case btnM1BSM_GLUE_EDGE_LOOPS:
       if ( GeomObjectBSplineMeshGlueEdgeLoops ( obj ) ) {
