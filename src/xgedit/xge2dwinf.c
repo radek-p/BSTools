@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2007, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2007, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -41,7 +41,7 @@ case xgemsg_NULL:
 case xgemsg_ENTERING:
     if ( _2Dwin->panning )
       xge_SetCurrentWindowCursor ( xgeCURSOR_FLEUR );
-    else if ( _2Dwin->selecting_mode )
+    else if ( _2Dwin->selecting_mode || _2Dwin->special_selecting_mode )
       xge_SetCurrentWindowCursor ( xgeCURSOR_ARROW );
     else
       xge_SetCurrentWindowCursor ( xgeCURSOR_DEFAULT );
@@ -55,7 +55,8 @@ case xgemsg_ENTERING:
     return true;
 
 case xgemsg_EXITING:
-    if ( _2Dwin->panning || _2Dwin->selecting_mode )
+    if ( _2Dwin->panning || _2Dwin->selecting_mode ||
+         _2Dwin->special_selecting_mode )
       xge_SetCurrentWindowCursor ( xgeCURSOR_DEFAULT );
     _2Dwin->inside = false;
     if ( _2Dwin->display_coord ) {
@@ -318,6 +319,22 @@ continue_selecting_mode:
           er->redraw ( er, true );
         }
       }
+      else if ( _2Dwin->special_selecting_mode ) {
+        if ( (key & xgemouse_LBUTTON_DOWN) &&
+             (key & xgemouse_LBUTTON_CHANGE) ) {
+          if ( xge_callback ( er, xgemsg_2DWIN_SPECIAL_SELECT, 0, x, y ) ) {
+            xge_SetClipping ( er );
+            er->redraw ( er, true );
+          }
+        }
+        else if ( (key & xgemouse_RBUTTON_DOWN) &&
+                  (key & xgemouse_RBUTTON_CHANGE) ) {
+          if ( xge_callback ( er, xgemsg_2DWIN_SPECIAL_UNSELECT, 0, x, y ) ) {
+            xge_SetClipping ( er );
+            er->redraw ( er, true );
+          }
+        }
+      }
       else if ( _2Dwin->current_tool != xge_2DWIN_NO_TOOL ) {
         c = xge_2DwinfIsItAGeomWidget ( _2Dwin, key, x, y );
         switch ( c ) {
@@ -523,9 +540,11 @@ void xge_2DwinfResetGeomWidgetPos ( xge_2Dwinf *_2Dwin )
 
 void xge_2DwinfEnableGeomWidget ( xge_2Dwinf *_2Dwin, char tool )
 {
-  _2Dwin->selecting_mode = _2Dwin->panning =
+  _2Dwin->selecting_mode = _2Dwin->special_selecting_mode =
+  _2Dwin->panning =
   _2Dwin->moving_tool = _2Dwin->scaling_tool =
-  _2Dwin->rotating_tool = _2Dwin->shear_tool = false;
+  _2Dwin->rotating_tool = _2Dwin->shear_tool =
+  _2Dwin->special_trans_tool = false;
   switch ( tool ) {
 case xge_2DWIN_MOVING_TOOL:
     _2Dwin->moving_tool = true;
@@ -539,8 +558,14 @@ case xge_2DWIN_ROTATING_TOOL:
 case xge_2DWIN_SHEAR_TOOL:
     _2Dwin->shear_tool = true;
     goto go_on;
+case xge_2DWIN_SPECIAL_TRANS_TOOL:
+    _2Dwin->special_trans_tool = true;
+    goto go_on;
 case xge_2DWIN_SELECTING_TOOL:
     _2Dwin->selecting_mode = true;
+    goto go_on;
+case xge_2DWIN_SPECIAL_SELECTING_TOOL:
+    _2Dwin->special_selecting_mode = true;
     goto go_on;
 case xge_2DWIN_PANNING_TOOL:
     _2Dwin->panning = true;

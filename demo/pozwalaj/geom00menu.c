@@ -341,24 +341,25 @@ case xgemsg_3DWIN_MOVE_POINT:
 case xgemsg_3DWIN_SELECT_POINTS:
     if ( editing_shapefunc || editing_lights )
       ;
-    else if ( sw_bsm_selectvertex ) {
-      if ( GeomObjectSelectPoint ( 3, CPos, x, y ) ) {
-        bsm_vertex_num0 = ((GO_BSplineMesh*)current_go)->current_vertex[0];
-        bsm_vertex_num1 = ((GO_BSplineMesh*)current_go)->current_vertex[1];
-        xge_RedrawAll ();
+    else if ( current_go->obj_type == GO_BSPLINE_MESH ) {
+      if ( sw_bsm_selectvertex ) {
+        if ( GeomObjectSelectPoint ( 3, CPos, x, y ) ) {
+          bsm_vertex_num0 = ((GO_BSplineMesh*)current_go)->current_vertex[0];
+          bsm_vertex_num1 = ((GO_BSplineMesh*)current_go)->current_vertex[1];
+          xge_RedrawAll ();
+        }
+        return false;
       }
-      return false;
-    }
-    else if ( sw_bsm_selectedge ) {
-      if ( GeomObjectSelectEdge ( 3, CPos, x, y ) ) {
-        bsm_edge_num0 = ((GO_BSplineMesh*)current_go)->current_edge[0];
-        bsm_edge_num1 = ((GO_BSplineMesh*)current_go)->current_edge[1];
-        xge_RedrawAll ();
+      else if ( sw_bsm_selectedge ) {
+        if ( GeomObjectSelectEdge ( 3, CPos, x, y ) ) {
+          bsm_edge_num0 = ((GO_BSplineMesh*)current_go)->current_edge[0];
+          bsm_edge_num1 = ((GO_BSplineMesh*)current_go)->current_edge[1];
+          xge_RedrawAll ();
+        }
+        return false;
       }
-      return false;
     }
-    else
-      GeomObjectMarkCPoints ( 3, CPos, &ww->selection_rect, false );
+    GeomObjectMarkCPoints ( 3, CPos, &ww->selection_rect, false );
     xge_SetClipping ( ww->fww.er );
     ww->fww.er->redraw ( ww->fww.er, true );
     return 1;
@@ -373,42 +374,46 @@ case xgemsg_3DWIN_UNSELECT_POINTS:
     return 1;
 
 case xgemsg_3DWIN_SPECIAL_SELECT:
-    if ( sw_bsm_selectvertex ) {
-      if ( GeomObjectSelectPoint ( 3, CPos, x, y ) ) {
-        bsm_vertex_num0 = ((GO_BSplineMesh*)current_go)->current_vertex[0];
-        bsm_vertex_num1 = ((GO_BSplineMesh*)current_go)->current_vertex[1];
-        if ( GeomObjectGetPointCoord ( current_go, bsm_vertex_num0,
-                                       &spdimen, &cpdimen, &pc ) )
-          BottomDisplayPoint ( win1, spdimen, cpdimen,
-                               bsm_vertex_num0, pc, false );
-        xge_RedrawAll ();
+    if ( current_go->obj_type == GO_BSPLINE_MESH ) {
+      if ( sw_bsm_selectvertex ) {
+        if ( GeomObjectSelectPoint ( 3, CPos, x, y ) ) {
+          bsm_vertex_num0 = ((GO_BSplineMesh*)current_go)->current_vertex[0];
+          bsm_vertex_num1 = ((GO_BSplineMesh*)current_go)->current_vertex[1];
+          if ( GeomObjectGetPointCoord ( current_go, bsm_vertex_num0,
+                                         &spdimen, &cpdimen, &pc ) )
+            BottomDisplayPoint ( win1, spdimen, cpdimen,
+                                 bsm_vertex_num0, pc, false );
+          xge_RedrawAll ();
+        }
+        return false;
       }
-      return false;
-    }
-    else if ( sw_bsm_selectedge ) {
-      if ( GeomObjectSelectEdge ( 3, CPos, x, y ) ) {
-        bsm_edge_num0 = ((GO_BSplineMesh*)current_go)->current_edge[0];
-        bsm_edge_num1 = ((GO_BSplineMesh*)current_go)->current_edge[1];
-        xge_RedrawAll ();
+      else if ( sw_bsm_selectedge ) {
+        if ( GeomObjectSelectEdge ( 3, CPos, x, y ) ) {
+          bsm_edge_num0 = ((GO_BSplineMesh*)current_go)->current_edge[0];
+          bsm_edge_num1 = ((GO_BSplineMesh*)current_go)->current_edge[1];
+          xge_RedrawAll ();
+        }
+        return false;
       }
-      return false;
     }
-    return 1;
+    return false;
 
 case xgemsg_3DWIN_SPECIAL_UNSELECT:
-    if ( sw_bsm_selectvertex ) {
-      GeomObjectUnselectPoint ( 3 );
-      bsm_vertex_num0 = bsm_vertex_num1 = -1;
-      xge_RedrawAll ();
-      return false;
+    if ( current_go->obj_type == GO_BSPLINE_MESH ) {
+      if ( sw_bsm_selectvertex ) {
+        GeomObjectUnselectPoint ( 3 );
+        bsm_vertex_num0 = bsm_vertex_num1 = -1;
+        xge_RedrawAll ();
+        return false;
+      }
+      else if ( sw_bsm_selectedge ) {
+        GeomObjectUnselectEdge ( 3 );
+        bsm_edge_num0 = bsm_edge_num1 = -1;
+        xge_RedrawAll ();
+        return false;
+      }
     }
-    else if ( sw_bsm_selectedge ) {
-      GeomObjectUnselectEdge ( 3 );
-      bsm_edge_num0 = bsm_edge_num1 = -1;
-      xge_RedrawAll ();
-      return false;
-    }
-    return 1;
+    return false;
 
 case xgemsg_3DWIN_CHANGE_TRANS:
     ww = er->data1;
@@ -608,6 +613,24 @@ case xgemsg_2DWIN_MOVE_POINT:
     return 1;
 
 case xgemsg_2DWIN_SELECT_POINTS:
+    if ( current_go->obj_type == GO_BSPLINE_MESH ) {
+      if ( sw_bsm_selectvertex ) {
+        if ( GeomObjectSelectPoint ( 2, CPos, x, y ) ) {
+          bsm_vertex_num0 = ((GO_BSplineMesh*)current_go)->current_vertex[0];
+          bsm_vertex_num1 = ((GO_BSplineMesh*)current_go)->current_vertex[1];
+          xge_RedrawAll ();
+        }
+        return false;
+      }
+      else if ( sw_bsm_selectedge ) {
+        if ( GeomObjectSelectEdge ( 2, CPos, x, y ) ) {
+          bsm_edge_num0 = ((GO_BSplineMesh*)current_go)->current_edge[0];
+          bsm_edge_num1 = ((GO_BSplineMesh*)current_go)->current_edge[1];
+          xge_RedrawAll ();
+        }
+        return false;
+      }
+    }
     GeomObjectMarkCPoints ( 2, CPos, &ww->selection_rect, false );
     xge_SetClipping ( er );
     er->redraw ( er, true );
@@ -617,6 +640,48 @@ case xgemsg_2DWIN_UNSELECT_POINTS:
     GeomObjectMarkCPoints ( 2, CPos, &ww->selection_rect, true );
     xge_SetClipping ( er );
     er->redraw ( er, true );
+    return 1;
+
+case xgemsg_2DWIN_SPECIAL_SELECT:
+    if ( current_go->obj_type == GO_BSPLINE_MESH ) {
+      if ( sw_bsm_selectvertex ) {
+        if ( GeomObjectSelectPoint ( 2, CPos, x, y ) ) {
+          bsm_vertex_num0 = ((GO_BSplineMesh*)current_go)->current_vertex[0];
+          bsm_vertex_num1 = ((GO_BSplineMesh*)current_go)->current_vertex[1];
+          if ( GeomObjectGetPointCoord ( current_go, bsm_vertex_num0,
+                                         &spdimen, &cpdimen, &pc ) )
+            BottomDisplayPoint ( win1, spdimen, cpdimen,
+                                 bsm_vertex_num0, pc, false );
+          xge_RedrawAll ();
+        }
+        return false;
+      }
+      else if ( sw_bsm_selectedge ) {
+        if ( GeomObjectSelectEdge ( 2, CPos, x, y ) ) {
+          bsm_edge_num0 = ((GO_BSplineMesh*)current_go)->current_edge[0];
+          bsm_edge_num1 = ((GO_BSplineMesh*)current_go)->current_edge[1];
+          xge_RedrawAll ();
+        }
+        return false;
+      }
+    }
+    return 1;
+
+case xgemsg_2DWIN_SPECIAL_UNSELECT:
+    if ( current_go->obj_type == GO_BSPLINE_MESH ) {
+      if ( sw_bsm_selectvertex ) {
+        GeomObjectUnselectPoint ( 2 );
+        bsm_vertex_num0 = bsm_vertex_num1 = -1;
+        xge_RedrawAll ();
+        return false;
+      }
+      else if ( sw_bsm_selectedge ) {
+        GeomObjectUnselectEdge ( 2 );
+        bsm_edge_num0 = bsm_edge_num1 = -1;
+        xge_RedrawAll ();
+        return false;
+      }
+    }
     return 1;
 
 case xgemsg_2DWIN_CHANGE_TRANS:

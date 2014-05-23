@@ -3658,4 +3658,11 @@ Wersja 0.33.
     za pomoca procedury bsm_GlueTwoHalfedgesd. Trzeba to jeszcze solidnie
     potestowac.
 
+23.05.2014.
+852. Poprawki w procedurach obslugi okna 2D w libxgedit -
+    special_selecting_mode, nie bylo do konca zaimplementowane.
+
+853. Poprawki w programie pozwalaj - edycja siatek dwuwymiarowych, nie
+    dzialala z powodu brakow implementacji okien 2D w libxgedit.
+
 
