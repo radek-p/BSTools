@@ -194,7 +194,7 @@ boolean bsm_GlueTwoHalfedgesd ( int spdimen,
       if ( iv != v11 ) {
         vd = imv[iv].degree;
         memcpy ( &omvhei[vfhe], &imvhei[imv[iv].firsthalfedge], vd*sizeof(int) );
-        if ( iv == v10 ) {    /* merge v11 to v20 */
+        if ( iv == v20 ) {    /* merge v11 to v20 */
           memcpy ( &omvhei[vfhe+vd], &imvhei[imv[v11].firsthalfedge], vd1*sizeof(int) );
           vd += vd1;
           for ( j = 0; j < spdimen; j++ )
