@@ -3,7 +3,7 @@
 # This file is a part of the BSTools package
 # written by Przemyslaw Kiciak
 # /////////////////////////////////////////////////////////////////////
-# (C) Copyright by Przemyslaw Kiciak, 2005, 2010
+# (C) Copyright by Przemyslaw Kiciak, 2005, 2014
 # this package is distributed under the terms of the
 # Lesser GNU Public License, see the file COPYING.LIB
 # /////////////////////////////////////////////////////////////////////
@@ -27,6 +27,7 @@ default:
 	(cd eghole;$(MAKE))
 	(cd xgedit;$(MAKE))
 	(cd bsfile;$(MAKE))
+	(cd mengerc;$(MAKE))
 	(cd projects;$(MAKE))
 
 clean:
@@ -43,6 +44,7 @@ clean:
 	(cd eghole;$(MAKE) clean)
 	(cd xgedit;$(MAKE) clean)
 	(cd bsfile;$(MAKE) clean)
+	(cd mengerc;$(MAKE) clean)
 	(cd projects;$(MAKE) clean)
 
 mrproper:
@@ -59,4 +61,5 @@ mrproper:
 	(cd eghole;$(MAKE) mrproper)
 	(cd xgedit;$(MAKE) mrproper)
 	(cd bsfile;$(MAKE) mrproper)
+	(cd mengerc;$(MAKE) mrproper)
 	(cd projects;$(MAKE) mrproper)

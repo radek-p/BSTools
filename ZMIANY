@@ -3665,4 +3665,9 @@ Wersja 0.33.
 853. Poprawki w programie pozwalaj - edycja siatek dwuwymiarowych, nie
     dzialala z powodu brakow implementacji okien 2D w libxgedit.
 
+26.05.2014.
+854. Dodana nowa biblioteka, libmengerc, zawierajaca procedury minimalizacji
+    calkowej krzywizny Mengera zamknietych krzywych B-sklejanych (stopnia co
+    najmniej 3). Kod jest calkowicie eksperymentalny, z mnostwem poprawek do
+    zrobienia i do przetestowania.
 

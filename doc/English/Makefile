@@ -3,7 +3,7 @@
 # This file is a part of the BSTools package
 # written by Przemyslaw Kiciak
 # /////////////////////////////////////////////////////////////////////
-# (C) Copyright by Przemyslaw Kiciak, 2005, 2012
+# (C) Copyright by Przemyslaw Kiciak, 2005, 2014
 # this package is distributed under the terms of the
 # Lesser GNU Public License, see the file COPYING.LIB
 # /////////////////////////////////////////////////////////////////////
@@ -28,11 +28,11 @@ bstoolsA4.ps: bstools.dvi
 	dvips -t a4 -o bstools.ps -O 1.5cm,2.2cm bstools
 	psnup -pa4 -2 -b-90 bstools.ps bstoolsA4.ps
 	rm bstools.ps
-	ps2pdf -r1200 -dPDFSETTINGS=/printer -sPAPERSIZE=a4 bstoolsA4.ps bstoolsA4.pdf
+	ps2pdf -sPAPERSIZE=a4 bstoolsA4.ps bstoolsA4.pdf
 
 bstoolsB5.ps: bstools.dvi
 	dvips -t a4 -o bstoolsB5.ps -O 1.84cm,-0.6cm bstools 
-	ps2pdf -r1200 -dPDFSETTINGS=/printer -sPAPERSIZE=a4 bstoolsB5.ps bstoolsB5.pdf
+	ps2pdf -sPAPERSIZE=a4 bstoolsB5.ps bstoolsB5.pdf
 
 bstools.dvi: $(TEXSRC) bstools.aux memory.ps p01.ps
 	latex bstools
