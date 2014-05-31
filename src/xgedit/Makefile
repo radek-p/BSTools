@@ -24,7 +24,8 @@ OBJECTS = xgevars.o xgeinit.o xgekernel.o xgedmsg.o xgergb.o xgecnames.o \
   xgedrect.o xgerepos.o xgeempty.o xgemenu.o xgebutton.o xgeswitch.o \
   xgeslidebarf.o xgeslidebard.o xgevslidebarf.o xgevslidebard.o \
   xgeslidebar2f.o xgeslidebar2d.o xgevslidebar2f.o xgevslidebar2d.o \
-  xgeslidebarrgbf.o xgeslidebarrgbd.o xgedialf.o xgediald.o \
+  xgeslidebarrgbf.o xgeslidebarrgbd.o xgevscrollbar.o xgehscrollbar.o \
+  xgedialf.o xgediald.o \
   xgetextout.o xgefour.o xgestringed.o xgepopup.o xgeintwid.o \
   xgecursor.o xgelistbox.o xgedirlist.o xge2dwinf.o xge2dwind.o xge3dwinf.o \
   xge3dwind.o xgeknotwinf.o xgeknotwind.o xget2knotwinf.o xget2knotwind.o \
@@ -73,6 +74,8 @@ xgeslidebar2f.o: $(SRCDIR)/xgeslidebar2f.c $(INCLF)
 xgeslidebar2d.o: $(SRCDIR)/xgeslidebar2d.c $(INCLF)
 xgevslidebar2f.o: $(SRCDIR)/xgevslidebar2f.c $(INCLF)
 xgevslidebar2d.o: $(SRCDIR)/xgevslidebar2d.c $(INCLF)
+xgevscrollbar.o: $(SRCDIR)/xgevscrollbar.c $(INCLF)
+xgehscrollbar.o: $(SRCDIR)/xgehscrollbar.c $(INCLF)
 xgedialf.o: $(SRCDIR)/xgedialf.c $(INCLF)
 xgediald.o: $(SRCDIR)/xgediald.c $(INCLF)
 xgetextout.o: $(SRCDIR)/xgetextout.c $(INCLF)

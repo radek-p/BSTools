@@ -18,17 +18,17 @@
 
 #include "ncolours.h"
 
-#define CSW     100
+#define CSW     130
 #define CSH      75
-#define HDIST   120
+#define HDIST   150
 #define VDIST   100
 #define HMARGIN  10
+#define LMARGIN  20
 
 #define STATE_SCROLLING_WIN (xgestate_LAST+1)
 
-xge_widget *cwin, *menu, *sl;
+xge_widget *cwin, *menu, *scb;
 
-int xcmin = 15;
 int ycmin;
 int wheight;
 int nrows;  /* number of rows */
@@ -36,7 +36,7 @@ int ncols;  /* number of columns */
 int nfr;  /* number of the first row */
 short lasty;
 
-float slidebarpos;
+xge_vscrollbar vsb;
 
 /* ///////////////////////////////////////////////////////////////////////// */
 void DrawColourSample ( int nc, short x, short y )
@@ -67,7 +67,7 @@ void RysujOkno ( xge_widget *er, boolean onscreen )
   for ( i = nfr, nc = nfr*ncols, y = (short)(er->y+ycmin+nfr*VDIST+HMARGIN);
         i < nlr;
         i++, y += VDIST )
-    for ( j = 0, x = (short)(er->x+xcmin);  j < ncols;  j++, nc++, x += HDIST )
+    for ( j = 0, x = (short)(er->x+LMARGIN);  j < ncols;  j++, nc++, x += HDIST )
       DrawColourSample ( nc, x, y );
 
   xgeSetForeground ( xgec_CornflowerBlue );
@@ -82,7 +82,8 @@ boolean OknoMsg ( xge_widget *er, int msg, int key, short x, short y )
 
   switch ( er->state ) {
 case xgestate_NOTHING:
-    if ( msg == xgemsg_MCLICK ) {
+    switch ( msg ) {
+  case xgemsg_MCLICK:
       if ( (key & xgemouse_LBUTTON_DOWN) &&
            (key & xgemouse_LBUTTON_CHANGE) ) {
         lasty = y;
@@ -103,8 +104,11 @@ case xgestate_NOTHING:
         ycmin = max ( ycmin, (er->h-wheight) );
         goto redraw_it;
       }
+      return true;
+
+ default:
+      return false;
     }
-    break;
 
 case STATE_SCROLLING_WIN:
     switch ( msg ) {
@@ -121,9 +125,7 @@ redraw_it:
             xge_SetClipping ( er );
             er->redraw ( er, true );
             wheight = 2*HMARGIN+nrows*VDIST;
-            slidebarpos = (float)ycmin/(float)((int)xge_current_height-wheight);
-            xge_SetClipping ( sl );
-            sl->redraw ( sl, true );
+            xge_VScrollBarSetPagePos ( scb, -ycmin, true );
           }
         }
       }
@@ -131,24 +133,22 @@ redraw_it:
         er->state = xgestate_NOTHING;
         xge_ReleaseFocus ( er );
       }
-      break;
+      return true;
 
   case xgemsg_MCLICK:
       if ( !(key & xgemouse_LBUTTON_DOWN) ) {
         er->state = xgestate_NOTHING;
         xge_ReleaseFocus ( er );
       }
-      break;
+      return true;
 
   default:
-      break;
+      return false;
     }
-    break;
 
 default:
-    break;
+    return false;
   }
-  return true;
 } /*OknoMsg*/
 
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -169,13 +169,11 @@ case xgemsg_BUTTON_COMMAND:
       }
       break;
 
-case xgemsg_SLIDEBAR_COMMAND:
+case xgemsg_VSCROLLBAR_COMMAND:
       if ( er->id == 1 ) {
         wheight = 2*HMARGIN+nrows*VDIST;
         lycmin = ycmin;
-        ycmin = (int)xge_LinSlidebarValuef (
-                   0.0, (float)((int)xge_current_height-wheight),
-                   slidebarpos );
+        ycmin = -vsb.pagevpos;
         if ( ycmin != lycmin ) {
           xge_SetClipping ( cwin );
           cwin->redraw ( cwin, true );
@@ -200,15 +198,15 @@ case xgemsg_KEY:
       break;
 
 case xgemsg_RESIZE:
-      cwin->w = sl->x = (short)(xge_current_width-10);
+      cwin->w = scb->x = (short)(xge_current_width-10);
       menu->w = xge_current_width;
-      cwin->h = sl->h = (short)(xge_current_height-20);
+      cwin->h = scb->h = (short)(xge_current_height-20);
       ncols = cwin->w / HDIST;
       nrows   = (XGE_PALETTE_LENGTH+ncols-1) / ncols;
       wheight = 2*HMARGIN+nrows*VDIST;
-      ycmin = (int)xge_LinSlidebarValuef (
-                 0.0, (float)((int)xge_current_height-wheight),
-                 slidebarpos );
+      xge_VScrollBarResizeWindow ( scb, cwin->h );
+      xge_VScrollBarResizePage ( scb, wheight );
+      ycmin = -vsb.pagevpos;
       xge_Redraw ();
       break;
 
@@ -226,18 +224,18 @@ void init_edwin ( void )
 {
   xge_widget *rp;
 
-  sl = xge_NewVSlidebarf ( 0, NULL, 1, 10, xge_HEIGHT-20, xge_WIDTH-10,
-                          20, &slidebarpos );
-  rp = xge_NewButton ( 0, NULL, 0, 60, 18, 0, 0, b0 );
-  menu = xge_NewMenu ( 0, sl, 2, xge_WIDTH, 20, 0, 0, rp );
-  cwin = xge_NewWidget ( 0, menu, 0, xge_WIDTH-10, xge_HEIGHT-20, 0, 20,
-                        NULL, NULL, OknoMsg, RysujOkno );
-  ncols   = cwin->w / HDIST;
+  ncols   = (xge_WIDTH-10) / HDIST;
   nrows   = (XGE_PALETTE_LENGTH+ncols-1) / ncols;
   wheight = 2*HMARGIN+nrows*VDIST;
-  slidebarpos = 0.0;
-  nfr     = 0;
   ycmin   = 0;
+
+  scb = xge_NewVScrollBar ( 0, NULL, 1, 10, xge_HEIGHT-20, xge_WIDTH-10, 20,
+                            wheight, xge_HEIGHT-20, &vsb, NULL );
+  rp = xge_NewButton ( 0, NULL, 0, 60, 18, 0, 0, b0 );
+  menu = xge_NewMenu ( 0, scb, 2, xge_WIDTH, 20, 0, 0, rp );
+  cwin = xge_NewWidget ( 0, menu, 0, xge_WIDTH-10, xge_HEIGHT-20, 0, 20,
+                        NULL, NULL, OknoMsg, RysujOkno );
+  nfr     = 0;
 
   xge_SetWinEdRect ( cwin );
   xge_Redraw ();

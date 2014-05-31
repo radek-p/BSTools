@@ -3671,3 +3671,16 @@ Wersja 0.33.
     najmniej 3). Kod jest calkowicie eksperymentalny, z mnostwem poprawek do
     zrobienia i do przetestowania.
 
+31.05.2014.
+855. Nowe dwa wihajstry w libxgedit - xge_vscrollbar i xge_hscrollbar, do
+    przewijania stron, pokazujace proporcje wymiarow strony i okna, przez
+    ktore czesc tej strony jest widoczna. Zastepuja wykorzystywane przedtem
+    do przewijania stron suwaki zmiennopozycyjne (slidebar).
+
+856. Zmiana wihajstra xge_scroll_widget, ktory sluzyl do przewijania w oknie
+    wiekszej strony (np. za duzego menu). Suwaki zmiennopozycyjne zamienione
+    na xge_vscrollbar i xge_hscrollbar.
+
+857. Zmiana programu demonstracyjnego ncolours, zamiast suwaka
+    zmiennopozycyjnego do przewijania probek kolorow uzywa xge_vscrollbar.
+

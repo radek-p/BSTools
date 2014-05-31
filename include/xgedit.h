@@ -121,86 +121,88 @@ extern "C" {
 #define xgemsg_LISTBOX_EXCHANGE              0x115
 #define xgemsg_QUATROTBALL_COMMAND           0x116
 #define xgemsg_TEXT_WIDGET_CLICK             0x117
+#define xgemsg_VSCROLLBAR_COMMAND            0x118
+#define xgemsg_HSCROLLBAR_COMMAND            0x119
 
-#define xgemsg_2DWIN_RESIZE                  0x118
-#define xgemsg_2DWIN_PROJCHANGE              0x119
-#define xgemsg_2DWIN_PICK_POINT              0x11A
-#define xgemsg_2DWIN_MOVE_POINT              0x11B
-#define xgemsg_2DWIN_SELECT_POINTS           0x11C
-#define xgemsg_2DWIN_UNSELECT_POINTS         0x11D
-#define xgemsg_2DWIN_SPECIAL_SELECT          0x11E
-#define xgemsg_2DWIN_SPECIAL_UNSELECT        0x11F
-#define xgemsg_2DWIN_CHANGE_TRANS            0x120
-#define xgemsg_2DWIN_SAVE_POINTS             0x121
-#define xgemsg_2DWIN_TRANSFORM_POINTS        0x122
-#define xgemsg_2DWIN_TRANSFORM_SPECIAL       0x123
-#define xgemsg_2DWIN_FIND_REFBBOX            0x124
-#define xgemsg_2DWIN_UNDO                    0x125
-#define xgemsg_2DWIN_KEY                     0x126
-#define xgemsg_2DWIN_ERROR                   0x127
+#define xgemsg_2DWIN_RESIZE                  0x11A
+#define xgemsg_2DWIN_PROJCHANGE              0x11B
+#define xgemsg_2DWIN_PICK_POINT              0x11C
+#define xgemsg_2DWIN_MOVE_POINT              0x11D
+#define xgemsg_2DWIN_SELECT_POINTS           0x11E
+#define xgemsg_2DWIN_UNSELECT_POINTS         0x11F
+#define xgemsg_2DWIN_SPECIAL_SELECT          0x120
+#define xgemsg_2DWIN_SPECIAL_UNSELECT        0x121
+#define xgemsg_2DWIN_CHANGE_TRANS            0x122
+#define xgemsg_2DWIN_SAVE_POINTS             0x123
+#define xgemsg_2DWIN_TRANSFORM_POINTS        0x124
+#define xgemsg_2DWIN_TRANSFORM_SPECIAL       0x125
+#define xgemsg_2DWIN_FIND_REFBBOX            0x126
+#define xgemsg_2DWIN_UNDO                    0x127
+#define xgemsg_2DWIN_KEY                     0x128
+#define xgemsg_2DWIN_ERROR                   0x129
 
-#define xgemsg_3DWIN_RESIZE                  0x128
-#define xgemsg_3DWIN_PROJCHANGE              0x129
-#define xgemsg_3DWIN_PICK_POINT              0x12A
-#define xgemsg_3DWIN_MOVE_POINT              0x12B
-#define xgemsg_3DWIN_SELECT_POINTS           0x12C
-#define xgemsg_3DWIN_UNSELECT_POINTS         0x12D
-#define xgemsg_3DWIN_SPECIAL_SELECT          0x12E
-#define xgemsg_3DWIN_SPECIAL_UNSELECT        0x12F
-#define xgemsg_3DWIN_CHANGE_TRANS            0x130
-#define xgemsg_3DWIN_SAVE_POINTS             0x131
-#define xgemsg_3DWIN_TRANSFORM_POINTS        0x132
-#define xgemsg_3DWIN_TRANSFORM_SPECIAL       0x133
-#define xgemsg_3DWIN_FIND_REFBBOX            0x134
-#define xgemsg_3DWIN_UNDO                    0x135
-#define xgemsg_3DWIN_KEY                     0x136
-#define xgemsg_3DWIN_ERROR                   0x137
+#define xgemsg_3DWIN_RESIZE                  0x12A
+#define xgemsg_3DWIN_PROJCHANGE              0x12B
+#define xgemsg_3DWIN_PICK_POINT              0x12C
+#define xgemsg_3DWIN_MOVE_POINT              0x12D
+#define xgemsg_3DWIN_SELECT_POINTS           0x12E
+#define xgemsg_3DWIN_UNSELECT_POINTS         0x12F
+#define xgemsg_3DWIN_SPECIAL_SELECT          0x130
+#define xgemsg_3DWIN_SPECIAL_UNSELECT        0x131
+#define xgemsg_3DWIN_CHANGE_TRANS            0x132
+#define xgemsg_3DWIN_SAVE_POINTS             0x133
+#define xgemsg_3DWIN_TRANSFORM_POINTS        0x134
+#define xgemsg_3DWIN_TRANSFORM_SPECIAL       0x135
+#define xgemsg_3DWIN_FIND_REFBBOX            0x136
+#define xgemsg_3DWIN_UNDO                    0x137
+#define xgemsg_3DWIN_KEY                     0x138
+#define xgemsg_3DWIN_ERROR                   0x139
 
-#define xgemsg_KNOTWIN_CHANGE_KNOT           0x138
-#define xgemsg_KNOTWIN_INSERT_KNOT           0x139
-#define xgemsg_KNOTWIN_REMOVE_KNOT           0x13A
-#define xgemsg_KNOTWIN_CHANGE_ALTKNOT        0x13B
-#define xgemsg_KNOTWIN_INSERT_ALTKNOT        0x13C
-#define xgemsg_KNOTWIN_REMOVE_ALTKNOT        0x13D
-#define xgemsg_KNOTWIN_MCLICK                0x13E
-#define xgemsg_KNOTWIN_MMOVE                 0x13F
-#define xgemsg_KNOTWIN_CHANGE_MAPPING        0x140
-#define xgemsg_KNOTWIN_ERROR                 0x141
+#define xgemsg_KNOTWIN_CHANGE_KNOT           0x13A
+#define xgemsg_KNOTWIN_INSERT_KNOT           0x13B
+#define xgemsg_KNOTWIN_REMOVE_KNOT           0x13C
+#define xgemsg_KNOTWIN_CHANGE_ALTKNOT        0x13D
+#define xgemsg_KNOTWIN_INSERT_ALTKNOT        0x13E
+#define xgemsg_KNOTWIN_REMOVE_ALTKNOT        0x13F
+#define xgemsg_KNOTWIN_MCLICK                0x140
+#define xgemsg_KNOTWIN_MMOVE                 0x141
+#define xgemsg_KNOTWIN_CHANGE_MAPPING        0x142
+#define xgemsg_KNOTWIN_ERROR                 0x143
 
-#define xgemsg_T2KNOTWIN_RESIZE              0x142
-#define xgemsg_T2KNOTWIN_PROJCHANGE          0x143
-#define xgemsg_T2KNOTWIN_CHANGE_KNOT_U       0x144
-#define xgemsg_T2KNOTWIN_CHANGE_KNOT_V       0x145
-#define xgemsg_T2KNOTWIN_INSERT_KNOT_U       0x146
-#define xgemsg_T2KNOTWIN_INSERT_KNOT_V       0x147
-#define xgemsg_T2KNOTWIN_REMOVE_KNOT_U       0x148
-#define xgemsg_T2KNOTWIN_REMOVE_KNOT_V       0x149
-#define xgemsg_T2KNOTWIN_CHANGE_ALTKNOT_U    0x14A
-#define xgemsg_T2KNOTWIN_CHANGE_ALTKNOT_V    0x14B
-#define xgemsg_T2KNOTWIN_INSERT_ALTKNOT_U    0x14C
-#define xgemsg_T2KNOTWIN_INSERT_ALTKNOT_V    0x14D
-#define xgemsg_T2KNOTWIN_REMOVE_ALTKNOT_U    0x14E
-#define xgemsg_T2KNOTWIN_REMOVE_ALTKNOT_V    0x14F
-#define xgemsg_T2KNOTWIN_SELECT_POINTS       0x150
-#define xgemsg_T2KNOTWIN_UNSELECT_POINTS     0x151
-#define xgemsg_T2KNOTWIN_CHANGE_MAPPING      0x152
-#define xgemsg_T2KNOTWIN_ERROR               0x153
+#define xgemsg_T2KNOTWIN_RESIZE              0x144
+#define xgemsg_T2KNOTWIN_PROJCHANGE          0x145
+#define xgemsg_T2KNOTWIN_CHANGE_KNOT_U       0x146
+#define xgemsg_T2KNOTWIN_CHANGE_KNOT_V       0x147
+#define xgemsg_T2KNOTWIN_INSERT_KNOT_U       0x148
+#define xgemsg_T2KNOTWIN_INSERT_KNOT_V       0x149
+#define xgemsg_T2KNOTWIN_REMOVE_KNOT_U       0x14A
+#define xgemsg_T2KNOTWIN_REMOVE_KNOT_V       0x14B
+#define xgemsg_T2KNOTWIN_CHANGE_ALTKNOT_U    0x14C
+#define xgemsg_T2KNOTWIN_CHANGE_ALTKNOT_V    0x14D
+#define xgemsg_T2KNOTWIN_INSERT_ALTKNOT_U    0x14E
+#define xgemsg_T2KNOTWIN_INSERT_ALTKNOT_V    0x14F
+#define xgemsg_T2KNOTWIN_REMOVE_ALTKNOT_U    0x150
+#define xgemsg_T2KNOTWIN_REMOVE_ALTKNOT_V    0x151
+#define xgemsg_T2KNOTWIN_SELECT_POINTS       0x152
+#define xgemsg_T2KNOTWIN_UNSELECT_POINTS     0x153
+#define xgemsg_T2KNOTWIN_CHANGE_MAPPING      0x154
+#define xgemsg_T2KNOTWIN_ERROR               0x155
 
 /* message sent when popups are removed */
-#define xgemsg_POPUP_REMOVED                 0x154
-#define xgemsg_POPUPS_REMOVED                0x155
+#define xgemsg_POPUP_REMOVED                 0x156
+#define xgemsg_POPUPS_REMOVED                0x157
 
 /* message sent after an error, warning or info message has been dismissed */
-#define xgemsg_USER_MESSAGE_DISMISSED        0x156
+#define xgemsg_USER_MESSAGE_DISMISSED        0x158
 
 /* message sent to the application by itself, to be delivered */
 /* when there is nothing else to do */
-#define xgemsg_IDLE_COMMAND                  0x157
+#define xgemsg_IDLE_COMMAND                  0x159
 
 /* message sent to the application by a child process */
-#define xgemsg_CHILD_MESSAGE                 0x158
+#define xgemsg_CHILD_MESSAGE                 0x15A
 /* message sent after the child process has been terminated */
-#define xgemsg_CHILD_FAILURE                 0x159
+#define xgemsg_CHILD_FAILURE                 0x15B
 
 /* additional application messages must be greater than xgemsg_LAST_MESSAGE */
 #define xgemsg_LAST_MESSAGE xgemsg_CHILD_FAILURE
@@ -219,43 +221,44 @@ extern "C" {
 #define xgestate_QUATROT_TURNING1             9
 #define xgestate_QUATROT_TURNING2            10
 #define xgestate_QUATROT_TURNING3            11
-#define xgestate_MESSAGE                     12
-#define xgestate_RESIZING_X                  13
-#define xgestate_RESIZING_Y                  14
-#define xgestate_RESIZING_XY                 15
-#define xgestate_TEXT_EDITING                16
-#define xgestate_2DWIN_MOVINGPOINT           17
-#define xgestate_2DWIN_PANNING               18
-#define xgestate_2DWIN_ZOOMING               19
-#define xgestate_2DWIN_SELECTING             20
-#define xgestate_2DWIN_UNSELECTING           21
-#define xgestate_2DWIN_MOVING_GEOM_WIDGET    22
-#define xgestate_2DWIN_USING_GEOM_WIDGET     23
-#define xgestate_2DWIN_ALTUSING_GEOM_WIDGET  24
-#define xgestate_2DWIN_USING_SPECIAL_WIDGET  25
-#define xgestate_3DWIN_MOVINGPOINT           26
-#define xgestate_3DWIN_PARPANNING            27
-#define xgestate_3DWIN_PARZOOMING            28
-#define xgestate_3DWIN_TURNING_VIEWER        29
-#define xgestate_3DWIN_PANNING               30
-#define xgestate_3DWIN_ZOOMING               31
-#define xgestate_3DWIN_SELECTING             32
-#define xgestate_3DWIN_UNSELECTING           33
-#define xgestate_3DWIN_MOVING_GEOM_WIDGET    34
-#define xgestate_3DWIN_USING_GEOM_WIDGET     35
-#define xgestate_3DWIN_ALTUSING_GEOM_WIDGET  36
-#define xgestate_3DWIN_USING_SPECIAL_WIDGET  37
-#define xgestate_KNOTWIN_MOVINGKNOT          38
-#define xgestate_KNOTWIN_PANNING             39
-#define xgestate_KNOTWIN_ZOOMING             40
-#define xgestate_T2KNOTWIN_MOVINGKNOT_U      41
-#define xgestate_T2KNOTWIN_MOVINGKNOT_V      42
-#define xgestate_T2KNOTWIN_MOVING_POINT      43
-#define xgestate_T2KNOTWIN_PANNING           44
-#define xgestate_T2KNOTWIN_ZOOMING           45
-#define xgestate_T2KNOTWIN_SELECTING         46
-#define xgestate_T2KNOTWIN_UNSELECTING       47
-#define xgestate_LISTBOX_PICKING             48
+#define xgestate_SCROLLING                   12
+#define xgestate_MESSAGE                     13
+#define xgestate_RESIZING_X                  14
+#define xgestate_RESIZING_Y                  15
+#define xgestate_RESIZING_XY                 16
+#define xgestate_TEXT_EDITING                17
+#define xgestate_2DWIN_MOVINGPOINT           18
+#define xgestate_2DWIN_PANNING               19
+#define xgestate_2DWIN_ZOOMING               20
+#define xgestate_2DWIN_SELECTING             21
+#define xgestate_2DWIN_UNSELECTING           22
+#define xgestate_2DWIN_MOVING_GEOM_WIDGET    23
+#define xgestate_2DWIN_USING_GEOM_WIDGET     24
+#define xgestate_2DWIN_ALTUSING_GEOM_WIDGET  25
+#define xgestate_2DWIN_USING_SPECIAL_WIDGET  26
+#define xgestate_3DWIN_MOVINGPOINT           27
+#define xgestate_3DWIN_PARPANNING            28
+#define xgestate_3DWIN_PARZOOMING            29
+#define xgestate_3DWIN_TURNING_VIEWER        30
+#define xgestate_3DWIN_PANNING               31
+#define xgestate_3DWIN_ZOOMING               32
+#define xgestate_3DWIN_SELECTING             33
+#define xgestate_3DWIN_UNSELECTING           34
+#define xgestate_3DWIN_MOVING_GEOM_WIDGET    35
+#define xgestate_3DWIN_USING_GEOM_WIDGET     36
+#define xgestate_3DWIN_ALTUSING_GEOM_WIDGET  37
+#define xgestate_3DWIN_USING_SPECIAL_WIDGET  38
+#define xgestate_KNOTWIN_MOVINGKNOT          39
+#define xgestate_KNOTWIN_PANNING             40
+#define xgestate_KNOTWIN_ZOOMING             41
+#define xgestate_T2KNOTWIN_MOVINGKNOT_U      42
+#define xgestate_T2KNOTWIN_MOVINGKNOT_V      43
+#define xgestate_T2KNOTWIN_MOVING_POINT      44
+#define xgestate_T2KNOTWIN_PANNING           45
+#define xgestate_T2KNOTWIN_ZOOMING           46
+#define xgestate_T2KNOTWIN_SELECTING         47
+#define xgestate_T2KNOTWIN_UNSELECTING       48
+#define xgestate_LISTBOX_PICKING             49
 /* additional application states must be greater than xge_LAST_STATE */
 #define xgestate_LAST  xgestate_LISTBOX_PICKING
 
@@ -487,6 +490,46 @@ xge_widget *xge_NewVSlidebar2d ( char window_num, xge_widget *prev, int id,
 
 double xge_LinSlidebarValued ( double xmin, double xmax, double t );
 double xge_LogSlidebarValued ( double xmin, double xmax, double t );
+
+typedef struct {
+    xge_widget *er;
+    short      hpage;    /* page height */
+    short      hwin;     /* window height */
+    short      hsl;      /* slidebar height */
+    short      slpos;    /* slidebar position */
+    short      slpoint;  /* slidebar catch point */
+    short      pagevpos; /* page vertical position */
+  } xge_vscrollbar;
+
+boolean xge_VScrollBarResizeWindow ( xge_widget *er, short newheight );
+boolean xge_VScrollBarResizePage ( xge_widget *er, short newheight );
+short xge_VScrollBarSetPagePos ( xge_widget *er, short newpos, boolean redraw );
+void xge_DrawVScrollBar ( xge_widget *er, boolean onscreen );
+boolean xge_VScrollBarMsg ( xge_widget *er, int msg, int key, short x, short y );
+xge_widget *xge_NewVScrollBar ( char window_num, xge_widget *prev, int id,
+                                short w, short h, short x, short y,
+                                short hpage, short hwin,
+                                xge_vscrollbar *vs, xge_widget *window );
+
+typedef struct {
+    xge_widget *er;
+    short      wpage;    /* page width */
+    short      wwin;     /* window width */
+    short      wsl;      /* slidebar width */
+    short      slpos;    /* slidebar position */
+    short      slpoint;  /* slidebar catch point */
+    short      pagehpos; /* page horizontal position */
+  } xge_hscrollbar;
+
+boolean xge_HScrollBarResizeWindow ( xge_widget *er, short newwidth );
+boolean xge_HScrollBarResizePage ( xge_widget *er, short newwidth );
+short xge_HScrollBarSetPagePos ( xge_widget *er, short newpos, boolean redraw );
+void xge_DrawHScrollBar ( xge_widget *er, boolean onscreen );
+boolean xge_HScrollBarMsg ( xge_widget *er, int msg, int key, short x, short y );
+xge_widget *xge_NewHScrollBar ( char window_num, xge_widget *prev, int id,
+                                short w, short h, short x, short y,
+                                short wpage, short wwin,
+                                xge_hscrollbar *hs, xge_widget *window );
 
 void xge_DrawDialf ( xge_widget *er, boolean onscreen );
 boolean xge_DialfMsg ( xge_widget *er, int msg, int key, short x, short y );
@@ -1114,8 +1157,9 @@ void xge_T2KnotWindDrawCursorPos ( xge_T2KnotWind *T2win, short x, short y );
 
 typedef struct {
     xge_widget *er;
-    xge_widget *contents, *clipw, *xsl, *ysl;
-    float      x, y;
+    xge_widget *contents, *clipw, *xsb, *ysb;
+    xge_hscrollbar xs;
+    xge_vscrollbar ys;
     boolean    xslon, yslon;
   } xge_scroll_widget;
 
