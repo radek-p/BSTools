@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2007, 2011                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2007, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -34,7 +34,7 @@ void xge_DrawSlidebard ( xge_widget *er, boolean onscreen )
   else
     xge_DrawVShadedRect ( er->w-2, er->h-2, er->x+1, er->y+1,
                           xgec_Blue3, xgec_Blue5, er->h-2 );
-  xgeSetForeground ( xgec_White );
+  xgeSetForeground ( xgec_WIDGET_FRAME );
   xgeDrawRectangle ( er->w-1, er->h-1, er->x, er->y );
   x = er->x + 2 + (int)((*slipos)*(double)(er->w - 10));
   xgeFillRectangle ( 6, 6, x, er->y+2 );

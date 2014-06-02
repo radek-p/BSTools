@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2007, 2011                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2007, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -38,8 +38,9 @@ void xge_DrawSwitch ( xge_widget *er, boolean onscreen )
   else
     xge_DrawVShadedRect ( er->h-2, er->h-2, er->x+1, er->y+1,
                           xgec_Blue3, xgec_Blue5, er->h-2 );
-  xgeSetForeground ( xgec_White );
+  xgeSetForeground ( xgec_WIDGET_FRAME );
   xgeDrawRectangle ( er->h-1, er->h-1, er->x, er->y );
+  xgeSetForeground ( xgec_White );
   if ( state )
     xgeFillRectangle ( er->h-10, er->h-10, er->x+5, er->y+5 );
   if ( title )

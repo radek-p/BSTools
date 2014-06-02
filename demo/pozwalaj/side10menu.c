@@ -79,6 +79,8 @@ xge_widget *InitSide10Menu ( xge_widget *prev )
 
 boolean ChangeSide10MenuWidth ( short h )
 {
+  if ( !current_go )
+    return false;
   switch ( current_go->obj_type ) {
 case GO_BEZIER_CURVE:
     return ChangeSide10MenuWidth_Bezc ( h );

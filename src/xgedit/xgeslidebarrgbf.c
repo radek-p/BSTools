@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2010, 2011                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2010, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -67,9 +67,10 @@ case 2:
     }
     break;
   }
-  xgeSetForeground ( xgec_White );
+  xgeSetForeground ( xgec_WIDGET_FRAME );
   xgeDrawRectangle ( er->w-1, er->h-1, er->x, er->y );
   x = er->x + 2 + (int)((*slipos)*(float)(er->w - 10));
+  xgeSetForeground ( xgec_White );
   xgeFillRectangle ( 6, 6, x, er->y+2 );
   if ( onscreen )
     xgeCopyRectOnScreen ( er->w, er->h, er->x, er->y );

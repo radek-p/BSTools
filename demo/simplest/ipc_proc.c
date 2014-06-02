@@ -22,7 +22,6 @@
 #include "pkvaria.h"
 #include "pkgeom.h"
 #include "xgedit.h"
-#include "xgeipc.h"
 
 
 boolean got_a_signal = false;

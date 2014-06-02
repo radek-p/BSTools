@@ -51,8 +51,10 @@ void xge_DrawQuatRotBallf ( xge_widget *er, boolean onscreen )
   xgeDrawArc ( 2*r1+1, 2*r1+1, xc-r1, yc-r1, 0, 360*64 );
   xgeSetForeground ( fc );
   _xge_QuatRotBallDrawCircles ( xc, yc, r1, qball->tr, xge_OutPixels );
+  xgeSetForeground ( xgec_WIDGET_FRAME );
   xgeDrawArc ( 2*r2+1, 2*r2+1, xc-r2, yc-r2, 0, 360*64 );
   if ( (title = er->data1) ) {
+    xgeSetForeground ( xgec_White );
     if ( er->w > er->h )  /* title aside */
       { x = (short)(xc+r2+4);  y = (short)(yc+4); }
     else                  /* title below */

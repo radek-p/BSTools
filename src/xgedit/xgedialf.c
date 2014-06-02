@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2007, 2011                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2007, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -48,10 +48,11 @@ void xge_DrawDialf ( xge_widget *er, boolean onscreen )
   else
     xgeSetForeground ( xgec_Blue3 );
   xgeFillArc ( d-1, d-1, er->x, er->y, 0, 360*64 );
-  xgeSetForeground ( xgec_White );
+  xgeSetForeground ( xgec_WIDGET_FRAME );
   xgeDrawArc ( d-1, d-1, er->x, er->y, 0, 360*64 );
   x = (short)(xc + (r-5)*cos(*dialpos));
   y = (short)(yc - (r-5)*sin(*dialpos));
+  xgeSetForeground ( xgec_White );
   xgeFillArc ( 7, 7, x-2, y-2, 0, 360*64 );
   if ( title ) {
     if ( er->w > er->h )  /* title aside */

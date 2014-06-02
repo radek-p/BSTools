@@ -50,7 +50,7 @@ void xge_DrawListBox ( xge_widget *er, boolean onscreen )
   lbox = er->data0;
   xgeSetForeground ( xgec_Grey6 );
   xgeFillRectangle ( er->w-2, er->h-2, er->x+1, er->y+1 );
-  xgeSetForeground ( xgec_White );
+  xgeSetForeground ( xgec_WIDGET_FRAME );
   xgeDrawRectangle ( er->w-1, er->h-1, er->x, er->y );
   if ( lbox->nitems ) {
     p0 = lbox->fditem;

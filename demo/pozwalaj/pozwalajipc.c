@@ -28,7 +28,6 @@
 #include "g2blendingd.h"
 #include "bsfile.h"
 #include "xgedit.h"
-#include "xgeipc.h"
 
 #include "widgets.h"
 #include "editor.h"

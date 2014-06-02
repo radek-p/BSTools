@@ -29,7 +29,6 @@
 #include "g2blendingd.h"
 #include "g2mblendingd.h"
 #include "xgedit.h"
-#include "xgeipc.h"
 
 #define CHILD_SIDE
 #include "pozwalajipc.h"

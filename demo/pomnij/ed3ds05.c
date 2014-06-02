@@ -22,7 +22,6 @@
 #include "camerad.h"
 #include "multibs.h"
 #include "xgedit.h"
-#include "xgeipc.h"
 
 #include "render.h"
 #include "spl3d.h"

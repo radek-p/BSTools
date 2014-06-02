@@ -3684,3 +3684,10 @@ Wersja 0.33.
 857. Zmiana programu demonstracyjnego ncolours, zamiast suwaka
     zmiennopozycyjnego do przewijania probek kolorow uzywa xge_vscrollbar.
 
+2.06.2014.
+858. Poprawiony blad w programie pozwalaj - przelaczanie menu w drugim
+    oknie, jesli lista obiektow byla pusta, powodowalo segmentation fault.
+
+859. Liczne drobne zmiany w libxgedit - dotycza kolorow wihajstrow.
+
+

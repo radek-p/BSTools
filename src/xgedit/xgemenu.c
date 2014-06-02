@@ -121,7 +121,7 @@ xge_widget *xge_NewMenu ( char window_num, xge_widget *prev, int id,
 void xge_DrawFMenu ( xge_widget *er, boolean onscreen )
 {
   xge_DrawMenu ( er, false );
-  xgeSetForeground ( xgec_White );
+  xgeSetForeground ( xgec_WIDGET_FRAME );
   xgeDrawRectangle ( er->w-1, er->h-1, er->x, er->y );
   if ( onscreen )
     xgeCopyRectOnScreen ( er->w, er->h, er->x, er->y );

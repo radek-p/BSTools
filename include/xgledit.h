@@ -38,7 +38,7 @@
 #include "xgedit.h"
 #endif
 #ifndef XGLERGB_H
-#include "xglergb.h"
+#include "xgedit/xglergb.h"
 #endif
 
 #define XGLE_NOT_NEEDED    0

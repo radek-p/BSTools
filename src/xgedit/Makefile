@@ -15,9 +15,10 @@ LIBDIR = ../../lib
 
 include ../../options.mak
 
-INCLF = $(INCDIR)/xgedit.h $(INCDIR)/xgergb.h $(SRCDIR)/xgeprivate.h
-INCGLF = $(INCDIR)/xgedit.h $(INCDIR)/xgledit.h $(INCDIR)/xgergb.h \
-  $(SRCDIR)/xgeprivate.h
+INCLF = $(INCDIR)/xgedit.h $(INCDIR)/xgedit/xgergb.h $(SRCDIR)/xgeprivate.h \
+  $(INCDIR)/xgedit/xgeipc.h
+INCGLF = $(INCDIR)/xgedit.h $(INCDIR)/xgedit/xgergb.h $(INCDIR)/xgedit/xglergb.h \
+  $(SRCDIR)/xgeprivate.h $(INCDIR)/xgedit/xgeipc.h
 
 OBJECTS = xgevars.o xgeinit.o xgekernel.o xgedmsg.o xgergb.o xgecnames.o \
   xgepixel.o xgefocus.o xgespecialwin.o \
@@ -106,9 +107,9 @@ xgequatrotballf.o: $(SRCDIR)/xgequatrotballf.c $(INCLF)
 xgequatrotballd.o: $(SRCDIR)/xgequatrotballd.c $(INCLF)
 xgeflush.o: $(SRCDIR)/xgeflush.c $(INCLF)
 
-xgeipcchild.o: $(SRCDIR)/xgeipcchild.c $(INCLF) $(INCDIR)/xgeipc.h
-xgeipcparent.o: $(SRCDIR)/xgeipcparent.c $(INCLF) $(INCDIR)/xgeipc.h
-xgeipcvars.o: $(SRCDIR)/xgeipcvars.c $(INCLF) $(INCDIR)/xgeipc.h
+xgeipcchild.o: $(SRCDIR)/xgeipcchild.c $(INCLF)
+xgeipcparent.o: $(SRCDIR)/xgeipcparent.c $(INCLF)
+xgeipcvars.o: $(SRCDIR)/xgeipcvars.c $(INCLF)
 
 xglevars.o: $(SRCDIR)/xglevars.c $(INCGLF)
 xgleinit.o: $(SRCDIR)/xgleinit.c $(INCGLF)

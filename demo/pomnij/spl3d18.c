@@ -20,7 +20,6 @@
 #include "convh.h"
 #include "camerad.h"
 #include "xgedit.h"
-#include "xgeipc.h"
 
 #include "spl3d.h"
 

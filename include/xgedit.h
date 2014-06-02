@@ -276,9 +276,11 @@ extern "C" {
 
 /* ///////////////////////////////////////////////////////////////////////// */
 #ifndef XGERGB_H
-#include "xgergb.h"
+#include "xgedit/xgergb.h"
 #endif
 
+#define xgec_WIDGET_FRAME          xgec_Grey1
+#define xgec_MENU_DARKBKG          xgec_Grey6
 #define xgec_MENU_BACKGROUND       xgec_Grey5
 #define xgec_INFOMSG_BACKGROUND    xgec_Grey4
 #define xgec_ERRORMSG_BACKGROUND   xgec_Red
@@ -1252,6 +1254,10 @@ void xge_Init ( int argc, char *argv[],
                 int (*callback)(xge_widget*,int,int,short,short),
                 char *title );
 void xge_Cleanup ( void );
+#endif
+
+#ifndef XGEIPC_H
+#include "xgedit/xgeipc.h"
 #endif
 
 #ifdef __cplusplus

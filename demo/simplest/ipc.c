@@ -20,7 +20,6 @@
 
 #include "pkgeom.h"
 #include "xgedit.h"
-#include "xgeipc.h"
 
 #include "ipc.h"
 

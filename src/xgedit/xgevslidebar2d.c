@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2009, 2011                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2009, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -37,10 +37,11 @@ void xge_DrawVSlidebar2d ( xge_widget *er, boolean onscreen )
   else
     xge_DrawHShadedRect ( er->w-2, er->h-2, er->x+1, er->y+1,
                           xgec_Blue3, xgec_Blue5, er->h-2 );
-  xgeSetForeground ( xgec_White );
+  xgeSetForeground ( xgec_WIDGET_FRAME );
   xgeDrawRectangle ( er->w-1, er->h-1, er->x, er->y );
   y0 = er->y + 2 + (int)((*slipos0)*(double)(er->h - 10));
   y1 = er->y + 8 + (int)((*slipos1)*(double)(er->h - 10));
+  xgeSetForeground ( xgec_White );
   xgeFillRectangle ( 6, y1-y0, er->x+2, y0 );
   if ( onscreen )
     xgeCopyRectOnScreen ( er->w, er->h, er->x, er->y );

@@ -28,7 +28,6 @@
 #include "g1blendingd.h"
 #include "g2blendingd.h"
 #include "xgedit.h"
-#include "xgeipc.h"
 
 #include "bsfile.h"
 

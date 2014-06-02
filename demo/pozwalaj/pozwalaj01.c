@@ -31,7 +31,6 @@
 #include "bsfile.h"
 #include "xgedit.h"
 #include "xgledit.h"
-#include "xgeipc.h"
 
 #include "widgets.h"
 #include "editor.h"
