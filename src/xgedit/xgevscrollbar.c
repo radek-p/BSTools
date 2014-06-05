@@ -27,18 +27,22 @@ static boolean _xge_VScrollbarAuxResize ( xge_vscrollbar *vs, short newhp, short
   short oldhp, oldhw, oldppos, newhsl, bh, vpos;
 
   bh = vs->er->h-2;
-  oldhp = vs->hpage;    vs->hpage = newhp;
-  oldhw = vs->hwin;     vs->hwin = newhw;
-  oldppos = vs->pagevpos;
-  vs->hsl = newhsl = ((int)bh*newhw)/(int)newhp;
-  vpos = oldhp > oldhw ? ((int)oldppos*(newhp-newhw))/(oldhp-oldhw) : 0;
-  if ( vpos+newhw > newhp )
-    vpos = newhp-newhw;
-  vs->pagevpos = vpos = max ( vpos, 0 );
-  if ( newhp > newhw )
-    vs->slpos = ((int)(bh-newhsl)*vpos)/(int)(newhp-newhw);
-  else
-    vs->slpos = 0;
+  oldhp = vs->hpage;
+  oldhw = vs->hwin;
+  if ( newhp != oldhp || newhw != oldhw ) {
+    vs->hpage = newhp;
+    vs->hwin = newhw;
+    oldppos = vs->pagevpos;
+    vs->hsl = newhsl = ((int)bh*newhw)/(int)newhp;
+    vpos = oldhp > oldhw ? ((int)oldppos*(newhp-newhw))/(oldhp-oldhw) : 0;
+    if ( vpos+newhw > newhp )
+      vpos = newhp-newhw;
+    vs->pagevpos = vpos = max ( vpos, 0 );
+    if ( newhp > newhw )
+      vs->slpos = ((int)(bh-newhsl)*vpos)/(int)(newhp-newhw);
+    else
+      vs->slpos = 0;
+  }
   return vs->hpage > vs->hwin;
 } /*_xge_VScrollbarAuxResize*/
 

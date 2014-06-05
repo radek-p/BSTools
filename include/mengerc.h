@@ -137,9 +137,17 @@ boolean mengerc_HomotopyTest ( int n, void *usrdata, double *x0, double *x1,
 int mengerc_FindRemotestPoint ( int np, point3d *cpoints, point3d *sc );
 int mengerc_ModifyRemotestPoint ( int np, point3d *cpoints, point3d *sc, int mdi );
 
-/* ///////////////////////////////////////////////////////////////////////// */
 boolean mengerc_OptPenaltyParams1 ( mengerc_data *md, boolean wide );   
 boolean mengerc_OptPenaltyParams2 ( mengerc_data *md );
+
+/* ///////////////////////////////////////////////////////////////////////// */
+boolean mengerc_OptimizeMengerCurvature (
+                      int deg, int lkn, double *knots, point3d *cpoints,
+                      double w, double penalty_param[5],
+                      int nqkn, int nthr, boolean opt_param,
+                      void (*outiter)(void *usrdata,
+                                      int it, int itres, double f, double g),
+                      void *usrdata );
 
 #ifdef __cplusplus
 }

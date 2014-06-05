@@ -37,6 +37,7 @@ void xge_DrawSlidebard ( xge_widget *er, boolean onscreen )
   xgeSetForeground ( xgec_WIDGET_FRAME );
   xgeDrawRectangle ( er->w-1, er->h-1, er->x, er->y );
   x = er->x + 2 + (int)((*slipos)*(double)(er->w - 10));
+  xgeSetForeground ( xgec_White );
   xgeFillRectangle ( 6, 6, x, er->y+2 );
   if ( onscreen )
     xgeCopyRectOnScreen ( er->w, er->h, er->x, er->y );

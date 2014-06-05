@@ -16,7 +16,8 @@ LIBDIR = ../../lib
 include ../../options.mak
 
 OBJECTS = $(SRCDIR)/mengerc00.o $(SRCDIR)/mengerc01.o \
-  $(SRCDIR)/mengerc02.o $(SRCDIR)/mengerc03.o $(SRCDIR)/mengerc04.o
+  $(SRCDIR)/mengerc02.o $(SRCDIR)/mengerc03.o $(SRCDIR)/mengerc04.o \
+  $(SRCDIR)/mengerc05.o
 
 TARGET = $(LIBDIR)/libmengerc.a
 
@@ -41,6 +42,9 @@ $(SRCDIR)/mengerc03.o: $(SRCDIR)/mengerc03.c $(INCDIR)/mengerc.h \
   $(SRCDIR)/mengercprivate.h
 
 $(SRCDIR)/mengerc04.o: $(SRCDIR)/mengerc04.c $(INCDIR)/mengerc.h \
+  $(SRCDIR)/mengercprivate.h
+
+$(SRCDIR)/mengerc05.o: $(SRCDIR)/mengerc05.c $(INCDIR)/mengerc.h \
   $(SRCDIR)/mengercprivate.h
 
 clean:

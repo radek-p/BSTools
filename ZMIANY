@@ -3690,4 +3690,11 @@ Wersja 0.33.
 
 859. Liczne drobne zmiany w libxgedit - dotycza kolorow wihajstrow.
 
+3.06.2014.
+860. Do biblioteki libmengerc dodana wlasciwa procedura optymalizacji - do
+    dalszego rozwoju.
+
+4.06.2014.
+861. Poprawka w xgevscrollbar.c i xgehscrollbar.c - byla niepoprawna obsluga
+    przewijania podczas krecenia kolkiem (z powodu zaokraglen).
 

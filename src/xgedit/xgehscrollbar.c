@@ -27,18 +27,22 @@ static boolean _xge_HScrollbarAuxResize ( xge_hscrollbar *hs, short newwp, short
   short oldwp, oldww, oldppos, newwsl, bw, hpos;
 
   bw = hs->er->w-2;
-  oldwp = hs->wpage;    hs->wpage = newwp;
-  oldww = hs->wwin;     hs->wwin = newww;
-  oldppos = hs->pagehpos;
-  hs->wsl = newwsl = ((int)bw*newww)/(int)newwp;
-  hpos = oldwp > oldww ? ((int)oldppos*(newwp-newww))/(oldwp-oldww) : 0;
-  if ( hpos+newww > newwp )
-    hpos = newwp-newww;
-  hs->pagehpos = hpos = max ( hpos, 0 );
-  if ( newwp > newww )
-    hs->slpos = ((int)(bw-newwsl)*hpos)/(int)(newwp-newww);
-  else
-    hs->slpos = 0;
+  oldwp = hs->wpage;
+  oldww = hs->wwin;
+  if ( newwp != oldwp || newww != oldww ) {
+    hs->wpage = newwp;
+    hs->wwin = newww;
+    oldppos = hs->pagehpos;
+    hs->wsl = newwsl = ((int)bw*newww)/(int)newwp;
+    hpos = oldwp > oldww ? ((int)oldppos*(newwp-newww))/(oldwp-oldww) : 0;
+    if ( hpos+newww > newwp )
+      hpos = newwp-newww;
+    hs->pagehpos = hpos = max ( hpos, 0 );
+    if ( newwp > newww )
+      hs->slpos = ((int)(bw-newwsl)*hpos)/(int)(newwp-newww);
+    else
+      hs->slpos = 0;
+  }
   return hs->wpage > hs->wwin;
 } /*_xge_HScrollbarAuxResize*/
 
