@@ -17,15 +17,21 @@ typedef struct {
     double      *savedcpoints;
     byte        *mkcp;
     boolean     rational, closed, uniform;
-    boolean     view_curve, view_cpoly;
+    boolean     view_curve, view_cpoly, view_bpoly,
+                view_curvature, view_torsion;
+    double      curvature_scale, torsion_scale;
+    int         graph_dens;
   } GO_BSplineCurve;
 
 /* display list masks */
-#define BSC_DLM_CPOLY  DLISTMASK_CPOINTS /*0x0001*/
-#define BSC_DLM_CURVE  0x0002
+#define BSC_DLM_CPOLY     DLISTMASK_CPOINTS /*0x0001*/
+#define BSC_DLM_CURVE     0x0002
+#define BSC_DLM_BPOLY     0x0004
+#define BSC_DLM_CURVATURE 0x0008
+#define BSC_DLM_TORSION   0x0010
 
 /* number of display lists */
-#define BSC_NDL        2
+#define BSC_NDL        5
 
 
 /* B-spline curves processing procedures */
@@ -39,6 +45,9 @@ boolean GeomObjectBSplineCurveSetRational ( GO_BSplineCurve *obj );
 boolean GeomObjectBSplineCurveSetNonRational ( GO_BSplineCurve *obj );
 void GeomObjectDrawBSplineCurve ( GO_BSplineCurve *obj );
 void GeomObjectDrawBSplineCPoly ( GO_BSplineCurve *obj );
+void GeomObjectDrawBSplineBPoly ( GO_BSplineCurve *obj );
+void GeomObjectDrawBSplineCurvature ( GO_BSplineCurve *obj );
+void GeomObjectDrawBSplineTorsion ( GO_BSplineCurve *obj );
 void GeomObjectDisplayBSplineCurve ( GO_BSplineCurve *obj );
 boolean GeomObjectBSplineCurveSetDegree ( GO_BSplineCurve *obj, int deg );
 void GeomObjectBSplineCurveFindBBox ( GO_BSplineCurve *obj, Box3d *box );
@@ -69,6 +78,11 @@ boolean GeomObjectBSplineCurveSetUniformKnots ( GO_BSplineCurve *obj, boolean un
 boolean GeomObjectBSplineCurveRefine ( GO_BSplineCurve *obj );
 boolean GeomObjectBSplineCurveSetClosed ( GO_BSplineCurve *obj, boolean closed );
 
+void GeomObjectBSplineCurveSetCurvatureGraph ( GO_BSplineCurve *obj,
+                                boolean view_curvature, double curvature_scale,
+                                boolean view_torsion, double torsion_scale,
+                                int graph_dens );
+
 boolean GeomObjectWriteBSCAttributes ( GO_BSplineCurve *obj );
 boolean GeomObjectWriteBSplineCurve ( GO_BSplineCurve *obj );
 boolean GeomObjectBSCResolveDependencies ( GO_BSplineCurve *obj );
@@ -85,3 +99,4 @@ boolean GeomObjectBSplineCurveProcessDep ( GO_BSplineCurve *obj, geom_object *go
 void GeomObjectBSplineCurveProcessDeletedDep ( GO_BSplineCurve *obj, geom_object *go );
 
 GO_BSplineCurve *GeomObjectFindBSCurve2DByName ( char *name );
+

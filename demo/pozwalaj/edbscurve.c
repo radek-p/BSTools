@@ -78,6 +78,7 @@ boolean GeomObjectInitBSplineCurve ( GO_BSplineCurve *obj,
   obj->degree = 1;
   obj->closed = false;
   obj->view_curve = obj->view_cpoly = true;
+  obj->graph_dens = 10;
   obj->me.displaylist = glGenLists ( BSC_NDL );
   obj->me.dlistmask = 0;
   obj->me.colour[0] = obj->me.colour[1] = 1.0;
@@ -311,6 +312,188 @@ void GeomObjectDrawBSplineCPoly ( GO_BSplineCurve *obj )
   }
 } /*GeomObjectDrawBSplineCPoly*/
 
+void GeomObjectDrawBSplineBPoly ( GO_BSplineCurve *obj )
+{
+  void   *sp;
+  int    dim, deg, lkn, kpcs, olkn, i, k;
+  double *bpoly;
+
+  if ( obj->me.obj_type != GO_BSPLINE_CURVE )
+    return;
+  if ( obj->me.dlistmask & BSC_DLM_BPOLY )
+    glCallList ( obj->me.displaylist+2 );
+  else {
+    sp = pkv_GetScratchMemTop ();
+    dim = obj->me.cpdimen;
+    deg = obj->degree;
+    lkn = obj->lastknot;
+    kpcs = mbs_NumKnotIntervalsd ( deg, obj->lastknot, obj->knots );
+    bpoly = pkv_GetScratchMemd ( kpcs*dim*(deg+1) );
+    if ( bpoly ) {
+      mbs_multiBSCurvesToBezd ( dim, 1, deg, lkn, obj->knots, 0, obj->cpoints,
+                                &kpcs, &olkn, NULL, 0, bpoly );
+      glNewList ( obj->me.displaylist+2, GL_COMPILE_AND_EXECUTE );
+      glColor3fv ( xglec_Green3 );
+      for ( i = k = 0;  i < kpcs;  i++, k += dim*(deg+1) )
+        DrawAPolyline ( dim, obj->me.spdimen, deg+1, &bpoly[k] );
+      glEndList ();
+    }
+    pkv_SetScratchMemTop ( sp );
+  }
+} /*GeomObjectDrawBSplineBPoly*/
+
+void GeomObjectDrawBSplineCurvature ( GO_BSplineCurve *obj )
+{
+  void     *sp;
+  int      dim, deg, lkn, kpcs, olkn, i, j, k, dens;
+  double   *bpoly;
+  double   t;
+  point2d  p2, q2;
+  vector2d f2[2];
+  point3d  p3, q3;
+  vector3d f3[3];
+  double   curv[2], scf;
+
+  if ( obj->me.obj_type != GO_BSPLINE_CURVE )
+    return;
+  if ( obj->me.dlistmask & BSC_DLM_BPOLY )
+    glCallList ( obj->me.displaylist+3 );
+  else {
+    sp = pkv_GetScratchMemTop ();
+    dim = obj->me.cpdimen;
+    deg = obj->degree;
+    lkn = obj->lastknot;
+    kpcs = mbs_NumKnotIntervalsd ( deg, obj->lastknot, obj->knots );
+    bpoly = pkv_GetScratchMemd ( kpcs*dim*(deg+1) );
+    if ( bpoly ) {
+      mbs_multiBSCurvesToBezd ( dim, 1, deg, lkn, obj->knots, 0, obj->cpoints,
+                                &kpcs, &olkn, NULL, 0, bpoly );
+      dens = obj->graph_dens;
+      scf = xge_LogSlidebarValued ( 0.01, 100.0, obj->curvature_scale );
+      glNewList ( obj->me.displaylist+3, GL_COMPILE_AND_EXECUTE );
+      glColor3fv ( xglec_CornflowerBlue );
+      glBegin ( GL_LINES );
+      switch ( obj->me.spdimen ) {
+    case 2:
+        if ( dim == 2 ) {      /* non-rational */
+          for ( i = k = 0;  i < kpcs;  i++, k += dim*(deg+1) ) {
+            for ( j = 0; j <= dens; j++ ) {
+              t = (double)j/(double)dens;
+              mbs_BCFrenetC2d ( deg, (point2d*)&bpoly[k], t, &p2, f2, curv );
+              AddVector2Md ( &p2, &f2[1], curv[0]*scf, &q2 );
+              glVertex2dv ( &p2.x );
+              glVertex2dv ( &q2.x );
+            }
+          }
+        }
+        else if ( dim == 3 ) { /* rational */
+          for ( i = k = 0;  i < kpcs;  i++, k += dim*(deg+1) ) {
+            for ( j = 0; j <= dens; j++ ) {
+              t = (double)j/(double)dens;
+              mbs_BCFrenetC2Rd ( deg, (point3d*)&bpoly[k], t, &p2, f2, curv );
+              AddVector2Md ( &p2, &f2[1], curv[0]*scf, &q2 );
+              glVertex2dv ( &p2.x );
+              glVertex2dv ( &q2.x );
+            }
+          }
+        }
+        break;
+    case 3:
+        if ( dim == 3 ) {      /* non-rational */
+          for ( i = k = 0;  i < kpcs;  i++, k += dim*(deg+1) ) {
+            for ( j = 0; j <= dens; j++ ) {
+              t = (double)j/(double)dens;
+              mbs_BCFrenetC3d ( deg, (point3d*)&bpoly[k], t, &p3, f3, curv );
+              AddVector3Md ( &p3, &f3[1], curv[0]*scf, &q3 );
+              glVertex3dv ( &p3.x );
+              glVertex3dv ( &q3.x );
+            }
+          }
+        }
+        else if ( dim == 3 ) { /* rational */
+          for ( i = k = 0;  i < kpcs;  i++, k += dim*(deg+1) ) {
+            for ( j = 0; j <= dens; j++ ) {
+              t = (double)j/(double)dens;
+              mbs_BCFrenetC3Rd ( deg, (point4d*)&bpoly[k], t, &p3, f3, curv );
+              AddVector3Md ( &p3, &f3[1], curv[0]*scf, &q3 );
+              glVertex3dv ( &p3.x );
+              glVertex3dv ( &q3.x );
+            }
+          }
+        }
+    default:
+        break;
+      }
+      glEnd ();
+      glEndList ();
+    }
+    pkv_SetScratchMemTop ( sp );
+  }
+} /*GeomObjectDrawBSplineCurvature*/
+
+void GeomObjectDrawBSplineTorsion ( GO_BSplineCurve *obj )
+{
+  void     *sp;
+  int      dim, deg, lkn, kpcs, olkn, i, j, k, dens;
+  double   *bpoly;
+  double   t;
+  point3d  p3, q3;
+  vector3d f3[3];
+  double   curv[2], scf;
+
+  if ( obj->me.obj_type != GO_BSPLINE_CURVE )
+    return;
+  if ( obj->me.dlistmask & BSC_DLM_BPOLY )
+    glCallList ( obj->me.displaylist+4 );
+  else {
+    sp = pkv_GetScratchMemTop ();
+    dim = obj->me.cpdimen;
+    deg = obj->degree;
+    lkn = obj->lastknot;
+    kpcs = mbs_NumKnotIntervalsd ( deg, obj->lastknot, obj->knots );
+    bpoly = pkv_GetScratchMemd ( kpcs*dim*(deg+1) );
+    if ( bpoly ) {
+      mbs_multiBSCurvesToBezd ( dim, 1, deg, lkn, obj->knots, 0, obj->cpoints,
+                                &kpcs, &olkn, NULL, 0, bpoly );
+      dens = obj->graph_dens;
+      scf = xge_LogSlidebarValued ( 0.01, 100.0, obj->torsion_scale );
+      glNewList ( obj->me.displaylist+4, GL_COMPILE_AND_EXECUTE );
+      glColor3fv ( xglec_SpringGreen2 );
+      glBegin ( GL_LINES );
+      switch ( obj->me.spdimen ) {
+    case 3:
+        if ( dim == 3 ) {      /* non-rational */
+          for ( i = k = 0;  i < kpcs;  i++, k += dim*(deg+1) ) {
+            for ( j = 0; j <= dens; j++ ) {
+              t = (double)j/(double)dens;
+              mbs_BCFrenetC3d ( deg, (point3d*)&bpoly[k], t, &p3, f3, curv );
+              AddVector3Md ( &p3, &f3[2], curv[1]*scf, &q3 );
+              glVertex3dv ( &p3.x );
+              glVertex3dv ( &q3.x );
+            }
+          }
+        }
+        else if ( dim == 3 ) { /* rational */
+          for ( i = k = 0;  i < kpcs;  i++, k += dim*(deg+1) ) {
+            for ( j = 0; j <= dens; j++ ) {
+              t = (double)j/(double)dens;
+              mbs_BCFrenetC3Rd ( deg, (point4d*)&bpoly[k], t, &p3, f3, curv );
+              AddVector3Md ( &p3, &f3[2], curv[1]*scf, &q3 );
+              glVertex3dv ( &p3.x );
+              glVertex3dv ( &q3.x );
+            }
+          }
+        }
+    default:
+        break;
+      }
+      glEnd ();
+      glEndList ();
+    }
+    pkv_SetScratchMemTop ( sp );
+  }
+} /*GeomObjectDrawBSplineTorsion*/
+
 void GeomObjectDisplayBSplineCurve ( GO_BSplineCurve *obj )
 {
   if ( obj->me.obj_type != GO_BSPLINE_CURVE )
@@ -319,6 +502,12 @@ void GeomObjectDisplayBSplineCurve ( GO_BSplineCurve *obj )
     GeomObjectDrawBSplineCurve ( obj );
   if ( obj->view_cpoly )
     GeomObjectDrawBSplineCPoly ( obj );
+  if ( obj->view_bpoly )
+    GeomObjectDrawBSplineBPoly ( obj );
+  if ( obj->view_curvature )
+    GeomObjectDrawBSplineCurvature ( obj );
+  if ( obj->view_torsion )
+    GeomObjectDrawBSplineTorsion ( obj );
 } /*GeomObjectDisplayBSplineCurve*/
 
 boolean GeomObjectBSplineCurveSetDegree ( GO_BSplineCurve *obj, int deg )
@@ -860,6 +1049,26 @@ boolean GeomObjectBSplineCurveSetClosed ( GO_BSplineCurve *obj, boolean closed )
   GeomObjectBSplineCurveDisplayInfoText ( obj );
   return true;
 } /*GeomObjectBSplineCurveSetClosed*/
+
+void GeomObjectBSplineCurveSetCurvatureGraph ( GO_BSplineCurve *obj,
+                                boolean view_curvature, double curvature_scale,
+                                boolean view_torsion, double torsion_scale,
+                                int graph_dens )
+{
+  if ( (view_curvature && !obj->view_curvature) ||
+       curvature_scale != obj->curvature_scale ||
+       graph_dens != obj->graph_dens )
+    obj->me.dlistmask &= ~BSC_DLM_CURVATURE;
+  obj->view_curvature = view_curvature;
+  if ( (view_torsion && !obj->view_torsion) ||
+       torsion_scale != obj->torsion_scale ||
+       graph_dens != obj->graph_dens )
+    obj->me.dlistmask &= ~BSC_DLM_TORSION;
+  obj->curvature_scale = curvature_scale;
+  obj->view_torsion = view_torsion && (obj->me.spdimen == 3);
+  obj->torsion_scale = torsion_scale;
+  obj->graph_dens = graph_dens;
+} /*GeomObjectBSplineCurveSetCurvatureGraph*/
 
 boolean GeomObjectWriteBSCAttributes ( GO_BSplineCurve *obj )
 {

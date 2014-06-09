@@ -3698,3 +3698,8 @@ Wersja 0.33.
 861. Poprawka w xgevscrollbar.c i xgehscrollbar.c - byla niepoprawna obsluga
     przewijania podczas krecenia kolkiem (z powodu zaokraglen).
 
+9.06.2014.
+862. Do programu pozwalaj dodana mozliwosc wyswietlania wykresow krzywizny i
+    skrecenia.
+
+

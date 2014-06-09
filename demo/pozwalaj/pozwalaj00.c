@@ -165,7 +165,10 @@ int             density_u, density_v;
   /* object type specific stuff */
 int             degree, degreeu, degreev;
 boolean         sw_view_curve = true, sw_view_cpoly = true,
-                sw_view_surf = true, sw_view_cnet = true;
+                sw_view_surf = true, sw_view_cnet = true,
+                sw_view_curvature = false, sw_view_torsion = false;
+int             curv_graph_dens = 10;
+double          curvature_scale = 0.0, torsion_scale = 0.0;
 boolean         sw_view_hole_filling = true,
                 sw_hfill_g1 = true, sw_hfill_g2 = false, sw_hfill_g1q2 = false;
 boolean         sw_hfill_coons = true, sw_hfill_bezier = false;
@@ -182,8 +185,9 @@ xge_widget      *bezp_dens_u, *bezp_dens_v;
 
     /* B-spline curves */
 xge_string_ed   bsc_name_ed;
-xge_int_widget  intw_bscdeg;
+xge_int_widget  intw_bscdeg, bsc_graphdens;
 boolean         bsc_sw_closed = false;
+boolean         bsc_sw_view_bpoly = false;
 
     /* B-spline patches */
 xge_string_ed   bsp_name_ed;

@@ -206,9 +206,15 @@
 #define btnM1BSC_REFINE                (SIDEMENU1_BSC+4)
 #define swM1BSC_CLOSED                 (SIDEMENU1_BSC+5)
 
-#define btnM1BSC_VIEW_CURVE            (SIDEMENU1_BSC+6)
-#define btnM1BSC_VIEW_CPOLY            (SIDEMENU1_BSC+7)
-#define btnM1BSC_COLOUR                (SIDEMENU1_BSC+8)
+#define swM1BSC_VIEW_CURVE             (SIDEMENU1_BSC+6)
+#define swM1BSC_VIEW_CPOLY             (SIDEMENU1_BSC+7)
+#define swM1BSC_VIEW_BPOLY             (SIDEMENU1_BSC+8)
+#define swM1BSC_VIEW_CURVATURE         (SIDEMENU1_BSC+9)
+#define slM1BSC_SCALE_CURVATURE       (SIDEMENU1_BSC+10)
+#define swM1BSC_VIEW_TORSION          (SIDEMENU1_BSC+11)
+#define slM1BSC_SCALE_TORSION         (SIDEMENU1_BSC+12)
+#define intwM1BSC_GRAPH_DENSITY       (SIDEMENU1_BSC+13)
+#define btnM1BSC_COLOUR               (SIDEMENU1_BSC+14)
 
       /* B-spline patches */
 #define SIDEMENU1_BSP                         19*MENUINC
@@ -488,6 +494,10 @@ extern char txt_gonalPrism[];
 extern char txtControlPolygon[];
 extern char txtControlNet[];
 extern char txtCurve[];
+extern char txtBezierPolygons[];
+extern char txtCurvatureGraph[];
+extern char txtTorsionGraph[];
+extern char txtGraphDensity[];
 extern char txtSurface[];
 extern char txtHoleFilling[];
 extern char txtVertex[];

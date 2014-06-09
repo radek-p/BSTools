@@ -142,6 +142,9 @@ extern int            density_u, density_v;
   /* object type specific stuff */
 extern int            degree, degreeu, degreev;
 extern boolean        sw_view_curve, sw_view_cpoly, sw_view_surf, sw_view_cnet;
+extern boolean        sw_view_curvature, sw_view_torsion;
+extern double         curvature_scale, torsion_scale;
+extern int            curv_graph_dens;
 extern boolean        sw_view_hole_filling, sw_hfill_g1, sw_hfill_g2, sw_hfill_g1q2;
 extern boolean        sw_hfill_coons, sw_hfill_bezier;
 extern double         sl_g1q2_param;
@@ -157,8 +160,9 @@ extern xge_widget     *bezp_dens_u, *bezp_dens_v;
 
     /* B-spline curves */
 extern xge_string_ed  bsc_name_ed;
-extern xge_int_widget intw_bscdeg;
+extern xge_int_widget intw_bscdeg, bsc_graphdens;
 extern boolean        bsc_sw_closed;
+extern boolean        bsc_sw_view_bpoly;
 
     /* B-spline patches */
 extern xge_string_ed  bsp_name_ed;
