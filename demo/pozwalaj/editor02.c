@@ -355,8 +355,9 @@ void DrawBSplineCurve ( int cpdimen, int spdimen, int deg, int lkn, double *knot
 
 void DrawBezierPatchWF ( int cpdimen, int spdimen, int degu, int degv,
                          int pitch, const double *cpoints,
-                         int densu, int densv, boolean firstu, boolean lastu,
-                         boolean firstv,  boolean lastv )
+                         int densu, int densv, int denscu, int denscv,
+                         boolean firstu, boolean lastu,
+                         boolean firstv, boolean lastv )
 {
   void   *sp;
   double *cc, *dd;
@@ -383,7 +384,7 @@ void DrawBezierPatchWF ( int cpdimen, int spdimen, int degu, int degv,
           mbs_multiBCHornerd ( degu, 1, cpdimen, 0, dd, t, &cc[j*cpdimen] );
         }
       }
-      DrawBezierCurve ( cpdimen, spdimen, degv, cc, 8*densv );
+      DrawBezierCurve ( cpdimen, spdimen, degv, cc, denscv );
     }
     if ( firstv ) fv = 0;
              else fv = 1;
@@ -392,7 +393,7 @@ void DrawBezierPatchWF ( int cpdimen, int spdimen, int degu, int degv,
     for ( i = fv; i <= lv; i++ ) {
       t = (double)i/(double)densv;
       mbs_multiBCHornerd ( degv, degu+1, cpdimen, pitch, cpoints, t, cc );
-      DrawBezierCurve ( cpdimen, spdimen, degu, cc, 8*densu );
+      DrawBezierCurve ( cpdimen, spdimen, degu, cc, denscu );
     }
   }
   pkv_SetScratchMemTop ( sp );
@@ -423,7 +424,8 @@ void DrawBSplinePatchWF ( int cpdimen, int spdimen,
       for ( j = 0; j < kv; j++ )
         DrawBezierPatchWF ( cpdimen, spdimen, degu, degv, bpitch,
                             &bcp[i*(degu+1)*bpitch + j*(degv+1)*cpdimen],
-                            densu, densv, firstu || i > 0, lastu && i == ku-1,
+                            densu, densv, 8*densu, 8*densv,
+                            firstu || i > 0, lastu && i == ku-1,
                             firstv || j > 0, lastv && j == kv-1 );
   }
   pkv_SetScratchMemTop ( sp );

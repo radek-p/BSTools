@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -233,6 +233,14 @@ boolean rbez_HomotopicClosedBSC3d ( int degree, int lastknot, double *knots,
                                     double *tfh, boolean *error );
 
 /* ////////////////////////////////////////////////////////////////////////// */
+boolean rbez_FindBezpHighlightPointsd ( int n, int m, point3d *cp,
+                     double u0, double u1, double v0, double v1,
+                     point3d *a, int maxlevel,
+                     boolean (*out)(void *usrptr, point2d *uv, boolean singular),
+                     void *usrptr );
+
+/* ////////////////////////////////////////////////////////////////////////// */
+
 #ifndef RAYBEZ_H
 boolean raybez_InitMutex ( void );
 void raybez_DestroyMutex ( void );

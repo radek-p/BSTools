@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2013                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2013, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -12,6 +12,7 @@
 #define RBEZ_NEWTON_NO    1
 #define RBEZ_NEWTON_ERROR 2
 
+boolean _rbez_SubdividePatch2d ( int n, int m, point2d *p, point2d *q );
 boolean _rbez_ConvexHullTest2d ( int ncp, point2d *mcp );
 boolean _rbez_UniquenessTest2d ( int n, int m, int ncp, point2d *mcp,
                                  point2d *p, vector2d *du, vector2d *dv,

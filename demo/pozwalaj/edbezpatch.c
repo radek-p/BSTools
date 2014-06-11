@@ -167,11 +167,13 @@ void GeomObjectDrawBezierPatch ( GO_BezierPatch *obj )
     DrawBezierPatchWF ( obj->me.cpdimen, obj->me.spdimen,
                         obj->degree_u, obj->degree_v,
                         pitch, obj->cpoints, 1, 1,
+                        8*obj->dens_u, 8*obj->dens_v,
                         true, true, true, true );
     glColor3fv ( xglec_Grey1 );
     DrawBezierPatchWF ( obj->me.cpdimen, obj->me.spdimen,
                         obj->degree_u, obj->degree_v,
                         pitch, obj->cpoints, obj->dens_u, obj->dens_v,
+                        8*obj->dens_u, 8*obj->dens_v,
                         false, false, false, false );
     glEndList ();
     obj->me.dlistmask |= BEZP_DLM_PATCH;

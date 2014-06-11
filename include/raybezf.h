@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -231,6 +231,13 @@ boolean rbi_FindRBezIntersectionf ( int n1, int m1, point4f *p1,
 boolean rbez_HomotopicClosedBSC3f ( int degree, int lastknot, float *knots,
                                     point3f *cpoints0, point3f *cpoints1,   
                                     float *tfh, boolean *error );
+
+/* ////////////////////////////////////////////////////////////////////////// */
+boolean rbez_FindBezpHighlightPointsf ( int n, int m, point3f *cp,
+                     float u0, float u1, float v0, float v1,
+                     point3f *a, int maxlevel,
+                     boolean (*out)(void *usrptr, point2f *uv, boolean singular),
+                     void *usrptr );
 
 /* ////////////////////////////////////////////////////////////////////////// */
 #ifndef RAYBEZ_H

@@ -3702,4 +3702,14 @@ Wersja 0.33.
 862. Do programu pozwalaj dodana mozliwosc wyswietlania wykresow krzywizny i
     skrecenia.
 
+11.06.2014.
+863. Do biblioteki libraybez dodana procedura rbez_FindBezpHighlightPointsf.
+    Jej zadaniem jest znalezienie punktow plata Beziera, w ktorych
+    wystawiona prosta normalna przechodzi przez wskazany punkt w
+    przestrzeni. Moze to byc uzyte (jako czesc wiekszej calosci) do
+    znajdowania odleglosci tego punktu od plata (trzeba jeszcze oprogramowac
+    wyznaczanie punktow krzywej, w ktorych plaszczyzna normalna przechodzi
+    przez zadany punkt).
+
+864. Poprawienie wyswietlania brzegu platow Beziera przez program pozwalaj.
 

@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2013                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2013, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -25,39 +25,6 @@
 #include "raybezprivated.h"
 
 /* ////////////////////////////////////////////////////////////////////////// */
-static boolean SubdividePatch ( int n, int m, point2d *p, point2d *q )
-{
-  int      i, j, k;
-  vector2d v;
-  double   a, lu, lv;
-
-        /* choose the division direction */
-  lu = lv = 0.0;
-  for ( i = k = 0;  i <= n;  i++, k++ )
-    for ( j = 0;  j < m;  j++, k++ ) {
-      SubtractPoints2d ( &p[k+1], &p[k], &v );
-      a = DotProduct2d ( &v, &v );
-      if ( a > lv )
-        lv = a;
-    }
-  for ( i = k = 0;  i < n;  i++ )
-    for ( j = 0;  j <= m;  j++, k++ ) {
-      SubtractPoints2d ( &p[k+m+1], &p[k], &v );
-      a = DotProduct2d ( &v, &v );
-      if ( a > lu )
-        lu = a;
-    }
-        /* divide */
-  if ( (double)(n*n)*lu > (double)(m*m)*lv ) {
-    mbs_BisectBP2ud ( n, m, p, q );
-    return true;
-  }
-  else {
-    mbs_BisectBP2vd ( n, m, p, q );
-    return false;
-  }
-} /*SubdividePatch*/
-
 static boolean EnterSolution ( int degree, point4d *cp, int object_id, ray3d *ray,
                                double t0, double t1, double u0, double u1,
                                point2d *z,
@@ -286,7 +253,8 @@ subdivide:
           stack[stp+1].level = stack[stp].level = stack[stp].level+1;
           stack[stp+1].u0 = u0;
           stack[stp+1].t0 = t0;
-          if ( SubdividePatch ( deg3, 2, stack[stp].mcp, stack[stp+1].mcp ) ) {
+          if ( _rbez_SubdividePatch2d ( deg3, 2, stack[stp].mcp,
+                                        stack[stp+1].mcp ) ) {
             stack[stp+1].u1 = u1;
             stack[stp].t0 = stack[stp+1].t1 = 0.5*(t0+t1);
           }

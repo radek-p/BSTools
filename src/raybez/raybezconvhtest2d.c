@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -24,6 +24,39 @@
 #include "raybezprivated.h"
 
 /* ///////////////////////////////////////////////////////////////////////// */
+boolean _rbez_SubdividePatch2d ( int n, int m, point2d *p, point2d *q )
+{
+  int      i, j, k;
+  vector2d v;
+  double   a, lu, lv;
+
+        /* choose the division direction */
+  lu = lv = 0.0;
+  for ( i = k = 0;  i <= n;  i++, k++ )
+    for ( j = 0;  j < m;  j++, k++ ) {
+      SubtractPoints2d ( &p[k+1], &p[k], &v );
+      a = DotProduct2d ( &v, &v );
+      if ( a > lv )
+        lv = a;
+    }
+  for ( i = k = 0;  i < n;  i++ )
+    for ( j = 0;  j <= m;  j++, k++ ) {
+      SubtractPoints2d ( &p[k+m+1], &p[k], &v );
+      a = DotProduct2d ( &v, &v );
+      if ( a > lu )
+        lu = a;
+    }
+        /* divide */
+  if ( (double)(n*n)*lu > (double)(m*m)*lv ) {
+    mbs_BisectBP2ud ( n, m, p, q );
+    return true;
+  }
+  else {
+    mbs_BisectBP2vd ( n, m, p, q );
+    return false;
+  }
+} /*_rbez_SubdividePatch2d*/
+
 boolean _rbez_ConvexHullTest2d ( int ncp, point2d *mcp )
 {
   int          i;

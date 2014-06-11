@@ -131,7 +131,8 @@ void DrawBSplineCurve ( int cpdimen, int spdimen, int deg, int lkn, double *knot
                         double *cp, int dd );
 void DrawBezierPatchWF ( int cpdimen, int spdimen, int degu, int degv,
                          int pitch, const double *cpoints,
-                         int densu, int densv, boolean firstu, boolean lastu,
+                         int densu, int densv, int denscu, int denscv,
+                         boolean firstu, boolean lastu,
                          boolean firstv, boolean lastv );
 void DrawBSplinePatchWF ( int cpdimen, int spdimen,
                           int degu, int lknu, const double *knu,

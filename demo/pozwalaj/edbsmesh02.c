@@ -122,10 +122,12 @@ void GeomObjectDrawMeshPatch ( int d, int *vertnum, int *mtab, void *usrptr )
                         pitch, cp, &ku, NULL, NULL, &kv, NULL, NULL, pitch, bp );
     glColor3fv ( xglec_White );
     DrawBezierPatchWF ( dim, obj->me.spdimen, degree, degree, pitch, bp,
-                        1, 1, true, true, true, true );
+                        1, 1, 8*obj->density, 8*obj->density,
+                        true, true, true, true );
     glColor3fv ( xglec_Grey1 );
     DrawBezierPatchWF ( dim, obj->me.spdimen, degree, degree, pitch, bp,
-                        obj->density, obj->density, false, false, false, false );
+                        obj->density, obj->density, 8*obj->density, 8*obj->density,
+                        false, false, false, false );
 #ifdef DUMPIT
     if ( dumpit )
       GeomObjectDumpBezierPatch ( obj->me.spdimen, obj->me.cpdimen, obj->rational,
@@ -158,7 +160,8 @@ void GeomObjectBSplineMeshOutputBezierPatch ( int n, int m, const double *cp,
   glColor3fv ( xglec_White );
   DrawBezierPatchWF ( obj->me.cpdimen, obj->me.spdimen, n, m,
                       (n+1)*obj->me.cpdimen, cp,
-                      1, 1, true, true, true, true );
+                      1, 1, 8*obj->density, 8*obj->density,
+                      true, true, true, true );
   if ( obj->fill_G1 )
     glColor3fv ( xglec_Wheat2 );
   else if ( obj->fill_G2 )
@@ -167,7 +170,8 @@ void GeomObjectBSplineMeshOutputBezierPatch ( int n, int m, const double *cp,
     glColor3fv ( xglec_Thistle2 );
   DrawBezierPatchWF ( obj->me.cpdimen, obj->me.spdimen, n, m,
                       (n+1)*obj->me.cpdimen, cp,
-                      obj->density, obj->density, false, false, false, false );
+                      obj->density, obj->density, 8*obj->density, 8*obj->density,
+                      false, false, false, false );
 #ifdef DUMPIT
   if ( dumpit )
     GeomObjectDumpBezierPatch ( obj->me.spdimen, obj->me.cpdimen, obj->rational,

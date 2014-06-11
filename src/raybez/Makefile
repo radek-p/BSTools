@@ -28,7 +28,8 @@ OBJECTS = raybezf.o rayrbezf.o raybeztreef.o \
   rayrbeztreed.o rayboxtestd.o \
   raypthreads.o rbezintersf.o rbezintersd.o \
   raybezconvhtest2f.o raybezconvhtest2d.o \
-  rbshomotopyf.o rbshomotopyd.o
+  rbshomotopyf.o rbshomotopyd.o \
+  raybezphpointsf.o raybezphpointsd.o
 
 TARGET = $(LIBDIR)/libraybez.a
 
@@ -81,6 +82,10 @@ rbezintersd.o: rbezintersd.c $(INCLUDES)
 rbshomotopyf.o: rbshomotopyf.c $(INCLUDES)
 
 rbshomotopyd.o: rbshomotopyd.c $(INCLUDES)
+
+raybezphpointsf.o: raybezphpointsf.c $(INCLUDES)
+
+raybezphpointsd.o: raybezphpointsd.c $(INCLUDES)
 
 clean:
 	rm -f $(OBJECTS)
