@@ -3713,3 +3713,12 @@ Wersja 0.33.
 
 864. Poprawienie wyswietlania brzegu platow Beziera przez program pozwalaj.
 
+12.06.2014.
+865. Do biblioteki libraybez dodana procedura rbez_FindBezcHighlightPointsf.
+    Jej zadaniem jest znalezienie takich punktow krzywej Beziera, ze odcinki
+    laczace te punkty z danym punktem w przestrzeni sa prostopadle do
+    stycznych do krzywej w tych punktach. To jest kolejna czesc planowanej
+    wiekszej calosci sluzacej do znajdowania odleglosci danego punktu od
+    powierzchni, np. B-sklejanej.
+
+

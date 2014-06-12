@@ -3,7 +3,7 @@
 # This file is a part of the BSTools package
 # written by Przemyslaw Kiciak
 # /////////////////////////////////////////////////////////////////////
-# (C) Copyright by Przemyslaw Kiciak, 2005, 2013
+# (C) Copyright by Przemyslaw Kiciak, 2005, 2014
 # this package is distributed under the terms of the
 # Lesser GNU Public License, see the file COPYING.LIB
 # /////////////////////////////////////////////////////////////////////
@@ -29,7 +29,9 @@ OBJECTS = raybezf.o rayrbezf.o raybeztreef.o \
   raypthreads.o rbezintersf.o rbezintersd.o \
   raybezconvhtest2f.o raybezconvhtest2d.o \
   rbshomotopyf.o rbshomotopyd.o \
-  raybezphpointsf.o raybezphpointsd.o
+  raybezphpointsf.o raybezphpointsd.o \
+  raybezconvhtest1f.o raybezconvhtest1d.o \
+  raybezchpointsf.o raybezchpointsd.o
 
 TARGET = $(LIBDIR)/libraybez.a
 
@@ -44,48 +46,32 @@ $(TARGET): $(OBJECTS)
 raypthreads.o: raypthreads.c $(INCLUDES)
 
 rayboxtestf.o: rayboxtestf.c $(INCLUDES)
-
+raybezconvhtest1f.o: raybezconvhtest1f.c $(INCLUDES)
 raybezconvhtest2f.o: raybezconvhtest2f.c $(INCLUDES)
-
 raybezf.o: raybezf.c $(INCLUDES)
-
 rayrbezf.o: rayrbezf.c $(INCLUDES)
-
 raybeztreef.o: raybeztreef.c $(INCLUDES)
-
 raybezcoffsetf.o: raybezcoffsetf.c $(INCLUDES)
-
 rayrbezcoffsetf.o: rayrbezcoffsetf.c $(INCLUDES)
-
 rayrbeztreef.o: rayrbeztreef.c $(INCLUDES)
-
 rbezintersf.o: rbezintersf.c $(INCLUDES)
+rbshomotopyf.o: rbshomotopyf.c $(INCLUDES)
+raybezphpointsf.o: raybezphpointsf.c $(INCLUDES)
+raybezchpointsf.o: raybezchpointsf.c $(INCLUDES)
 
 rayboxtestd.o: rayboxtestd.c $(INCLUDES)
-
+raybezconvhtest1d.o: raybezconvhtest1d.c $(INCLUDES)
 raybezconvhtest2d.o: raybezconvhtest2d.c $(INCLUDES)
-
 raybezd.o: raybezd.c $(INCLUDES)
-
 rayrbezd.o: rayrbezd.c $(INCLUDES)
-
 raybeztreed.o: raybeztreed.c $(INCLUDES)
-
 raybezcoffsetd.o: raybezcoffsetd.c $(INCLUDES)
-
 rayrbezcoffsetd.o: rayrbezcoffsetd.c $(INCLUDES)
-
 rayrbeztreed.o: rayrbeztreed.c $(INCLUDES)
-
 rbezintersd.o: rbezintersd.c $(INCLUDES)
-
-rbshomotopyf.o: rbshomotopyf.c $(INCLUDES)
-
 rbshomotopyd.o: rbshomotopyd.c $(INCLUDES)
-
-raybezphpointsf.o: raybezphpointsf.c $(INCLUDES)
-
 raybezphpointsd.o: raybezphpointsd.c $(INCLUDES)
+raybezchpointsd.o: raybezchpointsd.c $(INCLUDES)
 
 clean:
 	rm -f $(OBJECTS)

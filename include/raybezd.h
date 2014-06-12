@@ -233,6 +233,11 @@ boolean rbez_HomotopicClosedBSC3d ( int degree, int lastknot, double *knots,
                                     double *tfh, boolean *error );
 
 /* ////////////////////////////////////////////////////////////////////////// */
+boolean rbez_FindBezcHighlightPointsd ( int degree, point3d *cp,
+                     double t0, double t1,
+                     point3d *a, int maxlevel,
+                     boolean (*out)(void *usrptr, double t, boolean singular),
+                     void *usrptr );
 boolean rbez_FindBezpHighlightPointsd ( int n, int m, point3d *cp,
                      double u0, double u1, double v0, double v1,
                      point3d *a, int maxlevel,

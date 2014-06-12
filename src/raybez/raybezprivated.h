@@ -12,6 +12,10 @@
 #define RBEZ_NEWTON_NO    1
 #define RBEZ_NEWTON_ERROR 2
 
+boolean _rbez_ConvexHullTest1d ( int n, double *ff );
+boolean _rbez_UniquenessTest1d ( int n, double *ff );
+boolean _rbez_NewtonMethod1d ( int n, double *ff, double *z );
+
 boolean _rbez_SubdividePatch2d ( int n, int m, point2d *p, point2d *q );
 boolean _rbez_ConvexHullTest2d ( int ncp, point2d *mcp );
 boolean _rbez_UniquenessTest2d ( int n, int m, int ncp, point2d *mcp,
