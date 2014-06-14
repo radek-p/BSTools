@@ -97,7 +97,7 @@ case BSF_SYMB_CPOINTS:
 
 case BSF_SYMB_RBRACE:
       bsf_GetNextSymbol ();
-      if ( (*rational && dim < cpdimen+1) || (!*rational && dim < cpdimen) )
+      if ( (*rational && dim < cpdimen-1) || (!*rational && dim < cpdimen) )
         goto failure;  
       *spdimen = dim;
       if ( deg && c_points && ncpoints == (*udeg+1)*(*vdeg+1) ) {

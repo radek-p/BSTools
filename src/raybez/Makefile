@@ -31,7 +31,9 @@ OBJECTS = raybezf.o rayrbezf.o raybeztreef.o \
   rbshomotopyf.o rbshomotopyd.o \
   raybezphpointsf.o raybezphpointsd.o \
   raybezconvhtest1f.o raybezconvhtest1d.o \
-  raybezchpointsf.o raybezchpointsd.o
+  raybezchpointsf.o raybezchpointsd.o \
+  rayrbezchpointsf.o rayrbezchpointsd.o \
+  rayrbezphpointsf.o rayrbezphpointsd.o
 
 TARGET = $(LIBDIR)/libraybez.a
 
@@ -58,6 +60,8 @@ rbezintersf.o: rbezintersf.c $(INCLUDES)
 rbshomotopyf.o: rbshomotopyf.c $(INCLUDES)
 raybezphpointsf.o: raybezphpointsf.c $(INCLUDES)
 raybezchpointsf.o: raybezchpointsf.c $(INCLUDES)
+rayrbezchpointsf.o: rayrbezchpointsf.c $(INCLUDES)
+rayrbezphpointsf.o: rayrbezphpointsf.c $(INCLUDES)
 
 rayboxtestd.o: rayboxtestd.c $(INCLUDES)
 raybezconvhtest1d.o: raybezconvhtest1d.c $(INCLUDES)
@@ -72,6 +76,8 @@ rbezintersd.o: rbezintersd.c $(INCLUDES)
 rbshomotopyd.o: rbshomotopyd.c $(INCLUDES)
 raybezphpointsd.o: raybezphpointsd.c $(INCLUDES)
 raybezchpointsd.o: raybezchpointsd.c $(INCLUDES)
+rayrbezchpointsd.o: rayrbezchpointsd.c $(INCLUDES)
+rayrbezphpointsd.o: rayrbezphpointsd.c $(INCLUDES)
 
 clean:
 	rm -f $(OBJECTS)

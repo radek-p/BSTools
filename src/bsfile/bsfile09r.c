@@ -126,7 +126,7 @@ case BSF_SYMB_CPOINTS:
 
 case BSF_SYMB_RBRACE:
       bsf_GetNextSymbol ();
-      if ( (*rational && *spdimen < cpdimen+1) ||
+      if ( (*rational && *spdimen < cpdimen-1) ||
            (!*rational && *spdimen < cpdimen) )
         goto failure;  
       if ( sides && domcp && surfcp && nk == ns )

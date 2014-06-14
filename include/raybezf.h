@@ -244,6 +244,17 @@ boolean rbez_FindBezpHighlightPointsf ( int n, int m, point3f *cp,
                      boolean (*out)(void *usrptr, point2f *uv, boolean singular),
                      void *usrptr );
 
+boolean rbez_FindRBezcHighlightPointsf ( int degree, point4f *cp,
+                     float t0, float t1,
+                     point3f *a, int maxlevel,
+                     boolean (*out)(void *usrptr, float t, boolean singular),
+                     void *usrptr );
+boolean rbez_FindRBezpHighlightPointsf ( int n, int m, point4f *cp,
+                     float u0, float u1, float v0, float v1,   
+                     point3f *a, int maxlevel,
+                     boolean (*out)(void *usrptr, point2f *uv, boolean singular),
+                     void *usrptr );
+
 /* ////////////////////////////////////////////////////////////////////////// */
 #ifndef RAYBEZ_H
 boolean raybez_InitMutex ( void );

@@ -3721,4 +3721,11 @@ Wersja 0.33.
     wiekszej calosci sluzacej do znajdowania odleglosci danego punktu od
     powierzchni, np. B-sklejanej.
 
+13.06.2014.
+866. Do biblioteki libraybez dodane procedury rbez_FindRBezpHighlightPointsf
+    i rbez_FindRBezcHighlightPointsf, do znajdowania odpowiednich punktow
+    wymiernych platow i  krzywych Beziera - poprawki 863 i 865.
+
+867. Poprawiony blad czytania wymiernych krzywych i powierzchni - bylo cos
+    nie w porzadku z wymiarem.
 
