@@ -129,6 +129,11 @@ float xge_LinSlidebarValuef ( float xmin, float xmax, float t )
   return xmin + t*(xmax-xmin);
 } /*xge_LinSlidebarValuef*/
 
+float xge_LinSlidebarPosf ( float xmin, float xmax, float x )
+{
+  return (x-xmin)/(xmax-xmin);
+} /*xge_LinSlidebarPosf*/
+
 float xge_LogSlidebarValuef ( float xmin, float xmax, float t )
 {
   float a, b;
@@ -137,6 +142,15 @@ float xge_LogSlidebarValuef ( float xmin, float xmax, float t )
   a = (float)log ( xmax ) - b;
   return (float)exp ( a*t + b );
 } /*xge_LogSlidebarValuef*/
+
+float xge_LogSlidebarPosf ( float xmin, float xmax, float x )
+{
+  float a, b;
+
+  b = log ( xmin );
+  a = log ( xmax ) - b;
+  return (log ( x ) - b)/a;
+} /*xge_LogSlidebarPosf*/
 
 xge_widget *xge_NewSlidebarf ( char window_num, xge_widget *prev, int id,
                               short w, short h, short x, short y,

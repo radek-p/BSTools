@@ -80,6 +80,9 @@ void InitSide10Menu_BSc ( void )
   w = xge_NewIntWidget ( win1, w, intwM1BSC_GRAPH_DENSITY, 109, 19, 0, 150,
                          1, 32, &bsc_graphdens, txtGraphDensity, &curv_graph_dens );
   w = xge_NewButton ( win1, w, btnM1BSC_COLOUR, 60, 18, 0, 172, txtColour );
+  w = xge_NewTextWidget ( win1, w, 0, 109, 19, 0, 192, txtPipeDiameter );
+  w = xge_NewSlidebard ( win1, w, slM1BSC_PIPE_DIAMETER, 109, 10, 0, 212,
+                         &sl_pipe_diameter );
   w = xge_NewSwitch ( win1, w, swM11STATUS, 16, 16, 0, xge_HEIGHT-16,
                       txtNull, &win1statusline );
   xge_SetWidgetPositioning ( w, 2, 0, -16 );
@@ -120,6 +123,9 @@ void SetupBSplineCurveWidgets ( GO_BSplineCurve *obj )
   curvature_scale = obj->curvature_scale;
   torsion_scale = obj->torsion_scale;
   curv_graph_dens = obj->graph_dens;
+  sl_pipe_diameter = xge_LogSlidebarPosd ( BSC_MIN_PIPE_DIAMETER,
+                                           BSC_MAX_PIPE_DIAMETER,
+                                           obj->pipe_diameter );
   Geom10winKNSetKnots ( &g10knotwin, obj->degree, obj->lastknot,
                         obj->knots, obj->closed );
   SetGeomWin10Knotw ( obj );
@@ -182,12 +188,12 @@ case xgemsg_SWITCH_COMMAND:
       RedrawGeom00Win ();
       return 1;
   case swM1BSC_VIEW_CURVATURE:
-      if ( sw_view_curvature ) {
+      obj->view_curvature = sw_view_curvature;
+      if ( sw_view_curvature )
         GeomObjectBSplineCurveSetCurvatureGraph ( obj,
                         sw_view_curvature, curvature_scale,
                         sw_view_torsion, torsion_scale, curv_graph_dens );
-        RedrawGeom00Win ();
-      }
+      RedrawGeom00Win ();
       return 1;
   case swM1BSC_VIEW_TORSION:
       if ( sw_view_torsion ) {
@@ -226,6 +232,11 @@ case xgemsg_SLIDEBAR_COMMAND:
                         sw_view_torsion, torsion_scale, curv_graph_dens );
         RedrawGeom00Win ();
       }
+      return 1;
+  case slM1BSC_PIPE_DIAMETER:
+      obj->pipe_diameter = xge_LogSlidebarValued ( BSC_MIN_PIPE_DIAMETER,
+                                  BSC_MAX_PIPE_DIAMETER, sl_pipe_diameter );
+      NotifyParam2 ( obj->pipe_diameter );
       return 1;
   default:
       return 0;

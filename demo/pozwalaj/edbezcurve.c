@@ -71,12 +71,15 @@ boolean GeomObjectInitBezierCurve ( GO_BezierCurve *obj,
   memset ( obj->mkcp, MASK_CP_MOVEABLE, 2 );
   obj->degree = 1;
   obj->view_curve = obj->view_cpoly = true;
+  obj->view_curvature = obj->view_torsion = false;
+  obj->graph_dens = 10;
   obj->me.displaylist = glGenLists ( BEZC_NDL );
   obj->me.dlistmask = 0;
   obj->me.colour[0] = obj->me.colour[1] = 1.0;
   obj->me.colour[2] = 0.0;
   obj->me.display_pretrans = false;
   IdentTrans3d ( &obj->me.pretrans );
+  obj->pipe_diameter = 0.1;
   return true;
 } /*GeomObjectInitBezierCurve*/
 
@@ -153,6 +156,9 @@ geom_object *GeomObjectCopyBezierCurve ( GO_BezierCurve *obj )
       GeomObjectSetupWeightPoints ( copy->me.cpdimen, ncp,
                                     copy->cpoints, copy->weightpoints );
     copy->view_curve = copy->view_cpoly = true;
+    copy->view_curvature = copy->view_torsion = false;
+    copy->graph_dens = 10;
+    copy->pipe_diameter = obj->pipe_diameter;
     copy->me.displaylist = glGenLists ( BEZC_NDL );
     copy->me.dlistmask = 0;
     return &copy->me;
@@ -226,6 +232,128 @@ void GeomObjectDrawBezierCPoly ( GO_BezierCurve *obj )
   }
 } /*GeomObjectDrawBezierCPoly*/
 
+void GeomObjectDrawBezierCurvature ( GO_BezierCurve *obj )
+{
+  int      dim, deg, dens, j;
+  double   t;
+  point2d  p2, q2;
+  vector2d f2[2];
+  point3d  p3, q3;
+  vector3d f3[3];
+  double   curv[2], scf;
+
+  if ( obj->me.obj_type != GO_BEZIER_CURVE )
+    return;
+  if ( obj->me.dlistmask & BEZC_DLM_CURVATURE )
+    glCallList ( obj->me.displaylist+2 );
+  else {
+    dim = obj->me.cpdimen;
+    deg = obj->degree;
+    dens = obj->graph_dens;
+    scf = xge_LogSlidebarValued ( 0.01, 100.0, obj->curvature_scale );
+    glNewList ( obj->me.displaylist+2, GL_COMPILE_AND_EXECUTE );
+    glColor3fv ( xglec_CornflowerBlue );
+    glBegin ( GL_LINES );
+    switch ( obj->me.spdimen ) {
+  case 2:
+      if ( dim == 2 ) {      /* non-rational */
+        for ( j = 0; j <= dens; j++ ) {
+          t = (double)j/(double)dens;
+          mbs_BCFrenetC2d ( deg, (point2d*)obj->cpoints, t, &p2, f2, curv );
+          AddVector2Md ( &p2, &f2[1], curv[0]*scf, &q2 );
+          glVertex2dv ( &p2.x );
+          glVertex2dv ( &q2.x );
+        }
+      }
+      else if ( dim == 3 ) { /* rational */
+        for ( j = 0; j <= dens; j++ ) {
+          t = (double)j/(double)dens;
+          mbs_BCFrenetC2Rd ( deg, (point3d*)obj->cpoints, t, &p2, f2, curv );
+          AddVector2Md ( &p2, &f2[1], curv[0]*scf, &q2 );
+          glVertex2dv ( &p2.x );
+          glVertex2dv ( &q2.x );
+        }
+      }
+      break;
+  case 3:
+      if ( dim == 3 ) {      /* non-rational */
+        for ( j = 0; j <= dens; j++ ) {
+          t = (double)j/(double)dens;
+          mbs_BCFrenetC3d ( deg, (point3d*)obj->cpoints, t, &p3, f3, curv );
+          AddVector3Md ( &p3, &f3[1], curv[0]*scf, &q3 );
+          glVertex3dv ( &p3.x );
+          glVertex3dv ( &q3.x );
+        }
+      }
+      else if ( dim == 3 ) { /* rational */
+        for ( j = 0; j <= dens; j++ ) {
+          t = (double)j/(double)dens;
+          mbs_BCFrenetC3Rd ( deg, (point4d*)obj->cpoints, t, &p3, f3, curv );
+          AddVector3Md ( &p3, &f3[1], curv[0]*scf, &q3 );
+          glVertex3dv ( &p3.x );
+          glVertex3dv ( &q3.x );
+        }
+      }
+      break;
+  default:
+      break;
+    }
+    glEnd ();
+    glEndList ();
+    obj->me.dlistmask |= BEZC_DLM_CURVATURE;
+  }
+} /*GeomObjectDrawBezierCurvature*/
+
+void GeomObjectDrawBezierTorsion ( GO_BezierCurve *obj )
+{
+  int      dim, deg, j, dens;
+  double   t;
+  point3d  p3, q3;
+  vector3d f3[3];
+  double   curv[2], scf;
+
+  if ( obj->me.obj_type != GO_BEZIER_CURVE )
+    return;
+  if ( obj->me.dlistmask & BEZC_DLM_TORSION )
+    glCallList ( obj->me.displaylist+3 );
+  else {
+    dim = obj->me.cpdimen;
+    deg = obj->degree;
+    dens = obj->graph_dens;
+    scf = xge_LogSlidebarValued ( 0.01, 100.0, obj->torsion_scale );
+    glNewList ( obj->me.displaylist+3, GL_COMPILE_AND_EXECUTE );
+    glColor3fv ( xglec_SpringGreen2 );
+    glBegin ( GL_LINES );
+    switch ( obj->me.spdimen ) {
+  case 3:
+      if ( dim == 3 ) {      /* non-rational */
+        for ( j = 0; j <= dens; j++ ) {
+          t = (double)j/(double)dens;
+          mbs_BCFrenetC3d ( deg, (point3d*)obj->cpoints, t, &p3, f3, curv );
+          AddVector3Md ( &p3, &f3[2], curv[1]*scf, &q3 );
+          glVertex3dv ( &p3.x );
+          glVertex3dv ( &q3.x );
+        }
+      }
+      else if ( dim == 3 ) { /* rational */
+        for ( j = 0; j <= dens; j++ ) {
+          t = (double)j/(double)dens;
+          mbs_BCFrenetC3Rd ( deg, (point4d*)obj->cpoints, t, &p3, f3, curv );
+          AddVector3Md ( &p3, &f3[2], curv[1]*scf, &q3 );
+          glVertex3dv ( &p3.x );
+          glVertex3dv ( &q3.x );
+        }
+      }
+      break;
+  default:
+      break;
+    }
+    glEnd ();
+    glEndList ();
+    obj->me.dlistmask |= BEZC_DLM_TORSION;
+  }
+} /*GeomObjectDrawBezierTorsion*/
+
 void GeomObjectDisplayBezierCurve ( GO_BezierCurve *obj )
 {
   if ( obj->me.obj_type != GO_BEZIER_CURVE )
@@ -234,6 +362,10 @@ void GeomObjectDisplayBezierCurve ( GO_BezierCurve *obj )
     GeomObjectDrawBezierCurve ( obj );
   if ( obj->view_cpoly )
     GeomObjectDrawBezierCPoly ( obj );
+  if ( obj->view_curvature )
+    GeomObjectDrawBezierCurvature ( obj );
+  if ( obj->view_torsion )
+    GeomObjectDrawBezierTorsion ( obj );
 } /*GeomObjectDisplayBezierCurve*/
 
 boolean GeomObjectBezierCurveSetDegree ( GO_BezierCurve *obj, int deg )
@@ -429,6 +561,26 @@ void GeomObjectBezierCurveTransformCPoints ( GO_BezierCurve *obj,
   }
 } /*GeomObjectBezierCurveTransformCPoints*/
 
+void GeomObjectBezierCurveSetCurvatureGraph ( GO_BezierCurve *obj,
+                                boolean view_curvature, double curvature_scale,
+                                boolean view_torsion, double torsion_scale,
+                                int graph_dens )
+{
+  if ( (view_curvature && !obj->view_curvature) ||
+       curvature_scale != obj->curvature_scale ||
+       graph_dens != obj->graph_dens )
+    obj->me.dlistmask &= ~BEZC_DLM_CURVATURE;
+  obj->view_curvature = view_curvature;
+  if ( (view_torsion && !obj->view_torsion) ||
+       torsion_scale != obj->torsion_scale ||
+       graph_dens != obj->graph_dens )
+    obj->me.dlistmask &= ~BEZC_DLM_TORSION;
+  obj->curvature_scale = curvature_scale;
+  obj->view_torsion = view_torsion && (obj->me.spdimen == 3);
+  obj->torsion_scale = torsion_scale;
+  obj->graph_dens = graph_dens;
+} /*GeomObjectBezierCurveSetCurvatureGraph*/
+
 boolean GeomObjectBezierCurveGetPointCoord ( GO_BezierCurve *obj, int p,
                                   int *spdimen, int *cpdimen, double **pc )
 {
@@ -519,10 +671,10 @@ void GeomObjectBezierCurveOutputToRenderer ( GO_BezierCurve *obj )
     return;
   if ( obj->rational )
     RendEnterBezCurve3Rd ( obj->degree, (point4d*)obj->cpoints,
-                           0.05, obj->me.colour );
+                           0.5*obj->pipe_diameter, obj->me.colour );
   else
     RendEnterBezCurve3d ( obj->degree, (point3d*)obj->cpoints,
-                          0.05, obj->me.colour );
+                          0.5*obj->pipe_diameter, obj->me.colour );
 } /*GeomObjectBezierCurveOutputToRenderer*/
 
 void GeomObjectBezierCurveDisplayInfoText ( GO_BezierCurve *obj )

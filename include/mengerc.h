@@ -33,7 +33,11 @@ extern "C" {
 /* number of penalty parameters */
 #define MENGERC_NPPARAM 5
 
-#define MENGERC_ALT_SCALE
+/* penalty parameters optimization options */
+#define MENGERC_OPT_NONE  0
+#define MENGERC_OPT_FULL1 1
+#define MENGERC_OPT_FULL2 2
+#define MENGERC_OPT_PART  3
 
 /* ///////////////////////////////////////////////////////////////////////// */
 typedef struct {
@@ -58,7 +62,7 @@ typedef struct {
           /* desired length of the curve */
     double  L;
           /* penalty parameters */
-    double  kara[5];
+    double  penalty_param[5];
     int     mdi;  /* control point most distant from the gravity centre */
     boolean alt_scale;
           /* pre-transformation switch */
@@ -92,7 +96,8 @@ typedef struct {
 boolean mengerc_TabBasisFunctions ( int n, int nqkn, mengerc_data *md );
 boolean mengerc_BindACurve ( mengerc_data *md,
                              int deg, int lkn, double *knots, point3d *cpoints,
-                             int nqkn, double w, double *kara, boolean alt_scale );
+                             int nqkn, double w, double *penalty_param,
+                             boolean alt_scale );
 void mengerc_UntieTheCurve ( mengerc_data *md );
 
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -139,12 +144,13 @@ int mengerc_ModifyRemotestPoint ( int np, point3d *cpoints, point3d *sc, int mdi
 
 boolean mengerc_OptPenaltyParams1 ( mengerc_data *md, boolean wide );   
 boolean mengerc_OptPenaltyParams2 ( mengerc_data *md );
+boolean mengerc_OptPenaltyParams3 ( mengerc_data *md );
 
 /* ///////////////////////////////////////////////////////////////////////// */
 boolean mengerc_OptimizeMengerCurvature (
                       int deg, int lkn, double *knots, point3d *cpoints,
                       double w, double penalty_param[5],
-                      int nqkn, int nthr, boolean opt_param,
+                      int nqkn, int nthr, int opt,
                       void (*outiter)(void *usrdata,
                                       int it, int itres, double f, double g),
                       void *usrdata );

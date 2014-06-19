@@ -26,15 +26,11 @@
 #define MAXLKNOT 1000
 #define MAXITER  200
 
-#define OPTPAR1
-/*#define OPTPAR2*/
-/*#define OPTSD*/
-
 /* ////////////////////////////////////////////////////////////////////////// */
 boolean mengerc_OptimizeMengerCurvature (
                       int deg, int lkn, double *knots, point3d *cpoints,
                       double w, double penalty_param[5],
-                      int nqkn, int nthr, boolean opt_param,
+                      int nqkn, int nthr, int opt,
                       void (*outiter)(void *usrdata,
                                       int itres, int it, double f, double g),
                       void *usrdata )
@@ -46,10 +42,6 @@ boolean mengerc_OptimizeMengerCurvature (
   double       nu, lastf, lastgn;
   boolean      opt_res;
   int          itres;
-#ifdef OPTSD
-  double       sdnu;
-  int          j;
-#endif
 
   sp = pkv_GetScratchMemTop ();
   if ( !mengerc_BindACurve ( &md, deg, lkn, knots, cpoints, nqkn,
@@ -71,15 +63,19 @@ boolean mengerc_OptimizeMengerCurvature (
   if ( !mengerc_IntegralMengerTransC ( n, (void*)&md, x ) )
     goto failure;
 
-  if ( opt_param ) {
-#ifdef OPTPAR1
-    if ( !mengerc_OptPenaltyParams1 ( &md, false/*true*/ ) )
-      printf ( "qq\n" );
-#endif
-#ifdef OPTPAR2
-    if ( !mengerc_OptPenaltyParams2 ( &md ) )
-      printf ( "qq\n" );
-#endif
+  switch ( opt ) {
+case MENGERC_OPT_FULL1:
+    mengerc_OptPenaltyParams1 ( &md, false/*true*/ );
+    break;
+case MENGERC_OPT_FULL2:
+    mengerc_OptPenaltyParams2 ( &md );
+    break;
+case MENGERC_OPT_PART:
+    mengerc_OptPenaltyParams3 ( &md );
+    break;
+case MENGERC_OPT_NONE:
+default:
+    break;
   }
   mengerc_IntegralMengerfg ( n, (void*)&md, x, &f, g );
   lastf = f;
@@ -88,9 +84,6 @@ boolean mengerc_OptimizeMengerCurvature (
       outiter ( usrdata, 0, -1, f, gn );
 
   nu = -1.0;
-#ifdef OPTSD
-  sdnu = 1.0e+6;
-#endif
   md.pretransf = true;
   fcnt = 0;
   for ( i = 0;  i < MAXITER;  i++ ) {
@@ -130,7 +123,7 @@ boolean mengerc_OptimizeMengerCurvature (
       goto finish;
 
   case PKN_LMT_NO_PROGRESS:
-      if ( opt_param && fcnt > 0 )
+      if ( opt != MENGERC_OPT_NONE && fcnt > 0 )
         goto opt_param;
       else
         goto finish;
@@ -140,18 +133,25 @@ boolean mengerc_OptimizeMengerCurvature (
     }
 
     md.mdi = mengerc_ModifyRemotestPoint ( lkn-deg, cpoints, &md.sc, md.mdi );
-    if ( opt_param && fcnt >= 5+(int)(sqrt(i)) ) {
+    if ( fcnt >= 5+(int)(sqrt(i)) ) {
 opt_param:
       if ( f <= 0.9*lastf || gn <= 0.9*lastgn )
         goto next_iter1;
-#ifdef OPTPAR1
-      opt_res = mengerc_OptPenaltyParams1 ( &md, false );
-#else
       opt_res = false;
-#endif
-#ifdef OPTPAR2
-      opt_res |= mengerc_OptPenaltyParams2 ( &md );
-#endif
+      switch ( opt ) {
+    case MENGERC_OPT_FULL1:
+        opt_res = mengerc_OptPenaltyParams1 ( &md, false );
+        break;
+    case MENGERC_OPT_FULL2:
+        opt_res |= mengerc_OptPenaltyParams2 ( &md );
+        break;
+    case MENGERC_OPT_PART:
+        opt_res |= mengerc_OptPenaltyParams3 ( &md );
+        break;
+    case MENGERC_OPT_NONE:
+    default:
+        break;
+      }
       if ( opt_res )
         fcnt = 0;
       else
@@ -159,39 +159,10 @@ opt_param:
     }
 next_iter1:
     ;
-#ifdef OPTSD
-    for ( j = 0; ; j++ ) {
-      switch ( pkn_SDIterd ( n, (void*)&md, x,
-                         IntegralMengerf, IntegralMengerfg,
-                         IntegralMengerTransC, HomotopyTest,
-                         0.0, 1.0e-4, 1.0e-7, &sdnu ) ) {
-    case PKN_SD_CONTINUE:
-    case PKN_SD_FOUND_ZEROGRAD:
-        IntegralMengerfg ( n, (void*)&md, x, &f, g );
-        gn = sqrt ( pkn_ScalarProductd ( n, g, g ) );
-        fprintf ( out, ">     f = %15.9e, gn = %15.9e, sdnu = %15.9e\n", f, gn, sdnu );
-        if ( f <= 0.9*lastf || gn <= 0.75*lastgn ) {
-          lastf = f;
-          lastgn = gn;
-          break;
-        }
-        else
-          goto next_iter2;
-    case PKN_SD_NO_PROGRESS:
-        goto next_iter2;
-    case PKN_SD_ERROR:
-    case PKN_SD_FOUND_BARRIER:
-    case PKN_SD_CROSSED_LIMIT:
-    default:
-        goto koniec;
-      }
-    }
-next_iter2:
-    ;
-#endif
   }
 
 finish:
+  memcpy ( penalty_param, md.penalty_param, 5*sizeof(double) );
   pkv_SetScratchMemTop ( sp );
   return true;
 

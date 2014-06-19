@@ -79,7 +79,7 @@ boolean mengerc_IntegralMengerf ( int n, void *usrdata, double *x, double *f )
   void     *sp;
   mengerc_data *md;
   int      deg, lkn, clcK, mdi;
-  double   *knots, *kara, clcT2;
+  double   *knots, *penalty_param, clcT2;
   point3d  *cpoints, sc;
   vector3d vv;
   double   kM, kkM, L, L0, L02, R1, R2, R3, R4, R5, a, q;
@@ -96,7 +96,7 @@ boolean mengerc_IntegralMengerf ( int n, void *usrdata, double *x, double *f )
   if ( &cpoints[0].x != x )
     memcpy ( cpoints, x, n*sizeof(double) );
   memcpy ( &cpoints[clcK], x, deg*sizeof(point3d) );
-  kara = md->kara;
+  penalty_param = md->penalty_param;
 
   if ( !memcmp ( x, md->fx, n*sizeof(double) ) ) {
     kkM = md->ffkM;  R1 = md->ffR1;  R2 = md->ffR2;
@@ -116,38 +116,23 @@ boolean mengerc_IntegralMengerf ( int n, void *usrdata, double *x, double *f )
 
   L0 = md->L;
   L02 = L0*L0;
-#ifdef ALT_SCALE
-  q = md->w > 3.0 ? 1.0/(md->w - 3.0) : 1.0;
-#else
-  q = md->w - 3.0;
-#endif
+  if ( md->alt_scale )
+    q = 1.0/(md->w - 3.0);
+  else
+    q = md->w - 3.0;
 
         /* obliczanie krzywizny calkowej Mengera */
-#ifndef PENALTIES_ONLY
   if ( !_mengerc_intF ( md, &kM ) )
     goto failure;
-#endif
         /* obliczanie dlugosci krzywej i kary za zmienna predkosc parametryzacji */
   if ( !mengerc_intD ( md, lkn, knots, cpoints, &L, &R4 ) )
     goto failure;
-#ifdef ALTP1_R4
-  R4 /= L*L;
-#else
-#ifdef ALTP2_R4
-  R4 /= L;
-#else
   R4 /= L0;
-#endif
-#endif
         /* kompensowanie dlugosci */
-#ifdef ALT_SCALE
-  if ( md->w > 3.0 )
+  if ( md->alt_scale )
     kkM = L*pow ( kM, q );
   else
     kkM = kM;
-#else
-  kkM = kM*pow ( L, q );
-#endif
         /* obliczanie kary za niewlasciwa dlugosc */
   a = L/L0 - 1.0;
   R1 = a*a;
@@ -173,11 +158,8 @@ boolean mengerc_IntegralMengerf ( int n, void *usrdata, double *x, double *f )
   md->ffR3 = R3;   md->ffR4 = R4;  md->ffR5 = R5;
 
 sum_up:
-#ifdef PENALTIES_ONLY
-  *f = kara[0]*R1 + kara[1]*R2 + kara[2]*R3 + kara[3]*R4 + kara[4]*R5;
-#else
-  *f = kkM + kara[0]*R1 + kara[1]*R2 + kara[2]*R3 + kara[3]*R4 + kara[4]*R5;
-#endif
+  *f = kkM + penalty_param[0]*R1 + penalty_param[1]*R2 +
+       penalty_param[2]*R3 + penalty_param[3]*R4 + penalty_param[4]*R5;
   pkv_SetScratchMemTop ( sp );
   return true;
 
@@ -193,14 +175,10 @@ boolean mengerc_IntegralMengerfg ( int n, void *usrdata, double *x,
   void *sp;
   mengerc_data *md;
   int      deg, lkn, clcK;
-  double   *knots, *kara, clcT2;
+  double   *knots, *penalty_param, clcT2;
   point3d  *cpoints, sc, sc1;
   double   kM, kkM, L, L0, L02, R1, R2, R3, R4, R5, a, q;
-#ifdef ALT_SCALE
-  double KtoQ;
-#else
-  double LtoR;
-#endif
+  double   KtoQ, LtoR;
   double   r1, r2, r3, r4;
   double   *grkM, *grL, *grR1, *grR2, *grR3, *grR4, *grR5;
   int      i, mdi, m3;
@@ -217,7 +195,7 @@ boolean mengerc_IntegralMengerfg ( int n, void *usrdata, double *x,
   clcT2 = (double)(clcK*clcK);
   memcpy ( cpoints, x, n*sizeof(double) );
   memcpy ( &cpoints[clcK], x, deg*sizeof(point3d) );
-  kara = md->kara;
+  penalty_param = md->penalty_param;
   grL = pkv_GetScratchMemd ( n );
   if ( !grL )
     goto failure;
@@ -239,52 +217,33 @@ boolean mengerc_IntegralMengerfg ( int n, void *usrdata, double *x,
 
   L0 = md->L;
   L02 = L0*L0;
-#ifdef ALT_SCALE
-  q = md->w > 3.0 ? 1.0/(md->w - 3.0) : 1.0;
-#else
-  q = md->w - 3.0;
-#endif
+  if ( md->alt_scale )
+    q = 1.0/(md->w - 3.0);
+  else
+    q = md->w - 3.0;
 
         /* obliczanie krzywizny calkowej Mengera */
-#ifndef PENALTIES_ONLY
   if ( !_mengerc_gradIntF ( md, &kM, grkM ) )
     goto failure;
-#endif
         /* obliczanie dlugosci krzywej i kary za zmienna predkosc parametryzacji */
   if ( !mengerc_gradIntD ( md, lkn, knots, cpoints, &L, grL, &R4, grR4 ) )
     goto failure;
-#ifdef ALTP1_R4
-  R4 /= L*L;
-  for ( i = 0; i < n; i++ )
-    grR4[i] = (grR4[i]/L-2.0*R4*grL[i])/L;
-#else
-#ifdef ALTP2_R4
-  R4 /= L;
-  for ( i = 0; i < n; i++ )
-    grR4[i] = (grR4[i] - R4*grL[i])/L;
-#else
   R4 /= L0;
   for ( i = 0; i < n; i++ )
     grR4[i] /= L0;
-#endif
-#endif
         /* kompensowanie dlugosci */
-#ifdef ALT_SCALE
-  if ( md->w > 3.0 ) {
+  if ( md->alt_scale ) {
     KtoQ = pow ( kM, q );
     kkM = L*KtoQ;
     for ( i = 0; i < n; i++ )
       grkM[i] = (q*L*grkM[i]/kM+grL[i])*KtoQ;
   }
   else {
-    kkM = kM;
+    LtoR = pow ( L, q );
+    kkM = kM*LtoR;
+    for ( i = 0; i < n; i++ )
+      grkM[i] = (q*kM*grL[i]/L+grkM[i])*LtoR;
   }
-#else
-  LtoR = pow ( L, q );
-  kkM = kM*LtoR;
-  for ( i = 0; i < n; i++ )
-    grkM[i] = (q*kM*grL[i]/L+grkM[i])*LtoR;
-#endif
         /* obliczanie kary za niewlasciwa dlugosc */
   a = L/L0 - 1.0;
   R1 = a*a;
@@ -355,17 +314,12 @@ boolean mengerc_IntegralMengerfg ( int n, void *usrdata, double *x,
   md->gfR3 = R3;   md->gfR4 = R4;  md->gfR5 = R5;
 
 sum_up:
-#ifdef PENALTIES_ONLY
-  *f = kara[0]*R1 + kara[1]*R2 + kara[2]*R3 + kara[3]*R4 + kara[4]*R5;
+  *f = kkM + penalty_param[0]*R1 + penalty_param[1]*R2 +
+       penalty_param[2]*R3 + penalty_param[3]*R4 + penalty_param[4]*R5;
   for ( i = 0; i < n; i++ )
-    g[i] = kara[0]*grR1[i] + kara[1]*grR2[i] + kara[2]*grR3[i] +
-           kara[3]*grR4[i] + kara[4]*grR5[i];
-#else
-  *f = kkM + kara[0]*R1 + kara[1]*R2 + kara[2]*R3 + kara[3]*R4 + kara[4]*R5;
-  for ( i = 0; i < n; i++ )
-    g[i] = grkM[i] + kara[0]*grR1[i] + kara[1]*grR2[i] +
-           kara[2]*grR3[i] + kara[3]*grR4[i] + kara[4]*grR5[i];
-#endif
+    g[i] = grkM[i] + penalty_param[0]*grR1[i] + penalty_param[1]*grR2[i] +
+           penalty_param[2]*grR3[i] + penalty_param[3]*grR4[i] +
+           penalty_param[4]*grR5[i];
   pkv_SetScratchMemTop ( sp );
   return true;
 
@@ -381,15 +335,11 @@ boolean mengerc_IntegralMengerfgh ( int n, void *usrdata, double *x,
   void *sp;
   mengerc_data *md;
   int      deg, lkn, clcK;
-  double   *knots, *kara, clcT2, twoT2;
+  double   *knots, *penalty_param, clcT2, twoT2;
   point3d  *cpoints, sc, sc1;
   vector3d vv;
   double   kM, kkM, L, L0, L02, R1, R2, R3, R4, R5, a, b, q, qm1;
-#ifdef ALT_SCALE
-  double KtoQ, K2, KtoQm2;
-#else
-  double LtoR, L2, LtoRm2;
-#endif
+  double   KtoQ, K2, KtoQm2, LtoR, L2, LtoRm2;
   double   r1, r2, r3, r4;
   double   *gkM, *gL, *gR1, *gR2, *gR3, *gR4, *gR5;
   double   *hkM, *hL, *hR1, *hR2, *hR3, *hR4, *hR5;
@@ -398,7 +348,7 @@ boolean mengerc_IntegralMengerfgh ( int n, void *usrdata, double *x,
   sp = pkv_GetScratchMemTop ();
   md = (mengerc_data*)usrdata;
 
-  kara = md->kara;
+  penalty_param = md->penalty_param;
   nn = (n*(n+1))/2;
   gL = pkv_GetScratchMemd ( n );
   hL  = pkv_GetScratchMemd ( nn );
@@ -426,49 +376,24 @@ boolean mengerc_IntegralMengerfgh ( int n, void *usrdata, double *x,
   memcpy ( &cpoints[clcK], x, deg*sizeof(point3d) );
   L0 = md->L;
   L02 = L0*L0;
-#ifdef ALT_SCALE
-  q = md->w > 3.0 ? 1.0/(md->w - 3.0) : 1.0;
-#else
-  q = md->w - 3.0;
-#endif
+  if ( md->alt_scale )
+    q = 1.0/(md->w - 3.0);
+  else
+    q = md->w - 3.0;
 
         /* obliczanie krzywizny calkowej Mengera */
-#ifndef PENALTIES_ONLY
   if ( !_mengerc_hessIntF ( md, &kM, gkM, hkM ) )
     goto failure;
-#endif
         /* obliczanie dlugosci krzywej i kary za zmienna predkosc parametryzacji */
   if ( !mengerc_hessIntD ( md, lkn, knots, cpoints, &L, gL, hL, &R4, gR4, hR4 ) )
     goto failure;
-#ifdef ALTP1_R4
-  R4 /= L*L;
-  for ( i = 0; i < n; i++ )
-    gR4[i] = (gR4[i]/L-2.0*R4*grL[i])/L;
-  for ( i = 0; i < n; i++ )
-    for ( j = 0; j <= i; j++ )
-      hR4[pkn_LowerTrMatIndex(i,j)] = (hR4[pkn_LowerTrMatIndex(i,j)]
-      -2.0*(gR4[i]*grL[j]+gR4[j]*grL[i]+R4*hL[pkn_LowerTrMatIndex(i,j)])*L
-      -2.0*R4*grL[i]*grL[j])/(L*L);
-#else
-#ifdef ALTP2_R4
-  R4 /= L;
-  for ( i = 0; i < n; i++ )
-    gR4[i] = (gR4[i] - R4*grL[i])/L;
-  for ( i = 0; i < n; i++ )
-    for ( j = 0; j <= i; j++ )
-      hR4[pkn_LowerTrMatIndex(i,j)] = (hR4[pkn_LowerTrMatIndex(i,j)]
-          - gR4[i]*grL[j] - gR4[j]*grL[i] - R4*hL[pkn_LowerTrMatIndex(i,j)])/L;
-#else
   R4 /= L0;
   for ( i = 0; i < n; i++ )
     gR4[i] /= L0;
   for ( i = 0; i < nn; i++ )
     hR4[i] /= L0;
-#endif
-#endif
         /* kompensowanie dlugosci */
-#ifdef ALT_SCALE
-  if ( md->w > 3.0 ) {
+  if ( md->alt_scale ) {
     qm1 = q-1.0;
     KtoQ = pow ( kM, q );
     K2 = kM*kM;
@@ -484,23 +409,20 @@ boolean mengerc_IntegralMengerfgh ( int n, void *usrdata, double *x,
       gkM[i] = (q*L*gkM[i]/kM+gL[i])*KtoQ;
   }
   else {
-    kkM = kM;
-  }
-#else
-  qm1 = q-1.0;
-  LtoR = pow ( L, q );
-  L2 = L*L;
-  LtoRm2 = LtoR/L2;
-  kkM = kM*LtoR;
-  for ( i = 0; i < n; i++ )
-    for ( j = 0; j <= i; j++ )
-      hkM[pkn_LowerTrMatIndex(i,j)] = LtoRm2*(q*(qm1*gL[i]*gL[j]*kM +
-                 L*(hL[pkn_LowerTrMatIndex(i,j)]*kM +
+    qm1 = q-1.0;
+    LtoR = pow ( L, q );
+    L2 = L*L;
+    LtoRm2 = LtoR/L2;
+    kkM = kM*LtoR;
+    for ( i = 0; i < n; i++ )
+      for ( j = 0; j <= i; j++ )
+        hkM[pkn_LowerTrMatIndex(i,j)] = LtoRm2*(q*(qm1*gL[i]*gL[j]*kM +
+                   L*(hL[pkn_LowerTrMatIndex(i,j)]*kM +
                       gL[i]*gkM[j] + gL[j]*gkM[i])) +
-                 L2*hkM[pkn_LowerTrMatIndex(i,j)]);
-  for ( i = 0; i < n; i++ )
-    gkM[i] = (q*kM*gL[i]/L+gkM[i])*LtoR;
-#endif
+                   L2*hkM[pkn_LowerTrMatIndex(i,j)]);
+    for ( i = 0; i < n; i++ )
+      gkM[i] = (q*kM*gL[i]/L+gkM[i])*LtoR;
+  }
         /* obliczanie kary za niewlasciwa dlugosc */
   a = L/L0 - 1.0;
   R1 = a*a;
@@ -670,23 +592,16 @@ boolean mengerc_IntegralMengerfgh ( int n, void *usrdata, double *x,
   md->hfR3 = R3;   md->hfR4 = R4;  md->hfR5 = R5;
 
 sum_up:
-#ifdef PENALTIES_ONLY
-  *f = kara[0]*R1 + kara[1]*R2 + kara[2]*R3 + kara[3]*R4 + kara[4]*R5;
+  *f = kkM + penalty_param[0]*R1 + penalty_param[1]*R2 +
+       penalty_param[2]*R3 + penalty_param[3]*R4 + penalty_param[4]*R5;
   for ( i = 0; i < n; i++ )
-    g[i] = kara[0]*gR1[i] + kara[1]*gR2[i] + kara[2]*gR3[i] +
-           kara[3]*gR4[i] + kara[4]*gR5[i];
+    g[i] = gkM[i] + penalty_param[0]*gR1[i] + penalty_param[1]*gR2[i] +
+           penalty_param[2]*gR3[i] + penalty_param[3]*gR4[i] +
+           penalty_param[4]*gR5[i];
   for ( i = 0; i < nn; i++ )
-    h[i] = kara[0]*hR1[i] + kara[1]*hR2[i] + kara[2]*hR3[i] +
-           kara[3]*hR4[i] + kara[4]*hR5[i];
-#else
-  *f = kkM + kara[0]*R1 + kara[1]*R2 + kara[2]*R3 + kara[3]*R4 + kara[4]*R5;
-  for ( i = 0; i < n; i++ )
-    g[i] = gkM[i] + kara[0]*gR1[i] + kara[1]*gR2[i] +
-           kara[2]*gR3[i] + kara[3]*gR4[i] + kara[4]*gR5[i];
-  for ( i = 0; i < nn; i++ )
-    h[i] = hkM[i] + kara[0]*hR1[i] + kara[1]*hR2[i] +
-           kara[2]*hR3[i] + kara[3]*hR4[i] + kara[4]*hR5[i];
-#endif
+    h[i] = hkM[i] + penalty_param[0]*hR1[i] + penalty_param[1]*hR2[i] +
+           penalty_param[2]*hR3[i] + penalty_param[3]*hR4[i] +
+           penalty_param[4]*hR5[i];
   pkv_SetScratchMemTop ( sp );
   return true;
 
@@ -710,10 +625,6 @@ boolean mengerc_IntegralMengerTransC ( int n, void *usrdata, double *x )
   sp = pkv_GetScratchMemTop ();
   md = (mengerc_data*)usrdata;
 
-/*
-  if ( !md->pretransf )
-    goto way_out;
-*/
   deg  = md->n;
   lkn = md->lkn;
   ncp = lkn-deg;

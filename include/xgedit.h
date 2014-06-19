@@ -459,7 +459,9 @@ xge_widget *xge_NewVSlidebar2f ( char window_num, xge_widget *prev, int id,
                                  float *data );
 
 float xge_LinSlidebarValuef ( float xmin, float xmax, float t );
+float xge_LinSlidebarPosf ( float xmin, float xmax, float x );
 float xge_LogSlidebarValuef ( float xmin, float xmax, float t );
+float xge_LogSlidebarPosf ( float xmin, float xmax, float x );
 
 void xge_DrawSlidebard ( xge_widget *er, boolean onscreen );
 boolean xge_SlidebardMsg ( xge_widget *er, int msg, int key, short x, short y );
@@ -491,7 +493,9 @@ xge_widget *xge_NewVSlidebar2d ( char window_num, xge_widget *prev, int id,
                                  double *data );
 
 double xge_LinSlidebarValued ( double xmin, double xmax, double t );
+double xge_LinSlidebarPosd ( double xmin, double xmax, double x );
 double xge_LogSlidebarValued ( double xmin, double xmax, double t );
+double xge_LogSlidebarPosd ( double xmin, double xmax, double x );
 
 typedef struct {
     xge_widget *er;

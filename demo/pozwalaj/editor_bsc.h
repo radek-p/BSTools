@@ -6,6 +6,9 @@
 
 #define MAX_BSC_KNOTS   1024
 
+#define BSC_MIN_PIPE_DIAMETER  0.01
+#define BSC_MAX_PIPE_DIAMETER  1.0
+
 typedef struct {
     geom_object me;
     int         maxknots;
@@ -21,6 +24,7 @@ typedef struct {
                 view_curvature, view_torsion;
     double      curvature_scale, torsion_scale;
     int         graph_dens;
+    double      pipe_diameter;  /* on ray traced pictures */
   } GO_BSplineCurve;
 
 /* display list masks */

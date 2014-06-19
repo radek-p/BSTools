@@ -115,7 +115,8 @@ default:
 
 boolean mengerc_BindACurve ( mengerc_data *md,
                              int deg, int lkn, double *knots, point3d *cpoints,
-                             int nqkn, double w, double *kara, boolean alt_scale )
+                             int nqkn, double w, double *penalty_param,
+                             boolean alt_scale )
 {
   int      ncp, i;
   double   acp;
@@ -131,11 +132,11 @@ boolean mengerc_BindACurve ( mengerc_data *md,
   md->L = 1.0;
   md->w = w;
   md->alt_scale = alt_scale;
-  if ( kara )
-    memcpy ( md->kara, kara, MENGERC_NPPARAM*sizeof(double) );
+  if ( penalty_param )
+    memcpy ( md->penalty_param, penalty_param, MENGERC_NPPARAM*sizeof(double) );
   else
     for ( i = 0; i < MENGERC_NPPARAM; i++ )
-      md->kara[i] = 1.0;
+      md->penalty_param[i] = 1.0;
   if ( !mengerc_intD ( md, lkn, knots, cpoints, &md->L, &acp ) )
     goto failure;
   ncp = lkn-deg;

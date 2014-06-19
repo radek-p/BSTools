@@ -180,6 +180,7 @@ char txtSphericalProduct[]  = "Spherical product";
 char txtG1BlendingPatch[]   = "G1 blending patch";
 char txtG2BlendingPatch[]   = "G2 blending patch";
 char txtGetSubmesh[]        = "get submesh";
+char txtPipeDiameter[]      = "pipe diameter";
 
 char *InfoMsg[5] =
   { "pozwalaj - a simple curve and surface modeller",

@@ -173,6 +173,7 @@ boolean         sw_view_hole_filling = true,
                 sw_hfill_g1 = true, sw_hfill_g2 = false, sw_hfill_g1q2 = false;
 boolean         sw_hfill_coons = true, sw_hfill_bezier = false;
 double          sl_g1q2_param = 0.5;
+double          sl_pipe_diameter = 0.5;
 
     /* Bezier curves */
 xge_string_ed   bezc_name_ed;

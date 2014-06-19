@@ -78,6 +78,8 @@ boolean GeomObjectInitBSplineCurve ( GO_BSplineCurve *obj,
   obj->degree = 1;
   obj->closed = false;
   obj->view_curve = obj->view_cpoly = true;
+  obj->view_bpoly = false;
+  obj->view_curvature = obj->view_torsion = false;
   obj->graph_dens = 10;
   obj->me.displaylist = glGenLists ( BSC_NDL );
   obj->me.dlistmask = 0;
@@ -85,6 +87,7 @@ boolean GeomObjectInitBSplineCurve ( GO_BSplineCurve *obj,
   obj->me.colour[2] = 0.0;
   obj->me.display_pretrans = false;
   IdentTrans3d ( &obj->me.pretrans );
+  obj->pipe_diameter = 0.1;
   return true;
 } /*GeomObjectInitBSplineCurve*/
 
@@ -167,8 +170,12 @@ geom_object *GeomObjectCopyBSplineCurve ( GO_BSplineCurve *obj )
                                     copy->cpoints, copy->weightpoints );
     copy->closed = obj->closed;
     copy->view_curve = copy->view_cpoly = true;
+    copy->view_bpoly = false;
+    copy->view_curvature = copy->view_torsion = false;
+    copy->graph_dens = 10;
+    copy->pipe_diameter = obj->pipe_diameter;
     copy->me.displaylist = glGenLists ( BSC_NDL );
-    obj->me.dlistmask = 0;
+    copy->me.dlistmask = 0;
     return &copy->me;
   }
   else
@@ -337,6 +344,7 @@ void GeomObjectDrawBSplineBPoly ( GO_BSplineCurve *obj )
       for ( i = k = 0;  i < kpcs;  i++, k += dim*(deg+1) )
         DrawAPolyline ( dim, obj->me.spdimen, deg+1, &bpoly[k] );
       glEndList ();
+      obj->me.dlistmask |= BSC_DLM_BPOLY;
     }
     pkv_SetScratchMemTop ( sp );
   }
@@ -356,7 +364,7 @@ void GeomObjectDrawBSplineCurvature ( GO_BSplineCurve *obj )
 
   if ( obj->me.obj_type != GO_BSPLINE_CURVE )
     return;
-  if ( obj->me.dlistmask & BSC_DLM_BPOLY )
+  if ( obj->me.dlistmask & BSC_DLM_CURVATURE )
     glCallList ( obj->me.displaylist+3 );
   else {
     sp = pkv_GetScratchMemTop ();
@@ -421,11 +429,13 @@ void GeomObjectDrawBSplineCurvature ( GO_BSplineCurve *obj )
             }
           }
         }
+        break;
     default:
         break;
       }
       glEnd ();
       glEndList ();
+      obj->me.dlistmask |= BSC_DLM_CURVATURE;
     }
     pkv_SetScratchMemTop ( sp );
   }
@@ -443,7 +453,7 @@ void GeomObjectDrawBSplineTorsion ( GO_BSplineCurve *obj )
 
   if ( obj->me.obj_type != GO_BSPLINE_CURVE )
     return;
-  if ( obj->me.dlistmask & BSC_DLM_BPOLY )
+  if ( obj->me.dlistmask & BSC_DLM_TORSION )
     glCallList ( obj->me.displaylist+4 );
   else {
     sp = pkv_GetScratchMemTop ();
@@ -484,11 +494,13 @@ void GeomObjectDrawBSplineTorsion ( GO_BSplineCurve *obj )
             }
           }
         }
+        break;
     default:
         break;
       }
       glEnd ();
       glEndList ();
+      obj->me.dlistmask |= BSC_DLM_TORSION;
     }
     pkv_SetScratchMemTop ( sp );
   }
@@ -1158,10 +1170,12 @@ void GeomObjectBSplineCurveOutputToRenderer ( GO_BSplineCurve *obj )
     return;
   if ( obj->rational )
     RendEnterBSCurve3Rd ( obj->degree, obj->lastknot, obj->knots,
-                          (point4d*)obj->cpoints, 0.05, obj->me.colour );
+                          (point4d*)obj->cpoints, 0.5*obj->pipe_diameter,
+                          obj->me.colour );
   else
     RendEnterBSCurve3d ( obj->degree, obj->lastknot, obj->knots,
-                         (point3d*)obj->cpoints, 0.05, obj->me.colour );
+                         (point3d*)obj->cpoints, 0.5*obj->pipe_diameter,
+                         obj->me.colour );
 } /*GeomObjectBSplineCurveOutputToRenderer*/
 
 void GeomObjectBSplineCurveDisplayInfoText ( GO_BSplineCurve *obj )

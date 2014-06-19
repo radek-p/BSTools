@@ -183,7 +183,13 @@
 
 #define btnM1BEZC_VIEW_CURVE          (SIDEMENU1_BEZC+3)
 #define btnM1BEZC_VIEW_CPOLY          (SIDEMENU1_BEZC+4)
-#define btnM1BEZC_COLOUR              (SIDEMENU1_BEZC+5)
+#define swM1BEZC_VIEW_CURVATURE       (SIDEMENU1_BEZC+5)
+#define slM1BEZC_SCALE_CURVATURE      (SIDEMENU1_BEZC+6)
+#define swM1BEZC_VIEW_TORSION         (SIDEMENU1_BEZC+7)
+#define slM1BEZC_SCALE_TORSION        (SIDEMENU1_BEZC+8)
+#define intwM1BEZC_GRAPH_DENSITY      (SIDEMENU1_BEZC+9)
+#define btnM1BEZC_COLOUR             (SIDEMENU1_BEZC+10)
+#define slM1BEZC_PIPE_DIAMETER       (SIDEMENU1_BEZC+11)
 
       /* Bezier patches */
 #define SIDEMENU1_BEZP                        17*MENUINC
@@ -215,6 +221,7 @@
 #define slM1BSC_SCALE_TORSION         (SIDEMENU1_BSC+12)
 #define intwM1BSC_GRAPH_DENSITY       (SIDEMENU1_BSC+13)
 #define btnM1BSC_COLOUR               (SIDEMENU1_BSC+14)
+#define slM1BSC_PIPE_DIAMETER         (SIDEMENU1_BSC+15)
 
       /* B-spline patches */
 #define SIDEMENU1_BSP                         19*MENUINC
@@ -603,7 +610,7 @@ extern char txtSphericalProduct[];
 extern char txtG1BlendingPatch[];
 extern char txtG2BlendingPatch[];
 extern char txtGetSubmesh[];
-
+extern char txtPipeDiameter[];
 extern char *InfoMsg[];
 
 extern char MsgReconsider[];

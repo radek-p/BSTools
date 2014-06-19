@@ -148,6 +148,7 @@ extern int            curv_graph_dens;
 extern boolean        sw_view_hole_filling, sw_hfill_g1, sw_hfill_g2, sw_hfill_g1q2;
 extern boolean        sw_hfill_coons, sw_hfill_bezier;
 extern double         sl_g1q2_param;
+extern double         sl_pipe_diameter;
 
     /* Bezier curves */
 extern xge_string_ed  bezc_name_ed;

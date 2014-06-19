@@ -3729,3 +3729,19 @@ Wersja 0.33.
 867. Poprawiony blad czytania wymiernych krzywych i powierzchni - bylo cos
     nie w porzadku z wymiarem.
 
+17.06.2014.
+868. Zmiany w libmengerc - porzadkowanie kodu, usuwanie fragmentow sluzacych
+    do eksperymentow podczas uruchamiania.
+
+19.06.2014.
+869. Nowe procedury, xge_LinSlidebarPosf i xge_LogSlidebarPosf, do
+    ulatwienia obslugi suwakow.
+
+870. Do progamu pozwalaj dolaczona mozliwosc wyswietlania wykresow krzywizny
+    i skrecenia krzywych Beziera.
+
+871. Do programu pozwalaj dolaczona mozliwosc okreslania srednicy "rurek",
+    sluzacych do przedstawienia na obrazie wykonanym za pomoca sledzenia
+    promieni krzywych Beziera i B-sklejanych.
+
+

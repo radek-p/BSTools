@@ -183,7 +183,7 @@ boolean mengerc_OptPenaltyParams1 ( mengerc_data *md, boolean wide )
 #define MAXITER 10
   void      *sp;
   int       n, nn;
-  double    *kara, nu;
+  double    *penalty_param, nu;
   double    x[5], y[5], z[5], emin, emax, func, f, *g, *h;
   double    fct1[7] = { 1.0, 0.5, 2.0, 0.25, 4.0, 0.125, 8.0 };
   int       limits1[5] = {7,7,7,7,7};
@@ -202,7 +202,7 @@ boolean mengerc_OptPenaltyParams1 ( mengerc_data *md, boolean wide )
   if ( !g )
     goto failure;
   h = &g[n];
-  kara = md->kara;
+  penalty_param = md->penalty_param;
   if ( !mengerc_IntegralMengerfgh ( n, (void*)md, &md->cpoints[0].x,
                                     &f, g, h ) )
     goto failure;
@@ -217,14 +217,14 @@ boolean mengerc_OptPenaltyParams1 ( mengerc_data *md, boolean wide )
     fct = fct2;
     limits = limits2;
   }
-  memcpy ( y, kara, 5*sizeof(double) );
+  memcpy ( y, penalty_param, 5*sizeof(double) );
   emin = -1.0e-300;
   emax = func = 1.0e+308;
   memset ( cnt, 0, 5*sizeof(int) );
   do {
     for ( i = 0; i < 5; i++ )
       x[i] = y[i]*fct[cnt[i]];
-    MHEigTunnel ( 5, NULL, kara, x, &went_out );
+    MHEigTunnel ( 5, NULL, penalty_param, x, &went_out );
     if ( went_out )
       continue;
     if ( !MHEig ( 5, (void*)md, x, &f ) )
@@ -237,7 +237,7 @@ boolean mengerc_OptPenaltyParams1 ( mengerc_data *md, boolean wide )
       memcpy ( cntmin, cnt, 5*sizeof(int) );
     }
   } while ( pkv_IncMultiCounter ( 5, limits, cnt ) );
-  memcpy ( kara, z, 5*sizeof(double) );
+  memcpy ( penalty_param, z, 5*sizeof(double) );
   for ( i = 0; i < 5; i++ )
     if ( cntmin[i] ) {
       progress = true;
@@ -254,7 +254,7 @@ second_st:
   md->ef = 1.0e+308;
   nu = -1.0;
   for ( i = 0; i < MAXITER; i++ ) {
-    switch ( pkn_NLMIterd ( 5, (void*)md, kara,
+    switch ( pkn_NLMIterd ( 5, (void*)md, penalty_param,
                             MHEig, MHEigGrad, MHEigGH, NULL, MHEigTunnel,
                             -1.0e10, 1.0e-5, 1.0e-5, &nu ) ) {
   case PKN_LMT_ERROR:
@@ -297,13 +297,13 @@ static boolean SDFunc ( int N, void *usrdata, double *x, double *f )
   md = (mengerc_data*)usrdata;
   ncp = md->lkn-md->n;
   n = 3*(ncp-md->n);
-  memcpy ( kk, md->kara, 5*sizeof(double) );
+  memcpy ( kk, md->penalty_param, 5*sizeof(double) );
   scp = pkv_GetScratchMemd ( N+3*ncp );
   if ( !scp )
     goto failure;
   grad = &scp[3*ncp];
   memcpy ( scp, md->cpoints, ncp*sizeof(point3d) );
-  memcpy ( md->kara, x, 5*sizeof(double) );
+  memcpy ( md->penalty_param, x, 5*sizeof(double) );
 
   nu = -1.0;
   switch ( pkn_NLMIterd ( n, usrdata, &md->cpoints[0].x, mengerc_IntegralMengerf,
@@ -338,7 +338,7 @@ default:
     md->fmin = _f;
   }
 
-  memcpy ( md->kara, kk, 5*sizeof(double) );
+  memcpy ( md->penalty_param, kk, 5*sizeof(double) );
   memcpy ( md->cpoints, scp, ncp*sizeof(point3d) );
   pkv_SetScratchMemTop ( sp );
   return true;
@@ -346,7 +346,7 @@ default:
 failure:
   if ( scp )
     memcpy ( md->cpoints, scp, ncp*sizeof(point3d) );
-  memcpy ( md->kara, kk, 5*sizeof(double) );
+  memcpy ( md->penalty_param, kk, 5*sizeof(double) );
   pkv_SetScratchMemTop ( sp );
   return false;
 #undef GFACT
@@ -390,7 +390,7 @@ boolean mengerc_OptPenaltyParams2 ( mengerc_data *md )
 #define MAXIT 20
   void   *sp;
   int    n, i;
-  double *kara, nu;
+  double *penalty_param, nu;
   double f, *g, _f;
 
   sp = pkv_GetScratchMemTop ();
@@ -398,7 +398,7 @@ boolean mengerc_OptPenaltyParams2 ( mengerc_data *md )
   g = pkv_GetScratchMemd ( n );
   if ( !g )
     goto failure;
-  kara = md->kara;
+  penalty_param = md->penalty_param;
   if ( !mengerc_IntegralMengerfg ( n, (void*)md, &md->cpoints[0].x, &f, g ) )
     goto failure;
   md->heigok = false;
@@ -408,7 +408,7 @@ boolean mengerc_OptPenaltyParams2 ( mengerc_data *md )
   md->ef = 1.0e+308;
   nu = -1.0;
   for ( i = 0; i < MAXIT; i++ ) {
-    switch ( pkn_SDIterd ( 5, (void*)md, kara,
+    switch ( pkn_SDIterd ( 5, (void*)md, penalty_param,
                             SDFunc, SDFuncGrad, NULL, MHEigTunnel,
                             -1.0e10, 1.0e-5, 1.0e-5, &nu ) ) {
   case PKN_SD_CONTINUE:
@@ -425,7 +425,7 @@ boolean mengerc_OptPenaltyParams2 ( mengerc_data *md )
   }
 
 way_out:
-  MHEig ( 5, (void*)md, kara, &_f  );
+  MHEig ( 5, (void*)md, penalty_param, &_f  );
   printf ( "# emin = %10.5g, emax = %10.5g, ef = %10.5g\n",
            md->_emin, md->_emax, md->f );
   if ( md->fmin < _f ) {
@@ -439,4 +439,48 @@ failure:
   pkv_SetScratchMemTop ( sp );
   return false;
 } /*mengerc_OptPenaltyParams2*/
+
+/* ////////////////////////////////////////////////////////////////////////// */
+static double _mengerc_opt3 ( void *usrptr, double lf )
+{
+  mengerc_data *md;
+  double       f, penalty_param[5];
+
+  md = (mengerc_data*)usrptr;
+  pkn_MultMatrixNumd ( 1, 5, 0, md->penalty_param, exp(lf), 0, penalty_param );
+  MHEig ( 5, usrptr, penalty_param, &f );
+  return f;
+} /*_mengerc_opt3*/
+
+boolean mengerc_OptPenaltyParams3 ( mengerc_data *md )
+{
+  void    *sp;
+  int     n, nn;
+  double  lf, f, *g, *h;
+  boolean error;
+
+  sp = pkv_GetScratchMemTop ();
+  n = 3*(md->lkn - 2*md->n);
+  nn = (n*(n+1))/2;
+  g = pkv_GetScratchMemd ( n+nn );
+  if ( !g )
+    goto failure;
+  h = &g[n];
+  if ( !mengerc_IntegralMengerfgh ( n, (void*)md, &md->cpoints[0].x,
+                                    &f, g, h ) )
+    goto failure;
+  md->heigok = false;
+  lf = pkn_GoldenRatd ( _mengerc_opt3, (void*)md,
+                        log (0.01), log (100.0), 1.0e-3, &error );
+  if ( !error ) {
+    pkn_MultMatrixNumd ( 1, 5, 0, md->penalty_param, exp(lf), 0, md->penalty_param );
+    pkv_SetScratchMemTop ( sp );
+    return true;
+  }
+  else {
+failure:
+    pkv_SetScratchMemTop ( sp );
+    return false;
+  }
+} /*mengerc_OptPenaltyParams3*/
 

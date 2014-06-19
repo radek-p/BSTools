@@ -63,7 +63,20 @@ void InitSide10Menu_Bezc ( void )
                       txtCurve, &sw_view_curve );
   w = xge_NewSwitch ( win1, w, btnM1BEZC_VIEW_CPOLY, 109, 16, 0, 42,
                       txtControlPolygon, &sw_view_cpoly );
-  w = xge_NewButton ( win1, w, btnM1BEZC_COLOUR, 60, 18, 0, 62, txtColour );
+  w = xge_NewSwitch ( win1, w, swM1BEZC_VIEW_CURVATURE, 109, 16, 0, 62,
+                      txtCurvatureGraph, &sw_view_curvature );
+  w = xge_NewSlidebard ( win1, w, slM1BEZC_SCALE_CURVATURE, 109, 10, 0, 82,
+                         &curvature_scale );
+  w = xge_NewSwitch ( win1, w, swM1BEZC_VIEW_TORSION, 109, 16, 0, 96,
+                      txtTorsionGraph, &sw_view_torsion );
+  w = xge_NewSlidebard ( win1, w, slM1BEZC_SCALE_TORSION, 109, 10, 0, 116,
+                         &torsion_scale );
+  w = xge_NewIntWidget ( win1, w, intwM1BEZC_GRAPH_DENSITY, 109, 19, 0, 130,
+                         1, 32, &bsc_graphdens, txtGraphDensity, &curv_graph_dens );
+  w = xge_NewButton ( win1, w, btnM1BEZC_COLOUR, 60, 18, 0, 152, txtColour );
+  w = xge_NewTextWidget ( win1, w, 0, 109, 19, 0, 172, txtPipeDiameter );
+  w = xge_NewSlidebard ( win1, w, slM1BEZC_PIPE_DIAMETER, 109, 10, 0, 192,
+                         &sl_pipe_diameter );
   w = xge_NewSwitch ( win1, w, swM11STATUS, 16, 16, 0, xge_HEIGHT-16,
                       txtNull, &win1statusline );
   xge_SetWidgetPositioning ( w, 2, 0, -16 );
@@ -96,6 +109,14 @@ void SetupBezierCurveWidgets ( GO_BezierCurve *obj )
   degree = obj->degree;
   sw_view_curve = obj->view_curve;
   sw_view_cpoly = obj->view_cpoly;
+  sw_view_curvature = obj->view_curvature;
+  sw_view_torsion = obj->view_torsion;
+  curvature_scale = obj->curvature_scale;
+  torsion_scale = obj->torsion_scale;
+  curv_graph_dens = obj->graph_dens;
+  sl_pipe_diameter = xge_LogSlidebarPosd ( BEZC_MIN_PIPE_DIAMETER,
+                                           BEZC_MAX_PIPE_DIAMETER,
+                                           obj->pipe_diameter );
   SetGeomWin10Empty ();
 } /*SetupBezierCurveWidgets*/
 
@@ -127,6 +148,57 @@ case xgemsg_SWITCH_COMMAND:
       obj->view_cpoly = sw_view_cpoly;
       RedrawGeom00Win ();
       return 1;
+  case swM1BEZC_VIEW_CURVATURE:
+      obj->view_curvature = sw_view_curvature;
+      if ( sw_view_curvature )
+        GeomObjectBezierCurveSetCurvatureGraph ( obj,
+                        sw_view_curvature, curvature_scale,
+                        sw_view_torsion, torsion_scale, curv_graph_dens );
+      RedrawGeom00Win ();
+      return 1;
+  case swM1BEZC_VIEW_TORSION:
+      if ( sw_view_torsion ) {
+        if ( obj->me.spdimen == 3 ) {
+          GeomObjectBezierCurveSetCurvatureGraph ( obj,
+                          sw_view_curvature, curvature_scale,
+                          sw_view_torsion, torsion_scale, curv_graph_dens );
+          RedrawGeom00Win ();
+        }
+        else
+          sw_view_torsion = false;
+      }
+      else {
+        obj->view_torsion = false;
+        RedrawGeom00Win ();
+      }
+      return 1;
+  default:
+      return 0;
+    }
+
+case xgemsg_SLIDEBAR_COMMAND:
+    switch ( er->id ) {
+  case slM1BEZC_SCALE_CURVATURE:
+      if ( sw_view_curvature ) {
+        GeomObjectBezierCurveSetCurvatureGraph ( obj,
+                        sw_view_curvature, curvature_scale,
+                        sw_view_torsion, torsion_scale, curv_graph_dens );
+        RedrawGeom00Win ();
+      }
+      return 1;
+  case slM1BEZC_SCALE_TORSION:
+      if ( sw_view_torsion ) {
+        GeomObjectBezierCurveSetCurvatureGraph ( obj,
+                        sw_view_curvature, curvature_scale,
+                        sw_view_torsion, torsion_scale, curv_graph_dens );
+        RedrawGeom00Win ();
+      }
+      return 1;
+  case slM1BEZC_PIPE_DIAMETER:
+      obj->pipe_diameter = xge_LogSlidebarValued ( BEZC_MIN_PIPE_DIAMETER,
+                                  BEZC_MAX_PIPE_DIAMETER, sl_pipe_diameter );
+      NotifyParam2 ( obj->pipe_diameter );
+      return 1;
   default:
       return 0;
     }
@@ -136,6 +208,15 @@ case xgemsg_INT_WIDGET_COMMAND:
   case intwM1BEZC_DEG:
       if ( GeomObjectBezierCurveSetDegree ( obj, key ) ) {
         degree = obj->degree;
+        xge_RedrawAll ();
+      }
+      return 1;
+  case intwM1BEZC_GRAPH_DENSITY:
+      curv_graph_dens = key;
+      if ( sw_view_curvature || (sw_view_torsion && obj->me.spdimen == 3) ) {
+        GeomObjectBezierCurveSetCurvatureGraph ( obj,
+                        sw_view_curvature, curvature_scale,
+                        sw_view_torsion, torsion_scale, curv_graph_dens );
         xge_RedrawAll ();
       }
       return 1;
