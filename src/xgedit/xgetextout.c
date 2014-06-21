@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2007, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2007, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -29,7 +29,7 @@ void xge_DrawText ( xge_widget *er, boolean onscreen )
   title = er->data0;
   xgeSetForeground ( xgec_MENU_BACKGROUND );
   xgeFillRectangle ( er->w, er->h, er->x, er->y );
-  xgeSetForeground ( xgec_White );
+  xgeSetForeground ( xgec_WIDGET_FOREGROUND );
   xgeDrawString ( title, er->x, er->y+er->h-4 );
   if ( onscreen )
     xgeCopyRectOnScreen ( er->w, er->h, er->x, er->y );

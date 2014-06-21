@@ -30,26 +30,26 @@ void xge_DrawButton ( xge_widget *er, boolean onscreen )
   switch ( er->state ) {
 case xgestate_BUTTON_DEFAULT:
     xge_DrawVShadedRect ( er->w-2, er->h-2, er->x+1, er->y+1,
-                          xgec_Red3, xgec_Red5, er->h-2 );
+                          xgec_BUTTON_DEFAULT_A, xgec_BUTTON_DEFAULT_B, er->h-2 );
     break;
 case xgestate_BUTTON_COMBO_0:
     xge_DrawVShadedRect ( er->w-2, er->h-2, er->x+1, er->y+1,
-                          xgec_Green3, xgec_Green5, er->h-2 );
+                          xgec_BUTTON_COMBO_0A, xgec_BUTTON_COMBO_0B, er->h-2 );
     break;
 case xgestate_BUTTON_COMBO_1:
     xge_DrawVShadedRect ( er->w-2, er->h-2, er->x+1, er->y+1,
-                          xgec_Green5, xgec_Green7, er->h-2 );
+                          xgec_BUTTON_COMBO_1A, xgec_BUTTON_COMBO_1B, er->h-2 );
     break;
 case xgestate_BUTTON_INACTIVE:
     xge_DrawVShadedRect ( er->w-2, er->h-2, er->x+1, er->y+1,
-                          xgec_Grey3, xgec_Grey5, er->h-2 );
+                          xgec_BUTTON_INACTIVE_A, xgec_BUTTON_INACTIVE_B, er->h-2 );
     break;
 default:
     break;
   }
   xgeSetForeground ( xgec_WIDGET_FRAME );
   xgeDrawRectangle ( er->w-1, er->h-1, er->x, er->y );
-  xgeSetForeground ( xgec_White );
+  xgeSetForeground ( xgec_WIDGET_FOREGROUND );
   if ( title )
     xgeDrawString ( title, er->x+2, er->y+er->h-5 );
   if ( onscreen )

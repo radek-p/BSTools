@@ -48,11 +48,11 @@ void xge_DrawStringEd ( xge_widget *er, boolean onscreen )
   lgt  = (short)(strlen(text)-ed->start);
   lgt = (short)min(lgt, xge_MAX_STRING_LENGTH);
   if ( er->state == xgestate_TEXT_EDITING ) {
-    xgeSetForeground ( xgec_Blue6 );
+    xgeSetForeground ( xgec_TEXT_EDITOR_A );
     xgeFillRectangle ( er->w-2, er->h-2, er->x+1, er->y+1 );
     CorrectCursorPos ( ed );
         /* draw the text cursor */
-    xgeSetForeground ( xgec_DodgerBlue );
+    xgeSetForeground ( xgec_TEXT_EDITOR_C );
     x = (short)(er->x + 2 + (ed->pos-ed->start)*xge_CHAR_WIDTH);
     if ( insert )
       h = (xge_CHAR_HEIGHT+1) / 2;
@@ -61,14 +61,14 @@ void xge_DrawStringEd ( xge_widget *er, boolean onscreen )
     xgeFillRectangle ( xge_CHAR_WIDTH, h, x, er->y+er->h-2-h );
   }
   else {
-    xgeSetForeground ( xgec_Blue3 );
+    xgeSetForeground ( xgec_TEXT_EDITOR_B );
     xgeFillRectangle ( er->w-2, er->h-2, er->x+1, er->y+1 );
   }
 
   xgeSetForeground ( xgec_WIDGET_FRAME );
   xgeDrawRectangle ( er->w-1, er->h-1, er->x, er->y );
   if ( lgt > 0 ) {
-    xgeSetForeground ( xgec_White );
+    xgeSetForeground ( xgec_WIDGET_FOREGROUND );
     memcpy ( buffer, &text[ed->start], lgt );
     buffer[lgt] = 0;
     xgeDrawString ( buffer, er->x+2, er->y+er->h-5 );

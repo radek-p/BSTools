@@ -591,7 +591,7 @@ void xge_2DwinfDrawGeomWidgets ( xge_widget *er )
     return;
   _2Dwin = er->data0;
   CPos = &_2Dwin->CPos;
-  xgeSetForeground ( xgec_Cyan );
+  xgeSetForeground ( xgec_GEOM_WIN_WIDGET );
   switch ( _2Dwin->current_tool ) {
 case xge_2DWIN_MOVING_TOOL:
     xc = (short)(er->x + er->w/2);
@@ -1076,10 +1076,10 @@ void xge_2DwinfDrawCursorPos ( xge_2Dwinf *_2Dwin, short x, short y )
     er = _2Dwin->er;
     SetPoint2f ( &p, x, y );
     CameraUnProjectPoint2f ( &_2Dwin->CPos, &p, &q );
-    xgeSetForeground ( xgec_Green5 );
+    xgeSetForeground ( xgec_GEOM_WIN_CURSORPOS_B );
     xgeDrawLine ( x, er->y, x, er->y+er->h );
     xgeDrawLine ( er->x, y, er->x+er->w, y );
-    xgeSetForeground ( xgec_Green );
+    xgeSetForeground ( xgec_GEOM_WIN_CURSORPOS_A );
     sprintf ( s, "%5.3f", q.x );
     xx = er->x+er->w-strlen(s)*6;
     x = (short)(min ( x+2, xx ));

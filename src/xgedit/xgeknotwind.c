@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2007, 2011                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2007, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -254,9 +254,9 @@ void xge_KnotWindDrawCursorPos ( xge_KnotWind *knw )
   er = knw->er;
   u = xge_KnotWindUnmapKnot ( knw, knw->xx );
   sprintf ( s, "%5.3f", u );
-  xgeSetForeground ( xgec_Green5 );
+  xgeSetForeground ( xgec_KNOT_WIN_CURSORPOS_B );
   xgeDrawLine ( knw->xx, er->y, knw->xx, er->y+er->h );
-  xgeSetForeground ( xgec_Green );
+  xgeSetForeground ( xgec_KNOT_WIN_CURSORPOS_A );
   x = er->x+er->w-strlen(s)*6;
   x = min ( knw->xx+2, x );
   xgeDrawString ( s, x, er->y+er->h-4 );
@@ -269,7 +269,7 @@ void xge_KnotWindDrawAxis ( xge_KnotWind *knw )
 
   er = knw->er;
   y = (short)(er->y+4);
-  xgeSetForeground ( xgec_Green );
+  xgeSetForeground ( xgec_KNOT_WIN_AXIS );
   xgeDrawLine ( er->x+5, y, er->x+er->w-6, y );
 } /*xge_KnotWindDrawAxis*/
 
@@ -284,7 +284,7 @@ void xge_KnotWindDrawKnots ( xge_KnotWind *knw )
     return;
   er = knw->er;
   y = (short)(er->y+4);
-  xgeSetForeground ( xgec_White );
+  xgeSetForeground ( xgec_KNOT_WIN_KNOT );
   ux = xge_KnotWindMapKnot ( knw, knw->knots[knw->degree] ); 
   uxa = xge_KnotWindMapKnot ( knw, knw->knots[knw->lastknot-knw->degree] );
   xgeDrawLine ( ux, y, uxa, y );

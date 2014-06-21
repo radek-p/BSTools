@@ -3744,4 +3744,11 @@ Wersja 0.33.
     sluzacych do przedstawienia na obrazie wykonanym za pomoca sledzenia
     promieni krzywych Beziera i B-sklejanych.
 
+21.06.2014.
+872. Zmiana w libxgedit - kolory wihajstrow, do tej pory podane w kodzie
+    procedur rysujacych, zostaly zdefiniowane w nowym pliku xgedit/xgewdgc.h,
+    gdzie latwiej bedzie je pozmieniac w razie potrzeby.
+
+873. Drobna poprawka w programie ncolours.
+
 

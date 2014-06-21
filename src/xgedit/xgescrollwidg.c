@@ -103,13 +103,13 @@ void xge_DrawScrollWidget ( xge_widget *er, boolean onscreen )
   xge_scroll_widget *sw;
 
   sw = er->data0;
-  xgeSetForeground ( xgec_MENU_BACKGROUND );
+  xgeSetForeground ( xgec_SCROLLWIDGET_A );
   xgeFillRectangle ( er->w, er->h, er->x, er->y );
   xge_SetClipping ( sw->contents );
   sw->contents->redraw ( sw->contents, false );
   if ( sw->xslon || sw->yslon ) {
     xge_SetClipping ( er );
-    xgeSetForeground ( xgec_Grey2 );
+    xgeSetForeground ( xgec_SCROLLWIDGET_B );
     xgeDrawRectangle ( er->w-1, er->h-1, er->x, er->y );
     if ( sw->xslon ) {
       xge_SetClipping ( sw->xsb );

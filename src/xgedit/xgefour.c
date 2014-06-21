@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2007, 2012                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2007, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -150,7 +150,7 @@ void xge_DrawFourWW ( xge_widget *er, boolean onscreen )
     fww[i]->redraw ( fww[i], false );
   }
   xge_SetClipping ( er );
-  xgeSetForeground ( xgec_Black );
+  xgeSetForeground ( xgec_SPLIT_WIN_BK );
   xgeFillRectangle ( er->w, 2*HDIST, er->x, fwwdata->splity-HDIST );
   xgeFillRectangle ( 2*HDIST, er->h, fwwdata->splitx-HDIST, er->y );
 finish_it:

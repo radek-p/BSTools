@@ -34,13 +34,13 @@ void xge_DrawSwitch ( xge_widget *er, boolean onscreen )
   xgeFillRectangle ( er->w, er->h, er->x, er->y );
   if ( state )
     xge_DrawVShadedRect ( er->h-2, er->h-2, er->x+1, er->y+1,
-                          xgec_Blue5, xgec_Blue3, er->h-2 );
+                          xgec_SWITCH_A, xgec_SWITCH_B, er->h-2 );
   else
     xge_DrawVShadedRect ( er->h-2, er->h-2, er->x+1, er->y+1,
-                          xgec_Blue3, xgec_Blue5, er->h-2 );
+                          xgec_SWITCH_B, xgec_SWITCH_A, er->h-2 );
   xgeSetForeground ( xgec_WIDGET_FRAME );
   xgeDrawRectangle ( er->h-1, er->h-1, er->x, er->y );
-  xgeSetForeground ( xgec_White );
+  xgeSetForeground ( xgec_WIDGET_FOREGROUND );
   if ( state )
     xgeFillRectangle ( er->h-10, er->h-10, er->x+5, er->y+5 );
   if ( title )

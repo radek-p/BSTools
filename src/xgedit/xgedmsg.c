@@ -37,7 +37,7 @@ static void xge_RedrawErrorMessage ( xge_widget *er, boolean onscreen )
   xge_SetClipping ( xge_errmsg_edr );
   xgeSetForeground ( xge_msgbkcolour );
   xgeFillRectangle ( er->w, er->h, er->x, er->y );
-  xgeSetForeground ( xgec_White );
+  xgeSetForeground ( xgec_WIDGET_FOREGROUND );
   xgeDrawRectangle ( er->w-1, er->h-1, er->x, er->y );
   sl = strlen(xge_errmsg_msgtext);
   xgeDrawString (  xge_errmsg_msgtext, er->x+((er->w-6*sl)/2), er->y+16 );
@@ -142,7 +142,7 @@ static void xge_RedrawInfoMessage ( xge_widget *er, boolean onscreen )
   xge_SetClipping ( xge_errmsg_edr );
   xgeSetForeground ( xgec_INFOMSG_BACKGROUND );
   xgeFillRectangle ( er->w, er->h, er->x, er->y );
-  xgeSetForeground ( xgec_White );
+  xgeSetForeground ( xgec_WIDGET_FOREGROUND );
   xgeDrawRectangle ( er->w-1, er->h-1, er->x, er->y );
   for ( i = 0; i < xge_InfoNLines; i++ ) {
     msgstr = xge_info_msgtext[i];

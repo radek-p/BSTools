@@ -88,19 +88,19 @@ void xge_DrawHScrollBar ( xge_widget *er, boolean onscreen )
   hs = er->data0;
   if ( er->state == xgestate_SCROLLING ) {
     xge_DrawVShadedRect ( er->w-2, er->h-2, er->x+1, er->y+1,
-                          xgec_Blue7, xgec_Blue4, er->h-2 );
+                          xgec_SCROLLBAR_A, xgec_SCROLLBAR_B, er->h-2 );
     xgeSetForeground ( xgec_MENU_DARKBKG );
   }
   else {
     xge_DrawVShadedRect ( er->w-2, er->h-2, er->x+1, er->y+1,
-                          xgec_Blue3, xgec_Blue5, er->h-2 );
+                          xgec_SCROLLBAR_C, xgec_SCROLLBAR_D, er->h-2 );
     xgeSetForeground ( xgec_INFOMSG_BACKGROUND );
   }
   x = er->x+hs->slpos+1;
   xgeFillRectangle ( hs->wsl-2, er->h-3, x+1, er->y+1 );
   xgeSetForeground ( xgec_WIDGET_FRAME );
   xgeDrawRectangle ( er->w-1, er->h-1, er->x, er->y );
-  xgeSetForeground ( xgec_White );
+  xgeSetForeground ( xgec_WIDGET_FOREGROUND );
   xgeDrawRectangle ( hs->wsl-1, er->h-3, x, er->y+1 );
   if ( onscreen )
     xgeCopyRectOnScreen ( er->w, er->h, er->x, er->y );

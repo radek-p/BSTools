@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2007, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2007, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -898,10 +898,10 @@ void xge_T2KnotWindDrawCursorPos ( xge_T2KnotWind *T2win, short x, short y )
     er = T2win->er;
     SetPoint2d ( &p, x, y );
     CameraUnProjectPoint2d ( &T2win->CPos, &p, &q );
-    xgeSetForeground ( xgec_Green5 );
+    xgeSetForeground ( xgec_KNOT_WIN_CURSORPOS_B );
     xgeDrawLine ( x, er->y, x, er->y+er->h );
     xgeDrawLine ( er->x, y, er->x+er->w, y );
-    xgeSetForeground ( xgec_Green );
+    xgeSetForeground ( xgec_KNOT_WIN_CURSORPOS_A );
     sprintf ( s, "%5.3f", q.x );
     xx = er->x+er->w-strlen(s)*6;
     x = (short)(min ( x+2, xx ));

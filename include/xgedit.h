@@ -278,13 +278,9 @@ extern "C" {
 #ifndef XGERGB_H
 #include "xgedit/xgergb.h"
 #endif
-
-#define xgec_WIDGET_FRAME          xgec_Grey1
-#define xgec_MENU_DARKBKG          xgec_Grey6
-#define xgec_MENU_BACKGROUND       xgec_Grey5
-#define xgec_INFOMSG_BACKGROUND    xgec_Grey4
-#define xgec_ERRORMSG_BACKGROUND   xgec_Red
-#define xgec_WARNINGMSG_BACKGROUND xgec_DarkMagenta
+#ifndef XGEWDGC_H
+#include "xgedit/xgewdgc.h"
+#endif
 
 /* ///////////////////////////////////////////////////////////////////////// */
 /* wrappers around XWindow drawing and some other procedures */

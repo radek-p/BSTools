@@ -30,14 +30,14 @@ void xge_DrawSlidebarf ( xge_widget *er, boolean onscreen )
   slipos = er->data0;
   if ( er->state == xgestate_MOVINGSLIDE )
     xge_DrawVShadedRect ( er->w-2, er->h-2, er->x+1, er->y+1,
-                          xgec_Blue7, xgec_Blue4, er->h-2 );
+                          xgec_SLIDEBAR_A, xgec_SLIDEBAR_B, er->h-2 );
   else
     xge_DrawVShadedRect ( er->w-2, er->h-2, er->x+1, er->y+1,
-                          xgec_Blue3, xgec_Blue5, er->h-2 );
+                          xgec_SLIDEBAR_C, xgec_SLIDEBAR_D, er->h-2 );
   xgeSetForeground ( xgec_WIDGET_FRAME );
   xgeDrawRectangle ( er->w-1, er->h-1, er->x, er->y );
   x = er->x + 2 + (int)((*slipos)*(float)(er->w - 10));
-  xgeSetForeground ( xgec_White );
+  xgeSetForeground ( xgec_WIDGET_FOREGROUND );
   xgeFillRectangle ( 6, 6, x, er->y+2 );
   if ( onscreen )
     xgeCopyRectOnScreen ( er->w, er->h, er->x, er->y );

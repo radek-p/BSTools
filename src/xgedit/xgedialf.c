@@ -44,15 +44,15 @@ void xge_DrawDialf ( xge_widget *er, boolean onscreen )
   xc = (short)(er->x + r - 1);
   yc = (short)(er->y + r - 1);
   if ( er->state == xgestate_TURNINGDIAL )
-    xgeSetForeground ( xgec_Blue6 );
+    xgeSetForeground ( xgec_DIAL_A );
   else
-    xgeSetForeground ( xgec_Blue3 );
+    xgeSetForeground ( xgec_DIAL_A );
   xgeFillArc ( d-1, d-1, er->x, er->y, 0, 360*64 );
   xgeSetForeground ( xgec_WIDGET_FRAME );
   xgeDrawArc ( d-1, d-1, er->x, er->y, 0, 360*64 );
   x = (short)(xc + (r-5)*cos(*dialpos));
   y = (short)(yc - (r-5)*sin(*dialpos));
-  xgeSetForeground ( xgec_White );
+  xgeSetForeground ( xgec_WIDGET_FOREGROUND );
   xgeFillArc ( 7, 7, x-2, y-2, 0, 360*64 );
   if ( title ) {
     if ( er->w > er->h )  /* title aside */

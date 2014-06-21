@@ -48,7 +48,7 @@ void xge_DrawListBox ( xge_widget *er, boolean onscreen )
   char        buf[120];
 
   lbox = er->data0;
-  xgeSetForeground ( xgec_Grey6 );
+  xgeSetForeground ( xgec_LISTBOX_BK );
   xgeFillRectangle ( er->w-2, er->h-2, er->x+1, er->y+1 );
   xgeSetForeground ( xgec_WIDGET_FRAME );
   xgeDrawRectangle ( er->w-1, er->h-1, er->x, er->y );
@@ -62,7 +62,7 @@ void xge_DrawListBox ( xge_widget *er, boolean onscreen )
         xgeSetForeground ( lbox->bk0 );
       xgeFillRectangle ( er->w-2, xge_LISTDIST-1,
                          er->x+1, er->y+2+(i-lbox->fditem)*xge_LISTDIST );
-      xgeSetForeground ( xgec_White );
+      xgeSetForeground ( xgec_WIDGET_FOREGROUND );
       xge_ShortenString ( &lbox->itemstr[lbox->itemind[i]], buf, lbox->maxitl );
       xgeDrawString ( buf, er->x+2, er->y+3+(i-lbox->fditem+1)*xge_LISTDIST-5 );
     }
@@ -243,8 +243,8 @@ xge_widget *xge_NewListBox ( char window_num, xge_widget *prev, int id,
     listbox->itemind = NULL;
     listbox->itemstr = NULL;
         /* assign default background colours */
-    listbox->bk0 = xgec_Chocolate4;
-    listbox->bk1 = xgec_DarkOrange2;
+    listbox->bk0 = xgec_LISTBOX_BK0;
+    listbox->bk1 = xgec_LISTBOX_BK1;
         /* other fields of this structure are undefined; */
         /* the application must take care of that. */
   }

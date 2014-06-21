@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2007, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2007, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -576,7 +576,7 @@ static void xge_3DwindDrawXYZ ( CameraRecd *CPos, char cc, char left,
 {
   char s[30];
 
-  xgeSetForeground ( xgec_Green );
+  xgeSetForeground ( xgec_GEOM_WIN_CURSORPOS_A );
   switch ( cc ) {
 case 0: sprintf ( s, "x=%5.3f", xyz );  break;
 case 1: sprintf ( s, "y=%5.3f", xyz );  break;
@@ -605,7 +605,7 @@ void xge_3DwindDrawCursorPos ( xge_3Dwind *_3Dwin,
        id < 0 || id > 2 )
     return;
   zoomwin = _3Dwin->fww.zoomwin;
-  xgeSetForeground ( xgec_Green5 );
+  xgeSetForeground ( xgec_GEOM_WIN_CURSORPOS_B );
   switch ( _3Dwin->CoordWin ) {
 case 0:
     switch ( id ) {
@@ -784,7 +784,7 @@ void xge_3DwindDrawGeomWidgets ( xge_widget *er )
   if ( (id = er->id & 0x03) < 3 ) {
     _3Dwin = er->data0;
     CPos = &_3Dwin->CPos[id];
-    xgeSetForeground ( xgec_Cyan );
+    xgeSetForeground ( xgec_GEOM_WIN_WIDGET );
     switch ( _3Dwin->current_tool ) {
   case xge_3DWIN_MOVING_TOOL:
       xc = (short)(CPos->xmin + (double)(CPos->width)/2.0 + 0.5);

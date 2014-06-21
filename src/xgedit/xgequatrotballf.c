@@ -36,25 +36,25 @@ void xge_DrawQuatRotBallf ( xge_widget *er, boolean onscreen )
   yc = qball->yc;
   r1 = qball->r1;
   r2 = qball->r2;
-  xgeSetForeground ( xgec_Black );
+  xgeSetForeground ( xgec_QUATROTBALL_C );
   xgeFillArc ( 2*r2+1, 2*r2+1, xc-r2, yc-r2, 0, 360*64 );
   if ( er->state == xgestate_NOTHING ) {
-    xgeSetForeground ( xgec_Blue3 );
-    fc = xgec_White;
+    xgeSetForeground ( xgec_QUATROTBALL_B );
+    fc = xgec_QUATROTBALL_D;
   }
   else {
-    xgeSetForeground ( xgec_Blue6 );
-    fc = xgec_Grey2;
+    xgeSetForeground ( xgec_QUATROTBALL_A );
+    fc = xgec_QUATROTBALL_E;
   }
   xgeFillArc ( 2*r1+1, 2*r1+1, xc-r1, yc-r1, 0, 360*64 );
-  xgeSetForeground ( xgec_Grey3 );
+  xgeSetForeground ( xgec_QUATROTBALL_F );
   xgeDrawArc ( 2*r1+1, 2*r1+1, xc-r1, yc-r1, 0, 360*64 );
   xgeSetForeground ( fc );
   _xge_QuatRotBallDrawCircles ( xc, yc, r1, qball->tr, xge_OutPixels );
   xgeSetForeground ( xgec_WIDGET_FRAME );
   xgeDrawArc ( 2*r2+1, 2*r2+1, xc-r2, yc-r2, 0, 360*64 );
   if ( (title = er->data1) ) {
-    xgeSetForeground ( xgec_White );
+    xgeSetForeground ( xgec_WIDGET_FOREGROUND );
     if ( er->w > er->h )  /* title aside */
       { x = (short)(xc+r2+4);  y = (short)(yc+4); }
     else                  /* title below */
@@ -182,9 +182,9 @@ static void _xge_QuatRotBallfDrawSpecial ( xge_widget *er, boolean onscreen )
   xc = qball->xc;
   yc = qball->yc;
   R =  qball->R;
-  xgeSetForeground ( xgec_Grey3 );
+  xgeSetForeground ( xgec_QUATROTBALL_F );
   xgeDrawArc ( 2*R+1, 2*R+1, xc-R, yc-R, 0, 360*64 );
-  xgeSetForeground ( xgec_White );
+  xgeSetForeground ( xgec_QUATROTBALL_D );
   _xge_QuatRotBallDrawCircles ( xc, yc, R, qball->tr, xge_OutPixels );
   if ( onscreen )
     xgeCopyRectOnScreen ( er->w, er->h, er->x, er->y );

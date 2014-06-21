@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2007, 2011                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2007, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -77,10 +77,10 @@ case xgestate_T2KNOTWIN_PANNING:
 case xgestate_T2KNOTWIN_ZOOMING:
 case xgestate_T2KNOTWIN_SELECTING:
 case xgestate_T2KNOTWIN_UNSELECTING:
-    colour = xgec_Blue7;
+    colour = xgec_GEOM_WIN_BACK_A;
     break;
 default:
-    colour = xgec_Blue6;
+    colour = xgec_GEOM_WIN_BACK_B;
     break;
   }
   xgeSetForeground ( colour );
@@ -89,7 +89,7 @@ default:
 
 void xge_DrawGeomWinFrame ( xge_widget *er, boolean onscreen )
 {
-  xgeSetForeground ( xgec_DodgerBlue );
+  xgeSetForeground ( xgec_GEOM_WIN_FRAME );
   xgeDrawRectangle ( er->w-1, er->h-1, er->x, er->y );
   if ( onscreen )
     xgeCopyRectOnScreen ( er->w, er->h, er->x, er->y );
@@ -115,12 +115,12 @@ void xge_DrawGeomWinSelectionRect ( xge_widget *er, Box2s *sel_rect )
 case xgestate_2DWIN_SELECTING:
 case xgestate_3DWIN_SELECTING:
 case xgestate_T2KNOTWIN_SELECTING:
-    colour = xgec_OrangeRed;
+    colour = xgec_GEOM_WIN_SEL_A;
     break;
 case xgestate_2DWIN_UNSELECTING:
 case xgestate_3DWIN_UNSELECTING:
 case xgestate_T2KNOTWIN_UNSELECTING:
-    colour = xgec_Yellow;
+    colour = xgec_GEOM_WIN_SEL_B;
     break;
 default:
     return;

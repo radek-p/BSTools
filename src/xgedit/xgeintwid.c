@@ -38,17 +38,17 @@ void xge_DrawIntWidget ( xge_widget *er, boolean onscreen )
   w = 6*nd+4;
   x = er->x+er->w-w;
   xge_DrawVShadedRect ( w-1, er->h-2, x, er->y+1,
-                        xgec_Green3, xgec_Green5, er->h-2 );
+                        xgec_INTWIDGET_A, xgec_INTWIDGET_B, er->h-2 );
   if ( er->w-w-2 > 0 ) {
     xge_DrawVShadedRect ( er->w-w-2, er->h-2, er->x+1, er->y+1,
-                          xgec_Green5, xgec_Green7, er->h-2 );
+                          xgec_INTWIDGET_C, xgec_INTWIDGET_D, er->h-2 );
   }
   xgeSetForeground ( xgec_WIDGET_FRAME );
   xgeDrawRectangle ( er->w-1, er->h-1, er->x, er->y );
   xgeDrawLine ( x-1, er->y+er->h-1, x-1, er->y+1 );
   sprintf ( s, "%d", val );
   l = strlen(s);
-  xgeSetForeground ( xgec_White );
+  xgeSetForeground ( xgec_WIDGET_FOREGROUND );
   xgeDrawString ( s, er->x+er->w-2-6*l, er->y+er->h-5 );
   if ( iw->title )
     xgeDrawString ( iw->title, er->x+2, er->y+er->h-5 );

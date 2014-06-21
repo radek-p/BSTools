@@ -27,7 +27,9 @@
 
 #define STATE_SCROLLING_WIN (xgestate_LAST+1)
 
-xge_widget *cwin, *menu, *scb;
+xge_widget *cwin, *menu, *scb, *info;
+
+char infotext[256] = "";
 
 int ycmin;
 int wheight;
@@ -76,6 +78,27 @@ void RysujOkno ( xge_widget *er, boolean onscreen )
     xgeCopyRectOnScreen ( er->w, er->h, er->x, er->y );
 } /*RysujOkno*/
 
+void WriteColourInfo ( short x, short y )
+{
+  int  i, j, nlr, nc, xx, yy;
+  byte r, g, b;
+
+  infotext[0] = 0;
+  nlr = nfr + cwin->h/VDIST + 2;
+  for ( i = nfr, nc = nfr*ncols, yy = (short)(cwin->y+ycmin+nfr*VDIST+HMARGIN);
+        i < nlr;
+        i++, yy += VDIST )
+    for ( j = 0, xx = (short)(cwin->x+LMARGIN);  j < ncols;  j++, nc++, xx += HDIST )
+      if ( x >= xx && y >= yy && x < xx+CSW && y < yy+CSH ) {
+        xge_GetPixelColour ( xge_palette[nc], &r, &g, &b );
+        sprintf ( infotext, "%s: R = %d, G = %d, B = %d",
+                  xge_colour_name[nc], r, g, b );
+        break;
+      }
+  xge_SetClipping ( info );
+  info->redraw ( info, true );
+} /*WriteColourInfo*/
+
 boolean OknoMsg ( xge_widget *er, int msg, int key, short x, short y )
 {
   int lycmin;
@@ -86,6 +109,7 @@ case xgestate_NOTHING:
   case xgemsg_MCLICK:
       if ( (key & xgemouse_LBUTTON_DOWN) &&
            (key & xgemouse_LBUTTON_CHANGE) ) {
+        WriteColourInfo ( x, y );
         lasty = y;
         er->state = STATE_SCROLLING_WIN;
         xge_GrabFocus ( er, true );
@@ -199,8 +223,9 @@ case xgemsg_KEY:
 
 case xgemsg_RESIZE:
       cwin->w = scb->x = (short)(xge_current_width-10);
-      menu->w = xge_current_width;
-      cwin->h = scb->h = (short)(xge_current_height-20);
+      menu->w = info->w = xge_current_width;
+      cwin->h = scb->h = (short)(xge_current_height-40);
+      info->y = xge_current_height-20;
       ncols = cwin->w / HDIST;
       nrows   = (XGE_PALETTE_LENGTH+ncols-1) / ncols;
       wheight = 2*HMARGIN+nrows*VDIST;
@@ -229,19 +254,21 @@ void init_edwin ( void )
   wheight = 2*HMARGIN+nrows*VDIST;
   ycmin   = 0;
 
-  scb = xge_NewVScrollBar ( 0, NULL, 1, 10, xge_HEIGHT-20, xge_WIDTH-10, 20,
-                            wheight, xge_HEIGHT-20, &vsb, NULL );
+  scb = xge_NewVScrollBar ( 0, NULL, 1, 10, xge_HEIGHT-40, xge_WIDTH-10, 20,
+                            wheight, xge_HEIGHT-40, &vsb, NULL );
   rp = xge_NewButton ( 0, NULL, 0, 60, 18, 0, 0, b0 );
   menu = xge_NewMenu ( 0, scb, 2, xge_WIDTH, 20, 0, 0, rp );
-  cwin = xge_NewWidget ( 0, menu, 0, xge_WIDTH-10, xge_HEIGHT-20, 0, 20,
+  cwin = xge_NewWidget ( 0, menu, 0, xge_WIDTH-10, xge_HEIGHT-40, 0, 20,
                         NULL, NULL, OknoMsg, RysujOkno );
+  info = xge_NewTextWidget ( 0, cwin, 0, xge_WIDTH, 20, 0, xge_HEIGHT-20,
+                             infotext );
   nfr     = 0;
 
-  xge_SetWinEdRect ( cwin );
+  xge_SetWinEdRect ( info );
   xge_Redraw ();
 } /*init_edwin*/
 
-void destroy_edwin ()
+void destroy_edwin ( void )
 {
 } /*destroy_edwin*/
 
