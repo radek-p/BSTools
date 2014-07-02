@@ -72,21 +72,21 @@ void GeomObjectBSplineMeshSetCPoint ( GO_BSplineMesh *obj,
 
 void GeomObjectBSplineMeshMarkCPoints ( GO_BSplineMesh *obj,
                                         CameraRecd *CPos, Box2s *box,
-                                        byte mask, boolean clear )
+                                        byte mask, int action )
 {
   if ( obj->me.obj_type != GO_BSPLINE_MESH )
     return;
   GeomObjectMarkPoints ( obj->me.cpdimen, obj->me.spdimen, obj->nv,
-                         obj->mkcp, obj->meshvpc, CPos, box, mask, clear );
+                         obj->mkcp, obj->meshvpc, CPos, box, mask, action );
   obj->me.dlistmask &= ~BSM_DLM_CNET;
 } /*GeomObjectBSplineMeshMarkCPoints*/
 
 void GeomObjectBSplineMeshMarkCPoint ( GO_BSplineMesh *obj,
-                                       byte mask, boolean clear )
+                                       byte mask, int action )
 {
   if ( obj->me.obj_type != GO_BSPLINE_MESH )
     return;
-  GeomObjectMarkPoint ( obj->nv, obj->mkcp, mask, clear );
+  GeomObjectMarkPoint ( obj->nv, obj->mkcp, mask, action );
   obj->me.dlistmask &= ~BSM_DLM_CNET;
 } /*GeomObjectBSplineMeshMarkCPoint*/
 

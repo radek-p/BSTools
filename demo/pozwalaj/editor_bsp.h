@@ -86,9 +86,9 @@ void GeomObjectBSplinePatchSetCPoint ( GO_BSplinePatch *obj,
                                        CameraRecd *CPos, short x, short y );
 void GeomObjectBSplinePatchMarkCPoints ( GO_BSplinePatch *obj,
                                          CameraRecd *CPos, Box2s *box,
-                                         byte mask, boolean clear );
+                                         byte mask, int action );
 void GeomObjectBSplinePatchMarkCPoint ( GO_BSplinePatch *obj,
-                                        byte mask, boolean clear );
+                                        byte mask, int action );
 boolean GeomObjectBSplinePatchSaveCPoints ( GO_BSplinePatch *obj );
 void GeomObjectBSplinePatchUndoLastTransformation ( GO_BSplinePatch *obj );
 void GeomObjectBSplinePatchTransformCPoints ( GO_BSplinePatch *obj,

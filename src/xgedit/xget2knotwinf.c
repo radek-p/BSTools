@@ -208,6 +208,8 @@ case xgestate_T2KNOTWIN_SELECTING:
         xge_callback ( er, xgemsg_T2KNOTWIN_SELECT_POINTS, 0, x, y );
         goto exit_select_mode;
       }
+      else if ( (key & xgemouse_RBUTTON_DOWN) && (key & xgemouse_RBUTTON_CHANGE) )
+        goto enter_tgselect_mode;
       break;
   default:
       break;
@@ -233,6 +235,40 @@ case xgestate_T2KNOTWIN_UNSELECTING:
         T2win->selection_rect.y1 = y;
         xge_OrderSelectionRect ( &T2win->selection_rect );
         xge_callback ( er, xgemsg_T2KNOTWIN_UNSELECT_POINTS, 0, x, y );
+        goto exit_select_mode;
+      }
+      else if ( (key & xgemouse_LBUTTON_DOWN) && (key & xgemouse_LBUTTON_CHANGE) ) {
+enter_tgselect_mode:
+          /* no need to grab the focus, it's already ours */
+        er->state = xgestate_T2KNOTWIN_TGSELECTING;
+        xge_SetClipping ( er );
+        er->redraw ( er, true );
+      }
+      break;
+  default:
+      break;
+    }
+    break;
+
+case xgestate_T2KNOTWIN_TGSELECTING:
+    switch ( msg ) {
+  case xgemsg_MMOVE:
+      T2win->selection_rect.x1 = x;
+      T2win->selection_rect.y1 = y;
+      if ( !(key & (xgemouse_LBUTTON_DOWN | xgemouse_RBUTTON_DOWN)) ) {
+        xge_OrderSelectionRect ( &T2win->selection_rect );
+        xge_callback ( er, xgemsg_T2KNOTWIN_TGSELECT_POINTS, 0, x, y );
+        goto exit_select_mode;
+      }
+      xge_SetClipping ( er );
+      er->redraw ( er, true );
+      break;
+  case xgemsg_MCLICK:
+      if ( !(key & (xgemouse_LBUTTON_DOWN | xgemouse_RBUTTON_DOWN)) ) {
+        T2win->selection_rect.x1 = x;
+        T2win->selection_rect.y1 = y;
+        xge_OrderSelectionRect ( &T2win->selection_rect );
+        xge_callback ( er, xgemsg_T2KNOTWIN_TGSELECT_POINTS, 0, x, y );
 exit_select_mode:
         er->state = xgestate_NOTHING;
         xge_ReleaseFocus ( er );

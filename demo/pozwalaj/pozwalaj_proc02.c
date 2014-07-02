@@ -28,11 +28,11 @@
 #include "g1blendingd.h"
 #include "g2blendingd.h"
 #include "g2mblendingd.h"
+#include "mengerc.h"
 #include "xgedit.h"
 
 #define CHILD_SIDE
 #include "pozwalajipc.h"
-#undef CHILD_SIDE
 
 #include "pozwalaj_proc.h"
 

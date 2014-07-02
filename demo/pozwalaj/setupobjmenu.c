@@ -25,6 +25,7 @@
 #include "bsmesh.h"
 #include "g2blendingd.h"
 #include "egholed.h"
+#include "mengerc.h"
 #include "bsfile.h"
 #include "xgedit.h"
 #include "xgledit.h"
@@ -39,36 +40,9 @@
 #include "editor_bsh.h"
 #include "pozwalaj.h"
 
-
-void SetupObjectSpecificMenus ( geom_object *obj )
+void SetupObjectSpecificMenusWin1 ( geom_object *obj )
 {
-  if ( !obj ) {
-    xge_SetMenuWidgets ( side10menu, side10wdg_none, false );
-    SetStatusText ( "", false );
-    SetGeomWin10Empty ();
-  }
-  else {
-        /* show the appropriate editing window in win0: 2D or 3D */
-    if ( (side00menu->data1 != side00ewidgets &&
-          side00menu->data1 != side00bwidgets &&
-          side00menu->data1 != side00cwidgets) ||
-          obj->spdimen != 3 ) {
-      if ( obj->obj_type == GO_BSPLINE_MESH )
-        side00widgets = side00dwidgets;
-      else
-        side00widgets = side00awidgets;
-      xge_SetMenuWidgets ( side00menu, side00widgets, false );
-    }
-    switch ( obj->spdimen ) {
-  case 2:
-      SetWin002D ();
-      break;
-  case 3:
-      SetWin003D ();
-      break;
-  default:
-      return;
-    }
+  if ( obj ) {
         /* choose the side menu */
     xge_SetWindow ( win1 );
     GeomObjectDisplayInfoText ( obj );
@@ -92,6 +66,39 @@ void SetupObjectSpecificMenus ( geom_object *obj )
     if ( ChangeSide10MenuWidth ( side10menu->h ) )
       ResizeWindow1 ( xge_current_width, xge_current_height );
   }
+  else {
+    xge_SetMenuWidgets ( side10menu, side10wdg_none, false );
+    SetStatusText ( "", false );
+    SetGeomWin10Empty ();
+  }
+} /*SetupObjectSpecificMenusWin1*/
+
+void SetupObjectSpecificMenus ( geom_object *obj )
+{
+  if ( obj ) {
+        /* show the appropriate editing window in win0: 2D or 3D */
+    if ( (side00menu->data1 != side00ewidgets &&
+          side00menu->data1 != side00bwidgets &&
+          side00menu->data1 != side00cwidgets) ||
+          obj->spdimen != 3 ) {
+      if ( obj->obj_type == GO_BSPLINE_MESH )
+        side00widgets = side00dwidgets;
+      else
+        side00widgets = side00awidgets;
+      xge_SetMenuWidgets ( side00menu, side00widgets, false );
+    }
+    switch ( obj->spdimen ) {
+  case 2:
+      SetWin002D ();
+      break;
+  case 3:
+      SetWin003D ();
+      break;
+  default:
+      return;
+    }
+  }
+  SetupObjectSpecificMenusWin1 ( obj );
 } /*SetupObjectSpecificMenus*/
 
 void SetObjectEditMenu ( geom_object *obj )

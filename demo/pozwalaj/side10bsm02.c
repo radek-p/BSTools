@@ -25,6 +25,7 @@
 #include "bsmesh.h"
 #include "g2blendingd.h"
 #include "egholed.h"
+#include "mengerc.h"
 #include "bsfile.h"
 #include "xgedit.h"
 #include "xgledit.h"
@@ -41,7 +42,6 @@
 
 #define PARENT_SIDE
 #include "pozwalajipc.h"
-#undef PARENT_SIDE
 
 
 /* data buffers for mesh optimization */
@@ -64,7 +64,7 @@ GO_BSplineMesh *BlendingMeshOptimizationFindCoarse ( GO_BSplineMesh *obj )
   return NULL;
 } /*BlendingMeshOptimizationFindCoarse*/
 
-void BlendingMeshOptimizationPrepareData ( GO_BSplineMesh *obj )
+boolean BlendingMeshOptimizationPrepareData ( GO_BSplineMesh *obj )
 {
   int            nv, nhe, nfac, cpdimen;
   GO_BSplineMesh *coarse;
@@ -123,6 +123,7 @@ void BlendingMeshOptimizationPrepareData ( GO_BSplineMesh *obj )
       bsf_CloseOutputFile ();
     }
   }
+  return true;
 } /*BlendingMeshOptimizationPrepareData*/
 
 void InitBlendingMeshOptimization ( void )

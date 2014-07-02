@@ -32,14 +32,14 @@ static boolean MHEig ( int N, void *usrdata, double *x, double *f )
 
   sp = pkv_GetScratchMemTop ();
   md = (mengerc_data*)usrdata;
-  n = 3*(md->lkn - 2*md->n);
+  n = 3*(md->lkn - 2*md->deg);
   nn = (n*(n+1))/2;
   eigval = pkv_GetScratchMemd ( n+nn );
   if ( !eigval )
     goto failure;
   h = &eigval[n];
   if ( !md->heigok ) {
-    memcpy ( h, md->hhkM, nn*sizeof(double) );
+    memcpy ( h, md->hhkMe, nn*sizeof(double) );
     if ( pkn_SymMatFindEigenvaluesd ( n, h, eigval ) ) {
       emin = emax = eigval[0];
       for ( i = 1; i < n; i++ )
@@ -50,7 +50,7 @@ static boolean MHEig ( int N, void *usrdata, double *x, double *f )
     }  
     md->heigok = true;
   }
-  pkn_AddMatrixMd ( 1, nn, 0, md->hhkM, 0, md->hhR1, x[0], 0, h );
+  pkn_AddMatrixMd ( 1, nn, 0, md->hhkMe, 0, md->hhR1, x[0], 0, h );
   pkn_AddMatrixMd ( 1, nn, 0, h, 0, md->hhR2, x[1], 0, h );
   pkn_AddMatrixMd ( 1, nn, 0, h, 0, md->hhR3, x[2], 0, h );
   pkn_AddMatrixMd ( 1, nn, 0, h, 0, md->hhR4, x[3], 0, h );
@@ -196,7 +196,7 @@ boolean mengerc_OptPenaltyParams1 ( mengerc_data *md, boolean wide )
 
   sp = pkv_GetScratchMemTop ();
   progress = false;
-  n = 3*(md->lkn - 2*md->n);
+  n = 3*(md->lkn - 2*md->deg);
   nn = (n*(n+1))/2;
   g = pkv_GetScratchMemd ( n+nn );
   if ( !g )
@@ -295,8 +295,8 @@ static boolean SDFunc ( int N, void *usrdata, double *x, double *f )
 
   sp = pkv_GetScratchMemTop ();
   md = (mengerc_data*)usrdata;
-  ncp = md->lkn-md->n;
-  n = 3*(ncp-md->n);
+  ncp = md->lkn-md->deg;
+  n = 3*(ncp-md->deg);
   memcpy ( kk, md->penalty_param, 5*sizeof(double) );
   scp = pkv_GetScratchMemd ( N+3*ncp );
   if ( !scp )
@@ -394,7 +394,7 @@ boolean mengerc_OptPenaltyParams2 ( mengerc_data *md )
   double f, *g, _f;
 
   sp = pkv_GetScratchMemTop ();
-  n = 3*(md->lkn - 2*md->n);
+  n = 3*(md->lkn - 2*md->deg);
   g = pkv_GetScratchMemd ( n );
   if ( !g )
     goto failure;
@@ -430,7 +430,7 @@ way_out:
            md->_emin, md->_emax, md->f );
   if ( md->fmin < _f ) {
     memcpy ( md->cpoints, md->mcpoints, n*sizeof(double) );
-    memcpy ( &md->cpoints[md->lkn-2*md->n], md->cpoints, 3*md->n );
+    memcpy ( &md->cpoints[md->lkn-2*md->deg], md->cpoints, 3*md->deg );
   }
   pkv_SetScratchMemTop ( sp );
   return true;
@@ -460,7 +460,7 @@ boolean mengerc_OptPenaltyParams3 ( mengerc_data *md )
   boolean error;
 
   sp = pkv_GetScratchMemTop ();
-  n = 3*(md->lkn - 2*md->n);
+  n = 3*(md->lkn - 2*md->deg);
   nn = (n*(n+1))/2;
   g = pkv_GetScratchMemd ( n+nn );
   if ( !g )

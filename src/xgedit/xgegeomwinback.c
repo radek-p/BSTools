@@ -54,6 +54,7 @@ case xgestate_2DWIN_ZOOMING:
 case xgestate_2DWIN_PANNING:
 case xgestate_2DWIN_SELECTING:
 case xgestate_2DWIN_UNSELECTING:
+case xgestate_2DWIN_TGSELECTING:
 case xgestate_2DWIN_MOVING_GEOM_WIDGET:
 case xgestate_2DWIN_USING_GEOM_WIDGET:
 case xgestate_2DWIN_ALTUSING_GEOM_WIDGET:
@@ -64,6 +65,7 @@ case xgestate_3DWIN_PARZOOMING:
 case xgestate_3DWIN_TURNING_VIEWER:
 case xgestate_3DWIN_SELECTING:
 case xgestate_3DWIN_UNSELECTING:
+case xgestate_3DWIN_TGSELECTING:
 case xgestate_3DWIN_MOVING_GEOM_WIDGET:
 case xgestate_3DWIN_USING_GEOM_WIDGET:
 case xgestate_3DWIN_ALTUSING_GEOM_WIDGET:
@@ -77,6 +79,7 @@ case xgestate_T2KNOTWIN_PANNING:
 case xgestate_T2KNOTWIN_ZOOMING:
 case xgestate_T2KNOTWIN_SELECTING:
 case xgestate_T2KNOTWIN_UNSELECTING:
+case xgestate_T2KNOTWIN_TGSELECTING:
     colour = xgec_GEOM_WIN_BACK_A;
     break;
 default:
@@ -98,7 +101,8 @@ void xge_DrawGeomWinFrame ( xge_widget *er, boolean onscreen )
 void xge_DrawGeomWinSelectionRect ( xge_widget *er, Box2s *sel_rect )
 {
   short         x0, x1, y0, y1;
-  static char   dl[] = {2,2};
+  static char   dla[] = {2,2};
+  static char   dlb[] = {2,4};
   unsigned long colour;
 
   if ( sel_rect->x0 > sel_rect->x1 )
@@ -116,19 +120,32 @@ case xgestate_2DWIN_SELECTING:
 case xgestate_3DWIN_SELECTING:
 case xgestate_T2KNOTWIN_SELECTING:
     colour = xgec_GEOM_WIN_SEL_A;
-    break;
+    goto draw_it;
 case xgestate_2DWIN_UNSELECTING:
 case xgestate_3DWIN_UNSELECTING:
 case xgestate_T2KNOTWIN_UNSELECTING:
     colour = xgec_GEOM_WIN_SEL_B;
+draw_it:
+    xgeSetForeground ( colour );
+    xgeSetDashes ( 2, dla, 0 );
+    xgeSetLineAttributes ( 1, LineOnOffDash, CapRound, JoinRound );
+    xgeDrawRectangle ( x1-x0+1, y1-y0+1, x0, y0 );
+    xgeSetLineAttributes ( 1, LineSolid, CapRound, JoinRound );
+    break;
+case xgestate_2DWIN_TGSELECTING:
+case xgestate_3DWIN_TGSELECTING:
+case xgestate_T2KNOTWIN_TGSELECTING:
+    xgeSetLineAttributes ( 1, LineOnOffDash, CapRound, JoinRound );
+    xgeSetForeground ( xgec_GEOM_WIN_SEL_A );
+    xgeSetDashes ( 2, dlb, 0 );
+    xgeDrawRectangle ( x1-x0+1, y1-y0+1, x0, y0 );
+    xgeSetForeground ( xgec_GEOM_WIN_SEL_B );
+    xgeSetDashes ( 2, dlb, 2 );
+    xgeDrawRectangle ( x1-x0+1, y1-y0+1, x0, y0 );
+    xgeSetLineAttributes ( 1, LineSolid, CapRound, JoinRound );
     break;
 default:
-    return;
+    break;
   }
-  xgeSetForeground ( colour );
-  xgeSetDashes ( 2, dl, 0 );
-  xgeSetLineAttributes ( 1, LineOnOffDash, CapRound, JoinRound );
-  xgeDrawRectangle ( x1-x0+1, y1-y0+1, x0, y0 );
-  xgeSetLineAttributes ( 1, LineSolid, CapRound, JoinRound );
 } /*xge_DrawGeomWinSelectionRect*/
 

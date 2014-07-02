@@ -9,6 +9,11 @@
 #define BSC_MIN_PIPE_DIAMETER  0.01
 #define BSC_MAX_PIPE_DIAMETER  1.0
 
+#define BSC_MC_MIN_EXP    3.2
+#define BSC_MC_MAX_EXP   32.0
+#define BSC_MC_MIN_PPAR   1.0e-2
+#define BSC_MC_MAX_PPAR   1.0e+12
+
 typedef struct {
     geom_object me;
     int         maxknots;
@@ -19,12 +24,16 @@ typedef struct {
     int         savedsize;
     double      *savedcpoints;
     byte        *mkcp;
-    boolean     rational, closed, uniform;
+    boolean     rational, closed, uniform, mengerc;
     boolean     view_curve, view_cpoly, view_bpoly,
                 view_curvature, view_torsion;
     double      curvature_scale, torsion_scale;
     int         graph_dens;
     double      pipe_diameter;  /* on ray traced pictures */
+        /* Menger curvature related stuff */
+    double      mc_exponent, mc_pparam[MENGERC_NPPARAM];
+    int         mc_nqkn;
+    int         mc_ppopt;
   } GO_BSplineCurve;
 
 /* display list masks */
@@ -39,12 +48,17 @@ typedef struct {
 
 
 /* B-spline curves processing procedures */
+void GeomObjectBSplineCurveInitMC ( GO_BSplineCurve *obj );
+void GeomObjectBSplineCurveCopyMC ( GO_BSplineCurve *obj, GO_BSplineCurve *copy );
 boolean GeomObjectInitBSplineCurve ( GO_BSplineCurve *obj,
                                      char spdimen, boolean rational );
 geom_object *GeomObjectAddBSplineCurve ( const char *name,
                                          char spdimen, boolean rational );
 geom_object *GeomObjectCopyBSplineCurve ( GO_BSplineCurve *obj );
 void GeomObjectDeleteBSplineCurve ( GO_BSplineCurve *obj );
+void GeomObjectAssignBSCurve ( GO_BSplineCurve *obj, int spdimen, boolean rational,
+                               int degree, int lastknot, double *knots,
+                               double *cpoints, byte *mkcp, boolean closed );
 boolean GeomObjectBSplineCurveSetRational ( GO_BSplineCurve *obj );
 boolean GeomObjectBSplineCurveSetNonRational ( GO_BSplineCurve *obj );
 void GeomObjectDrawBSplineCurve ( GO_BSplineCurve *obj );
@@ -62,9 +76,9 @@ void GeomObjectBSplineCurveSetCPoint ( GO_BSplineCurve *obj,
                                        CameraRecd *CPos, short x, short y );
 void GeomObjectBSplineCurveMarkCPoints ( GO_BSplineCurve *obj,
                                          CameraRecd *CPos, Box2s *box,
-                                         char mask, boolean clear );
+                                         char mask, int action );
 void GeomObjectBSplineCurveMarkCPoint ( GO_BSplineCurve *obj,
-                                        char mask, boolean clear );
+                                        char mask, int action );
 boolean GeomObjectBSplineCurveSaveCPoints ( GO_BSplineCurve *obj );
 void GeomObjectBSplineCurveUndoLastTransformation ( GO_BSplineCurve *obj );
 void GeomObjectBSplineCurveTransformCPoints ( GO_BSplineCurve *obj,
@@ -81,6 +95,7 @@ boolean GeomObjectBSplineCurveRemoveKnot ( GO_BSplineCurve *obj,
 boolean GeomObjectBSplineCurveSetUniformKnots ( GO_BSplineCurve *obj, boolean uniform );
 boolean GeomObjectBSplineCurveRefine ( GO_BSplineCurve *obj );
 boolean GeomObjectBSplineCurveSetClosed ( GO_BSplineCurve *obj, boolean closed );
+boolean GeomObjectBSplineCurveSetMengerc ( GO_BSplineCurve *obj, boolean mengerc );
 
 void GeomObjectBSplineCurveSetCurvatureGraph ( GO_BSplineCurve *obj,
                                 boolean view_curvature, double curvature_scale,

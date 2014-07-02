@@ -82,7 +82,7 @@ void GeomObjectBSplineHoleSetCPoint ( GO_BSplineHole *obj,
 
 void GeomObjectBSplineHoleMarkCPoints ( GO_BSplineHole *obj,
                                         CameraRecd *CPos, Box2s *box,
-                                        byte mask, boolean clear )
+                                        byte mask, int action )
 {
   if ( obj->me.obj_type != GO_BSPLINE_HOLE )
     return;
@@ -90,11 +90,11 @@ void GeomObjectBSplineHoleMarkCPoints ( GO_BSplineHole *obj,
 } /*GeomObjectBSplineHoleMarkCPoints*/
 
 void GeomObjectBSplineHoleMarkCPoint ( GO_BSplineHole *obj,
-                                       byte mask, boolean clear )
+                                       byte mask, int action )
 {
   if ( obj->me.obj_type != GO_BSPLINE_HOLE )
     return;
-  GeomObjectMarkPoint ( 12*obj->hole_k+1, obj->mkcp, mask, clear );
+  GeomObjectMarkPoint ( 12*obj->hole_k+1, obj->mkcp, mask, action );
 } /*GeomObjectBezierCurveMarkCPoint*/
 
 boolean GeomObjectBSplineHoleSaveCPoints ( GO_BSplineHole *obj )

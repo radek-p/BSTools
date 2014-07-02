@@ -25,6 +25,7 @@
 #include "bsmesh.h"
 #include "g2blendingd.h"
 #include "egholed.h"
+#include "mengerc.h"
 #include "bsfile.h"
 #include "xgedit.h"
 #include "xgledit.h"
@@ -59,6 +60,9 @@ case IDLE_COMMAND_BSP_BLENDING_OPT_INIT:
     return 1;
 case IDLE_COMMAND_BSM_BLENDING_OPT_INIT:
     InitBlendingMeshOptimization ();
+    return 1;
+case IDLE_COMMAND_BSC_MENGERC_OPT_INIT:
+    InitMengerCurvatureOptimization ();
     return 1;
 case IDLE_COMMAND_SEND_DATA_TO_CHILD:
     IPCSendData ();

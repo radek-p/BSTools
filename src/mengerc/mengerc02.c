@@ -82,12 +82,12 @@ boolean mengerc_IntegralMengerf ( int n, void *usrdata, double *x, double *f )
   double   *knots, *penalty_param, clcT2;
   point3d  *cpoints, sc;
   vector3d vv;
-  double   kM, kkM, L, L0, L02, R1, R2, R3, R4, R5, a, q;
+  double   kM, kkM, kkMe, L, L0, L02, R1, R2, R3, R4, R5, a, q;
   double   r1, r2, r3;
 
   sp = pkv_GetScratchMemTop ();
   md = (mengerc_data*)usrdata;
-  deg  = md->n;
+  deg  = md->deg;
   lkn = md->lkn;
   knots = md->knots;
   cpoints = md->cpoints;
@@ -99,18 +99,18 @@ boolean mengerc_IntegralMengerf ( int n, void *usrdata, double *x, double *f )
   penalty_param = md->penalty_param;
 
   if ( !memcmp ( x, md->fx, n*sizeof(double) ) ) {
-    kkM = md->ffkM;  R1 = md->ffR1;  R2 = md->ffR2;
-    R3 = md->ffR3;   R4 = md->ffR4;  R5 = md->ffR5;
+    kkMe = md->ffkMe;  R1 = md->ffR[0];   R2 = md->ffR[1];
+    R3 = md->ffR[2];   R4 = md->ffR[3];  R5 = md->ffR[4];
     goto sum_up;
   }
   if ( !memcmp ( x, md->gx, n*sizeof(double) ) ) {
-    kkM = md->gfkM;  R1 = md->gfR1;  R2 = md->gfR2;
-    R3 = md->gfR3;   R4 = md->gfR4;  R5 = md->gfR5;
+    kkMe = md->gfkMe;  R1 = md->gfR1;  R2 = md->gfR2;
+    R3 = md->gfR3;    R4 = md->gfR4;  R5 = md->gfR5;
     goto sum_up;
   }
   if ( !memcmp ( x, md->hx, n*sizeof(double) ) ) {
-    kkM = md->hfkM;  R1 = md->hfR1;  R2 = md->hfR2;
-    R3 = md->hfR3;   R4 = md->hfR4;  R5 = md->hfR5;
+    kkMe = md->hfkMe;  R1 = md->hfR1;  R2 = md->hfR2;
+    R3 = md->hfR3;    R4 = md->hfR4;  R5 = md->hfR5;
     goto sum_up;
   }
 
@@ -129,10 +129,12 @@ boolean mengerc_IntegralMengerf ( int n, void *usrdata, double *x, double *f )
     goto failure;
   R4 /= L0;
         /* kompensowanie dlugosci */
-  if ( md->alt_scale )
-    kkM = L*pow ( kM, q );
-  else
+  if ( md->alt_scale ) {
     kkM = kM;
+    kkMe = L*pow ( kM, q );
+  }
+  else
+    kkM = kkMe = kM;
         /* obliczanie kary za niewlasciwa dlugosc */
   a = L/L0 - 1.0;
   R1 = a*a;
@@ -154,11 +156,12 @@ boolean mengerc_IntegralMengerf ( int n, void *usrdata, double *x, double *f )
   R5 *= clcT2*R5/(L02*L02);
         /* zapamietywanie skladnikow */
   memcpy ( md->fx, x, n*sizeof(double) );
-  md->ffkM = kkM;  md->ffR1 = R1;  md->ffR2 = R2;
-  md->ffR3 = R3;   md->ffR4 = R4;  md->ffR5 = R5;
+  md->ffkM = kkM;   md->ffkMe = kkMe;  md->lgt = L;
+  md->ffR[0] = R1;  md->ffR[1] = R2;
+  md->ffR[2] = R3;  md->ffR[3] = R4;   md->ffR[4] = R5;
 
 sum_up:
-  *f = kkM + penalty_param[0]*R1 + penalty_param[1]*R2 +
+  *f = kkMe + penalty_param[0]*R1 + penalty_param[1]*R2 +
        penalty_param[2]*R3 + penalty_param[3]*R4 + penalty_param[4]*R5;
   pkv_SetScratchMemTop ( sp );
   return true;
@@ -187,7 +190,7 @@ boolean mengerc_IntegralMengerfg ( int n, void *usrdata, double *x,
   sp = pkv_GetScratchMemTop ();
   md = (mengerc_data*)usrdata;
 
-  deg  = md->n;
+  deg  = md->deg;
   lkn = md->lkn;
   knots = md->knots;
   cpoints = md->cpoints;
@@ -201,17 +204,17 @@ boolean mengerc_IntegralMengerfg ( int n, void *usrdata, double *x,
     goto failure;
 
   if ( !memcmp ( x, md->hx, n*sizeof(double) ) ) {
-    kkM = md->hfkM;  R1 = md->hfR1;  R2 = md->hfR2;
-    R3 = md->hfR3;   R4 = md->hfR4;  R5 = md->hfR5;
-    grkM = md->hgkM;  grR1 = md->hgR1;  grR2 = md->hgR2;
-    grR3 = md->hgR3;  grR4 = md->hgR4;  grR5 = md->hgR5;
+    kkM = md->hfkMe;   R1 = md->hfR1;  R2 = md->hfR2;
+    R3 = md->hfR3;     R4 = md->hfR4;  R5 = md->hfR5;
+    grkM = md->hgkMe;  grR1 = md->hgR1;  grR2 = md->hgR2;
+    grR3 = md->hgR3;   grR4 = md->hgR4;  grR5 = md->hgR5;
     goto sum_up;
   }
-  grkM = md->ggkM;  grR1 = md->ggR1;  grR2 = md->ggR2;
-  grR3 = md->ggR3;  grR4 = md->ggR4;  grR5 = md->ggR5;
+  grkM = md->ggkMe;  grR1 = md->ggR1;  grR2 = md->ggR2;
+  grR3 = md->ggR3;   grR4 = md->ggR4;  grR5 = md->ggR5;
   if ( !memcmp ( x, md->gx, n*sizeof(double) ) ) {
-    kkM = md->gfkM;  R1 = md->gfR1;  R2 = md->gfR2;
-    R3 = md->gfR3;   R4 = md->gfR4;  R5 = md->gfR5;
+    kkM = md->gfkMe;  R1 = md->gfR1;  R2 = md->gfR2;
+    R3 = md->gfR3;    R4 = md->gfR4;  R5 = md->gfR5;
     goto sum_up;
   }
 
@@ -310,8 +313,8 @@ boolean mengerc_IntegralMengerfg ( int n, void *usrdata, double *x,
 
         /* zapamietywanie skladnikow */
   memcpy ( md->gx, x, n*sizeof(double) );
-  md->gfkM = kkM;  md->gfR1 = R1;  md->gfR2 = R2;
-  md->gfR3 = R3;   md->gfR4 = R4;  md->gfR5 = R5;
+  md->gfkMe = kkM;  md->gfR1 = R1;  md->gfR2 = R2;
+  md->gfR3 = R3;    md->gfR4 = R4;  md->gfR5 = R5;
 
 sum_up:
   *f = kkM + penalty_param[0]*R1 + penalty_param[1]*R2 +
@@ -354,25 +357,26 @@ boolean mengerc_IntegralMengerfgh ( int n, void *usrdata, double *x,
   hL  = pkv_GetScratchMemd ( nn );
   if ( !gL || !hL )
     goto failure;
-  gkM = md->hgkM;  gR1 = md->hgR1;  gR2 = md->hgR2;
-  gR3 = md->hgR3;  gR4 = md->hgR4;  gR5 = md->hgR5;
-  hkM = md->hhkM;  hR1 = md->hhR1;  hR2 = md->hhR2;
-  hR3 = md->hhR3;  hR4 = md->hhR4;  hR5 = md->hhR5;
+  gkM = md->hgkMe;  gR1 = md->hgR1;  gR2 = md->hgR2;
+  gR3 = md->hgR3;   gR4 = md->hgR4;  gR5 = md->hgR5;
+  hkM = md->hhkMe;  hR1 = md->hhR1;  hR2 = md->hhR2;
+  hR3 = md->hhR3;   hR4 = md->hhR4;  hR5 = md->hhR5;
 
   if ( !memcmp ( x, md->hx, n*sizeof(double) ) ) {
-    kkM = md->hfkM;  R1 = md->hfR1;  R2 = md->hfR2;
-    R3 = md->hfR3;   R4 = md->hfR4;  R5 = md->hfR5;
+    kkM = md->hfkMe;  R1 = md->hfR1;  R2 = md->hfR2;
+    R3 = md->hfR3;    R4 = md->hfR4;  R5 = md->hfR5;
     goto sum_up;
   }
 
-  deg  = md->n;
+  deg  = md->deg;
   lkn = md->lkn;
   knots = md->knots;
   cpoints = md->cpoints;
   clcK = lkn - 2*deg;  /* n == 3*clcK */
   clcT2 = (double)(clcK*clcK);
   twoT2 = clcT2+clcT2;
-  memcpy ( cpoints, x, n*sizeof(double) );
+  if ( (void*)cpoints != (void*)x )
+    memcpy ( cpoints, x, n*sizeof(double) );
   memcpy ( &cpoints[clcK], x, deg*sizeof(point3d) );
   L0 = md->L;
   L02 = L0*L0;
@@ -588,8 +592,8 @@ boolean mengerc_IntegralMengerfgh ( int n, void *usrdata, double *x,
 
         /* zapamietywanie skladnikow */
   memcpy ( md->hx, x, n*sizeof(double) );
-  md->hfkM = kkM;  md->hfR1 = R1;  md->hfR2 = R2;
-  md->hfR3 = R3;   md->hfR4 = R4;  md->hfR5 = R5;
+  md->hfkMe = kkM;  md->hfR1 = R1;  md->hfR2 = R2;
+  md->hfR3 = R3;    md->hfR4 = R4;  md->hfR5 = R5;
 
 sum_up:
   *f = kkM + penalty_param[0]*R1 + penalty_param[1]*R2 +
@@ -625,7 +629,7 @@ boolean mengerc_IntegralMengerTransC ( int n, void *usrdata, double *x )
   sp = pkv_GetScratchMemTop ();
   md = (mengerc_data*)usrdata;
 
-  deg  = md->n;
+  deg  = md->deg;
   lkn = md->lkn;
   ncp = lkn-deg;
   knots = md->knots;
@@ -680,7 +684,7 @@ boolean mengerc_HomotopyTest ( int n, void *usrdata, double *x0, double *x1,
 
   sp = pkv_GetScratchMemTop ();
   md = (mengerc_data*)usrdata;
-  deg = md->n;
+  deg = md->deg;
   lkn = md->lkn;
   ncp = lkn - deg;
   clcK = ncp - deg;

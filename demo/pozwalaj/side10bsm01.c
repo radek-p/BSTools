@@ -29,6 +29,7 @@
 #include "g2blendingd.h"
 #include "g2mblendingd.h"
 #include "egholed.h"
+#include "mengerc.h"
 #include "bsfile.h"
 #include "xgedit.h"
 #include "xgledit.h"
@@ -45,7 +46,6 @@
 
 #define PARENT_SIDE
 #include "pozwalajipc.h"
-#undef PARENT_SIDE  
 
 #define BSM_BL_MAXITER 999
 
@@ -852,9 +852,10 @@ case xgemsg_BUTTON_COMMAND:
         }
       }
       else {
-        BlendingMeshOptimizationPrepareData ( obj );
-        InitBlendingMeshOptimization ();
-        bsm_bl_optimize->data0 = txtInterrupt;
+        if ( BlendingMeshOptimizationPrepareData ( obj ) ) {
+          InitBlendingMeshOptimization ();
+          bsm_bl_optimize->data0 = txtInterrupt;
+        }
       }
       xge_SetClipping ( er );
       er->redraw ( er, true );

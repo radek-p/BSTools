@@ -25,6 +25,7 @@
 #include "bsmesh.h"
 #include "g2blendingd.h"
 #include "egholed.h"
+#include "mengerc.h"
 #include "bsfile.h"
 #include "xgedit.h"
 #include "xgledit.h"
@@ -39,10 +40,16 @@
 #include "editor_bsh.h"
 #include "pozwalaj.h"
 
+#define PARENT_SIDE
+#include "pozwalajipc.h"
+
+#define BSC_MC_MAXITER 999
+
 
 void InitSide10Menu_BSc ( void )
 {
   xge_widget *w;
+  int        i;
 
         /* widgets specific for B-spline curves */
           /* edit */
@@ -98,7 +105,51 @@ void InitSide10Menu_BSc ( void )
                       txtNull, &win1commandline );
   xge_SetWidgetPositioning ( w, 2, 20, -16 );
   side10wdg_bsc_data = w;
-
+          /* options */
+            /* general */
+  w = xge_NewSwitch ( win1, NULL, swM1MSC_MENGERC, 109, 16, 0, 20,
+                      txtMengerCurv, &bsc_sw_mengerc );
+  w = xge_NewSwitch ( win1, w, swM11STATUS, 16, 16, 0, xge_HEIGHT-16,
+                      txtNull, &win1statusline );
+  xge_SetWidgetPositioning ( w, 2, 0, -16 );
+  w = xge_NewSwitch ( win1, w, swM11COMMAND, 16, 16, 20, xge_HEIGHT-16,
+                      txtNull, &win1commandline );
+  xge_SetWidgetPositioning ( w, 2, 20, -16 );
+  side10wdg_bsc_opt = side10wdg_bsc_opt1 = w;
+            /* Menger curvature */
+  w = xge_NewSwitch ( win1, NULL, swM1MSC_MENGERC, 109, 16, 0, 20,
+                      txtMengerCurv, &bsc_sw_mengerc );
+  w = xge_NewTextWidget ( win1, w, 0, 109, 19, 0, 40, txtExponent );
+  w = xge_NewSlidebard ( win1, w, slM1MSC_MENGERC_EXP, 109, 10, 0, 60,
+                         &bsc_sl_mcexp );
+  w = xge_NewTextWidget ( win1, w, 0, 109, 19, 0, 74, txtPenaltyParam );
+  for ( i = 0; i < 5; i++ )
+    w = xge_NewSlidebard ( win1, w, slM1MSC_MENGERC_P1+i, 109, 10, 0, 94+14*i,
+                           &bsc_sl_mcppar[i] );
+  w = xge_NewIntWidget ( win1, w, intwM1BSC_MENGERC_QKN, 91, 19, 0, 164,
+                         MENGERC_MIN_NQKN, MENGERC_MAX_NQKN, &bsc_mc_qkn,
+                         txtQKnots, &bsc_mc_qknots );
+  w = xge_NewIntWidget ( win1, w, intwM1BSC_MENGERC_POPT, 91, 19, 0, 184,
+                         0, 3, &bsc_mc_popt, txtPenaltyOpt, &bsc_mc_ppopt );
+  w = xge_NewIntWidget ( win1, w, intwM1BSC_MENGERC_MAXIT, 91, 19, 0, 204,
+                         1, BSC_MC_MAXITER, &bsc_mc_maxit, txtMaxIter,
+                         &bsc_mc_maxiter );
+  w = xge_NewIntWidget ( win1, w, intwM1BSC_MENGERC_NPTHREADS, 91, 19, 0, 224,
+                         1, MAX_PTHREADS, &bscnpthreads,
+                         txtNPThreads, &bsc_npthreads );
+  w = xge_NewSwitch ( win1, w, swM1BSC_MENGERC_LOG, 109, 16, 0, 245,
+                      txtLogIt, &bsc_sw_mc_logit );
+  w = bsc_mc_optimize =
+      xge_NewButton ( win1, w, btnM1BSC_MENGERC_OPTIMIZE, 58, 19, 0, 263,
+                      txtOptimize );
+  bsc_npthreads = ncpu;
+  w = xge_NewSwitch ( win1, w, swM11STATUS, 16, 16, 0, xge_HEIGHT-16,
+                      txtNull, &win1statusline );
+  xge_SetWidgetPositioning ( w, 2, 0, -16 );
+  w = xge_NewSwitch ( win1, w, swM11COMMAND, 16, 16, 20, xge_HEIGHT-16,
+                      txtNull, &win1commandline );
+  xge_SetWidgetPositioning ( w, 2, 20, -16 );
+  side10wdg_bsc_opt2 = w;
 } /*InitSide10Menu_BSc*/
 
 boolean ChangeSide10MenuWidth_BSc ( short h )
@@ -112,6 +163,8 @@ boolean ChangeSide10MenuWidth_BSc ( short h )
 
 void SetupBSplineCurveWidgets ( GO_BSplineCurve *obj )
 {
+  int i;
+
   InitNameEditor ( &bsc_name_ed, obj->me.name );
   degree = obj->degree;
   bsc_sw_closed = obj->closed;
@@ -129,11 +182,34 @@ void SetupBSplineCurveWidgets ( GO_BSplineCurve *obj )
   Geom10winKNSetKnots ( &g10knotwin, obj->degree, obj->lastknot,
                         obj->knots, obj->closed );
   SetGeomWin10Knotw ( obj );
+        /* Menger curvature related stuff */
+  bsc_sw_mengerc = obj->mengerc;
+  bsc_sl_mcexp = xge_LogSlidebarPosd ( BSC_MC_MIN_EXP, BSC_MC_MAX_EXP,
+                                       obj->mc_exponent );
+  for ( i = 0; i < 5; i++ )
+    bsc_sl_mcppar[i] = xge_LogSlidebarPosd ( BSC_MC_MIN_PPAR, BSC_MC_MAX_PPAR,
+                                             obj->mc_pparam[i] );
+  bsc_mc_qknots = obj->mc_nqkn;
+  bsc_mc_ppopt = obj->mc_ppopt;
+  if ( bsc_sw_mengerc ) {
+    if ( obj->me.bound_with_a_child )
+      bsc_mc_optimize->data0 = txtInterrupt;
+    else
+      bsc_mc_optimize->data0 = txtOptimize;
+    side10wdg_bsc_opt = side10wdg_bsc_opt2;
+    xge_KnotWindFindMapping ( &g10knotwin );
+  }
+  else
+    side10wdg_bsc_opt = side10wdg_bsc_opt1;
+  if ( whichside10menu == SIDE10MENU_OPTIONS )
+    xge_SetMenuWidgets ( side10menu, side10wdg_bsc_opt, true );
 } /*SetupBSplineCurveWidgets*/
 
 int Side10MenuBscCallBack ( xge_widget *er, int msg, int key, short x, short y )
 {
   GO_BSplineCurve *obj;
+  int             i;
+  boolean         success;
 
   if ( current_go->obj_type != GO_BSPLINE_CURVE )
     return 0;
@@ -158,6 +234,26 @@ case xgemsg_BUTTON_COMMAND:
   case btnM1BSC_COLOUR:
       memcpy ( colour_rgb, obj->me.colour, 3*sizeof(double) );
       OpenPopup ( popup13, false );
+      return 1;
+  case btnM1BSC_MENGERC_OPTIMIZE:
+      if ( ipc_state == ipcstate_CHILD_BUSY ) {
+        if ( obj->me.bound_with_a_child ) {
+          IPCInterruptTheChild ();
+          bsc_mc_optimize->data0 = txtOptimize;
+        }
+        else {
+          xge_DisplayErrorMessage ( ErrorMsgChildProcessBusy, 0 );
+          return 1;
+        }
+      }
+      else {
+        if ( MengerCurvatureOptimizationPrepareData ( obj ) ) {
+          InitMengerCurvatureOptimization ();
+          bsc_mc_optimize->data0 = txtInterrupt;
+        }
+      }
+      xge_SetClipping ( er );
+      er->redraw ( er, true );
       return 1;
   default:
       return 0;
@@ -211,6 +307,21 @@ case xgemsg_SWITCH_COMMAND:
         RedrawGeom00Win ();
       }
       return 1;
+  case swM1MSC_MENGERC:
+      success = GeomObjectBSplineCurveSetMengerc ( obj, bsc_sw_mengerc );
+      if ( !success )
+        bsc_sw_mengerc = obj->mengerc;
+      SetupBSplineCurveWidgets ( obj );
+      xge_RedrawAll ();
+      if ( !success && !bsc_sw_mengerc ) {
+        if ( obj->degree < 3 || !obj->closed )
+          xge_DisplayErrorMessage ( ErrorMsgCurveMustBeCubicAndClosed, 0 );
+        else if ( obj->rational || obj->me.spdimen != 3 )
+          xge_DisplayErrorMessage ( ErrorMsgCurveMustBeNonRationalAnd3D, 0 );
+      }
+      return 1;
+  case swM1BSC_MENGERC_LOG:
+      return 1;
   default:
       return 0;
     }
@@ -238,6 +349,21 @@ case xgemsg_SLIDEBAR_COMMAND:
                                   BSC_MAX_PIPE_DIAMETER, sl_pipe_diameter );
       NotifyParam2 ( obj->pipe_diameter );
       return 1;
+  case slM1MSC_MENGERC_EXP:
+      obj->mc_exponent = xge_LogSlidebarValued ( BSC_MC_MIN_EXP,
+                                 BSC_MC_MAX_EXP, bsc_sl_mcexp );
+      NotifyParam2 ( obj->mc_exponent );
+      return 1;
+  case slM1MSC_MENGERC_P1:
+  case slM1MSC_MENGERC_P2:
+  case slM1MSC_MENGERC_P3:
+  case slM1MSC_MENGERC_P4:
+  case slM1MSC_MENGERC_P5:
+      i = er->id-slM1MSC_MENGERC_P1;
+      obj->mc_pparam[i] = xge_LogSlidebarValued ( BSC_MC_MIN_PPAR,
+                                 BSC_MC_MAX_PPAR, bsc_sl_mcppar[i] );
+      NotifyParam2 ( obj->mc_pparam[i] );
+      return 1;
   default:
       return 0;
     }
@@ -260,6 +386,18 @@ case xgemsg_INT_WIDGET_COMMAND:
                         sw_view_torsion, torsion_scale, curv_graph_dens );
         xge_RedrawAll ();
       }
+      return 1;
+  case intwM1BSC_MENGERC_QKN:
+      obj->mc_nqkn = bsc_mc_qknots = key;
+      return 1;
+  case intwM1BSC_MENGERC_POPT:
+      obj->mc_ppopt = bsc_mc_ppopt = key;
+      return 1;
+  case intwM1BSC_MENGERC_MAXIT:
+      bsc_mc_maxiter = key;
+      return 1;
+  case intwM1BSC_MENGERC_NPTHREADS:
+      bsc_npthreads = key;
       return 1;
   default:
       return 0;
@@ -285,4 +423,59 @@ default:
     return 0;
   }
 } /*Side10MenuBscCallBack*/
+
+/* ////////////////////////////////////////////////////////////////////////// */
+/* data buffers for Menger curvature optimization */
+static ipc_bscmc_size    bsc_size;
+static ipc_bscmc_options bsc_options;
+
+boolean MengerCurvatureOptimizationPrepareData ( GO_BSplineCurve *obj )
+{
+  int cpdimen, lkn, deg;
+
+  BindChildToGeomObject ( (geom_object*)obj );
+  ResetIPCBuffer ();
+  bsc_size.spdimen = obj->me.spdimen;
+  bsc_size.cpdimen = cpdimen = obj->me.cpdimen;
+  bsc_size.degree = deg = obj->degree;
+  bsc_size.lkn = lkn = obj->lastknot;
+  bsc_size.closed = obj->closed;
+  IPCAppendDataItem ( ipcd_BSC_SIZE, sizeof(ipc_bscmc_size), &bsc_size );
+  IPCAppendDataItem ( ipcd_BSC_KNOTS, (lkn+1)*sizeof(double), obj->knots );
+  IPCAppendDataItem ( ipcd_BSC_CPOINTS, (lkn-deg)*cpdimen*sizeof(double),
+                      obj->cpoints );
+  IPCAppendDataItem ( ipcd_BSC_MKCP, (lkn-deg)*sizeof(char), obj->mkcp );
+  bsc_options.nqkn = obj->mc_nqkn;
+  bsc_options.maxiter = bsc_mc_maxiter;
+  bsc_options.ppopt = obj->mc_ppopt;
+  bsc_options.exponent = obj->mc_exponent;
+  memcpy ( bsc_options.pparam, obj->mc_pparam, 5*sizeof(double) );
+  bsc_options.npthreads = bsc_npthreads;
+  IPCAppendDataItem ( ipcd_BSC_OPTIMIZE, sizeof(ipc_bscmc_options),
+                      &bsc_options );
+  return true;
+} /*MengerCurvatureOptimizationPrepareData*/
+
+void InitMengerCurvatureOptimization ( void )
+{
+  switch ( ipc_state ) {
+case ipcstate_NO_CHILD: 
+    if ( LaunchAChildProcess () )
+      xge_PostIdleCommand ( IDLE_COMMAND_BSC_MENGERC_OPT_INIT, 0, 0 );
+    else
+      xge_DisplayErrorMessage ( ErrorMsgCannotLaunchAChild, 0 );
+    break;
+case ipcstate_CHILD_LAUNCHED:
+    xge_PostIdleCommand ( IDLE_COMMAND_BSC_MENGERC_OPT_INIT, 0, 0 );
+    break;
+case ipcstate_CHILD_READY:
+    IPCWakeUpChild ();
+    break;
+case ipcstate_CHILD_BUSY:
+    xge_DisplayErrorMessage ( ErrorMsgChildProcessBusy, 0 );
+    break;
+default:
+    break;
+  }
+} /*InitMengerCurvatureOptimization*/
 

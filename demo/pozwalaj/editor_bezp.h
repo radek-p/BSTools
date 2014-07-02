@@ -47,9 +47,9 @@ void GeomObjectBezierPatchSetCPoint ( GO_BezierPatch *obj,
                                       CameraRecd *CPos, short x, short y );
 void GeomObjectBezierPatchMarkCPoints ( GO_BezierPatch *obj,
                                         CameraRecd *CPos, Box2s *box,
-                                        char mask, boolean clear );
+                                        char mask, int action );
 void GeomObjectBezierPatchMarkCPoint ( GO_BezierPatch *obj,
-                                      char mask, boolean clear );
+                                      char mask, int action );
 boolean GeomObjectBezierPatchSaveCPoints ( GO_BezierPatch *obj );
 void GeomObjectBezierPatchUndoLastTransformation ( GO_BezierPatch *obj );
 void GeomObjectBezierPatchTransformCPoints ( GO_BezierPatch *obj,

@@ -495,21 +495,21 @@ void GeomObjectBezierCurveSetCPoint ( GO_BezierCurve *obj,
 
 void GeomObjectBezierCurveMarkCPoints ( GO_BezierCurve *obj,
                                         CameraRecd *CPos, Box2s *box,
-                                        char mask, boolean clear )
+                                        char mask, int action )
 {
   if ( obj->me.obj_type != GO_BEZIER_CURVE )
     return;
   GeomObjectMarkPoints ( obj->me.cpdimen, obj->me.spdimen, obj->degree+1,
-                         obj->mkcp, obj->cpoints, CPos, box, mask, clear );
+                         obj->mkcp, obj->cpoints, CPos, box, mask, action );
   obj->me.dlistmask &= ~BEZC_DLM_CPOLY;
 } /*GeomObjectBezierCurveMarkCPoints*/
 
 void GeomObjectBezierCurveMarkCPoint ( GO_BezierCurve *obj,
-                                       char mask, boolean clear )
+                                       char mask, int action )
 {
   if ( obj->me.obj_type != GO_BEZIER_CURVE )
     return;
-  GeomObjectMarkPoint ( obj->degree+1, obj->mkcp, mask, clear );
+  GeomObjectMarkPoint ( obj->degree+1, obj->mkcp, mask, action );
   obj->me.dlistmask &= ~BEZC_DLM_CPOLY;
 } /*GeomObjectBezierCurveMarkCPoint*/
 

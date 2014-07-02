@@ -35,9 +35,9 @@ void GeomObjectBSplineHoleSetCPoint ( GO_BSplineHole *obj,
                                       CameraRecd *CPos, short x, short y );
 void GeomObjectBSplineHoleMarkCPoints ( GO_BSplineHole *obj,
                                         CameraRecd *CPos, Box2s *box,
-                                        byte mask, boolean clear );
+                                        byte mask, int action );
 void GeomObjectBSplineHoleMarkCPoint ( GO_BSplineHole *obj,
-                                       byte mask, boolean clear );
+                                       byte mask, int action );
 boolean GeomObjectBSplineHoleSaveCPoints ( GO_BSplineHole *obj );
 void GeomObjectBSplineHoleUndoLastTransformation ( GO_BSplineHole *obj );
 void GeomObjectBSplineHoleTransformCPoints ( GO_BSplineHole *obj,

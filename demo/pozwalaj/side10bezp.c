@@ -24,6 +24,7 @@
 #include "multibs.h"
 #include "bsmesh.h"
 #include "g2blendingd.h"
+#include "mengerc.h"
 #include "egholed.h"
 #include "bsfile.h"
 #include "xgedit.h"

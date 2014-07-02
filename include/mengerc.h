@@ -28,8 +28,11 @@
 extern "C" {
 #endif
 
-/* number of quadrature knots 4 seems enough, 6 will be 3 times slower */
-#define MENGERC_NKN 4
+/* number of quadrature knots; 4 seems enough */
+/* the limits below are related with the code in mengerc00.c */
+#define MENGERC_MIN_NQKN  2
+#define MENGERC_MAX_NQKN 10
+
 /* number of penalty parameters */
 #define MENGERC_NPPARAM 5
 
@@ -46,7 +49,7 @@ typedef struct {
     double  *qkn;     /* pointer to the array of knots */
     double  *qc;      /* quadrature coefficients */
           /* spline basis description */
-    int     n;        /* degree, should be 3 */
+    int     deg;      /* degree, should be 3 */
     double  *bsf;     /* basis function values at knots */
     double  *dbsf;    /* 1st order derivatives at knots  */
     double  *ddbsf;   /* 2nd order derivatives at knots */
@@ -62,7 +65,7 @@ typedef struct {
           /* desired length of the curve */
     double  L;
           /* penalty parameters */
-    double  penalty_param[5];
+    double  *penalty_param;
     int     mdi;  /* control point most distant from the gravity centre */
     boolean alt_scale;
           /* pre-transformation switch */
@@ -72,28 +75,37 @@ typedef struct {
     double  k1min, k1max, k2min, k2max, k3min, k3max;
           /* number of parallel threads */
     int     npthr;
+          /* working space */
+    int     nvars;
+    double  *x, *g;
           /* terms of the function, gradient and Hessian */
             /* recorded by the procedure evaluating the function */
-    double  ffkM, ffR1, ffR2, ffR3, ffR4, ffR5;
+    double  ffkM, ffkMe, lgt, ffR[MENGERC_NPPARAM];
     double  *fx;
             /* recorded by the procedure evaluating the gradient */
-    double  gfkM, gfR1, gfR2, gfR3, gfR4, gfR5;
-    double  *ggkM, *ggR1, *ggR2, *ggR3, *ggR4, *ggR5;
+    double  gfkMe, gfR1, gfR2, gfR3, gfR4, gfR5;
+    double  *ggkMe, *ggR1, *ggR2, *ggR3, *ggR4, *ggR5;
     double  *gx;
             /* recorded by the procedure evaluating the Hessian */
-    double  hfkM, hfR1, hfR2, hfR3, hfR4, hfR5;
-    double  *hgkM, *hgR1, *hgR2, *hgR3, *hgR4, *hgR5;
-    double  *hhkM, *hhR1, *hhR2, *hhR3, *hhR4, *hhR5;
+    double  hfkMe, hfR1, hfR2, hfR3, hfR4, hfR5;
+    double  *hgkMe, *hgR1, *hgR2, *hgR3, *hgR4, *hgR5;
+    double  *hhkMe, *hhR1, *hhR2, *hhR3, *hhR4, *hhR5;
     double  *hx;
             /* extreme eigenvalues */
     boolean heigok;
     double  hmin, hmax, _emin, _emax, emin, emax, ef, f;
             /* other data for optimization of the penalty parameters */
+    int     pp_opt;
     double  *mcpoints, fmin;
+    boolean ppopt;
+            /* Levenberg-Marquardt trajectory parameter */
+    double  nu;
+    int     fcnt, itc, itres;
+    double  lastf, gn;
   } mengerc_data;
 
 /* ///////////////////////////////////////////////////////////////////////// */
-boolean mengerc_TabBasisFunctions ( int n, int nqkn, mengerc_data *md );
+boolean mengerc_TabBasisFunctions ( int deg, int nqkn, mengerc_data *md );
 boolean mengerc_BindACurve ( mengerc_data *md,
                              int deg, int lkn, double *knots, point3d *cpoints,
                              int nqkn, double w, double *penalty_param,
@@ -147,11 +159,19 @@ boolean mengerc_OptPenaltyParams2 ( mengerc_data *md );
 boolean mengerc_OptPenaltyParams3 ( mengerc_data *md );
 
 /* ///////////////////////////////////////////////////////////////////////// */
+boolean mengerc_InitMCOptimization ( int deg, int lkn, double *knots,
+                                     point3d *cpoints, double w,
+                                     double penalty_param[MENGERC_NPPARAM],
+                                     int nqkn, int npthr, int opt,
+                                     mengerc_data *md );
+boolean mengerc_IterMCOptimization ( mengerc_data *md, boolean *finished );
+
 boolean mengerc_OptimizeMengerCurvature (
                       int deg, int lkn, double *knots, point3d *cpoints,
-                      double w, double penalty_param[5],
-                      int nqkn, int nthr, int opt,
+                      double w, double penalty_param[MENGERC_NPPARAM],
+                      int nqkn, int npthr, int opt, int maxit,
                       void (*outiter)(void *usrdata,
+                                      boolean ppopt, int mdi,
                                       int it, int itres, double f, double g),
                       void *usrdata );
 

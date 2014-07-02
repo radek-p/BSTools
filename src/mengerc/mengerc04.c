@@ -35,7 +35,7 @@ boolean mengerc_intD ( mengerc_data *md,
   nqkn = md->nqkn;
   qk = md->qkn;
   qc = md->qc;
-  n = md->n;
+  n = md->deg;
   C = md->L/(lkn-2*n);
   C2 = C*C;
         /* calkujemy i sumujemy dlugosci lukow krzywej */
@@ -73,7 +73,7 @@ boolean mengerc_gradIntD ( mengerc_data *md,
   nqkn = md->nqkn;
   qk = md->qkn;
   qc = md->qc;
-  n = md->n;
+  n = md->deg;
   ncp = lkn - n;  /* liczba wszystkich punktow kontrolnych */
   nvcp = ncp - n; /* liczba niezaleznych p. k., a takze lukow wielomianowych */
   N = 3*nvcp;     /* liczba zmiennych */
@@ -165,7 +165,7 @@ boolean mengerc_hessIntD ( mengerc_data *md,
   nqkn = md->nqkn;
   qk = md->qkn;
   qc = md->qc;
-  n = md->n;
+  n = md->deg;
   ncp = lkn - n;  /* liczba wszystkich punktow kontrolnych */
   nvcp = ncp - n; /* liczba niezaleznych p. k., a takze lukow wielomianowych */
   N = 3*nvcp;     /* liczba zmiennych */

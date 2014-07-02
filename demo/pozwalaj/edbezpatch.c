@@ -415,23 +415,23 @@ void GeomObjectBezierPatchSetCPoint ( GO_BezierPatch *obj,
 
 void GeomObjectBezierPatchMarkCPoints ( GO_BezierPatch *obj,
                                         CameraRecd *CPos, Box2s *box,
-                                        char mask, boolean clear )
+                                        char mask, int action )
 {
   if ( obj->me.obj_type != GO_BEZIER_PATCH )
     return;
   GeomObjectMarkPoints ( obj->me.cpdimen, obj->me.spdimen,
                          (obj->degree_u+1)*(obj->degree_v+1),
-                         obj->mkcp, obj->cpoints, CPos, box, mask, clear );
+                         obj->mkcp, obj->cpoints, CPos, box, mask, action );
   obj->me.dlistmask &= ~BEZP_DLM_CNET;
 } /*GeomObjectBezierPatchMarkCPoints*/
 
 void GeomObjectBezierPatchMarkCPoint ( GO_BezierPatch *obj,
-                                       char mask, boolean clear )
+                                       char mask, int action )
 {
   if ( obj->me.obj_type != GO_BEZIER_PATCH )
     return;
   GeomObjectMarkPoint ( (obj->degree_u+1)*(obj->degree_v+1),
-                        obj->mkcp, mask, clear );
+                        obj->mkcp, mask, action );
   obj->me.dlistmask &= ~BEZP_DLM_CNET;
 } /*GeomObjectBezierPatchMarkCPoint*/
 

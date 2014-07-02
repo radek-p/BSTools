@@ -181,6 +181,10 @@ char txtG1BlendingPatch[]   = "G1 blending patch";
 char txtG2BlendingPatch[]   = "G2 blending patch";
 char txtGetSubmesh[]        = "get submesh";
 char txtPipeDiameter[]      = "pipe diameter";
+char txtMengerCurv[]        = "Menger curv.";
+char txtExponent[]          = "exponent";
+char txtPenaltyParam[]      = "penalty param.";
+char txtPenaltyOpt[]        = "penalty opt.";
 
 char *InfoMsg[5] =
   { "pozwalaj - a simple curve and surface modeller",
@@ -217,4 +221,8 @@ char ErrorMessageCannotCangeDegree[]  = "Error: Cannot change degree.";
 char ErrorMsgCannotFlip[]             = "Error: Cannot flip the parameters.";
 char ErrorMsgCannotFindObject[]       = "Error: Cannot find this object.";
 char ErrorMsgCouldNotExtractMesh[]    = "Error: Cannot extract this submesh.";
+char ErrorMsgCurveMustBeCubicAndClosed[] =
+             "Error: Curve must be at least cubic and closed.";
+char ErrorMsgCurveMustBeNonRationalAnd3D[] =
+             "Error: Curve must be non-rational and 3D.";
 

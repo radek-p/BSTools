@@ -24,6 +24,7 @@
 #include "bsmesh.h"
 #include "g2blendingd.h"
 #include "egholed.h"
+#include "mengerc.h"
 #include "bsfile.h"
 #include "xgedit.h"
 #include "xgledit.h"
@@ -473,26 +474,44 @@ default:
 void GeomObjectMarkPoints ( char cpdimen, char spdimen,
                             int np, byte *mkcp, double *cp,
                             CameraRecd *CPos, Box2s *box,
-                            byte mask, boolean clear )
+                            byte mask, int action )
 {
   int i, k;
 
   for ( i = k = 0;  i < np;  i++, k += cpdimen )
     if ( GeomObjectPointInBox ( cpdimen, spdimen, &cp[k], CPos, box ) ) {
-      if ( clear )
-        mkcp[i] &= ~mask;
-      else
+      switch ( action ) {
+    case MARK_CP_SELECT:
         mkcp[i] |= mask;
+        break;
+    case MARK_CP_UNSELECT:
+        mkcp[i] &= ~mask;
+        break;
+    case MARK_CP_TGSELECT:
+        mkcp[i] ^= mask;
+        break;
+    default:
+        break;
+      }
     }
 } /*GeomObjectMarkPoints*/
 
-void GeomObjectMarkPoint ( int np, byte *mkcp, byte mask, boolean clear )
+void GeomObjectMarkPoint ( int np, byte *mkcp, byte mask, int action )
 {
   if ( current_point_ind >= 0 && current_point_ind < np ) {
-    if ( clear )
-      mkcp[current_point_ind] &= ~mask;
-    else
+    switch ( action ) {
+  case MARK_CP_SELECT:
       mkcp[current_point_ind] |= mask;
+      break;
+  case MARK_CP_UNSELECT:
+      mkcp[current_point_ind] &= ~mask;
+      break;
+  case MARK_CP_TGSELECT:
+      mkcp[current_point_ind] ^= mask;
+      break;
+  default:
+      break;
+    }
   }
 } /*GeomObjectMarkPoint*/
 

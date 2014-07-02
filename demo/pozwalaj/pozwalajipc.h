@@ -19,15 +19,17 @@
 #define ipccmd_ERROR            4
 #define ipccmd_PARTIAL_RESULT   5
 #define ipccmd_FINAL_RESULT     6
+#define ipccmd_ITER_INFO        7
 
 /* messages from the child to itself */
-#define ipccmd_BEGIN_BLP        7
-#define ipccmd_CONTINUE_BLP1    8
-#define ipccmd_CONTINUE_BLP2    9
-#define ipccmd_BEGIN_BSM       10
-#define ipccmd_CONTINUE_BSM    11
-#define ipccmd_SEND_RESULT     12
-
+#define ipccmd_BEGIN_BLP        8
+#define ipccmd_CONTINUE_BLP1    9
+#define ipccmd_CONTINUE_BLP2   10
+#define ipccmd_BEGIN_BSM       11
+#define ipccmd_CONTINUE_BSM    12
+#define ipccmd_BEGIN_BSCMC     13
+#define ipccmd_CONTINUE_BSCMC  14
+#define ipccmd_SEND_RESULT     15
 
 /* states of the parent process, related with the communication */
 #define ipcstate_NO_CHILD       0
@@ -61,6 +63,15 @@
 #define ipcd_BSM_COARSE_FHE   19
 #define ipcd_BSM_OPTIMIZE     20
 
+  /* Menger curvature optimization */
+#define ipcd_BSC_SIZE         21
+#define ipcd_BSC_KNOTS        22
+#define ipcd_BSC_CPOINTS      23
+#define ipcd_BSC_MKCP         24
+#define ipcd_BSC_OPTIMIZE     25
+#define ipcd_BSC_MCINFO       26
+
+/* data related to optimization of B-spline blending patches */
 typedef struct {
     char gcont, cpdimen, degu, degv, closed_u, clamped;
     int  lastknotu, lastknotv, pitch;
@@ -73,7 +84,7 @@ typedef struct {
     trans3d pretrans;
   } ipc_blp_options;
 
-
+/* data related to optimization of blending surfaces represented by a mesh */
 typedef struct {
     int nv, nhe, nfac, spdimen, cpdimen, degree;
   } ipc_bsm_size;
@@ -87,7 +98,27 @@ typedef struct {
     byte    npthreads;
   } ipc_bsm_options;
 
+/* data related to minimization of integral Menger curvature */
+/* of closed B-spline curves */
+typedef struct {
+    int     spdimen, cpdimen, degree, lkn;
+    boolean closed;
+  } ipc_bscmc_size;
 
+typedef struct {
+    int    nqkn, maxiter, ppopt;
+    double exponent, pparam[MENGERC_NPPARAM];
+    byte   npthreads;
+  } ipc_bscmc_options;
+
+typedef struct {
+    double exponent;
+    double pparam[MENGERC_NPPARAM];
+    double imc, imcp, length;
+    double pfv[MENGERC_NPPARAM];
+  } ipc_bscmc_info;
+
+/* low-level protocol */
 typedef struct {
     int  desc;  /* data item description */
     int  size;  /* size of pointed data in bytes */
@@ -112,6 +143,10 @@ void IPCSendData ( void );
 void IPCWakeUpChild ( void );
 void BindChildToGeomObject ( geom_object *go );
 void IPCInterruptTheChild ( void );
+
+void AssignBSCurveData ( GO_BSplineCurve *obj, int size, char *buf );
+void AssignBSPatchData ( GO_BSplinePatch *obj, int size, char *buf );
+void AssignBSMeshData ( GO_BSplineMesh *obj, int size, char *buf );
 #endif
 
 #ifdef CHILD_SIDE

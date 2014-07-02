@@ -24,6 +24,7 @@
 #include "bsmesh.h"
 #include "g2blendingd.h"
 #include "egholed.h"
+#include "mengerc.h"
 #include "bsfile.h"
 #include "xgedit.h"
 #include "xgledit.h"
@@ -125,7 +126,9 @@ xge_widget      *side10wdg_bezc_view = NULL, *side10wdg_bsc_view = NULL,
 xge_widget      *side10wdg_bezc_data = NULL, *side10wdg_bsc_data = NULL,
                 *side10wdg_bezp_data = NULL, *side10wdg_bsp_data = NULL,
                 *side10wdg_bsm_data = NULL, *side10wdg_bsh_data = NULL;
-xge_widget      *side10wdg_bezc_opt = NULL, *side10wdg_bsc_opt = NULL,
+xge_widget      *side10wdg_bezc_opt = NULL,
+                *side10wdg_bsc_opt = NULL,
+                *side10wdg_bsc_opt1 = NULL, *side10wdg_bsc_opt2 = NULL,
                 *side10wdg_bezp_opt = NULL,
                 *side10wdg_bsp_opt = NULL,
                 *side10wdg_bsp_opt_general = NULL,
@@ -189,6 +192,13 @@ xge_string_ed   bsc_name_ed;
 xge_int_widget  intw_bscdeg, bsc_graphdens;
 boolean         bsc_sw_closed = false;
 boolean         bsc_sw_view_bpoly = false;
+boolean         bsc_sw_mengerc = false,
+                bsc_sw_mc_logit = false;
+double          bsc_sl_mcexp, bsc_sl_mcppar[5];
+xge_int_widget  bsc_mc_qkn, bsc_mc_popt, bsc_mc_maxit, bsc_mc_nthr,
+                bscnpthreads;
+int             bsc_mc_qknots = 4, bsc_mc_ppopt = 3, bsc_mc_maxiter = 50,
+                bsc_npthreads;
 
     /* B-spline patches */
 xge_string_ed   bsp_name_ed;
@@ -246,7 +256,7 @@ int             bsm_bl_nkn1 = 6, bsm_bl_nkn2 = 8, bsm_bl_maxit = 20,
                 bsm_bl_nlev = 0, bsm_bl_nbl = 1;
 xge_int_widget  bsm_bl_qknots1, bsm_bl_qknots2, bsm_bl_maxiter,
                 bsm_bl_nlevels, bsm_bl_nblocks;
-xge_widget      *bsm_bl_optimize;
+xge_widget      *bsm_bl_optimize, *bsc_mc_optimize;
 boolean         bsm_sw_use_coarse = false;
 xge_string_ed   bsm_coarse_editor;
 xge_int_widget  bsmnpthreads; 

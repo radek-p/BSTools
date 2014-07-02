@@ -126,24 +126,25 @@ default:
 
 void GeomObjectBSplinePatchMarkCPoints ( GO_BSplinePatch *obj,
                                          CameraRecd *CPos, Box2s *box,
-                                         byte mask, boolean clear )
+                                         byte mask, int action )
 {
   if ( obj->me.obj_type != GO_BSPLINE_PATCH )
     return;
   GeomObjectMarkPoints ( obj->me.cpdimen, obj->me.spdimen,
             (obj->lastknot_u-obj->degree_u)*(obj->lastknot_v-obj->degree_v),
-            obj->mkcp, obj->cpoints, CPos, box, mask, clear );
+            obj->mkcp, obj->cpoints, CPos, box, mask, action );
   obj->me.dlistmask &= ~BSP_DLM_CNET;
 } /*GeomObjectBSplinePatchMarkCPoints*/
 
 void GeomObjectBSplinePatchMarkCPoint ( GO_BSplinePatch *obj,
-                                        byte mask, boolean clear )
+                                        byte mask, int action )
 {
   if ( obj->me.obj_type != GO_BSPLINE_PATCH )
     return;
   GeomObjectMarkPoint (
       (obj->lastknot_u-obj->degree_u)*(obj->lastknot_v-obj->degree_v),
-      obj->mkcp, mask, clear );
+      obj->mkcp, mask, action );
+  obj->me.dlistmask &= ~BSP_DLM_CNET;
 } /*GeomObjectBSplinePatchMarkCPoint*/
 
 boolean GeomObjectBSplinePatchSaveCPoints ( GO_BSplinePatch *obj )

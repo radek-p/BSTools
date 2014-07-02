@@ -175,6 +175,8 @@ case xgestate_3DWIN_SELECTING:
         xge_callback ( er, xgemsg_3DWIN_SELECT_POINTS, 0, x, y );
         goto exit_select_mode;
       }
+      else if ( (key & xgemouse_RBUTTON_DOWN) && (key & xgemouse_RBUTTON_CHANGE) )
+        goto enter_tgselect_mode;
       break;
   default:
       break;
@@ -200,6 +202,40 @@ case xgestate_3DWIN_UNSELECTING:
         _3Dwin->selection_rect.y1 = y;
         xge_OrderSelectionRect ( &_3Dwin->selection_rect );
         xge_callback ( er, xgemsg_3DWIN_UNSELECT_POINTS, 0, x, y );
+        goto exit_select_mode;
+      }
+      else if ( (key & xgemouse_LBUTTON_DOWN) && (key & xgemouse_LBUTTON_CHANGE) ) {
+enter_tgselect_mode:
+          /* no need to grab the focus, it's already ours */
+        er->state = xgestate_3DWIN_TGSELECTING;
+        xge_SetClipping ( er );
+        er->redraw ( er, true );
+      }
+      break;
+  default:
+      break;
+    }
+    break;
+
+case xgestate_3DWIN_TGSELECTING:
+    switch ( msg ) {
+  case xgemsg_MMOVE:
+      _3Dwin->selection_rect.x1 = x;
+      _3Dwin->selection_rect.y1 = y;
+      if ( !(key & (xgemouse_LBUTTON_DOWN | xgemouse_RBUTTON_DOWN)) ) {
+        xge_OrderSelectionRect ( &_3Dwin->selection_rect );
+        xge_callback ( er, xgemsg_3DWIN_TGSELECT_POINTS, 0, x, y );
+        goto exit_select_mode;
+      }
+      xge_SetClipping ( er );
+      er->redraw ( er, true );
+      break;
+  case xgemsg_MCLICK:
+      if ( !(key & (xgemouse_LBUTTON_DOWN | xgemouse_RBUTTON_DOWN)) ) {
+        _3Dwin->selection_rect.x1 = x;
+        _3Dwin->selection_rect.y1 = y;
+        xge_OrderSelectionRect ( &_3Dwin->selection_rect );
+        xge_callback ( er, xgemsg_3DWIN_TGSELECT_POINTS, 0, x, y );
 exit_select_mode:
         er->state = xgestate_NOTHING;
         xge_ReleaseFocus ( _3Dwin->fww.er );
@@ -719,7 +755,7 @@ case xge_3DWIN_SELECTING_TOOL:
 case xge_3DWIN_SPECIAL_SELECTING_TOOL:
     _3Dwin->special_selecting_mode = true;
     goto go_on;
-case xge_2DWIN_PANNING_TOOL:
+case xge_3DWIN_PANNING_TOOL:
     _3Dwin->panning = true;
 go_on:
     _3Dwin->current_tool = tool;
@@ -1500,6 +1536,8 @@ case xgestate_3DWIN_SELECTING:
         xge_callback ( er, xgemsg_3DWIN_SELECT_POINTS, 0, x, y );
         goto exit_select_mode;
       }
+      else if ( (key & xgemouse_RBUTTON_DOWN) && (key & xgemouse_RBUTTON_CHANGE) )
+        goto enter_tgselect_mode;
       break;
   default:
       break;
@@ -1525,6 +1563,40 @@ case xgestate_3DWIN_UNSELECTING:
         _3Dwin->selection_rect.y1 = y;
         xge_OrderSelectionRect ( &_3Dwin->selection_rect );
         xge_callback ( er, xgemsg_3DWIN_UNSELECT_POINTS, 0, x, y );
+        goto exit_select_mode;
+      }
+      else if ( (key & xgemouse_LBUTTON_DOWN) && (key & xgemouse_LBUTTON_CHANGE) ) {
+enter_tgselect_mode:
+          /* no need to grab the focus, it's already ours */
+        er->state = xgestate_3DWIN_TGSELECTING;
+        xge_SetClipping ( er );
+        er->redraw ( er, true );
+      }
+      break;
+  default:
+      break;
+    }
+    break;
+
+case xgestate_3DWIN_TGSELECTING:
+    switch ( msg ) {
+  case xgemsg_MMOVE:
+      _3Dwin->selection_rect.x1 = x;
+      _3Dwin->selection_rect.y1 = y;
+      if ( !(key & (xgemouse_LBUTTON_DOWN | xgemouse_RBUTTON_DOWN)) ) {
+        xge_OrderSelectionRect ( &_3Dwin->selection_rect );
+        xge_callback ( er, xgemsg_3DWIN_TGSELECT_POINTS, 0, x, y );
+        goto exit_select_mode;
+      }
+      xge_SetClipping ( er );
+      er->redraw ( er, true );
+      break;
+  case xgemsg_MCLICK:
+      if ( !(key & (xgemouse_LBUTTON_DOWN | xgemouse_RBUTTON_DOWN)) ) {
+        _3Dwin->selection_rect.x1 = x;
+        _3Dwin->selection_rect.y1 = y;
+        xge_OrderSelectionRect ( &_3Dwin->selection_rect );
+        xge_callback ( er, xgemsg_3DWIN_TGSELECT_POINTS, 0, x, y );
 exit_select_mode:
         er->state = xgestate_NOTHING;
         xge_ReleaseFocus ( _3Dwin->fww.er );

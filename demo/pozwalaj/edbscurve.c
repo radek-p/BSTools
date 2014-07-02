@@ -24,6 +24,7 @@
 #include "bsmesh.h"
 #include "g2blendingd.h"
 #include "egholed.h"
+#include "mengerc.h"
 #include "bsfile.h"
 #include "xgedit.h"
 #include "xgledit.h"
@@ -32,6 +33,25 @@
 #include "editor.h"
 #include "editor_bsc.h"
 
+void GeomObjectBSplineCurveInitMC ( GO_BSplineCurve *obj )
+{
+  static const double defpparam[5] =
+    {1.420666814e+06, 1.106542879e+07, 1.063609655e+04,
+     1.219877706e+05, 5.771308492e+03};
+
+  obj->mc_exponent = 4.0;
+  memcpy ( obj->mc_pparam, defpparam, 5*sizeof(double) );
+  obj->mc_nqkn = 3;
+  obj->mc_ppopt = 3;
+} /*GeomObjectBSplineCurveInitMC*/
+
+void GeomObjectBSplineCurveCopyMC ( GO_BSplineCurve *obj, GO_BSplineCurve *copy )
+{
+  copy->mc_exponent = obj->mc_exponent;
+  memcpy ( copy->mc_pparam, obj->mc_pparam, 5*sizeof(double) );
+  copy->mc_nqkn = obj->mc_nqkn;
+  copy->mc_ppopt = obj->mc_ppopt;
+} /*GeomObjectBSplineCurveCopyMC*/
 
 boolean GeomObjectInitBSplineCurve ( GO_BSplineCurve *obj,
                                      char spdimen, boolean rational )
@@ -53,6 +73,7 @@ boolean GeomObjectInitBSplineCurve ( GO_BSplineCurve *obj,
     obj->me.cpdimen = spdimen;
     obj->weightpoints = NULL;
   }
+  obj->mengerc = false;
   obj->me.active = false;
   obj->me.name[0] = 0;
   obj->maxknots = 4;
@@ -88,6 +109,7 @@ boolean GeomObjectInitBSplineCurve ( GO_BSplineCurve *obj,
   obj->me.display_pretrans = false;
   IdentTrans3d ( &obj->me.pretrans );
   obj->pipe_diameter = 0.1;
+  GeomObjectBSplineCurveInitMC ( obj );
   return true;
 } /*GeomObjectInitBSplineCurve*/
 
@@ -176,6 +198,7 @@ geom_object *GeomObjectCopyBSplineCurve ( GO_BSplineCurve *obj )
     copy->pipe_diameter = obj->pipe_diameter;
     copy->me.displaylist = glGenLists ( BSC_NDL );
     copy->me.dlistmask = 0;
+    GeomObjectBSplineCurveCopyMC ( obj, copy );
     return &copy->me;
   }
   else
@@ -192,6 +215,30 @@ void GeomObjectDeleteBSplineCurve ( GO_BSplineCurve *obj )
   if ( obj->mkcp )         free ( obj->mkcp );
   free ( obj );
 } /*GeomObjectDeleteBSplineCurve*/
+
+void GeomObjectAssignBSCurve ( GO_BSplineCurve *obj, int spdimen, boolean rational,  
+                               int degree, int lastknot, double *knots,  
+                               double *cpoints, byte *mkcp, boolean closed )
+{
+  if ( obj->cpoints ) free ( obj->cpoints );
+  if ( obj->knots )   free ( obj->knots );
+  if ( obj->mkcp )    free ( obj->mkcp );
+  if ( obj->savedcpoints ) {
+    free ( obj->savedcpoints );
+    obj->savedcpoints = NULL;
+  }
+  obj->savedsize = 0;
+  obj->me.spdimen = obj->me.cpdimen = spdimen;
+  obj->rational = rational;
+  if ( rational ) obj->me.cpdimen ++;
+  obj->cpoints = cpoints;
+  obj->knots = knots;
+  obj->mkcp = mkcp;
+  obj->degree = degree;
+  obj->lastknot = lastknot;
+  obj->closed = closed;
+  obj->me.dlistmask = 0;
+} /*GeomObjectAssignBSCurve*/
 
 boolean GeomObjectBSplineCurveSetRational ( GO_BSplineCurve *obj )
 {
@@ -709,7 +756,7 @@ void GeomObjectBSplineCurveSetCPoint ( GO_BSplineCurve *obj,
 
 void GeomObjectBSplineCurveMarkCPoints ( GO_BSplineCurve *obj,
                                          CameraRecd *CPos, Box2s *box,
-                                         char mask, boolean clear )
+                                         char mask, int action )
 {
   int deg, ncp;
 
@@ -718,14 +765,14 @@ void GeomObjectBSplineCurveMarkCPoints ( GO_BSplineCurve *obj,
   deg = obj->degree;
   ncp = obj->lastknot - deg;
   GeomObjectMarkPoints ( obj->me.cpdimen, obj->me.spdimen, ncp,
-                         obj->mkcp, obj->cpoints, CPos, box, mask, clear );
+                         obj->mkcp, obj->cpoints, CPos, box, mask, action );
   if ( obj->closed )
     memcpy ( &obj->mkcp[ncp-deg], obj->mkcp, deg*sizeof(byte) );
   obj->me.dlistmask &= ~BSC_DLM_CPOLY;
 } /*GeomObjectBSplineCurveMarkCPoints*/
 
 void GeomObjectBSplineCurveMarkCPoint ( GO_BSplineCurve *obj,
-                                        char mask, boolean clear )
+                                        char mask, int action )
 {
   int deg, ncp;
 
@@ -733,7 +780,7 @@ void GeomObjectBSplineCurveMarkCPoint ( GO_BSplineCurve *obj,
     return;
   deg = obj->degree;
   ncp = obj->lastknot - deg;
-  GeomObjectMarkPoint ( ncp, obj->mkcp, mask, clear );
+  GeomObjectMarkPoint ( ncp, obj->mkcp, mask, action );
   if ( obj->closed )
     memcpy ( &obj->mkcp[ncp-deg], obj->mkcp, deg*sizeof(byte) );
   obj->me.dlistmask &= ~BSC_DLM_CPOLY;
@@ -1061,6 +1108,22 @@ boolean GeomObjectBSplineCurveSetClosed ( GO_BSplineCurve *obj, boolean closed )
   GeomObjectBSplineCurveDisplayInfoText ( obj );
   return true;
 } /*GeomObjectBSplineCurveSetClosed*/
+
+boolean GeomObjectBSplineCurveSetMengerc ( GO_BSplineCurve *obj, boolean mengerc )
+{
+  if ( obj->me.obj_type != GO_BSPLINE_CURVE )
+    return false;
+  if ( mengerc &&
+       (obj->degree < 3 || !obj->closed ||
+        obj->rational || obj->me.spdimen != 3) ) {
+    obj->mengerc = false;
+    return false;
+  }
+  if ( mengerc )
+    GeomObjectBSplineCurveSetUniformKnots ( obj, true );
+  obj->mengerc = mengerc;
+  return true;
+} /*GeomObjectBSplineCurveSetMengerc*/
 
 void GeomObjectBSplineCurveSetCurvatureGraph ( GO_BSplineCurve *obj,
                                 boolean view_curvature, double curvature_scale,

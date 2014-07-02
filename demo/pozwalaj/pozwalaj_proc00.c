@@ -28,11 +28,11 @@
 #include "g1blendingd.h"
 #include "g2blendingd.h"
 #include "g2mblendingd.h"
+#include "mengerc.h"
 #include "xgedit.h"
 
 #define CHILD_SIDE
 #include "pozwalajipc.h"
-#undef CHILD_SIDE
 
 #include "pozwalaj_proc.h"
 
@@ -46,6 +46,16 @@ clock_t time0, time1;
 boolean finished = true;
 
 trans3d         pretrans_inv;
+
+/* B-spline curve with optimized Menger curvature */
+ipc_bscmc_size    bscmcsize; 
+ipc_bscmc_options bscmcoptions;
+double            *bscmcknots = NULL;
+double            *bscmccp = NULL;
+byte              *bscmcmkcp = NULL;
+int               bscmccpsize, bscmcknsize, bscmcmkcpsize;
+mengerc_data      bscmcdata;
+ipc_bscmc_info    bscmcinfo;
 
 /* blending B-spline patch with optimized shape */
 ipc_blp_size    blpsize;

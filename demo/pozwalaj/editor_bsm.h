@@ -135,9 +135,9 @@ void GeomObjectBSplineMeshSetCPoint ( GO_BSplineMesh *obj,
                                       CameraRecd *CPos, short x, short y );
 void GeomObjectBSplineMeshMarkCPoints ( GO_BSplineMesh *obj,
                                         CameraRecd *CPos, Box2s *box,
-                                        byte mask, boolean clear );
+                                        byte mask, int action );
 void GeomObjectBSplineMeshMarkCPoint ( GO_BSplineMesh *obj,
-                                       byte mask, boolean clear );
+                                       byte mask, int action );
 boolean GeomObjectBSplineMeshSaveCPoints ( GO_BSplineMesh *obj );
 void GeomObjectBSplineMeshUndoLastTransformation ( GO_BSplineMesh *obj );
 void GeomObjectBSplineMeshTransformCPoints ( GO_BSplineMesh *obj,

@@ -25,6 +25,7 @@
 #include "bsmesh.h"
 #include "g2blendingd.h"
 #include "egholed.h"
+#include "mengerc.h"
 #include "bsfile.h"
 #include "xgedit.h"
 #include "xgledit.h"
@@ -359,7 +360,7 @@ case xgemsg_3DWIN_SELECT_POINTS:
         return false;
       }
     }
-    GeomObjectMarkCPoints ( 3, CPos, &ww->selection_rect, false );
+    GeomObjectMarkCPoints ( 3, CPos, &ww->selection_rect, MARK_CP_SELECT );
     xge_SetClipping ( ww->fww.er );
     ww->fww.er->redraw ( ww->fww.er, true );
     return 1;
@@ -368,7 +369,16 @@ case xgemsg_3DWIN_UNSELECT_POINTS:
     if ( editing_shapefunc || editing_lights )
       ;
     else
-      GeomObjectMarkCPoints ( 3, CPos, &ww->selection_rect, true );
+      GeomObjectMarkCPoints ( 3, CPos, &ww->selection_rect, MARK_CP_UNSELECT );
+    xge_SetClipping ( ww->fww.er );
+    ww->fww.er->redraw ( ww->fww.er, true );
+    return 1;
+
+case xgemsg_3DWIN_TGSELECT_POINTS:
+    if ( editing_shapefunc || editing_lights )
+      ;
+    else
+      GeomObjectMarkCPoints ( 3, CPos, &ww->selection_rect, MARK_CP_TGSELECT );
     xge_SetClipping ( ww->fww.er );
     ww->fww.er->redraw ( ww->fww.er, true );
     return 1;
@@ -631,13 +641,19 @@ case xgemsg_2DWIN_SELECT_POINTS:
         return false;
       }
     }
-    GeomObjectMarkCPoints ( 2, CPos, &ww->selection_rect, false );
+    GeomObjectMarkCPoints ( 2, CPos, &ww->selection_rect, MARK_CP_SELECT );
     xge_SetClipping ( er );
     er->redraw ( er, true );
     return 1;
 
 case xgemsg_2DWIN_UNSELECT_POINTS:
-    GeomObjectMarkCPoints ( 2, CPos, &ww->selection_rect, true );
+    GeomObjectMarkCPoints ( 2, CPos, &ww->selection_rect, MARK_CP_UNSELECT );
+    xge_SetClipping ( er );
+    er->redraw ( er, true );
+    return 1;
+
+case xgemsg_2DWIN_TGSELECT_POINTS:
+    GeomObjectMarkCPoints ( 2, CPos, &ww->selection_rect, MARK_CP_TGSELECT );
     xge_SetClipping ( er );
     er->redraw ( er, true );
     return 1;

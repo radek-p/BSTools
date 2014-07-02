@@ -53,7 +53,7 @@ static boolean _intKM_F ( void *usrdata, int3 *jobnum )
   ddpt = data->ddpt;
   ldpt = data->ldpt;
 
-  n    = md->n;
+  n    = md->deg;
   lkn  = md->lkn;
   nqkn = md->nqkn;
 
@@ -228,7 +228,7 @@ static boolean _intKM_F ( void *usrdata, int3 *jobnum )
     KtoPj = KtoP*jac;
     intf5 += KtoPj;
   }
-  data->_f[(q1*MENGERC_NKN+q2)*MENGERC_NKN+q3] = 6.0*intf3 + 3.0*intf4 + intf5;
+  data->_f[(q1*nqkn+q2)*nqkn+q3] = 6.0*intf3 + 3.0*intf4 + intf5;
   return true;
 } /*_intKM_F*/
 
@@ -249,7 +249,7 @@ boolean _mengerc_intF ( mengerc_data *md, double *func )
   sp = pkv_GetScratchMemTop ();
   memset ( &data, 0, sizeof(intKM_job_desc) );
   data.md = md;
-  n       = md->n;
+  n       = md->deg;
   lkn     = md->lkn;
   knots   = md->knots;
   cpoints = md->cpoints;
@@ -259,7 +259,7 @@ boolean _mengerc_intF ( mengerc_data *md, double *func )
   npoints = data.npoints = nqkn*(lkn-2*n);
   pt = data.pt = pkv_GetScratchMem ( 3*npoints*sizeof(point3d) +
                                      npoints*sizeof(double) );
-  _f = pkv_GetScratchMemd ( MENGERC_NKN*MENGERC_NKN*MENGERC_NKN );
+  _f = pkv_GetScratchMemd ( nqkn*nqkn*nqkn );
   if ( !pt || !_f )
     goto failure;
   data._f = _f;
@@ -290,11 +290,11 @@ boolean _mengerc_intF ( mengerc_data *md, double *func )
         /* sumuj calki */
   qc = md->qc;
   ff1 = 0.0;
-  for ( i = l = 0;  i < MENGERC_NKN;  i++ ) {
+  for ( i = l = 0;  i < nqkn;  i++ ) {
     ff2 = 0.0;
-    for ( j = 0; j < MENGERC_NKN; j++ ) {
+    for ( j = 0; j < nqkn; j++ ) {
       ff3 = 0.0;
-      for ( k = 0;  k < MENGERC_NKN;  k++, l++ )
+      for ( k = 0;  k < nqkn;  k++, l++ )
         ff3 += qc[k]*_f[l];
       ff2 += qc[j]*ff3;
     }
@@ -528,7 +528,7 @@ static boolean _intKM_FG ( void *usrdata, int3 *jobnum )
   dldpt = data->dldpt;
   dcp   = data->dcp;
 
-  n     = md->n;
+  n     = md->deg;
   lkn   = md->lkn;
   ncp   = lkn-n;
   nvcp  = ncp-n;
@@ -1007,7 +1007,7 @@ static boolean _intKM_FG ( void *usrdata, int3 *jobnum )
     intf5 += KtoPj;
     _imc_CopyGrad ( N, i, i, i, 0, 0, nia1, dKtoPj, g5 );
   }
-  i = (q1*MENGERC_NKN+q2)*MENGERC_NKN+q3;
+  i = (q1*nqkn+q2)*nqkn+q3;
   data->_f[i] = 6.0*intf3 + 3.0*intf4 + intf5;
   pkn_AddMatrixMd ( 1, N, 0, g4, 0, g3, 2.0, 0, g3 );
   pkn_AddMatrixMd ( 1, N, 0, g5, 0, g3, 3.0, 0, &data->_g[i*N] );
@@ -1036,7 +1036,7 @@ boolean _mengerc_gradIntF ( mengerc_data *md, double *func, double *grad )
   sp = pkv_GetScratchMemTop ();
   memset ( &data, 0, sizeof(intKM_job_desc) );
   data.md = md;
-  n       = md->n;
+  n       = md->deg;
   lkn     = md->lkn;
   knots   = md->knots;
   cpoints = md->cpoints;
@@ -1046,11 +1046,11 @@ boolean _mengerc_gradIntF ( mengerc_data *md, double *func, double *grad )
   nvcp    = ncp - n;
   N = 3*nvcp;
   dcp = data.dcp = pkv_GetScratchMem ( (ncp-1)*sizeof(vector3d) );
-  _f = pkv_GetScratchMemd ( MENGERC_NKN*MENGERC_NKN*MENGERC_NKN*(1+N) );
+  _f = pkv_GetScratchMemd ( nqkn*nqkn*nqkn*(1+N) );
   if ( !dcp || !_f )
     goto failure;
   data._f = _f;
-  data._g = _g = &_f[MENGERC_NKN*MENGERC_NKN*MENGERC_NKN];
+  data._g = _g = &_f[nqkn*nqkn*nqkn];
         /* liczba punktow krzywej */
   npoints = data.npoints = nqkn*(lkn-2*n);
   pt = data.pt = pkv_GetScratchMem ( 3*npoints*sizeof(point3d) +
@@ -1115,13 +1115,13 @@ boolean _mengerc_gradIntF ( mengerc_data *md, double *func, double *grad )
   qc = md->qc;
   ff1 = 0.0;
   memset ( grad, 0, N*sizeof(double) );
-  for ( i = l = m = 0;  i < MENGERC_NKN;  i++ ) {
+  for ( i = l = m = 0;  i < nqkn;  i++ ) {
     ff2 = 0.0;
     memset ( gf2, 0, N*sizeof(double) );
-    for ( j = 0; j < MENGERC_NKN; j++ ) {
+    for ( j = 0; j < nqkn; j++ ) {
       ff3 = 0.0;
       memset ( gf3, 0, N*sizeof(double) );
-      for ( k = 0;  k < MENGERC_NKN;  k++, l++, m += N ) {
+      for ( k = 0;  k < nqkn;  k++, l++, m += N ) {
         ff3 += qc[k]*_f[l];
         pkn_AddMatrixMd ( 1, N, 0, gf3, 0, &_g[m], qc[k], 0, gf3 );
       }
@@ -1642,7 +1642,7 @@ static boolean _intKM_FGH ( void *usrdata, int3 *jobnum )
   ddldpt = data->ddldpt;
   dcp    = data->dcp;
 
-  n     = md->n;
+  n     = md->deg;
   lkn   = md->lkn;
   ncp   = lkn-n;
   nvcp  = ncp-n;
@@ -2489,7 +2489,7 @@ static boolean _intKM_FGH ( void *usrdata, int3 *jobnum )
     _imc_CopyHes2 ( N, i, i, i, 0, 0, nia31, ddKtoPj, h5 );
   }
 
-  i = (q1*MENGERC_NKN+q2)*MENGERC_NKN+q3;
+  i = (q1*nqkn+q2)*nqkn+q3;
   data->_f[i] = 6.0*intf3 + 3.0*intf4 + intf5;
   pkn_AddMatrixMd ( 1, N, 0, g4, 0, g3, 2.0, 0, g3 );
   pkn_AddMatrixMd ( 1, N, 0, g5, 0, g3, 3.0, 0, &data->_g[i*N] );
@@ -2523,7 +2523,7 @@ boolean _mengerc_hessIntF ( mengerc_data *md,
   sp = pkv_GetScratchMemTop ();
   memset ( &data, 0, sizeof(intKM_job_desc) );
   data.md = md;
-  n       = md->n;
+  n       = md->deg;
   lkn     = md->lkn;
   knots   = md->knots;
   cpoints = md->cpoints;
@@ -2534,12 +2534,12 @@ boolean _mengerc_hessIntF ( mengerc_data *md,
   N = 3*nvcp;
   M = (N*(N+1))/2;
   dcp = data.dcp = pkv_GetScratchMem ( (ncp-1)*sizeof(vector3d) );
-  _f = pkv_GetScratchMemd ( MENGERC_NKN*MENGERC_NKN*MENGERC_NKN*(1+N+M) );
+  _f = pkv_GetScratchMemd ( nqkn*nqkn*nqkn*(1+N+M) );
   if ( !dcp || !_f )
     goto failure;
   data._f = _f;
-  data._g = _g = &_f[MENGERC_NKN*MENGERC_NKN*MENGERC_NKN];
-  data._h = _h = &_g[N*MENGERC_NKN*MENGERC_NKN*MENGERC_NKN];
+  data._g = _g = &_f[nqkn*nqkn*nqkn];
+  data._h = _h = &_g[N*nqkn*nqkn*nqkn];
         /* liczba punktow krzywej */
   npoints = nqkn*(lkn-2*n);
   pt = data.pt = pkv_GetScratchMem ( 3*npoints*sizeof(point3d) +
@@ -2667,15 +2667,15 @@ boolean _mengerc_hessIntF ( mengerc_data *md,
   ff1 = 0.0;
   memset ( grad, 0, N*sizeof(double) );  
   memset ( hess, 0, M*sizeof(double) );
-  for ( i = l = m = p = 0;  i < MENGERC_NKN;  i++ ) {
+  for ( i = l = m = p = 0;  i < nqkn;  i++ ) {
     ff2 = 0.0;
     memset ( gf2, 0, N*sizeof(double) );
     memset ( hf2, 0, M*sizeof(double) );
-    for ( j = 0; j < MENGERC_NKN; j++ ) {
+    for ( j = 0; j < nqkn; j++ ) {
       ff3 = 0.0;
       memset ( gf3, 0, N*sizeof(double) );
       memset ( hf3, 0, M*sizeof(double) );
-      for ( k = 0;  k < MENGERC_NKN;  k++, l++, m += N, p += M ) {
+      for ( k = 0;  k < nqkn;  k++, l++, m += N, p += M ) {
         ff3 += qc[k]*_f[l];
         pkn_AddMatrixMd ( 1, N, 0, gf3, 0, &_g[m], qc[k], 0, gf3 );
         pkn_AddMatrixMd ( 1, M, 0, hf3, 0, &_h[p], qc[k], 0, hf3 );

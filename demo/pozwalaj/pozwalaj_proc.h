@@ -21,37 +21,46 @@ extern struct  tms start, stop;
 extern clock_t time0, time1;   
 extern boolean finished;
 
-extern trans3d         pretrans_inv;
+extern trans3d pretrans_inv;
+
+/* B-spline curve with optimized Menger curvature */
+extern ipc_bscmc_size    bscmcsize;
+extern ipc_bscmc_options bscmcoptions;
+extern double            *bscmcknots, *bscmccp;
+extern byte              *bscmcmkcp;
+extern int               bscmccpsize, bscmcknsize, bscmcmkcpsize;
+extern mengerc_data      bscmcdata;
+extern ipc_bscmc_info    bscmcinfo;
 
 /* blending B-spline patch with optimized shape */
-extern ipc_blp_size    blpsize;
-extern ipc_blp_options blpoptions;
-extern double          *blpcp, *_blpcp;
-extern char            *blpmkcp;
-extern int             blpcpsize, blpmkcpsize;
+extern ipc_blp_size      blpsize;
+extern ipc_blp_options   blpoptions;
+extern double            *blpcp, *_blpcp;
+extern char              *blpmkcp;
+extern int               blpcpsize, blpmkcpsize;
 
 /* blending mesh surface with optimized shape */
-extern ipc_bsm_size    bsmsize;
-extern ipc_bsm_options bsmoptions;
-extern BSMvertex       *meshv;
-extern int             *meshvhei;
-extern double          *meshvpc, *_meshvpc;
-extern char            *meshmkcp;
-extern BSMhalfedge     *meshhe;
-extern BSMfacet        *meshfac;
-extern int             *meshfhei;
-extern int             meshvpcsize;
+extern ipc_bsm_size      bsmsize;
+extern ipc_bsm_options   bsmoptions;
+extern BSMvertex         *meshv;
+extern int               *meshvhei;
+extern double            *meshvpc, *_meshvpc;
+extern char              *meshmkcp;
+extern BSMhalfedge       *meshhe;
+extern BSMfacet          *meshfac;
+extern int               *meshfhei;
+extern int               meshvpcsize;
 /* coarse mesh to define a preconditioner */
-extern ipc_bsm_size    cmeshsize;
-extern BSMvertex       *cmeshv;
-extern int             *cmeshvhei;
-extern BSMhalfedge     *cmeshhe;
-extern BSMfacet        *cmeshfac;
-extern int             *cmeshfhei;
+extern ipc_bsm_size      cmeshsize;
+extern BSMvertex         *cmeshv;
+extern int               *cmeshvhei;
+extern BSMhalfedge       *cmeshhe;
+extern BSMfacet          *cmeshfac;
+extern int               *cmeshfhei;
 /* refinement matrix - from coarse to fine mesh */
-extern int             rmnnz;
-extern index2          *rmnzi;
-extern double          *rmnzc;
+extern int               rmnnz;
+extern index2            *rmnzi;
+extern double            *rmnzc;
 
 /* pozwalaj_proc01.c */
 void ResetIPCBuffer ( void );
@@ -100,6 +109,19 @@ void PrepareBSMOutput ( void );
 void MarkBlockPoints ( boolean mark );
 void MarkMLBlockPoints ( void );
 void ContinueBSMOptimization ( void );
+
+/* pozwalaj_proc07.c */
+void ReadBSCSize ( int isize );
+void ReadBSCKnots ( int isize );
+void ReadBSCCPoints ( int isize );
+void ReadBSCMkcp ( int isize );
+void ReadBSCMCOptimizeOptions ( int isize );
+
+/* pozwalaj_proc08.c */
+void BeginBSCMCOptimization ( void );
+void PrepareBSCMCOutput ( mengerc_data *mcd );
+void OutputBSCMCInfo ( mengerc_data *mcd );
+void ContinueBSCMCOptimization ( void );
 
 /* pozwalaj_proc.c */
 void pozwalaj_proc_callback ( int msg, int size );

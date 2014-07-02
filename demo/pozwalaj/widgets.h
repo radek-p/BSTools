@@ -223,6 +223,20 @@
 #define btnM1BSC_COLOUR               (SIDEMENU1_BSC+14)
 #define slM1BSC_PIPE_DIAMETER         (SIDEMENU1_BSC+15)
 
+#define swM1MSC_MENGERC               (SIDEMENU1_BSC+16)
+#define slM1MSC_MENGERC_EXP           (SIDEMENU1_BSC+17)
+#define slM1MSC_MENGERC_P1            (SIDEMENU1_BSC+18) /* this and next 4 */
+#define slM1MSC_MENGERC_P2            (SIDEMENU1_BSC+19) /* must be consecutive */
+#define slM1MSC_MENGERC_P3            (SIDEMENU1_BSC+20)
+#define slM1MSC_MENGERC_P4            (SIDEMENU1_BSC+21)
+#define slM1MSC_MENGERC_P5            (SIDEMENU1_BSC+22)
+#define intwM1BSC_MENGERC_QKN         (SIDEMENU1_BSC+23)
+#define intwM1BSC_MENGERC_POPT        (SIDEMENU1_BSC+24)
+#define intwM1BSC_MENGERC_MAXIT       (SIDEMENU1_BSC+25)
+#define intwM1BSC_MENGERC_NPTHREADS   (SIDEMENU1_BSC+26)
+#define swM1BSC_MENGERC_LOG           (SIDEMENU1_BSC+27)
+#define btnM1BSC_MENGERC_OPTIMIZE     (SIDEMENU1_BSC+28)
+
       /* B-spline patches */
 #define SIDEMENU1_BSP                         19*MENUINC
 #define textedM1BSP_NAME              (SIDEMENU1_BSP+ 1)
@@ -611,6 +625,11 @@ extern char txtG1BlendingPatch[];
 extern char txtG2BlendingPatch[];
 extern char txtGetSubmesh[];
 extern char txtPipeDiameter[];
+extern char txtMengerCurv[];
+extern char txtExponent[];
+extern char txtPenaltyParam[];
+extern char txtPenaltyOpt[];
+
 extern char *InfoMsg[];
 
 extern char MsgReconsider[];
@@ -640,4 +659,6 @@ extern char ErrorMessageCannotCangeDegree[];
 extern char ErrorMsgCannotFlip[];
 extern char ErrorMsgCannotFindObject[];
 extern char ErrorMsgCouldNotExtractMesh[];
+extern char ErrorMsgCurveMustBeCubicAndClosed[];
+extern char ErrorMsgCurveMustBeNonRationalAnd3D[];
 

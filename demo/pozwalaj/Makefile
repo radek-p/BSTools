@@ -23,8 +23,8 @@ CC = gcc
 #LDFLAGS = -static
 LDFLAGS =
 
-LIBS = -lxgedit -lbsfile -lg1blending -lg2blending -leghole -lbsmesh -lraybez \
-  -lmultibs -lcamera -lpkgeom -lpknum -lpkvaria \
+LIBS = -lxgedit -lbsfile -lg1blending -lg2blending -leghole -lbsmesh -lmengerc \
+  -lraybez -lmultibs -lcamera -lpkgeom -lpknum -lpkvaria \
   -lGLU -lGL -lX11 -lXext -lpthread -lm
 
 OBJECTS = pozwalaj00.o pozwalaj01.o pozwalaj02.o statustext.o \
@@ -55,7 +55,8 @@ EDINC = $(SRCDIR)/editor.h $(SRCDIR)/editor_bezc.h $(SRCDIR)/editor_bsc.h \
   $(SRCDIR)/editor_bsh.h $(SRCDIR)/arrowbtn.h
 
 PROC_OBJECTS = pozwalaj_proc00.o pozwalaj_proc01.o pozwalaj_proc02.o \
-   pozwalaj_proc03.o pozwalaj_proc04.o pozwalaj_proc05.o pozwalaj_proc06.o
+   pozwalaj_proc03.o pozwalaj_proc04.o pozwalaj_proc05.o pozwalaj_proc06.o \
+   pozwalaj_proc07.o pozwalaj_proc08.o
 
 
 default: $(BINDIR)/pozwalaj $(BINDIR)/pozwalaj_proc
@@ -296,25 +297,31 @@ $(BINDIR)/pozwalaj_proc: $(SRCDIR)/pozwalaj_proc.c $(SRCDIR)/pozwalajipc.h \
 	rm -f $(SRCDIR)/pozwalaj_proc
 	ln -s $(BINDIR)/pozwalaj_proc $(SRCDIR)/pozwalaj_proc
 
-pozwalaj_proc00.o:  $(SRCDIR)/pozwalaj_proc00.c $(SRCDIR)/pozwalajipc.h \
+pozwalaj_proc00.o: $(SRCDIR)/pozwalaj_proc00.c $(SRCDIR)/pozwalajipc.h \
   $(SRCDIR)/pozwalaj_proc.h
 
-pozwalaj_proc01.o:  $(SRCDIR)/pozwalaj_proc01.c $(SRCDIR)/pozwalajipc.h \
+pozwalaj_proc01.o: $(SRCDIR)/pozwalaj_proc01.c $(SRCDIR)/pozwalajipc.h \
   $(SRCDIR)/pozwalaj_proc.h
 
-pozwalaj_proc02.o:  $(SRCDIR)/pozwalaj_proc02.c $(SRCDIR)/pozwalajipc.h \
+pozwalaj_proc02.o: $(SRCDIR)/pozwalaj_proc02.c $(SRCDIR)/pozwalajipc.h \
   $(SRCDIR)/pozwalaj_proc.h
 
-pozwalaj_proc03.o:  $(SRCDIR)/pozwalaj_proc03.c $(SRCDIR)/pozwalajipc.h \
+pozwalaj_proc03.o: $(SRCDIR)/pozwalaj_proc03.c $(SRCDIR)/pozwalajipc.h \
   $(SRCDIR)/pozwalaj_proc.h
 
-pozwalaj_proc04.o:  $(SRCDIR)/pozwalaj_proc04.c $(SRCDIR)/pozwalajipc.h \
+pozwalaj_proc04.o: $(SRCDIR)/pozwalaj_proc04.c $(SRCDIR)/pozwalajipc.h \
   $(SRCDIR)/pozwalaj_proc.h
 
-pozwalaj_proc05.o:  $(SRCDIR)/pozwalaj_proc05.c $(SRCDIR)/pozwalajipc.h \
+pozwalaj_proc05.o: $(SRCDIR)/pozwalaj_proc05.c $(SRCDIR)/pozwalajipc.h \
   $(SRCDIR)/pozwalaj_proc.h
 
-pozwalaj_proc06.o:  $(SRCDIR)/pozwalaj_proc06.c $(SRCDIR)/pozwalajipc.h \
+pozwalaj_proc06.o: $(SRCDIR)/pozwalaj_proc06.c $(SRCDIR)/pozwalajipc.h \
+  $(SRCDIR)/pozwalaj_proc.h
+
+pozwalaj_proc07.o: $(SRCDIR)/pozwalaj_proc07.c $(SRCDIR)/pozwalajipc.h \
+  $(SRCDIR)/pozwalaj_proc.h
+
+pozwalaj_proc08.o: $(SRCDIR)/pozwalaj_proc08.c $(SRCDIR)/pozwalajipc.h \
   $(SRCDIR)/pozwalaj_proc.h
 
 

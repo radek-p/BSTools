@@ -26,6 +26,7 @@
 #include "eg2holed.h"  
 #include "bsmesh.h"
 #include "g2blendingd.h"
+#include "mengerc.h"
 #include "bsfile.h"
 #include "xgedit.h"
 
@@ -76,6 +77,9 @@ void ResetIPCBuffer ( void )
 boolean IPCAppendDataItem ( int desc, int size, void *ptr )
 {
   if ( size >= 0 && ipc_buf_count < IPC_BUFFER_LENGTH ) {
+#ifdef DEBUG_IPC
+printf ( "appending: desc %d, size %d\n", desc, size );
+#endif
     ipc_buffer[ipc_buf_count].desc = desc;
     ipc_buffer[ipc_buf_count].size = size;
     ipc_buffer[ipc_buf_count].ptr = ptr;
@@ -92,6 +96,9 @@ void IPCSendData ( void )
   int i;
 
   for ( i = 0; i < ipc_buf_count; i++ ) {
+#ifdef DEBUG_IPC
+printf ( "sending: desc %d, size %d\n", ipc_buffer[i].desc, ipc_buffer[i].size );
+#endif
     write ( xge_pipe_in[1], &ipc_buffer[i].desc, sizeof(int) );
     write ( xge_pipe_in[1], &ipc_buffer[i].size, sizeof(int) );
     if ( ipc_buffer[i].size > 0 )
@@ -137,6 +144,96 @@ static void *MallocCopy ( void *ptr, int size )
     memcpy ( _ptr, ptr, size );
   return _ptr;
 } /*MallocCopy*/
+
+void AssignBSCurveData ( GO_BSplineCurve *obj, int size, char *buf )
+{
+  int            *ibuf, idesc, isize;
+  ipc_bscmc_size *csize;
+  ipc_bscmc_info *mcinfo;
+  double         *knots, *cp, *_knots, *_cpoints;
+  int            spdimen, cpdimen, degree, lastknot;
+  byte           *mkcp, *_mkcp;
+  int            ncp, i;
+
+  csize = NULL;
+  mcinfo = NULL;
+  knots = cp = NULL;
+  mkcp = NULL;
+  do {
+    ibuf = (int*)buf;
+    idesc = ibuf[0];
+    isize = ibuf[1];
+    buf = (char*)(&ibuf[2]);
+    size -= 2*sizeof(int);
+    switch ( idesc ) {
+  case ipcd_BSC_SIZE:
+      csize = (ipc_bscmc_size*)buf;
+      break;
+  case ipcd_BSC_MCINFO:
+      mcinfo = (ipc_bscmc_info*)buf;
+      break;
+  case ipcd_BSC_KNOTS:
+      knots = (double*)buf;
+      break;
+  case ipcd_BSC_CPOINTS:
+      cp = (double*)buf;
+      break;
+  case ipcd_BSC_MKCP:
+      mkcp = (byte*)buf;
+      break;
+  default:
+      break;
+    }
+    buf = &buf[isize];
+    size -= isize;
+  } while ( size > 0 );
+  if ( csize && cp ) {
+    spdimen = csize->spdimen;
+    cpdimen = csize->cpdimen;
+    degree = csize->degree;
+    lastknot = csize->lkn;
+    ncp = lastknot - degree;
+    _knots = malloc ( (lastknot+1)*sizeof(double) );
+    _cpoints = malloc ( ncp*cpdimen*sizeof(double) );
+    _mkcp = malloc ( ncp*sizeof(byte) );
+    if ( _knots && _cpoints && _mkcp ) {
+      if ( knots )
+        memcpy ( _knots, knots, (lastknot+1)*sizeof(double) );
+      else {
+        for ( i = 0; i <= lastknot; i++ )
+          _knots[i] = (double)i;
+      }
+      memcpy ( _cpoints, cp, ncp*cpdimen*sizeof(double) );
+      if ( mkcp )
+        memcpy ( _mkcp, mkcp, ncp*sizeof(char) );
+      else
+        memset ( _mkcp, MASK_CP_MOVEABLE, ncp );
+      GeomObjectAssignBSCurve ( obj, spdimen, cpdimen > spdimen,
+                                degree, lastknot, _knots, _cpoints, _mkcp,
+                                csize->closed );
+      if ( mcinfo ) {
+        obj->mc_exponent = mcinfo->exponent;
+        memcpy ( obj->mc_pparam, mcinfo->pparam, MENGERC_NPPARAM*sizeof(double) );
+      }
+    }
+    else {
+      if ( _knots )   free ( _knots );
+      if ( _cpoints ) free ( _cpoints );
+      if ( _mkcp )    free ( _mkcp );
+    }
+  }
+} /*AssignBSCurveData*/
+
+void ReceiveBSCurveInfo ( GO_BSplineCurve *obj, int size, char *buf )
+{
+  ipc_bscmc_info *mcinfo;
+
+  if ( obj->me.obj_type != GO_BSPLINE_CURVE )
+    return;
+  mcinfo = (ipc_bscmc_info*)buf;
+  obj->mc_exponent = mcinfo->exponent;
+  memcpy ( obj->mc_pparam, mcinfo->pparam, MENGERC_NPPARAM*sizeof(double) );
+} /*ReceiveBSCurveInfo*/
 
 void AssignBSPatchData ( GO_BSplinePatch *obj, int size, char *buf )
 {
@@ -315,22 +412,28 @@ printf ( "receiving result, size = %d\n", size );
       if ( ipc_go_bound->bound_with_a_child ) {
         ibuf = (int*)buf;
         switch ( *ibuf ) {
+      case ipcd_BSC_SIZE:
+          AssignBSCurveData ( (GO_BSplineCurve*)ipc_go_bound, size, buf );
+          if ( ipc_state == ipcstate_CHILD_READY &&
+                ipc_go_bound == current_go )
+            ipc_go_bound->bound_with_a_child = false;
+          SetupBSplineCurveWidgets ( (GO_BSplineCurve*)ipc_go_bound );
+          break;
+      
       case ipcd_BLP_SIZE:
           AssignBSPatchData ( (GO_BSplinePatch*)ipc_go_bound, size, buf );
           if ( ipc_state == ipcstate_CHILD_READY &&
-                ipc_go_bound == current_go ) {
+                ipc_go_bound == current_go )
             ipc_go_bound->bound_with_a_child = false;
-            SetupBSplinePatchWidgets ( (GO_BSplinePatch*)ipc_go_bound );
-          }
+          SetupBSplinePatchWidgets ( (GO_BSplinePatch*)ipc_go_bound );
           break;
 
       case ipcd_BSM_SIZE:  /* mesh data */
           AssignBSMeshData ( (GO_BSplineMesh*)ipc_go_bound, size, buf );
           if ( ipc_state == ipcstate_CHILD_READY &&
-               ipc_go_bound == current_go ) {
+               ipc_go_bound == current_go )
             ipc_go_bound->bound_with_a_child = false;
-            SetupBSplineMeshWidgets ( (GO_BSplineMesh*)ipc_go_bound );
-          }
+          SetupBSplineMeshWidgets ( (GO_BSplineMesh*)ipc_go_bound );
           break;
 
       default:
@@ -351,8 +454,7 @@ printf ( "read in %d bytes\n", s );
   if ( ipc_go_bound )
     if ( ipc_go_bound == current_go || ipc_go_bound->active ) {
       rendered_picture = false;
-      xge_SetWindow ( win0 );
-      xge_Redraw ();
+      xge_RedrawAll ();
     }
 way_out:
   pkv_SetScratchMemTop ( sp );
@@ -370,6 +472,7 @@ case ipccmd_CHILD_READY:
 
 case ipccmd_BEGIN_BLP:
 case ipccmd_BEGIN_BSM:
+case ipccmd_BEGIN_BSCMC:
     ipc_state = ipcstate_CHILD_BUSY;
     break;
 
@@ -381,6 +484,9 @@ case ipccmd_ERROR:
     ipc_go_bound->bound_with_a_child = false;
     if ( ipc_go_bound == current_go ) {
       switch ( current_go->obj_type ) {
+    case GO_BSPLINE_CURVE:
+        SetupBSplineCurveWidgets ( (GO_BSplineCurve*)current_go );
+        break;
     case GO_BSPLINE_PATCH:
         SetupBSplinePatchWidgets ( (GO_BSplinePatch*)current_go );
         break;
@@ -397,6 +503,7 @@ case ipccmd_ERROR:
     break;
 
 case ipccmd_PARTIAL_RESULT:
+case ipccmd_ITER_INFO:
     ReadDataFromChild ( size );
     break;
 

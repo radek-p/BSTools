@@ -28,8 +28,9 @@
 #define IDLE_COMMAND_RENDER_CONT            2
 #define IDLE_COMMAND_BSP_BLENDING_OPT_INIT  3
 #define IDLE_COMMAND_BSM_BLENDING_OPT_INIT  4
-#define IDLE_COMMAND_SEND_DATA_TO_CHILD     5
-#define IDLE_COMMAND_BSMESH_OPT_SPECIALS    6
+#define IDLE_COMMAND_BSC_MENGERC_OPT_INIT   5
+#define IDLE_COMMAND_SEND_DATA_TO_CHILD     6
+#define IDLE_COMMAND_BSMESH_OPT_SPECIALS    7
 
 extern int           win0, win1;
 
@@ -105,7 +106,10 @@ extern xge_widget     *side10wdg_bezc_view, *side10wdg_bsc_view, *side10wdg_bezp
                       *side10wdg_bsp_view, *side10wdg_bsm_view, *side10wdg_bsh_view;
 extern xge_widget     *side10wdg_bezc_data, *side10wdg_bsc_data, *side10wdg_bezp_data,
                       *side10wdg_bsp_data, *side10wdg_bsm_data, *side10wdg_bsh_data;
-extern xge_widget     *side10wdg_bezc_opt, *side10wdg_bsc_opt, *side10wdg_bezp_opt,
+extern xge_widget     *side10wdg_bezc_opt,
+                      *side10wdg_bsc_opt,
+                      *side10wdg_bsc_opt1, *side10wdg_bsc_opt2,
+                      *side10wdg_bezp_opt,
                       *side10wdg_bsp_opt, *side10wdg_bsp_opt_general,
                       *side10wdg_bsp_opt_spherical,
                       *side10wdg_bsp_opt_blendingG1,
@@ -164,6 +168,12 @@ extern xge_string_ed  bsc_name_ed;
 extern xge_int_widget intw_bscdeg, bsc_graphdens;
 extern boolean        bsc_sw_closed;
 extern boolean        bsc_sw_view_bpoly;
+extern boolean        bsc_sw_mengerc, bsc_sw_mc_logit;
+extern double         bsc_sl_mcexp, bsc_sl_mcppar[5];
+extern xge_int_widget bsc_mc_qkn, bsc_mc_popt, bsc_mc_maxit, bsc_mc_nthr,
+                      bscnpthreads;
+extern int            bsc_mc_qknots, bsc_mc_ppopt, bsc_mc_maxiter,
+                      bsc_npthreads;
 
     /* B-spline patches */
 extern xge_string_ed  bsp_name_ed;
@@ -218,7 +228,7 @@ extern int            bsm_bl_nkn1, bsm_bl_nkn2, bsm_bl_maxit,
                       bsm_bl_nlev, bsm_bl_nbl;
 extern xge_int_widget bsm_bl_qknots1, bsm_bl_qknots2, bsm_bl_maxiter,
                       bsm_bl_nlevels, bsm_bl_nblocks;
-extern xge_widget     *bsm_bl_optimize;
+extern xge_widget     *bsm_bl_optimize, *bsc_mc_optimize;
 extern boolean        bsm_sw_use_coarse;
 extern xge_string_ed  bsm_coarse_editor;
 extern xge_int_widget bsmnpthreads;
@@ -348,6 +358,8 @@ void InitSide10Menu_BSc ( void );
 boolean ChangeSide10MenuWidth_BSc ( short h );
 void SetupBSplineCurveWidgets ( GO_BSplineCurve *obj );
 int Side10MenuBscCallBack ( xge_widget *er, int msg, int key, short x, short y );
+boolean MengerCurvatureOptimizationPrepareData ( GO_BSplineCurve *obj );
+void InitMengerCurvatureOptimization ( void );
 
 void InitSide10Menu_BSp ( void );
 boolean ChangeSide10MenuWidth_BSp ( short h );
@@ -366,7 +378,7 @@ void InitSide10Menu_BSm ( void );
 boolean ChangeSide10MenuWidth_BSm ( short h );
 void SetupBSplineMeshVEFnum ( GO_BSplineMesh *obj );
 void SetupBSplineMeshWidgets ( GO_BSplineMesh *obj );
-void BlendingMeshOptimizationPrepareData ( GO_BSplineMesh *obj );
+boolean BlendingMeshOptimizationPrepareData ( GO_BSplineMesh *obj );
 void InitBlendingMeshOptimization ( void );
 void BlendingMeshOptSpecialPatches ( void );
 void Side10MenuBsmResize ( short x, short y );
@@ -439,6 +451,7 @@ int Popup14CallBack ( xge_widget *er, int msg, int key, short x, short y );
 xge_widget *InitPopup15 ( void );
 int Popup15CallBack ( xge_widget *er, int msg, int key, short x, short y );
 
+void SetupObjectSpecificMenusWin1 ( geom_object *obj );
 void SetupObjectSpecificMenus ( geom_object *obj );
 void SetObjectEditMenu ( geom_object *obj );
 void SetObjectViewMenu ( geom_object *obj );

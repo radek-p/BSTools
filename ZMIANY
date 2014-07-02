@@ -3752,3 +3752,28 @@ Wersja 0.33.
 873. Drobna poprawka w programie ncolours.
 
 
+Wersja 0.34.
+
+26.06.2014
+874. Zmiany w bibliotece libmengerc - porzadkowanie kodu.
+
+30.06.2014.
+875. Zmiany w libxgedit - do okien edycyjnych 2D i 3D dodana mozliwosc
+    "przelaczania" zaznaczenia punktow (w dodatku do dotychczasowego
+    "zaznaczania" i "odznaczania").
+
+876. Mozliwosc "przelaczania" zaznaczenia punktow dorobiona do programu
+    demonstracyjnego pozwalaj.
+
+877. Do programu pozwalaj dorobiona mozliwosc optymalizowania ksztaltu
+    zamknietych krzywych B-sklejanych przez minimalizacje calkowej krzywizny
+    Mengera. Do dopracowania.
+
+2.07.2014
+878. Zmiany w libmengerc - kod wymaga jeszcze wiele pracy, a zwlaszcza
+    czyszczenia.
+
+879. Zmiany w programie pozwalaj - rozszerzenie komunikacji miedzy programem
+    glownym (pozwalaj) i serwerem obliczeniowym (pozwalaj_proc), zwiazanej
+    z minimalizacja calkowej krzywizny Mengera.
+

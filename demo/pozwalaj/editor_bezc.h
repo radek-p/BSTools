@@ -54,9 +54,9 @@ void GeomObjectBezierCurveSetCPoint ( GO_BezierCurve *obj,
                                       CameraRecd *CPos, short x, short y );
 void GeomObjectBezierCurveMarkCPoints ( GO_BezierCurve *obj,
                                         CameraRecd *CPos, Box2s *box,
-                                        char mask, boolean clear );
+                                        char mask, int action );
 void GeomObjectBezierCurveMarkCPoint ( GO_BezierCurve *obj,
-                                       char mask, boolean clear );
+                                       char mask, int action );
 boolean GeomObjectBezierCurveSaveCPoints ( GO_BezierCurve *obj );
 void GeomObjectBezierCurveUndoLastTransformation ( GO_BezierCurve *obj );
 void GeomObjectBezierCurveTransformCPoints ( GO_BezierCurve *obj,

@@ -28,11 +28,11 @@
 #include "g1blendingd.h"
 #include "g2blendingd.h"
 #include "g2mblendingd.h"
+#include "mengerc.h"
 #include "xgedit.h"
 
 #define CHILD_SIDE
 #include "pozwalajipc.h"
-#undef CHILD_SIDE
 
 #include "pozwalaj_proc.h"
 
@@ -47,6 +47,7 @@ void GetData ( int size )
   while ( cnt < size ) {
     read ( xge_pipe_in[0], &idesc, sizeof(int) );
     read ( xge_pipe_in[0], &isize, sizeof(int) );
+/*printf ( "idesc = %d, isize = %d\n", idesc, isize ); */
     switch ( idesc ) {
   case ipcd_BLP_SIZE:
       ReadBLPSize ( isize );
@@ -105,6 +106,21 @@ void GetData ( int size )
   case ipcd_BSM_OPTIMIZE:
       ReadBSMOptimizeOptions ( isize );
       break;
+  case ipcd_BSC_SIZE:
+      ReadBSCSize ( isize );
+      break;
+  case ipcd_BSC_KNOTS:
+      ReadBSCKnots ( isize );
+      break;
+  case ipcd_BSC_CPOINTS:
+      ReadBSCCPoints ( isize );
+      break;
+  case ipcd_BSC_MKCP:
+      ReadBSCMkcp ( isize );
+      break;
+  case ipcd_BSC_OPTIMIZE:
+      ReadBSCMCOptimizeOptions ( isize );
+      break;
   default:  /* error - reject all pending data and signal error */
       for ( i = cnt; i < size; i++ )
         read ( xge_pipe_in[0], &b, 1 );
@@ -113,9 +129,7 @@ void GetData ( int size )
       return;
     }
     cnt += 2*sizeof(int) + isize;
-/*
-printf ( "data item: %d size %d\n", idesc, isize );
-*/
+/*printf ( "data item: %d size %d\n", idesc, isize ); */
   }
 } /*GetData*/
 
