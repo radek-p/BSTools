@@ -191,6 +191,7 @@ xge_widget      *bezp_dens_u, *bezp_dens_v;
 xge_string_ed   bsc_name_ed;
 xge_int_widget  intw_bscdeg, bsc_graphdens;
 boolean         bsc_sw_closed = false;
+boolean         sw_bsc_dom_coord = false, sw_bsc_dom_panzoom = false;
 boolean         bsc_sw_view_bpoly = false;
 boolean         bsc_sw_mengerc = false,
                 bsc_sw_mc_logit = false;

@@ -8,7 +8,7 @@
 #include "pozwalaj0.h"
 #endif
 
-#define MAX_COMMAND_LGT  xge_MAX_STRING_LENGTH
+#define MAX_COMMAND_LGT   xge_MAX_STRING_LENGTH
 #define MAX_PARAM_LGT      20
 
 #define TOPMENUHEIGHT      20
@@ -167,6 +167,7 @@ extern xge_widget     *bezp_dens_u, *bezp_dens_v;
 extern xge_string_ed  bsc_name_ed;
 extern xge_int_widget intw_bscdeg, bsc_graphdens;
 extern boolean        bsc_sw_closed;
+extern boolean        sw_bsc_dom_coord, sw_bsc_dom_panzoom;
 extern boolean        bsc_sw_view_bpoly;
 extern boolean        bsc_sw_mengerc, bsc_sw_mc_logit;
 extern double         bsc_sl_mcexp, bsc_sl_mcppar[5];

@@ -3777,3 +3777,7 @@ Wersja 0.34.
     glownym (pozwalaj) i serwerem obliczeniowym (pozwalaj_proc), zwiazanej
     z minimalizacja calkowej krzywizny Mengera.
 
+7.08.2014
+880. W programie pozwalaj poprawiona obsluga wihajstra z wezlami krzywej
+    B-sklejanej.
+

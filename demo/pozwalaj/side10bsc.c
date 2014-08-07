@@ -62,6 +62,12 @@ void InitSide10Menu_BSc ( void )
   w = xge_NewButton ( win1, w, btnM1BSC_REFINE, 76, 19, 0, 100, txtRefine );
   w = xge_NewSwitch ( win1, w, swM1BSC_CLOSED, 109, 16, 0, 120,
                       txtClosed, &bsc_sw_closed );
+  w = xge_NewSwitch ( win1, w, swM1BSC_DOMAIN_COORD, 109, 16, 0, xge_HEIGHT-56,
+                      txtCoordinates, &sw_bsc_dom_coord );
+  xge_SetWidgetPositioning ( w, 2, 0, -56 );
+  w = xge_NewSwitch ( win1, w, swM1BSC_DOMAIN_PANZOOM, 109, 16, 0, xge_HEIGHT-36,
+                      txtPanZoom, &sw_bsc_dom_panzoom );
+  xge_SetWidgetPositioning ( w, 2, 0, -36 );
   w = xge_NewSwitch ( win1, w, swM11STATUS, 16, 16, 0, xge_HEIGHT-16,
                       txtNull, &win1statusline );
   xge_SetWidgetPositioning ( w, 2, 0, -16 );
@@ -90,6 +96,12 @@ void InitSide10Menu_BSc ( void )
   w = xge_NewTextWidget ( win1, w, 0, 109, 19, 0, 192, txtPipeDiameter );
   w = xge_NewSlidebard ( win1, w, slM1BSC_PIPE_DIAMETER, 109, 10, 0, 212,
                          &sl_pipe_diameter );
+  w = xge_NewSwitch ( win1, w, swM1BSC_DOMAIN_COORD, 109, 16, 0, xge_HEIGHT-56,
+                      txtCoordinates, &sw_bsc_dom_coord );
+  xge_SetWidgetPositioning ( w, 2, 0, -56 );
+  w = xge_NewSwitch ( win1, w, swM1BSC_DOMAIN_PANZOOM, 109, 16, 0, xge_HEIGHT-36,
+                      txtPanZoom, &sw_bsc_dom_panzoom );
+  xge_SetWidgetPositioning ( w, 2, 0, -36 );
   w = xge_NewSwitch ( win1, w, swM11STATUS, 16, 16, 0, xge_HEIGHT-16,
                       txtNull, &win1statusline );
   xge_SetWidgetPositioning ( w, 2, 0, -16 );
@@ -98,7 +110,13 @@ void InitSide10Menu_BSc ( void )
   xge_SetWidgetPositioning ( w, 2, 20, -16 );
   side10wdg_bsc_view = w;
           /* data */
-  w = xge_NewSwitch ( win1, NULL, swM11STATUS, 16, 16, 0, xge_HEIGHT-16,
+  w = xge_NewSwitch ( win1, NULL, swM1BSC_DOMAIN_COORD, 109, 16, 0, xge_HEIGHT-56,
+                      txtCoordinates, &sw_bsc_dom_coord );
+  xge_SetWidgetPositioning ( w, 2, 0, -56 );
+  w = xge_NewSwitch ( win1, w, swM1BSC_DOMAIN_PANZOOM, 109, 16, 0, xge_HEIGHT-36,
+                      txtPanZoom, &sw_bsc_dom_panzoom );
+  xge_SetWidgetPositioning ( w, 2, 0, -36 );
+  w = xge_NewSwitch ( win1, w, swM11STATUS, 16, 16, 0, xge_HEIGHT-16,
                       txtNull, &win1statusline );
   xge_SetWidgetPositioning ( w, 2, 0, -16 );
   w = xge_NewSwitch ( win1, w, swM11COMMAND, 16, 16, 20, xge_HEIGHT-16,
@@ -109,6 +127,12 @@ void InitSide10Menu_BSc ( void )
             /* general */
   w = xge_NewSwitch ( win1, NULL, swM1MSC_MENGERC, 109, 16, 0, 20,
                       txtMengerCurv, &bsc_sw_mengerc );
+  w = xge_NewSwitch ( win1, w, swM1BSC_DOMAIN_COORD, 109, 16, 0, xge_HEIGHT-56,
+                      txtCoordinates, &sw_bsc_dom_coord );
+  xge_SetWidgetPositioning ( w, 2, 0, -56 );
+  w = xge_NewSwitch ( win1, w, swM1BSC_DOMAIN_PANZOOM, 109, 16, 0, xge_HEIGHT-36,
+                      txtPanZoom, &sw_bsc_dom_panzoom );
+  xge_SetWidgetPositioning ( w, 2, 0, -36 );
   w = xge_NewSwitch ( win1, w, swM11STATUS, 16, 16, 0, xge_HEIGHT-16,
                       txtNull, &win1statusline );
   xge_SetWidgetPositioning ( w, 2, 0, -16 );
@@ -143,6 +167,12 @@ void InitSide10Menu_BSc ( void )
       xge_NewButton ( win1, w, btnM1BSC_MENGERC_OPTIMIZE, 58, 19, 0, 263,
                       txtOptimize );
   bsc_npthreads = ncpu;
+  w = xge_NewSwitch ( win1, w, swM1BSC_DOMAIN_COORD, 109, 16, 0, xge_HEIGHT-56,
+                      txtCoordinates, &sw_bsc_dom_coord );
+  xge_SetWidgetPositioning ( w, 2, 0, -56 );
+  w = xge_NewSwitch ( win1, w, swM1BSC_DOMAIN_PANZOOM, 109, 16, 0, xge_HEIGHT-36,
+                      txtPanZoom, &sw_bsc_dom_panzoom );
+  xge_SetWidgetPositioning ( w, 2, 0, -36 );
   w = xge_NewSwitch ( win1, w, swM11STATUS, 16, 16, 0, xge_HEIGHT-16,
                       txtNull, &win1statusline );
   xge_SetWidgetPositioning ( w, 2, 0, -16 );
@@ -182,6 +212,8 @@ void SetupBSplineCurveWidgets ( GO_BSplineCurve *obj )
   Geom10winKNSetKnots ( &g10knotwin, obj->degree, obj->lastknot,
                         obj->knots, obj->closed );
   SetGeomWin10Knotw ( obj );
+  sw_bsc_dom_coord = g10knotwin.display_coord;
+  sw_bsc_dom_panzoom = g10knotwin.panning;
         /* Menger curvature related stuff */
   bsc_sw_mengerc = obj->mengerc;
   bsc_sl_mcexp = xge_LogSlidebarPosd ( BSC_MC_MIN_EXP, BSC_MC_MAX_EXP,
@@ -278,6 +310,12 @@ case xgemsg_SWITCH_COMMAND:
       else if ( bsc_sw_closed )
         xge_DisplayErrorMessage ( ErrorMsgCannotClose, 0 );
       bsc_sw_closed = obj->closed;
+      return 1;
+  case swM1BSC_DOMAIN_COORD:
+      g10knotwin.display_coord = sw_bsc_dom_coord;
+      return 1;
+  case swM1BSC_DOMAIN_PANZOOM:
+      g10knotwin.panning = sw_bsc_dom_panzoom;
       return 1;
   case swM1BSC_VIEW_BPOLY:
       obj->view_bpoly = bsc_sw_view_bpoly;
