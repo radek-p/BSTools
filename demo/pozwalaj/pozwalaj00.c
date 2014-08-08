@@ -191,7 +191,8 @@ xge_widget      *bezp_dens_u, *bezp_dens_v;
 xge_string_ed   bsc_name_ed;
 xge_int_widget  intw_bscdeg, bsc_graphdens;
 boolean         bsc_sw_closed = false;
-boolean         sw_bsc_dom_coord = false, sw_bsc_dom_panzoom = false;
+boolean         sw_bsc_move_many_knots = false,
+                sw_bsc_dom_coord = false, sw_bsc_dom_panzoom = false;
 boolean         bsc_sw_view_bpoly = false;
 boolean         bsc_sw_mengerc = false,
                 bsc_sw_mc_logit = false;
@@ -207,7 +208,8 @@ xge_int_widget  intw_bspdegu, intw_bspdegv;
 xge_widget      *bsp_dens_u = NULL, *bsp_dens_v = NULL;
 boolean         bsp_sw_closed_u = false, bsp_sw_closed_v = false,
                 sw_bsp_clamped = false;
-boolean         sw_bsp_dom_coord = false, sw_bsp_dom_panzoom = false;
+boolean         sw_bsp_move_many_knots = false,
+                sw_bsp_dom_coord = false, sw_bsp_dom_panzoom = false;
 boolean         bsp_bl_nharmonic = false, bsp_blending_entire = true;
 xge_widget      *sw_bsp_bl_nharmonic = NULL;
 xge_int_widget  bsp_blG1_minu, bsp_blG1_maxu, bsp_blG1_minv, bsp_blG1_maxv,

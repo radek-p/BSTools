@@ -185,6 +185,7 @@ char txtMengerCurv[]        = "Menger curv.";
 char txtExponent[]          = "exponent";
 char txtPenaltyParam[]      = "penalty param.";
 char txtPenaltyOpt[]        = "penalty opt.";
+char txtMoveMany[]          = "move many";
 
 char *InfoMsg[5] =
   { "pozwalaj - a simple curve and surface modeller",

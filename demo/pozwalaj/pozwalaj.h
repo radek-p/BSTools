@@ -167,7 +167,7 @@ extern xge_widget     *bezp_dens_u, *bezp_dens_v;
 extern xge_string_ed  bsc_name_ed;
 extern xge_int_widget intw_bscdeg, bsc_graphdens;
 extern boolean        bsc_sw_closed;
-extern boolean        sw_bsc_dom_coord, sw_bsc_dom_panzoom;
+extern boolean        sw_bsc_move_many_knots, sw_bsc_dom_coord, sw_bsc_dom_panzoom;
 extern boolean        bsc_sw_view_bpoly;
 extern boolean        bsc_sw_mengerc, bsc_sw_mc_logit;
 extern double         bsc_sl_mcexp, bsc_sl_mcppar[5];
@@ -181,7 +181,7 @@ extern xge_string_ed  bsp_name_ed;
 extern xge_int_widget intw_bspdegu, intw_bspdegv;
 extern xge_widget     *bsp_dens_u, *bsp_dens_v;
 extern boolean        bsp_sw_closed_u, bsp_sw_closed_v, sw_bsp_clamped;
-extern boolean        sw_bsp_dom_coord, sw_bsp_dom_panzoom;
+extern boolean        sw_bsp_move_many_knots, sw_bsp_dom_coord, sw_bsp_dom_panzoom;
 extern boolean        bsp_bl_nharmonic, bsp_blending_entire;
 extern xge_widget     *sw_bsp_bl_nharmonic;
 extern xge_int_widget bsp_blG1_minu, bsp_blG1_maxu, bsp_blG1_minv, bsp_blG1_maxv, 

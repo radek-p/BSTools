@@ -62,6 +62,8 @@ void InitSide10Menu_BSc ( void )
   w = xge_NewButton ( win1, w, btnM1BSC_REFINE, 76, 19, 0, 100, txtRefine );
   w = xge_NewSwitch ( win1, w, swM1BSC_CLOSED, 109, 16, 0, 120,
                       txtClosed, &bsc_sw_closed );
+  w = xge_NewSwitch ( win1, w, swM1BSC_MOVE_MANY_KNOTS, 109, 16, 0, 140,
+                      txtMoveMany, &sw_bsc_move_many_knots );
   w = xge_NewSwitch ( win1, w, swM1BSC_DOMAIN_COORD, 109, 16, 0, xge_HEIGHT-56,
                       txtCoordinates, &sw_bsc_dom_coord );
   xge_SetWidgetPositioning ( w, 2, 0, -56 );
@@ -310,6 +312,9 @@ case xgemsg_SWITCH_COMMAND:
       else if ( bsc_sw_closed )
         xge_DisplayErrorMessage ( ErrorMsgCannotClose, 0 );
       bsc_sw_closed = obj->closed;
+      return 1;
+  case swM1BSC_MOVE_MANY_KNOTS:
+      g10knotwin.moving_many = sw_bsc_move_many_knots;
       return 1;
   case swM1BSC_DOMAIN_COORD:
       g10knotwin.display_coord = sw_bsc_dom_coord;

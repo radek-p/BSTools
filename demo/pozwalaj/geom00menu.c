@@ -71,7 +71,8 @@ void DrawG00win3Dpar ( xge_widget *er, boolean onscreen )
   int id;
 
   id = er->id & 0x03;  /* it must be 0, 1 or 2 */
-  glXWaitX ();
+/*  glXWaitX (); */
+  XSync ( xgedisplay, false );
   xgle_DrawGeomWinBackground ( er, 0 );
   xgle_SetIdentMapping ( er );
   xgle_3DwindDrawCursorPos ( &g00win3D, id, xge_xx, xge_yy );
@@ -81,7 +82,8 @@ void DrawG00win3Dpar ( xge_widget *er, boolean onscreen )
   DisplaySpecial3DElements ( &g00win3D );
   GeomObjectDisplayActive ( 3 );
   glDisable ( GL_DEPTH_TEST );
-  glXWaitGL ();
+/*  glXWaitGL (); */
+  glFinish ();
   xgleCopyGLRect ( er->w, er->h, er->x, er->y );
   xge_DrawGeomWinSelectionRect ( er, &g00win3D.selection_rect );
   xge_3DwindDrawGeomWidgets ( er );
@@ -118,7 +120,8 @@ void DrawG00win3Dpersp ( xge_widget *er, boolean onscreen )
       xgeCopyRectOnScreen ( er->w, er->h, er->x, er->y );
   }
   else {
-    glXWaitX ();
+/*    glXWaitX ();*/
+    XSync ( xgedisplay, false );
     xgle_DrawGeomWinBackground ( er, 0 );
     xgle_SetIdentMapping ( er );
     xgle_3DwindDrawCursorPos ( &g00win3D, id, xge_xx, xge_yy );
@@ -138,7 +141,8 @@ void DrawG00win3Dpersp ( xge_widget *er, boolean onscreen )
     GeomObjectDisplayActive ( 3 );
     glDisable ( GL_FOG );
     glDisable ( GL_DEPTH_TEST );
-    glXWaitGL ();
+/*    glXWaitGL ();*/
+    glFinish ();
     xgleCopyGLRect ( er->w, er->h, er->x, er->y );
     xge_DrawGeomWinSelectionRect ( er, &g00win3D.selection_rect );
     xge_DrawGeomWinFrame ( er, onscreen );
@@ -492,13 +496,15 @@ void DrawG00win2D ( xge_widget *er, boolean onscreen )
   xge_2Dwind *_2Dwin;
 
   _2Dwin = er->data0;
-  glXWaitX ();
+/*  glXWaitX (); */
+  XSync ( xgedisplay, false );
   xgle_DrawGeomWinBackground ( er, 0 );
   if ( _2Dwin->display_coord && _2Dwin->inside )
     xgle_2DwindDrawCursorPos ( _2Dwin, xge_xx, xge_yy );
   xgle_SetGLCamerad ( &_2Dwin->CPos );
   GeomObjectDisplayActive ( 2 );
-  glXWaitGL ();
+/*  glXWaitGL ();*/
+  glFinish ();
   xgleCopyGLRect ( er->w, er->h, er->x, er->y );
   xge_DrawGeomWinSelectionRect ( er, &_2Dwin->selection_rect );
   xge_2DwindDrawGeomWidgets ( er );

@@ -62,6 +62,8 @@ void InitSide10Menu_BSp ( void )
   w = xge_NewIntWidget ( win1, w, intwM1BSP_DEGV, 76, 19, 0, 100,
                          0, MAX_DEGREE+1, &intw_bspdegv, txtDegreeV, &degreev );
   w = xge_NewButton ( win1, w, btnM1BSP_FLIP, 76, 19, 0, 120, txtFlip );
+  w = xge_NewSwitch ( win1, w, swM1BSP_MOVE_MANY_KNOTS, 109, 16, 0, 140,
+                      txtMoveMany, &sw_bsp_move_many_knots );
   w = xge_NewSwitch ( win1, w, swM1BSP_DOMAIN_COORD, 109, 16, 0, xge_HEIGHT-56,
                       txtCoordinates, &sw_bsp_dom_coord );
   xge_SetWidgetPositioning ( w, 2, 0, -56 );

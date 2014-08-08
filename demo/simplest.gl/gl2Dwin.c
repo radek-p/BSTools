@@ -37,7 +37,8 @@ void RysujOkno ( xge_widget *er, boolean onscreen )
 {
   int     i;
 
-  glXWaitX ();
+/*  glXWaitX ();*/
+  XSync ( xgedisplay, false );
 
   xgle_DrawGeomWinBackground ( er, 0 );
   if ( wind.display_coord && wind.inside )
@@ -62,7 +63,8 @@ void RysujOkno ( xge_widget *er, boolean onscreen )
       glVertex2fv ( &triangle[i].x );
   glEnd ();
 
-  glXWaitGL ();
+/*  glXWaitGL ();*/
+  glFinish ();
   xgleCopyGLRect ( er->w, er->h, er->x, er->y );
 
   xge_DrawGeomWinSelectionRect ( er, &wind.selection_rect );

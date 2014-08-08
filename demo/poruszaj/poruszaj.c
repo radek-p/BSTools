@@ -298,7 +298,8 @@ void RysujOkno ( xge_widget *er, boolean onscreen )
     if ( AnimaCurrentTime ( &ct ) - time_now > TTOL )
       Animate ( false );
   }
-  glXWaitX ();
+/*  glXWaitX ();*/
+  XSync ( xgedisplay, false );
   id = er->id & 0x03;
 
   if ( sw_antialias && !_xgle_no_accum ) {
@@ -325,8 +326,8 @@ void RysujOkno ( xge_widget *er, boolean onscreen )
     DrawWinContents ();
   }
 
-  glXWaitGL ();
-  glFlush ();
+/*  glXWaitGL ();*/
+  glFinish ();
   xgleCopyGLRect ( er->w, er->h, er->x, er->y );
 
   xge_DrawGeomWinSelectionRect ( er, &wind.selection_rect );

@@ -338,6 +338,9 @@ case xgemsg_SWITCH_COMMAND:
         xge_DisplayErrorMessage ( ErrorMsgCannotClose, 0 );
       bsp_sw_closed_v = obj->closed_v;
       return 1;
+  case swM1BSP_MOVE_MANY_KNOTS:
+      g10t2knotwin.moving_many = sw_bsp_move_many_knots;
+      return 1;
   case swM1BSP_DOMAIN_COORD:
       g10t2knotwin.display_coord = g10win2D.display_coord =
       g10win2Deqmer.display_coord = g10knotwin.display_coord =

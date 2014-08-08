@@ -3781,3 +3781,13 @@ Wersja 0.34.
 880. W programie pozwalaj poprawiona obsluga wihajstra z wezlami krzywej
     B-sklejanej.
 
+8.08.2014
+881. Wywolania procedur glXWaitX i glXWaitGL zastapione przez XSync i
+    glFinish; w pewnej implementacji OpenGL (dzialajacej na laptopie Toshiba
+    Portege, z driverem Intela, nie wiem, w ktorym komponencie systemu jest
+    ten blad) procedura glXWaitX nie spelniala swojego zadania, co
+    powodowalo bledy w wyswietlaniu zawartosci okien.
+
+882. Do programu pozwalaj dodana obsluga przesuwania jednoczesnie wielu
+    wezlow dla krzywych i platow B-sklejanych.
+

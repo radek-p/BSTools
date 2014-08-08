@@ -125,13 +125,14 @@ void DrawG10win2D ( xge_widget *er, boolean onscreen )
   xge_2Dwind *_2Dwin;
 
   _2Dwin = er->data0;
-  glXWaitX ();
+/*  glXWaitX ();*/
+  XSync ( xgedisplay, false );
   xgle_DrawGeomWinBackground ( er, 0 );
   if ( _2Dwin->display_coord && _2Dwin->inside )
     xgle_2DwindDrawCursorPos ( _2Dwin, xge_xx, xge_yy );
   xgle_SetGLCamerad ( &_2Dwin->CPos );
-
-  glXWaitGL ();
+/*  glXWaitGL ();*/
+  glFinish ();
   xgleCopyGLRect ( er->w, er->h, er->x, er->y );
   xge_DrawGeomWinSelectionRect ( er, &_2Dwin->selection_rect );
   xge_2DwindDrawGeomWidgets ( er );
@@ -594,7 +595,8 @@ void DrawG10win2Deqmer ( xge_widget *er, boolean onscreen )
   xge_2Dwind *_2Dwin;
 
   _2Dwin = er->data0;
-  glXWaitX ();
+/*  glXWaitX ();*/
+  XSync ( xgedisplay, false );
   xgle_DrawGeomWinBackground ( er, 0 );
   if ( _2Dwin->display_coord && _2Dwin->inside )
     xgle_2DwindDrawCursorPos ( _2Dwin, xge_xx, xge_yy );
@@ -605,7 +607,8 @@ void DrawG10win2Deqmer ( xge_widget *er, boolean onscreen )
     GeomObjectDisplayBSplineCurve ( bsp_sproduct_eqmer );
     glPopMatrix ();
   }
-  glXWaitGL ();
+/*  glXWaitGL ();*/
+  glFinish ();
   xgleCopyGLRect ( er->w, er->h, er->x, er->y );
   xge_DrawGeomWinSelectionRect ( er, &_2Dwin->selection_rect );
   xge_2DwindDrawGeomWidgets ( er );
