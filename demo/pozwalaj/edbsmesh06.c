@@ -624,7 +624,6 @@ boolean GeomObjectBSplineMeshSealHole ( GO_BSplineMesh *obj )
   double      *omvpc;
   byte        *mkcp;
 
-
   if ( !bsm_CheckMeshIntegrity ( obj->nv, obj->meshv, obj->meshvhei,
                                  obj->nhe, obj->meshhe,
                                  obj->nfac, obj->meshfac, obj->meshfhei ) )
@@ -675,6 +674,65 @@ failure:
   if ( mkcp ) free ( mkcp );
   return false;
 } /*GeomObjectBSplineMeshSealHole*/
+
+boolean GeomObjectBSplineMeshSplitBoundaryEdge ( GO_BSplineMesh *obj )
+{
+  int         onv, onhe, onfac;
+  BSMvertex   *omv;
+  BSMhalfedge *omhe;
+  BSMfacet    *omfac;
+  int         *omvhei, *omfhei;
+  double      *omvpc;
+  byte        *mkcp;
+
+  if ( !bsm_CheckMeshIntegrity ( obj->nv, obj->meshv, obj->meshvhei,
+                                 obj->nhe, obj->meshhe,
+                                 obj->nfac, obj->meshfac, obj->meshfhei ) )
+    return false;
+  onv = obj->nv+1;
+  onhe = obj->nhe+1;
+  onfac = obj->nfac;
+
+  omv = malloc ( onv*sizeof(BSMvertex) );
+  omhe = malloc ( onhe*sizeof(BSMhalfedge) );
+  omfac = malloc ( onfac*sizeof(BSMfacet) );
+  omvhei = malloc ( onhe*sizeof(int) );
+  omfhei = malloc ( onhe*sizeof(int) );
+  omvpc = malloc ( obj->me.cpdimen*onv*sizeof(double) );
+  mkcp = malloc ( onv );
+  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc || !mkcp )
+    goto failure;
+  if ( !bsm_SplitBoundaryEdged ( obj->me.cpdimen,
+              obj->nv, obj->meshv, obj->meshvhei, obj->meshvpc,
+              obj->nhe, obj->meshhe, obj->nfac, obj->meshfac, obj->meshfhei,
+              obj->current_edge[0],
+              &onv, omv, omvhei, omvpc, &onhe, omhe, &onfac, omfac, omfhei ) )
+    goto failure;
+  obj->integrity_ok = bsm_CheckMeshIntegrity ( onv, omv, omvhei, onhe, omhe,
+                                 onfac, omfac, omfhei );
+  if ( !obj->integrity_ok )
+    goto failure;
+  memcpy ( mkcp, obj->mkcp, onv );
+  mkcp[onv-1] = MASK_CP_MOVEABLE;
+  GeomObjectAssignBSplineMesh ( obj, obj->me.spdimen, obj->rational,
+                                onv, omv, omvhei, omvpc, onhe, omhe,
+                                onfac, omfac, omfhei, mkcp );
+  obj->current_edge[0] = obj->current_edge[1] = -1;
+  obj->me.dlistmask = 0;
+  obj->spvlist_ok = false;
+  obj->special_patches_ok = false;
+  return true;
+
+failure:
+  if ( omv ) free ( omv );
+  if ( omhe ) free ( omhe );
+  if ( omfac ) free ( omfac );
+  if ( omvhei ) free ( omvhei );
+  if ( omfhei ) free ( omfhei );
+  if ( omvpc ) free ( omvpc );
+  if ( mkcp ) free ( mkcp );
+  return false;
+} /*GeomObjectBSplineMeshSplitBoundaryEdge*/
 
 boolean GeomObjectBSplineMeshRemoveCurrentFacet ( GO_BSplineMesh *obj )
 {

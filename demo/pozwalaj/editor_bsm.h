@@ -156,6 +156,7 @@ boolean GeomObjectBSplineMeshShrinkCurrentEdge ( GO_BSplineMesh *obj );
 boolean GeomObjectBSplineMeshGlueEdges ( GO_BSplineMesh *obj );
 boolean GeomObjectBSplineMeshGlueEdgeLoops ( GO_BSplineMesh *obj );
 boolean GeomObjectBSplineMeshSealHole ( GO_BSplineMesh *obj );
+boolean GeomObjectBSplineMeshSplitBoundaryEdge ( GO_BSplineMesh *obj );
 boolean GeomObjectBSplineMeshRemoveCurrentFacet ( GO_BSplineMesh *obj );
 boolean GeomObjectBSplineMeshDoubleCurrentFacEdges ( GO_BSplineMesh *obj );
 

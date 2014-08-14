@@ -26,7 +26,7 @@ OBJECTS = $(SRCDIR)/bsmesh00.o $(SRCDIR)/bsmesh01.o $(SRCDIR)/bsmesh02.o \
   $(SRCDIR)/bsmesh24.o  $(SRCDIR)/bsmesh25d.o $(SRCDIR)/bsmesh26d.o \
   $(SRCDIR)/bsmesh27d.o $(SRCDIR)/bsmesh28d.o $(SRCDIR)/bsmesh29.o \
   $(SRCDIR)/bsmesh30.o  $(SRCDIR)/bsmesh31d.o $(SRCDIR)/bsmesh32d.o \
-  $(SRCDIR)/bsmesh33d.o
+  $(SRCDIR)/bsmesh33d.o $(SRCDIR)/bsmesh35d.o
 
 TARGET = $(LIBDIR)/libbsmesh.a
 
@@ -105,6 +105,10 @@ $(SRCDIR)/bsmesh31d.o: $(SRCDIR)/bsmesh31d.c $(INCDIR)/bsmesh.h $(SRCDIR)/bsmpri
 $(SRCDIR)/bsmesh32d.o: $(SRCDIR)/bsmesh32d.c $(INCDIR)/bsmesh.h $(SRCDIR)/bsmprivate.h
 
 $(SRCDIR)/bsmesh33d.o: $(SRCDIR)/bsmesh33d.c $(INCDIR)/bsmesh.h $(SRCDIR)/bsmprivate.h
+
+$(SRCDIR)/bsmesh34d.o: $(SRCDIR)/bsmesh34d.c $(INCDIR)/bsmesh.h $(SRCDIR)/bsmprivate.h
+
+$(SRCDIR)/bsmesh35d.o: $(SRCDIR)/bsmesh35d.c $(INCDIR)/bsmesh.h $(SRCDIR)/bsmprivate.h
 
 clean:
 	rm -f $(OBJECTS)

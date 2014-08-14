@@ -3791,3 +3791,10 @@ Wersja 0.34.
 882. Do programu pozwalaj dodana obsluga przesuwania jednoczesnie wielu
     wezlow dla krzywych i platow B-sklejanych.
 
+14.08.2014.
+883. Do biblioteki libbsmesh dodana procedura bsm_SplitBoundaryEdged, ktora
+    dzieli krawedz brzegowa w siatce na polowy (autor: Anna Sierhej).
+
+884. Do programu pozwalaj dodana mozliwosc podzielenia krawedzi brzegowej w
+    siatce (za pomoca procedury bsm_SplitBoundaryEdged).
+
