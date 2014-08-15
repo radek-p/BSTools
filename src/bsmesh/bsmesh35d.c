@@ -34,6 +34,8 @@ boolean bsm_SplitBoundaryEdged ( int spdimen, int inv,
   sp = pkv_GetScratchMemTop ();
 
     /* krok pierwszy - sprawdzamy czy jest po polkrawedz brzegowa jesli nie - error */
+  if ( splithe < 0 || splithe >= inhe )
+    goto failure;
   if ( imhe[splithe].otherhalf != -1 )
     goto failure;
   v0 = imhe[splithe].v0;
