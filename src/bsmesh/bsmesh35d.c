@@ -27,11 +27,8 @@ boolean bsm_SplitBoundaryEdged ( int spdimen, int inv,
                                  double *optc, int *onhe, BSMhalfedge *omhe,
                                  int *onfac, BSMfacet *omfac, int *omfhei )
 {
-  void   *sp;
   int    i;
   int    v0, v1, fac;
-
-  sp = pkv_GetScratchMemTop ();
 
     /* krok pierwszy - sprawdzamy czy jest po polkrawedz brzegowa jesli nie - error */
   if ( splithe < 0 || splithe >= inhe )
@@ -109,11 +106,9 @@ boolean bsm_SplitBoundaryEdged ( int spdimen, int inv,
   for( ; i < inhe+1; i++ )
     omfhei[i] = imfhei[i-1];
 
-  pkv_SetScratchMemTop ( sp );
   return true;
 
 failure:
-  pkv_SetScratchMemTop ( sp );
   return false;
 } /*bsm_SplitBoundaryEdged*/
 

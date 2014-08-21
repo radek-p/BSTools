@@ -88,6 +88,7 @@ char txtGlueEdges[]         = "glue edges";
 char txtGlueLoops[]         = "glue loops";
 char txtSealHole[]          = "seal hole";
 char txtSplitEdge[]         = "split edge";
+char txtDivideFacet[]       = "divide facet";
 char txtShrink[]            = "shrink";
 char txtContract[]          = "contract";
 char txtDensity[]           = "density";
@@ -224,6 +225,7 @@ char ErrorMsgCannotFlip[]             = "Error: Cannot flip the parameters.";
 char ErrorMsgCannotFindObject[]       = "Error: Cannot find this object.";
 char ErrorMsgCouldNotExtractMesh[]    = "Error: Cannot extract this submesh.";
 char ErrorMsgMustBeBoundaryEdge[]     = "Error: Edge to split must be at boundary.";
+char ErrorMsgNoValidPairOfVertices[]  = "Error: No valid pair of vertices selected.";
 char ErrorMsgCurveMustBeCubicAndClosed[] =
              "Error: Curve must be at least cubic and closed.";
 char ErrorMsgCurveMustBeNonRationalAnd3D[] =

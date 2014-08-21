@@ -159,6 +159,7 @@ boolean GeomObjectBSplineMeshSealHole ( GO_BSplineMesh *obj );
 boolean GeomObjectBSplineMeshSplitBoundaryEdge ( GO_BSplineMesh *obj );
 boolean GeomObjectBSplineMeshRemoveCurrentFacet ( GO_BSplineMesh *obj );
 boolean GeomObjectBSplineMeshDoubleCurrentFacEdges ( GO_BSplineMesh *obj );
+boolean GeomObjectBSplineMeshDivideFacet ( GO_BSplineMesh *obj );
 
 boolean GeomObjectBSplineMeshInitTetrahedron ( GO_BSplineMesh *obj, boolean add );
 boolean GeomObjectBSplineMeshInitCube ( GO_BSplineMesh *obj, boolean add );

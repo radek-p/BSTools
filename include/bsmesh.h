@@ -334,6 +334,16 @@ boolean bsm_SplitBoundaryEdged ( int spdimen, int inv,
                                  double *optc, int *onhe, BSMhalfedge *omhe,
                                  int *onfac, BSMfacet *omfac, int *omfhei );
 
+/* splitting a facet between two vertices */
+boolean bsm_DivideFacetd ( int spdimen, int inv,
+                           const BSMvertex *imv, const int *imvhei,
+                           double *iptc, int inhe, const BSMhalfedge *imhe,
+                           int infac, const BSMfacet *imfac, const int *imfhei,
+                           int nV0, int nV1,
+                           int *onv, BSMvertex *omv, int *omvhei,
+                           double *optc, int* onhe, BSMhalfedge *omhe,
+                           int *onfac, BSMfacet *omfac, int *omfhei );
+
 #ifdef __cplusplus
 }
 #endif

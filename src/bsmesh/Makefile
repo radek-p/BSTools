@@ -26,7 +26,7 @@ OBJECTS = $(SRCDIR)/bsmesh00.o $(SRCDIR)/bsmesh01.o $(SRCDIR)/bsmesh02.o \
   $(SRCDIR)/bsmesh24.o  $(SRCDIR)/bsmesh25d.o $(SRCDIR)/bsmesh26d.o \
   $(SRCDIR)/bsmesh27d.o $(SRCDIR)/bsmesh28d.o $(SRCDIR)/bsmesh29.o \
   $(SRCDIR)/bsmesh30.o  $(SRCDIR)/bsmesh31d.o $(SRCDIR)/bsmesh32d.o \
-  $(SRCDIR)/bsmesh33d.o $(SRCDIR)/bsmesh35d.o
+  $(SRCDIR)/bsmesh33d.o $(SRCDIR)/bsmesh34d.o $(SRCDIR)/bsmesh35d.o
 
 TARGET = $(LIBDIR)/libbsmesh.a
 

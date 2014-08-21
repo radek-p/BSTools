@@ -889,3 +889,78 @@ failure:
   return false;
 } /*GeomObjectBSplineMeshDoubleCurrentFacEdges*/
 
+boolean GeomObjectBSplineMeshDivideFacet ( GO_BSplineMesh *obj )
+{
+  int         onv, onhe, onfac;
+  BSMvertex   *omv;
+  BSMhalfedge *omhe;
+  BSMfacet    *omfac;
+  int         *omvhei, *omfhei;
+  double      *omvpc;
+  byte        *mkcp;
+  int         v0, v1;
+
+  if ( obj->me.obj_type != GO_BSPLINE_MESH )
+    return false;
+  v0 = obj->current_vertex[0];
+  v1 = obj->current_vertex[1];
+  if ( v0 < 0 || v0 >= obj->nv || v1 < 0 || v1 >= obj->nv || v0 == v1 )
+    return false;
+
+  onv = obj->nv;
+  onhe = obj->nhe+2;
+  onfac = obj->nfac+1;
+  omv = malloc ( onv*sizeof(BSMvertex) );
+  omhe = malloc ( onhe*sizeof(BSMhalfedge) );
+  omfac = malloc ( onfac*sizeof(BSMfacet) );
+  omvhei = malloc ( onhe*sizeof(int) );
+  omfhei = malloc ( onhe*sizeof(int) );
+  omvpc = malloc ( obj->me.cpdimen*onv*sizeof(double) );
+  mkcp = malloc ( onv );
+  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc || !mkcp )
+    goto failure;
+  {
+    void *sp;
+    char *s;
+
+    sp = pkv_GetScratchMemTop ();
+    s = pkv_GetScratchMem ( 160 );
+    if ( s ) {
+      sprintf ( s, "Dividing a facet: %d vertices, %d halfedges, %d facets",
+                   onv, onhe, onfac );
+      SetStatusText ( s, true );
+    }
+    pkv_SetScratchMemTop ( sp );
+  }
+
+  if ( !bsm_DivideFacetd ( obj->me.cpdimen, obj->nv, obj->meshv,
+                           obj->meshvhei, obj->meshvpc,
+                           obj->nhe, obj->meshhe, obj->nfac, obj->meshfac,
+                           obj->meshfhei, v0, v1,
+                           &onv, omv, omvhei, omvpc, &onhe, omhe,
+                           &onfac, omfac, omfhei ) )
+    goto failure;
+  obj->integrity_ok = bsm_CheckMeshIntegrity ( onv, omv, omvhei, onhe, omhe,
+                                 onfac, omfac, omfhei );
+  if ( !obj->integrity_ok )
+    goto failure;
+  memcpy ( mkcp, obj->mkcp, onv );
+  GeomObjectAssignBSplineMesh ( obj, obj->me.spdimen, obj->rational,
+                                onv, omv, omvhei, omvpc, onhe, omhe,
+                                onfac, omfac, omfhei, mkcp );
+  obj->me.dlistmask = 0;
+  obj->spvlist_ok = false;
+  obj->special_patches_ok = false;
+  return true;
+
+failure:
+  if ( omv ) free ( omv );
+  if ( omhe ) free ( omhe );
+  if ( omfac ) free ( omfac );
+  if ( omvhei ) free ( omvhei );
+  if ( omfhei ) free ( omfhei );
+  if ( omvpc ) free ( omvpc );
+  if ( mkcp ) free ( mkcp );
+  return false;
+} /*GeomObjectBSplineMeshDivideFacet*/
+

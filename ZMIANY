@@ -3798,3 +3798,13 @@ Wersja 0.34.
 884. Do programu pozwalaj dodana mozliwosc podzielenia krawedzi brzegowej w
     siatce (za pomoca procedury bsm_SplitBoundaryEdged).
 
+21.08.2014.
+885. Do biblioteki libbsmesh dodana procedura bsm_DivideFacetd, ktora dzieli
+    sciane, dodajac krawedz miedzy dwoma wskazanymi wierzcholkami (autor:
+    Anna Sierhej).
+
+886. Do programu pozwalaj dodana mozliwosc dzielenia sciany za pomoca
+    procedury bsm_DivideFacetd.
+
+
+
