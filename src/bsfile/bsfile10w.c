@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2009                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2009, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -22,8 +22,10 @@
 #include "multibs.h"
 #include "bsfile.h"
 
+#include "bsfprivate.h"
+
 void bsf_WriteComment ( char *comment )
 {
-  fprintf ( bsf_output, "%c %s\n", '%', comment );
+  bsf_current_length += fprintf ( bsf_output, "%c %s\n", '%', comment );
 } /*bsf_WriteComment*/
 

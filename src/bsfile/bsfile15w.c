@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2009, 2014                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2014                                  */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -25,28 +25,37 @@
 #include "bsfprivate.h"
 
 /* ///////////////////////////////////////////////////////////////////////// */
-FILE *bsf_output = NULL;
+boolean bsf_newline;
+int     bsf_current_length;
+int     bsf_current_indentation;
 
 /* ///////////////////////////////////////////////////////////////////////// */
-boolean bsf_OpenOutputFile ( char *filename, boolean append )
+void bsf_EndOutputLine ( void )
 {
-  if ( append )
-    bsf_output = fopen ( filename, "a+" );
-  else
-    bsf_output = fopen ( filename, "w+" );
-  if ( !bsf_output )
-    return false;
-  bsf_newline = true;
+  if ( bsf_current_length > 0 )
+    fprintf ( bsf_output, "\n" );
   bsf_current_length = 0;
-  bsf_current_indentation = 0;
-  return true;
-} /*bsf_OpenOutputFile*/
+  bsf_newline = true;
+} /*bsf_EndOutputLine*/
 
-void bsf_CloseOutputFile ( void )
+void bsf_DivideOutputLine ( void )
 {
-  if ( bsf_output ) {
-    fclose ( bsf_output );
-    bsf_output = NULL;
+  if ( bsf_current_length >= BSF_OUTPUT_LINE_LENGTH+bsf_current_indentation )
+    bsf_EndOutputLine ();
+  else {
+    bsf_current_length += fprintf ( bsf_output, " " );
+    bsf_newline = false;
   }
-} /*bsf_CloseOutputFile*/
+} /*bsf_DivideOutputLine*/
+
+void bsf_WriteCurrentIndentation ( void )
+{
+  if ( bsf_newline ) {
+    if ( bsf_current_indentation > 0 ) {
+      bsf_current_length +=
+        fprintf ( bsf_output, "%*s", bsf_current_indentation, "" );
+      bsf_newline = false;
+    }
+  }
+} /*bsf_WriteCurrentIndentation*/
 

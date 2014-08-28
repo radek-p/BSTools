@@ -23,6 +23,8 @@
 #include "bsmesh.h"
 #include "bsfile.h"
 
+#include "bsfprivate.h"
+
 boolean bsf_ReadBSMesh4d ( int maxnv, int maxnhe, int maxnfac,
                            int *degree,
                            int *nv, BSMvertex *mv, int *mvhei, point4d *vc,              

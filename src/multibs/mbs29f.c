@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -32,7 +32,7 @@ static int _mbs_densf ( int n0, float a, float b, float h )
 
 boolean mbs_DrawTrimBSPatchDomf ( int degu, int lastuknot, const float *uknots,
                                   int degv, int lastvknot, const float *vknots,
-                                  int nelem, const polycurvef *bound,
+                                  int nelem, const mbs_polycurvef *bound,
                                   int nu, float au, float bu,
                                   int nv, float av, float bv,
                                   int maxinters,
@@ -46,11 +46,11 @@ boolean mbs_DrawTrimBSPatchDomf ( int degu, int lastuknot, const float *uknots,
   char    dim;
   point2f p, q, c[2];
   float   *cp, h, u, v;
-  signpoint1f *inters;
+  mbs_signpoint1f *inters;
 
   sp = pkv_GetScratchMemTop ();
   buf = mbs_CompileTrimPatchBoundf ( nelem, bound, NULL );
-  inters = (signpoint1f*)pkv_GetScratchMem ( maxinters*sizeof(signpoint1f) );
+  inters = (mbs_signpoint1f*)pkv_GetScratchMem ( maxinters*sizeof(mbs_signpoint1f) );
   if ( !buf || !inters ) {
     PKV_SIGNALERROR ( LIB_MULTIBS, ERRCODE_2, ERRMSG_2 );
     goto failure;

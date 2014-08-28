@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -987,32 +987,33 @@ boolean mbs_multiBSChangeRightKnotsd ( int ncurves, int spdimen, int degree,
 
 
 typedef struct {
+    int     ident;
     boolean closing;
     byte    spdimen;
     short   degree;
-    short   lastknot;
-    double   *knots;
-    double   *points;
-  } polycurved;
+    int     lastknot;
+    double  *knots;
+    double  *points;
+  } mbs_polycurved;
 
 typedef struct {
     double t;             /* this must be the first field */
     char  sign1, sign2;
-  } signpoint1d;
+  } mbs_signpoint1d;
 
-int  mbs_TrimCVBoundSized ( int nelem, const polycurved *bound );
+int  mbs_TrimCVBoundSized ( int nelem, const mbs_polycurved *bound );
 
-void *mbs_CompileTrimPatchBoundd ( int nelem, const polycurved *bound,
+void *mbs_CompileTrimPatchBoundd ( int nelem, const mbs_polycurved *bound,
                                    void *buffer );
 
 void mbs_FindBoundLineIntersectionsd ( const void *bound,
                                        const point2d *p0, double t0,
                                        const point2d* p1, double t1,
-                                       signpoint1d *inters, int *ninters );
+                                       mbs_signpoint1d *inters, int *ninters );
 
 boolean mbs_DrawTrimBSPatchDomd ( int degu, int lastuknot, const double *uknots,
                                   int degv, int lastvknot, const double *vknots,
-                                  int nelem, const polycurved *bound,
+                                  int nelem, const mbs_polycurved *bound,
                                   int nu, double au, double bu,
                                   int nv, double av, double bv,
                                   int maxinters,

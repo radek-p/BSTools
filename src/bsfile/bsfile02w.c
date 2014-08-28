@@ -22,13 +22,7 @@
 #include "multibs.h"
 #include "bsfile.h"
 
-int bsf_current_indentation = 0;
-
-void bsf_WriteCurrentIndentation ( void )
-{
-  if ( bsf_current_indentation > 0 )
-    fprintf ( bsf_output, "%*s", bsf_current_indentation, "" );
-} /*bsf_WriteCurrentIndentation*/
+#include "bsfprivate.h"
 
 void bsf_WritePointd ( int spdimen, const double *point )
 {
@@ -41,50 +35,74 @@ void bsf_WritePointd ( int spdimen, const double *point )
     while ( k > 1 && point[k-1] == defaultp[k-1] )
       k--;
   }
-  fprintf ( bsf_output, "{" );
+  bsf_current_length += fprintf ( bsf_output, "{" );
   for ( i = 0; i < k-1; i++ ) {
     bsf_WriteDoubleNumber ( point[i] );
-    fprintf ( bsf_output, "," );
+    bsf_current_length += fprintf ( bsf_output, "," );
   }
   bsf_WriteDoubleNumber ( point[k-1] );
-  fprintf ( bsf_output, "}" );
+  bsf_current_length += fprintf ( bsf_output, "}" );
 } /*bsf_WritePointd*/
 
 void bsf_WritePointsd ( int spdimen, int cols, int rows, int pitch,
                         const double *points )
 {
   int i, j, k, l;
+  int sci;
 
-  fprintf ( bsf_output, "   {" );
+  sci = bsf_current_indentation;
+  BSFwci
+  bsf_current_length += fprintf ( bsf_output, "{" );
+  BSFeol
+/*  bsf_current_indentation += 2;*/
+  BSFwci
   for ( i = k = 0;  i < cols;  i++, k += pitch ) {
     for ( j = 0, l = k;  j < rows;  j++, l += spdimen ) {
       bsf_WritePointd ( spdimen, &points[l] );
-      if ( j < rows-1 )
-        fprintf ( bsf_output, ",\n    " );
+      if ( j < rows-1 ) {
+        bsf_current_length += fprintf ( bsf_output, "," );
+        BSFdol
+        BSFwci
+      }
     }
-    if ( i < cols-1 )
-      fprintf ( bsf_output, ",\n%c %d:\n    ", '%', i+1 );
-    else
-      fprintf ( bsf_output, "}\n" );
+    if ( i < cols-1 ) {
+      bsf_current_length += fprintf ( bsf_output, "," );
+      BSFeol
+      bsf_current_indentation -= 2;
+      BSFwci
+      bsf_current_length += fprintf ( bsf_output, "%c %d:", '%', i+1 );
+      bsf_current_indentation += 2;
+      BSFeol
+      BSFwci
+    }
+    else {
+      bsf_current_length += fprintf ( bsf_output, "}" );
+      BSFeol
+    }
   }
+  bsf_current_indentation = sci;
 } /*bsf_WritePointsd*/
 
 void bsf_WritePointsMK ( int npoints, const unsigned int *mk )
 {
   int i;
+  int sci;
 
   if ( mk && npoints > 0 ) {
-    bsf_WriteCurrentIndentation ();
-    fprintf ( bsf_output, "%s {",
-              bsf_keyword[BSF_SYMB_CPOINTSMK-BSF_FIRST_KEYWORD] );
+    sci = bsf_current_indentation;
+    BSFwci
+    bsf_current_indentation += 2;
+    bsf_current_length +=
+          fprintf ( bsf_output, "%s {",
+                    bsf_keyword[BSF_SYMB_CPOINTSMK-BSF_FIRST_KEYWORD] );
     for ( i = 0; i < npoints-1; i++ ) {
-      fprintf ( bsf_output, "%d,", mk[i] );
-      if ( !((i+1) % 16) ) {
-        fprintf ( bsf_output, "\n  " );
-        bsf_WriteCurrentIndentation ();
-      }
+      bsf_current_length += fprintf ( bsf_output, "%d,", mk[i] );
+      BSFdol
+      BSFwci
     }
-    fprintf ( bsf_output, "%d}\n", mk[npoints-1] );
+    bsf_current_length += fprintf ( bsf_output, "%d}", mk[npoints-1] );
+    BSFeol
+    bsf_current_indentation = sci;
   }
 } /*bsf_WritePointsMK*/
 

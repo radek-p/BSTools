@@ -23,6 +23,8 @@
 #include "bsmesh.h"
 #include "bsfile.h"
 
+#include "bsfprivate.h"
+
 /* dependencies are specified by a keyword followed by a comma-separated   */
 /* list of integer object identifiers in braces. The objects with these    */
 /* identifiers ought to be present in the file, but the library procedures */

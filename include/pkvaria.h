@@ -232,7 +232,7 @@ void pkv_ReverseMatc ( int nrows, int rowlen, int pitch, char *data );
     (outpitch)*sizeof(float),(char*)indata,(char*)outdata)
 #define pkv_Movef(nrows,rowlen,pitch,shift,data) \
   pkv_Movec(nrows,(rowlen)*sizeof(float),(pitch)*sizeof(float), \
-    (shift)*sizeof(float),(char*)data)
+    (shift)*(int)sizeof(float),(char*)data)
 #define pkv_ReverseMatf(nrows,rowlen,pitch,data) \
   pkv_ReverseMatc ( nrows, (rowlen)*sizeof(float), (pitch)*sizeof(float), \
     (char*)data )
@@ -248,7 +248,7 @@ void pkv_ReverseMatc ( int nrows, int rowlen, int pitch, char *data );
     (outpitch)*sizeof(double),(char*)indata,(char*)outdata)
 #define pkv_Moved(nrows,rowlen,pitch,shift,data) \
   pkv_Movec(nrows,(rowlen)*sizeof(double),(pitch)*sizeof(double), \
-    (shift)*sizeof(double),(char*)data)
+    (shift)*(int)sizeof(double),(char*)data)
 #define pkv_ReverseMatd(nrows,rowlen,pitch,data) \
   pkv_ReverseMatc ( nrows, (rowlen)*sizeof(double), (pitch)*sizeof(double), \
     (char*)data )

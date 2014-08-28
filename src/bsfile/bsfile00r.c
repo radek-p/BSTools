@@ -22,6 +22,8 @@
 #include "multibs.h"
 #include "bsfile.h"
 
+#include "bsfprivate.h"
+
 #define INBUFSIZE   1024
 #define NAMEBUFSIZE   (BSF_MAX_NAME_LENGTH+1)
 
@@ -36,10 +38,10 @@ int           bsf_nextint;
 double        bsf_nextfloat;
 static int    bsf_linenum, bsf_colnum; /* for locating errors */
 
-const char *bsf_keyword[BSF_NKEYWORDS] = /* this table must be sorted alphabetically */
-  { "BCurve",
-    "BPatch",
-    "BSCurve",
+const char *bsf_keyword[BSF_NKEYWORDS] = /* this table must be sorted */
+  { "BCurve",           /* alphabetically, uppercase before lowercase */
+    "BPatch",           /* and the contents must match numbers in     */
+    "BSCurve",          /* bsfile.h */
     "BSHole",
     "BSMesh",
     "BSPatch",
@@ -64,10 +66,13 @@ const char *bsf_keyword[BSF_NKEYWORDS] = /* this table must be sorted alphabetic
     "name",
     "parallel",
     "perspective",
+    "points",
+    "polyline",
     "position",
     "rational",
     "sides",
     "spherical_product",
+    "trimmed",
     "uniform",
     "vertices" };
 

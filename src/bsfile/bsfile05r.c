@@ -22,6 +22,8 @@
 #include "multibs.h"
 #include "bsfile.h"
 
+#include "bsfprivate.h"
+
 boolean bsf_ReadBezierCurve4d ( int maxdeg, int *deg, point4d *cpoints,
                                 int *spdimen, boolean *rational,
                                 char *name, int *ident,

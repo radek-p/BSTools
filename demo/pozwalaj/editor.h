@@ -234,7 +234,7 @@ void GeomObjectOutputToRenderer3D ( boolean all );
 
 /* disk I/O */
 void GeomObjectBeginReading ( void *usrdata, int obj_type );
-void GeomObjectEndReading ( void *usrdata, boolean success );
+void GeomObjectEndReading ( void *usrdata, int obj_type, boolean success );
 void GeomObjectReadColour ( void *usrdata, point3d *colour );
 void GeomObjectReadDependency ( void *usrdata,
                                 int depname, int ndep, int *dep );

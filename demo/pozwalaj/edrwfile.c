@@ -44,23 +44,38 @@ void GeomObjectBeginReading ( void *usrdata, int obj_type )
 
       /* initialise the attributes to default values */
   attrib = (rw_object_attributes*)usrdata;
-  attrib->obj_type = obj_type;
+  switch ( obj_type ) {
+case BSF_BEZIER_CURVE:
+case BSF_BEZIER_PATCH:
+case BSF_BSPLINE_CURVE:
+case BSF_BSPLINE_PATCH:
+case BSF_BSPLINE_MESH:
+case BSF_BSPLINE_HOLE:
+    attrib->obj_type = obj_type;
         /* points marking */
-  attrib->nmk = 0;
-  attrib->mk = NULL;
+    attrib->nmk = 0;
+    attrib->mk = NULL;
         /* colour: */
-  attrib->colour[0] = attrib->colour[1] = 1.0;
-  attrib->colour[2] = 0.0;
+    attrib->colour[0] = attrib->colour[1] = 1.0;
+    attrib->colour[2] = 0.0;
         /* dependency identifiers */
-  attrib->filedepname = -1;
-  attrib->filedepnum = 0;
-  attrib->filedepid = NULL;
+    attrib->filedepname = -1;
+    attrib->filedepnum = 0;
+    attrib->filedepid = NULL;
         /* others - in future */
+    break;
+
+case BSF_TRIMMED_DOMAIN:  /* ignore at the moment */
+    break;
+
+default:
+    break;
+  }
 } /*GeomObjectBeginReading*/
 
 static void _GeomObjectGetCPMK ( geom_object *go, int *ncp, byte **mk )
 {
-  switch ( last_go->obj_type ) {
+  switch ( go->obj_type ) {
 case GO_BEZIER_CURVE:
     *ncp = ((GO_BezierCurve*)go)->degree+1;
     *mk  = ((GO_BezierCurve*)go)->mkcp;
@@ -93,42 +108,57 @@ default:
   }
 } /*_GeomObjectGetCPMK*/
 
-void GeomObjectEndReading ( void *usrdata, boolean success )
+void GeomObjectEndReading ( void *usrdata, int obj_type, boolean success )
 {
   rw_object_attributes *attrib;
   byte  *mk;
   int   i, ncp;
 
   attrib = (rw_object_attributes*)usrdata;
-  if ( success ) {
+  switch ( obj_type ) {
+case BSF_BEZIER_CURVE:
+case BSF_BEZIER_PATCH:
+case BSF_BSPLINE_CURVE:
+case BSF_BSPLINE_PATCH:
+case BSF_BSPLINE_MESH:
+case BSF_BSPLINE_HOLE:
+    if ( success ) {
       /* the object has been read in, it is the last in the list, */
       /* assign the attributes */
         /* point marking */
-    _GeomObjectGetCPMK ( last_go, &ncp, &mk );
-    if ( attrib->nmk && mk &&
-         ncp > 0 && ncp == attrib->nmk )
-      memcpy ( mk, attrib->mk, ncp*sizeof(byte) );
-    else
-      memset ( mk, 0, ncp*sizeof(byte) );
-    for ( i = 0; i < ncp; i++ )
-      mk[i] |= MASK_CP_MOVEABLE;
+      _GeomObjectGetCPMK ( last_go, &ncp, &mk );
+      if ( attrib->nmk && mk &&
+           ncp > 0 && ncp == attrib->nmk )
+        memcpy ( mk, attrib->mk, ncp*sizeof(byte) );
+      else
+        memset ( mk, 0, ncp*sizeof(byte) );
+      for ( i = 0; i < ncp; i++ )
+        mk[i] |= MASK_CP_MOVEABLE;
         /* colour */
-    memcpy ( last_go->colour, attrib->colour, 3*sizeof(double) );
+      memcpy ( last_go->colour, attrib->colour, 3*sizeof(double) );
         /* move the dependencies */
-    last_go->filedepname = attrib->filedepname;
-    last_go->filedepnum = attrib->filedepnum;
-    last_go->filedepid = attrib->filedepid;
+      last_go->filedepname = attrib->filedepname;
+      last_go->filedepnum = attrib->filedepnum;
+      last_go->filedepid = attrib->filedepid;
         /* others - in future */
-  }
-  else {
-    if ( attrib->filedepid ) free ( attrib->filedepid );
-  }
-  attrib->filedepname = -1;
-  attrib->filedepnum = 0;
-  attrib->filedepid = NULL;
-  if ( attrib->mk ) {
-    free ( attrib->mk );
-    attrib->mk = NULL;
+    }
+    else {
+      if ( attrib->filedepid ) free ( attrib->filedepid );
+    }
+    attrib->filedepname = -1;
+    attrib->filedepnum = 0;
+    attrib->filedepid = NULL;
+    if ( attrib->mk ) {
+      free ( attrib->mk );
+      attrib->mk = NULL;
+    }
+    break;
+
+case BSF_TRIMMED_DOMAIN:  /* ignore at the moment */
+    break;
+
+default:
+    break;
   }
 } /*GeomObjectEndReading*/
 
@@ -284,14 +314,16 @@ default:  /* this should never happen, but ignore just in case */
     goto failure;
         /* write the points markings */
   _GeomObjectGetCPMK ( go, &ncp, &mk );
-  if ( ncp <= 0 )
-    goto failure;
-  mkcp = (unsigned int*)pkv_GetScratchMemi ( ncp );
-  if ( !mkcp )
-    goto failure;
-  for ( i = 0; i < ncp; i++ )
-    mkcp[i] = (unsigned int)mk[i];
-  bsf_WritePointsMK ( ncp, mkcp );
+  if ( mk ) {
+    if ( ncp <= 0 )
+      goto failure;
+    mkcp = (unsigned int*)pkv_GetScratchMemi ( ncp );
+    if ( !mkcp )
+      goto failure;
+    for ( i = 0; i < ncp; i++ )
+      mkcp[i] = (unsigned int)mk[i];
+    bsf_WritePointsMK ( ncp, mkcp );
+  }
 
   pkv_SetScratchMemTop ( sp );
   return true;

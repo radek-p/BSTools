@@ -22,6 +22,8 @@
 #include "multibs.h"
 #include "bsfile.h"
 
+#include "bsfprivate.h"
+
 boolean bsf_ReadBSplineCurve4d ( int maxdeg, int maxlastknot, int maxncpoints,
                                  int *deg, int *lastknot, double *knots,
                                  boolean *closed, point4d *cpoints,

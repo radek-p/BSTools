@@ -22,27 +22,45 @@
 #include "multibs.h"
 #include "bsfile.h"
 
+#include "bsfprivate.h"
+
 boolean bsf_WriteBezierCurved ( int spdimen, int cpdimen, boolean rational,
                                 int deg, const double *cpoints,
                                 const char *name, int ident,
                                 bsf_WriteAttr_fptr WriteAttr, void *userData )
 {
-  fprintf ( bsf_output, "%s\n", "%Bezier curve" );
-  fprintf ( bsf_output, "%s {\n", bsf_keyword[BSF_SYMB_BCURVE-BSF_FIRST_KEYWORD] );
-  if ( name && *name )
-    fprintf ( bsf_output, "  %s \"%s\"\n",
+  int sci;
+
+  sci = bsf_current_indentation;
+  BSFwci
+  bsf_current_length += fprintf ( bsf_output, "%s", "%Bezier curve" );
+  BSFeol
+  BSFwci
+  bsf_current_length += fprintf ( bsf_output,
+         "%s {", bsf_keyword[BSF_SYMB_BCURVE-BSF_FIRST_KEYWORD] );
+  BSFeol
+  bsf_current_indentation += 2;
+  if ( name && *name ) {
+    BSFwci
+    bsf_current_length += fprintf ( bsf_output, "  %s \"%s\"",
               bsf_keyword[BSF_SYMB_NAME-BSF_FIRST_KEYWORD], name );
+    BSFeol
+  }
   bsf_WriteIdent ( ident );
   bsf_WriteSpaceDim ( spdimen, rational );
   bsf_WriteCurveDegree ( deg );
-  fprintf ( bsf_output, "  %s\n", bsf_keyword[BSF_SYMB_CPOINTS-BSF_FIRST_KEYWORD] );
+  BSFwci
+  bsf_current_length += fprintf ( bsf_output,
+          "%s ", bsf_keyword[BSF_SYMB_CPOINTS-BSF_FIRST_KEYWORD] );
+  bsf_current_indentation += 2;
   bsf_WritePointsd ( cpdimen, 1, deg+1, 0, cpoints );
-  if ( WriteAttr ) {
-    bsf_current_indentation = 2;
+  bsf_current_indentation -= 2;
+  if ( WriteAttr )
     WriteAttr ( userData );
-    bsf_current_indentation = 0;
-  }
-  fprintf ( bsf_output, "}\n\n" );
+  bsf_current_indentation = sci;
+  BSFwci
+  bsf_current_length += fprintf ( bsf_output, "}" );
+  BSFeol
   return true;
 } /*bsf_WriteBezierCurved*/
 

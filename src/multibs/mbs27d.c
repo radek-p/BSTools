@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -40,7 +40,7 @@
 /* first one at all.                                                         */
 /* ///////////////////////////////////////////////////////////////////////// */
 
-int mbs_TrimCVBoundSized ( int nelem, const polycurved *bound )
+int mbs_TrimCVBoundSized ( int nelem, const mbs_polycurved *bound )
 {
   int   i;
   int   size;
@@ -72,7 +72,7 @@ int mbs_TrimCVBoundSized ( int nelem, const polycurved *bound )
   return size + 1;
 } /*mbs_TrimCVBoundSized*/
 
-void *mbs_CompileTrimPatchBoundd ( int nelem, const polycurved *bound,
+void *mbs_CompileTrimPatchBoundd ( int nelem, const mbs_polycurved *bound,
                                    void *buffer )
 {
   void  *sp;

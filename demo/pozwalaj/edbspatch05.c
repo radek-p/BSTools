@@ -55,7 +55,7 @@ boolean GeomObjectWriteBSPAttributes ( GO_BSplinePatch *obj )
       if ( ident[0] >= 0 && ident[1] >= 0 &&
            obj->me.dependencies[0]->obj_type == GO_BSPLINE_CURVE &&
            obj->me.dependencies[1]->obj_type == GO_BSPLINE_CURVE ) {
-        bsf_WriteDependencies ( BSF_SYMB_SPHERICAL_PRODUCT, 2, ident );
+        bsf_WriteDependencies ( BSF_DEP_SPHERICAL, 2, ident );
       }
       break;
   default:
@@ -148,7 +148,7 @@ boolean GeomObjectBSPResolveDependencies ( GO_BSplinePatch *obj )
   geom_object *go, *eq, *mer;
 
   switch ( obj->me.filedepname ) {
-case BSF_SYMB_SPHERICAL_PRODUCT:
+case BSF_DEP_SPHERICAL:
     if ( obj->me.filedepnum != 2 ||
          obj->me.filedepid[0] < 0 || obj->me.filedepid[1] < 0 )
       goto failure;

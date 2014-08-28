@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2009                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2009, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -21,6 +21,8 @@
 #include "camerad.h"
 #include "multibs.h"
 #include "bsfile.h"
+
+#include "bsfprivate.h"
 
 static void DeleteChar ( char *s )
 {
@@ -78,7 +80,7 @@ trunc_fract:
     while ( s[l] == '0' && s[l-1] != '.' )
       s[l--] = 0;
   }
-  fprintf ( bsf_output, "%s", s );
+  bsf_current_length += fprintf ( bsf_output, "%s", s );
 #undef LX
 #undef UX
 #undef EPS
@@ -95,6 +97,6 @@ void bsf_WriteAltDoubleNumber ( double x, int nzf )
   l = strlen ( s ) - 1;
   while ( s[l] == '0' && s[l-1] != '.' )
     s[l--] = 0;
-  fprintf ( bsf_output, "%s", s );
+  bsf_current_length += fprintf ( bsf_output, "%s", s );
 } /*bsf_WriteAltDoubleNumber*/
 

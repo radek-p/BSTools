@@ -22,6 +22,8 @@
 #include "multibs.h"
 #include "bsfile.h"
 
+#include "bsfprivate.h"
+
 boolean bsf_ReadPointd ( int maxcpdimen, double *point, int *cpdimen )
 {
   int i;

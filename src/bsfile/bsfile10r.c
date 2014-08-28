@@ -31,6 +31,8 @@
 #include "bsmesh.h"
 #include "bsfile.h"
 
+#include "bsfprivate.h"
+
 /* ////////////////////////////////////////////////////////////////////////// */
 static boolean _bsf_ReadBCurve ( bsf_UserReaders *readers )
 {
@@ -254,6 +256,38 @@ failure:
   return false;
 } /*_bsf_ReadBSHole*/
 
+static boolean _bsf_ReadPolyline ( bsf_UserReaders *readers )
+{
+  void    *sp;
+  int     maxvert, nvert, spdimen;
+  char    *name;
+  point4d *vert;
+  int     ident;
+  boolean closed, rational;
+
+  sp = pkv_GetScratchMemTop ();
+  name = pkv_GetScratchMem ( BSF_MAX_NAME_LENGTH+1 );
+  maxvert = readers->poly_maxvert;
+  vert = pkv_GetScratchMem ( maxvert*sizeof(point4d) );
+  if ( !name || !vert )
+    goto failure;
+  ident = -1;
+  if ( !bsf_ReadPolyline4d ( maxvert, &nvert, vert, &spdimen,
+                             &rational, &closed, name, &ident, readers ) )
+    goto failure;
+  if ( readers ) {
+    if ( readers->PolylineReader )
+      readers->PolylineReader ( readers->userData, name, ident,
+                                nvert, vert, spdimen, closed, rational );
+  }
+  pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
+} /*_bsf_ReadPolyline*/
+
 boolean _bsf_ReadCPMark ( bsf_UserReaders *readers, int maxnpoints )
 {
   void         *sp;
@@ -316,6 +350,7 @@ boolean bsf_ReadBSFiled ( const char *filename, bsf_UserReaders *readers )
 {
   void    *sp;
   boolean signal_end;
+  int     obj_type;
 
   sp = pkv_GetScratchMemTop ();
   if ( !bsf_OpenInputFile ( filename ) )
@@ -327,12 +362,27 @@ boolean bsf_ReadBSFiled ( const char *filename, bsf_UserReaders *readers )
       if ( readers->BeginReader ) {
         switch ( bsf_nextsymbol ) {
     case BSF_SYMB_BCURVE:
+          obj_type = BSF_BEZIER_CURVE;
+          goto notify;
     case BSF_SYMB_BPATCH:
+          obj_type = BSF_BEZIER_PATCH;
+          goto notify;
     case BSF_SYMB_BSCURVE:
+          obj_type = BSF_BSPLINE_CURVE;
+          goto notify;
     case BSF_SYMB_BSPATCH:
+          obj_type = BSF_BSPLINE_PATCH;
+          goto notify;
     case BSF_SYMB_BSMESH:
+          obj_type = BSF_BSPLINE_MESH;
+          goto notify;
     case BSF_SYMB_BSHOLE:
-          readers->BeginReader ( readers->userData, bsf_nextsymbol );
+          obj_type = BSF_BSPLINE_HOLE;
+          goto notify;
+    case BSF_SYMB_POLYLINE:
+          obj_type = BSF_POLYLINE;
+notify:
+          readers->BeginReader ( readers->userData, obj_type );
           signal_end = true;
           break;
     default:
@@ -340,6 +390,7 @@ boolean bsf_ReadBSFiled ( const char *filename, bsf_UserReaders *readers )
         }
       }
     }
+
     switch ( bsf_nextsymbol ) {
 case BSF_SYMB_BCURVE:
       if ( !_bsf_ReadBCurve ( readers ) )
@@ -371,6 +422,11 @@ case BSF_SYMB_BSHOLE:
         goto failure;
       break;
 
+case BSF_SYMB_POLYLINE:
+      if ( !_bsf_ReadPolyline ( readers ) )
+        goto failure;
+      break;
+
 case BSF_SYMB_COLOR:
 case BSF_SYMB_COLOUR:
       if ( !_bsf_ReadColour ( readers ) )
@@ -389,7 +445,7 @@ default:
       goto failure;
     }
     if ( signal_end && readers->EndReader )
-      readers->EndReader ( readers->userData, true );
+      readers->EndReader ( readers->userData, obj_type, true );
     if ( readers->done )
       goto finish;
   }
@@ -401,7 +457,7 @@ finish:
 
 failure:
   if ( signal_end && readers->EndReader )
-    readers->EndReader ( readers->userData, false );
+    readers->EndReader ( readers->userData, obj_type, false );
   bsf_CloseInputFile ();
   pkv_SetScratchMemTop ( sp );
   return false;
@@ -410,32 +466,35 @@ failure:
 void bsf_ClearReaders ( bsf_UserReaders *readers )
 {
   if ( readers ) {
-    readers->BeginReader = NULL;
-    readers->EndReader = NULL;
-    readers->BezierCurveReader = NULL;
+    readers->BeginReader        = NULL;
+    readers->EndReader          = NULL;
+    readers->BezierCurveReader  = NULL;
     readers->BSplineCurveReader = NULL;
-    readers->BezierPatchReader = NULL;
+    readers->BezierPatchReader  = NULL;
     readers->BSplinePatchReader = NULL;
-    readers->BSMeshReader = NULL;
-    readers->BSplineHoleReader = NULL;
-    readers->DepReader = NULL;
-    readers->CPMarkReader = NULL;
-    readers->CameraReader = NULL;
-    readers->ColourReader = NULL;
-    readers->userData = NULL;
-    readers->done     = false;
+    readers->BSMeshReader       = NULL;
+    readers->BSplineHoleReader  = NULL;
+    readers->PolylineReader     = NULL;
+    readers->DepReader          = NULL;
+    readers->TrimmedReader      = NULL;
+    readers->CPMarkReader       = NULL;
+    readers->CameraReader       = NULL;
+    readers->ColourReader       = NULL;
+    readers->userData           = NULL;
+    readers->done = false;
         /* arbitrary default values */
-    readers->bc_maxdeg   = 10;
-    readers->bsc_maxdeg  = 10;
-    readers->bsc_maxlkn  = 100;
-    readers->bp_maxdeg   = 10;
-    readers->bsp_maxdeg  = 10;
-    readers->bsp_maxlkn  = 100;
-    readers->bsm_maxdeg  = 10;
-    readers->bsm_maxnv   = 1000;
-    readers->bsm_maxnhe  = 2000;
-    readers->bsm_maxnfac = 1000;
-    readers->maxdep      = 10;
+    readers->bc_maxdeg    = 10;
+    readers->bsc_maxdeg   = 10;
+    readers->bsc_maxlkn   = 100;
+    readers->bp_maxdeg    = 10;
+    readers->bsp_maxdeg   = 10;
+    readers->bsp_maxlkn   = 100;
+    readers->bsm_maxdeg   = 10;
+    readers->bsm_maxnv    = 1000;
+    readers->bsm_maxnhe   = 2000;
+    readers->bsm_maxnfac  = 1000;
+    readers->poly_maxvert = 10;
+    readers->maxdep       = 10;
   }
 } /*bsf_ClearReaders*/
 
@@ -496,12 +555,25 @@ void bsf_BSH4ReadFuncd ( bsf_UserReaders *readers, bsf_BSH_fptr BSHReader )
   readers->BSplineHoleReader = BSHReader;
 } /*bsf_BSH4ReadFuncd*/
 
+void bsf_Polyline4ReadFuncd ( bsf_UserReaders *readers, bsf_polyline_fptr PReader,
+                              int maxvert )
+{
+  readers->PolylineReader = PReader;
+  readers->poly_maxvert = maxvert;
+} /*bsf_Polyline4ReadFuncd*/
+
 void bsf_DependencyReadFunc ( bsf_UserReaders *readers,
                               bsf_dependency_fptr DepReader, int maxdep )
 {
   readers->DepReader = DepReader;
   readers->maxdep = maxdep;
 } /*bsf_DependencyReadFunc*/
+
+void bsf_TrimmedReadFuncd ( bsf_UserReaders *readers,
+                            bsf_trimmed_fptr TrimmedReader )
+{
+  readers->TrimmedReader = TrimmedReader;
+} /*bsf_TrimmedReadFuncd*/
 
 void bsf_CPMarkReadFunc ( bsf_UserReaders *readers,
                           bsf_CPMark_fptr CPMarkReader )

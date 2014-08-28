@@ -7,6 +7,9 @@
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
+/* Header file for the libbsfile library - reading and writing text files    */
+/* with geometric data                                                       */
+/* ///////////////////////////////////////////////////////////////////////// */
 /* changes:                                                                  */
 /* 22.07.2013, R. Putanowicz - static pointers to application reading        */
 /*   procedures replaced by pointers in a bsf_UserReaders structure passed   */
@@ -15,9 +18,9 @@
 /*   with the package.                                                       */
 /* 7.01.2014, P. Kiciak - changes making it possible to extend the syntax    */
 /*   of data files, to store object various attributes etc.                  */
-
-/* Header file for the libbsfile library - reading and writing text files */
-/* with geometric data */
+/* 24.08.2014, P. Kiciak - moved a part of the contents to the library's     */
+/*   private header file                                                     */
+/* ///////////////////////////////////////////////////////////////////////// */
 
 #ifndef BSFILE_H
 #define BSFILE_H
@@ -49,76 +52,25 @@ extern "C" {
 
 #define BSF_MAX_NAME_LENGTH 64
 
-#define BSF_SYMB_EOF               0
-#define BSF_SYMB_ERROR             1
-#define BSF_SYMB_INTEGER           2
-#define BSF_SYMB_FLOAT             3
-#define BSF_SYMB_LBRACE            4
-#define BSF_SYMB_RBRACE            5
-#define BSF_SYMB_PLUS              6
-#define BSF_SYMB_MINUS             7
-#define BSF_SYMB_STRING            8
-#define BSF_SYMB_COMMA             9
-
-/* the subsequent keyword identifiers below must */
-/* match the strings in the table in bsfile00r.c */
-#define BSF_FIRST_KEYWORD          10  /* number of the first keyword */
-#define BSF_SYMB_BCURVE            10  /* consecutive numbers of keywords */
-#define BSF_SYMB_BPATCH            11  /* sorted alphabetically, with uppercase */
-#define BSF_SYMB_BSCURVE           12  /* preceding all lowercase letters (ASCII) */
-#define BSF_SYMB_BSHOLE            13
-#define BSF_SYMB_BSMESH            14
-#define BSF_SYMB_BSPATCH           15
-#define BSF_SYMB_EULERANGLES       16
-#define BSF_SYMB_CAMERA            17
-#define BSF_SYMB_CLOSED            18
-#define BSF_SYMB_COLOR             19  /* it can read both, AE and BE, */
-#define BSF_SYMB_COLOUR            20  /* but it will write in BE */
-#define BSF_SYMB_CPOINTS           21
-#define BSF_SYMB_CPOINTSMK         22
-#define BSF_SYMB_DEGREE            23
-#define BSF_SYMB_DEPTH             24
-#define BSF_SYMB_DIM               25
-#define BSF_SYMB_DOMAIN            26
-#define BSF_SYMB_FACETS            27
-#define BSF_SYMB_FRAME             28
-#define BSF_SYMB_HALFEDGES         29
-#define BSF_SYMB_IDENT             30
-#define BSF_SYMB_KNOTS             31
-#define BSF_SYMB_KNOTS_U           32
-#define BSF_SYMB_KNOTS_V           33
-#define BSF_SYMB_NAME              34
-#define BSF_SYMB_PARALLEL          35
-#define BSF_SYMB_PERSPECTIVE       36
-#define BSF_SYMB_POSITION          37
-#define BSF_SYMB_RATIONAL          38
-#define BSF_SYMB_SIDES             39
-#define BSF_SYMB_SPHERICAL_PRODUCT 40
-#define BSF_SYMB_UNIFORM           41
-#define BSF_SYMB_VERTICES          42
-#define BSF_LAST_KEYWORD           42  /* number of the last keyword */
-
-/* namely, this table */
-#define BSF_NKEYWORDS (BSF_LAST_KEYWORD-BSF_FIRST_KEYWORD+1)
-
-extern const char *bsf_keyword[BSF_NKEYWORDS];
-
 /* ////////////////////////////////////////////////////////////////////////// */
-/* static variables */
-extern FILE   *bsf_input, *bsf_output;
+/* object types */
+#define BSF_POLYLINE        1
+#define BSF_BEZIER_CURVE    2
+#define BSF_BEZIER_PATCH    3
+#define BSF_BSPLINE_CURVE   4
+#define BSF_BSPLINE_PATCH   5
+#define BSF_BSPLINE_MESH    6
+#define BSF_BSPLINE_HOLE    7
+#define BSF_TRIMMED_DOMAIN  8
 
-extern int    bsf_nextsymbol;
-extern int    bsf_nextint;
-extern double bsf_nextfloat;
-extern char   *bsf_namebuffer;
-
-extern int    bsf_current_indentation;
+/* dependency names */
+#define BSF_DEP_SPHERICAL   9
 
 /* ////////////////////////////////////////////////////////////////////////// */
 /* high-level reading procedures, read an entire file and ignore anything */
 /* that an application is not interested in */
 
-/* Below are defined 11 typedefs for function pointers. These typedef's   */
+/* Below are defined 12 typedefs for function pointers. These typedef's   */
 /* make easier to handle user defined callbacks for reading data from     */
 /* BSTools files to user specified data structures.                       */
 /* The typedefs are:                                                      */
@@ -130,12 +82,14 @@ extern int    bsf_current_indentation;
 /*    bsf_BSP_fptr       -- for BSpline Patch callback                    */
 /*    bsf_BSM_fptr       -- for BS Mesh callback                          */
 /*    bsf_BSH_fptr       -- for BSpline Hole callback                     */
+/*    bsf_polyline_fptr  -- for reading polylines                         */
 /*    bsf_CPMark_fptr    -- for arrays of markings of control points      */
 /*    bsf_Camera_fptr    -- for Camera object callback                    */
 /*    bsf_Colour_fptr    -- for colour attribute callback                 */
 
 typedef void (*bsf_BeginRead_fptr) ( void *userData, int obj_type );
-typedef void (*bsf_EndRead_fptr) ( void *userData, boolean success );
+typedef void (*bsf_EndRead_fptr) ( void *userData, int obj_type,
+                                   boolean success );
 
 typedef void (*bsf_BC_fptr) ( void *userData, const char *name, int ident,
                               int degree, const point4d *cpoints,
@@ -167,8 +121,12 @@ typedef void (*bsf_BSH_fptr) ( void *userData, const char *name, int ident,
                                const point2d *domain_cp,
                                const point4d *hole_cp,
                                int spdimen, boolean rational );
+typedef void (*bsf_polyline_fptr) ( void *userData, const char *name, int ident,
+                                    int nvert, const point4d *vert,
+                                    int spdimen, boolean closed, boolean rational );
 typedef void (*bsf_dependency_fptr) ( void *userData,
                                       int depname, int ndep, int *dep );
+typedef void (*bsf_trimmed_fptr) ( void *userData, mbs_polycurved *elem );
 typedef void (*bsf_CPMark_fptr) ( void *userData, int ncp, unsigned int *mk );
 typedef void (*bsf_Camera_fptr) ( void *userData, int ident, CameraRecd *Camera );
 typedef void (*bsf_Colour_fptr) ( void *userData, point3d *colour );
@@ -176,7 +134,7 @@ typedef void (*bsf_Colour_fptr) ( void *userData, point3d *colour );
 typedef struct {
     void    *userData;   /* pointer to user data, bsfile library does not */
                          /* use it, it is just passed to reader callbacks */
-    boolean done;        /* may be assigned true to stop reading */
+    boolean done;        /* the application may assign true to stop reading */
 
                          /* data size limits */
     int     bc_maxdeg;   /* maximal degree of Bezier curves */
@@ -189,6 +147,7 @@ typedef struct {
     int     bsm_maxnv;   /* maximal number of mesh vertices */
     int     bsm_maxnhe;  /* maximal number of mesh halfedges */
     int     bsm_maxnfac; /* maximal number of mesh facets */ 
+    int     poly_maxvert;/* maximal number of polyline vertices */
     int     maxdep;      /* maximal number of dependencies for one object */
 
                          /* pointers to application procedures */
@@ -200,10 +159,12 @@ typedef struct {
     bsf_BSP_fptr        BSplinePatchReader;
     bsf_BSM_fptr        BSMeshReader;
     bsf_BSH_fptr        BSplineHoleReader;
+    bsf_polyline_fptr   PolylineReader;
     bsf_CPMark_fptr     CPMarkReader;
     bsf_Camera_fptr     CameraReader;
     bsf_Colour_fptr     ColourReader;
     bsf_dependency_fptr DepReader;
+    bsf_trimmed_fptr    TrimmedReader;
   } bsf_UserReaders;
 
 /* set up readers data structure to an empty state */
@@ -225,6 +186,10 @@ void bsf_BSP4ReadFuncd ( bsf_UserReaders *readers, bsf_BSP_fptr BSPReader,
 void bsf_BSM4ReadFuncd ( bsf_UserReaders *readers, bsf_BSM_fptr BSMReader,
                          int maxdeg, int maxnv, int maxnhe, int maxnfac );
 void bsf_BSH4ReadFuncd ( bsf_UserReaders *readers, bsf_BSH_fptr BSHReader );
+void bsf_Polyline4ReadFuncd ( bsf_UserReaders *readers, bsf_polyline_fptr PReader,
+                              int maxvert );
+void bsf_TrimmedReadFuncd ( bsf_UserReaders *readers,
+                            bsf_trimmed_fptr TrimmedReader );
 void bsf_DependencyReadFunc ( bsf_UserReaders *readers,
                               bsf_dependency_fptr DepReader, int maxdep );
 void bsf_CPMarkReadFunc ( bsf_UserReaders *readers,
@@ -239,40 +204,21 @@ boolean bsf_ReadBSFiled ( const char *filename, bsf_UserReaders *readers );
 boolean bsf_ReadIdentifiers ( const char *filename, void *usrdata,
                               boolean (*readident)( void *usrdata,
                                                     int objtype, int ident ) );
-/* auxiliary reading procedures, for internal use */
-boolean _bsf_ReadCPMark ( bsf_UserReaders *readers, int maxnpoints );
-boolean _bsf_ReadColour ( bsf_UserReaders *readers );
 
 /* ////////////////////////////////////////////////////////////////////////// */
-/* auxiliary, low-level reading procedures */
-void bsf_GetNextSymbol ( void );
-
 /* read partial data - for internal use */
-boolean bsf_ReadIntNumber ( int *number );
-boolean bsf_ReadDoubleNumber ( double *number );
-boolean bsf_ReadPointd ( int maxcpdimen, double *point, int *cpdimen );
-boolean bsf_ReadIdent ( int *ident );
-int bsf_ReadPointsd ( int maxcpdimen, int maxnpoints,
-                      double *points, int *cpdimen );
-int bsf_ReadPointsMK ( int maxnpoints, unsigned int *mk );
-
-boolean bsf_ReadSpaceDim ( int maxdim, int *spdimen );
-boolean bsf_ReadCurveDegree ( int maxdeg, int *degree );
-boolean bsf_ReadPatchDegree ( int maxdeg, int *udeg, int *vdeg );
-
-boolean bsf_ReadKnotSequenced ( int maxlastknot, int *lastknot, double *knots,
-                                boolean *closed );
-
+boolean bsf_ReadTrimmedDomaind ( bsf_UserReaders *readers );
 boolean bsf_ReadDependencies ( bsf_UserReaders *readers );
 
 boolean bsf_ReadCPMark ( int maxcp, unsigned int *mk );
 boolean bsf_ReadCamera ( CameraRecd *Camera, int *ident );
 boolean bsf_ReadColour ( point3d *colour );
 
-/* the procedures with headers below are fit to read data if the application */
-/* is sure about the file contents. The parameter readers should be NULL,    */
-/* when called by an application. Otherwise use the high-level procedures,   */
-/* whose prototypes were defined in the previous section of this file.       */
+/* ////////////////////////////////////////////////////////////////////////// */
+/* the procedures with headers below are fit to read data if the application  */
+/* is sure about the file contents. The parameter readers should be NULL,     */
+/* when called by an application. Otherwise use the high-level procedures,    */
+/* whose prototypes were defined in the previous section of this file.        */
 boolean bsf_OpenInputFile ( const char *filename );
 void bsf_CloseInputFile ( void );
 void bsf_PrintErrorLocation ( void );
@@ -313,6 +259,10 @@ boolean bsf_ReadBSplineHoled ( int maxk, int *hole_k, double *knots,
                                int *spdimen, boolean *rational,
                                char *name, int *ident,
                                bsf_UserReaders *readers );
+boolean bsf_ReadPolyline4d ( int maxvert, int *nvert, point4d *vert,
+                             int *spdimen, boolean *rational, boolean *closed,
+                             char *name, int *ident,
+                             bsf_UserReaders *readers );
 
 /* ////////////////////////////////////////////////////////////////////////// */
 /* writing procedures */
@@ -382,11 +332,19 @@ boolean bsf_WriteBSplineHoled ( int spdimen, int cpdimen, boolean rational,
                                 const point2d *domain_cp, const double *hole_cp,
                                 const char *name, int ident,
                                 bsf_WriteAttr_fptr WriteAttr, void *userData );
+boolean bsf_WritePolylined ( int spdimen, int cpdimen, boolean rational,
+                             boolean closed,
+                             int nvert, const double *vc,
+                             const char *name, int ident,
+                             bsf_WriteAttr_fptr WriteAttr, void *userData );
 
 /* writing other objects and attributes */
 void bsf_WritePointsMK ( int npoints, const unsigned int *mk );
 boolean bsf_WriteColour ( point3d *colour );
 boolean bsf_WriteCamera ( CameraRecd *Camera, int ident );
+
+/* writing domain description for trimmed patches */
+boolean bsf_WriteTrimmedDomaind ( int nelem, const mbs_polycurved *bound );
 
 #ifdef __cplusplus
 }

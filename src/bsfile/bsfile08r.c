@@ -22,6 +22,8 @@
 #include "multibs.h"
 #include "bsfile.h"
 
+#include "bsfprivate.h"
+
 boolean bsf_ReadBSplinePatch4d ( int maxdeg, int maxlastknot, int maxncpoints,
                                  int *udeg, int *lastknotu, double *knotsu,
                                  int *vdeg, int *lastknotv, double *knotsv,
@@ -132,6 +134,12 @@ case BSF_SYMB_RBRACE:
 case BSF_SYMB_RATIONAL:
       *rational = true;
       bsf_GetNextSymbol ();
+      break;
+
+        /* trimmed patch domain */
+case BSF_SYMB_TRIMMED:
+      if ( !bsf_ReadTrimmedDomaind ( readers ) )
+        goto failure;
       break;
 
         /* optional attributes */

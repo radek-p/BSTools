@@ -63,15 +63,15 @@ point3d cpt1d[4] = {{2.0,2.5,1.0},{1.25,1.25,0.5},{1.25,1.5,0.5},{2.0,3.0,1.0}};
 
 point2d cpd1e[2] = {{2.0,3.0},{2.0,3.3}};
 
-polycurved boundary1[8] =
-  {{false,2,nt1a,NNt1a,&ut1a[0],(double*)&cpt1a[0]},   /* B-spline curve */
-   {false,2,   1,    2/*2*/,    NULL,(double*)&cpd1a[0]},   /* polyline */
-   {false,3,nt1b,   -1,    NULL,(double*)&cpt1b[0]},   /* Bezier curve */
-   {true, 2,   1,    3,    NULL,(double*)&cpd1b[0]},   /* polyline */
-   {true, 2,   1,    4,    NULL,(double*)&cpd1c[0]},   /* polyline */
-   {false,3,nt1c,   -1,    NULL,(double*)&cpt1c[0]},   /* Bezier curve */
-   {false,3,nt1d,   -1,    NULL,(double*)&cpt1d[0]},   /* Bezier curve */
-   {true, 2,   1,    1,    NULL,(double*)&cpd1e[0]}};  /* line */
+mbs_polycurved boundary1[8] =
+  {{0,false,2,nt1a,NNt1a,&ut1a[0],(double*)&cpt1a[0]},   /* B-spline curve */
+   {1,false,2,   1,    2/*2*/,    NULL,(double*)&cpd1a[0]},   /* polyline */
+   {2,false,3,nt1b,   -1,    NULL,(double*)&cpt1b[0]},   /* Bezier curve */
+   {3,true, 2,   1,    3,    NULL,(double*)&cpd1b[0]},   /* polyline */
+   {4,true, 2,   1,    4,    NULL,(double*)&cpd1c[0]},   /* polyline */
+   {5,false,3,nt1c,   -1,    NULL,(double*)&cpt1c[0]},   /* Bezier curve */
+   {6,false,3,nt1d,   -1,    NULL,(double*)&cpt1d[0]},   /* Bezier curve */
+   {7,true, 2,   1,    1,    NULL,(double*)&cpd1e[0]}};  /* line */
 
 point2d frame[3] = {{100.0,100.0},{250.0,0.0},{0.0,250.0}};
 

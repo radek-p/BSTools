@@ -3806,5 +3806,20 @@ Wersja 0.34.
 886. Do programu pozwalaj dodana mozliwosc dzielenia sciany za pomoca
     procedury bsm_DivideFacetd.
 
+26.08.2014.
+887. Duze zmiany w bibliotece libbsfile; poprawione wciecia w wypisywanym
+    pliku. Dorobiona mozliwosc pisania/czytania obcietych platow Beziera i
+    B-sklejanych. Ukryte (przeniesione do prywatnego naglowka)
+    identyfikatory symboli leksykalnych.
+
+888. Konieczne zmiany w programie demonstracyjnym pozwalaj.
+
+27.08.2014.
+890. Zmiana nazw typow polycurvef i polycurved na mbs_polycurvef
+    i mbs_polycurved, dodanie atrybutu ident, ktory jest ignorowany przez
+    procedury rysowania platow obcietych, ale moga byc potrzebne w
+    aplikacji.
+
+891. Poprawiony gupi blad w programie pozwalaj (zapisywanie pliku).
 
 

@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2013                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2013, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -22,6 +22,8 @@
 #include "multibs.h"
 #include "bsmesh.h"
 #include "bsfile.h"
+
+#include "bsfprivate.h"
 
 #define CLAMP(a) \
   if ( a < 0.0 ) a = 0.0; else if ( a > 1.0 ) a = 1.0;

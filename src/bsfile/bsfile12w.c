@@ -22,17 +22,21 @@
 #include "multibs.h"
 #include "bsfile.h"
 
+#include "bsfprivate.h"
+
 boolean bsf_WriteColour ( point3d *colour )
 {
-  bsf_WriteCurrentIndentation ();
+  BSFwci
         /* the keyword we write is in the British spelling */
-  fprintf ( bsf_output, "%s { ", bsf_keyword[BSF_SYMB_COLOUR-BSF_FIRST_KEYWORD] );
+  bsf_current_length += fprintf ( bsf_output,
+          "%s { ", bsf_keyword[BSF_SYMB_COLOUR-BSF_FIRST_KEYWORD] );
   bsf_WriteAltDoubleNumber ( colour->x, 3 );
-  fprintf ( bsf_output, ", " );
+  bsf_current_length += fprintf ( bsf_output, ", " );
   bsf_WriteAltDoubleNumber ( colour->y, 3 );
-  fprintf ( bsf_output, ", " );
+  bsf_current_length += fprintf ( bsf_output, ", " );
   bsf_WriteAltDoubleNumber ( colour->z, 3 );
-  fprintf ( bsf_output, " }\n" );
+  bsf_current_length += fprintf ( bsf_output, " }" );
+  BSFeol
   return true;
 } /*bsf_WriteColour*/
 

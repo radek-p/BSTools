@@ -22,6 +22,8 @@
 #include "multibs.h"
 #include "bsfile.h"
 
+#include "bsfprivate.h"
+
 boolean bsf_ReadBSplineHoled ( int maxk, int *hole_k, double *knots,
                                point2d *domain_cp, point4d *hole_cp,
                                int *spdimen, boolean *rational,

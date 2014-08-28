@@ -22,31 +22,47 @@
 #include "multibs.h"
 #include "bsfile.h"
 
+#include "bsfprivate.h"
+
 void bsf_WriteSpaceDim ( int spdimen, boolean rational )
 {
-  fprintf ( bsf_output, "  %s %d\n",
-            bsf_keyword[BSF_SYMB_DIM-BSF_FIRST_KEYWORD], spdimen );
+  BSFwci
+  bsf_current_length +=
+          fprintf ( bsf_output, "%s %d",
+                    bsf_keyword[BSF_SYMB_DIM-BSF_FIRST_KEYWORD], spdimen );
   if ( rational )
-    fprintf ( bsf_output, "  %s\n",
-              bsf_keyword[BSF_SYMB_RATIONAL-BSF_FIRST_KEYWORD] );
+    bsf_current_length +=
+          fprintf ( bsf_output, " %s",
+                    bsf_keyword[BSF_SYMB_RATIONAL-BSF_FIRST_KEYWORD] );
+  BSFeol
 } /*bsf_WriteSpaceDim*/
 
 void bsf_WriteCurveDegree ( int degree )
 {
-  fprintf ( bsf_output, "  %s %d\n",
-            bsf_keyword[BSF_SYMB_DEGREE-BSF_FIRST_KEYWORD], degree );
+  BSFwci
+  bsf_current_length +=
+          fprintf ( bsf_output, "%s %d",
+                    bsf_keyword[BSF_SYMB_DEGREE-BSF_FIRST_KEYWORD], degree );
+  BSFeol
 } /*bsf_WriteCurveDegree*/
 
 void bsf_WritePatchDegree ( int udeg, int vdeg )
 {
-  fprintf ( bsf_output, "  %s %d %d\n",
-            bsf_keyword[BSF_SYMB_DEGREE-BSF_FIRST_KEYWORD], udeg, vdeg );
+  BSFwci
+  bsf_current_length +=
+          fprintf ( bsf_output, "%s %d %d",
+                    bsf_keyword[BSF_SYMB_DEGREE-BSF_FIRST_KEYWORD], udeg, vdeg );
+  BSFeol
 } /*bsf_WritePatchDegree*/
 
 void bsf_WriteIdent ( int ident )
 {
-  if ( ident >= 0 )
-    fprintf ( bsf_output, "  %s %d\n",
-              bsf_keyword[BSF_SYMB_IDENT-BSF_FIRST_KEYWORD], ident );
+  if ( ident >= 0 ) {
+    BSFwci
+    bsf_current_length +=
+          fprintf ( bsf_output, "%s %d",
+                    bsf_keyword[BSF_SYMB_IDENT-BSF_FIRST_KEYWORD], ident );
+    BSFeol
+  }
 } /*bsf_WriteIdent*/
 

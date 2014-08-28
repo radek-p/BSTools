@@ -22,23 +22,30 @@
 #include "multibs.h"
 #include "bsfile.h"
 
+#include "bsfprivate.h"
+
 void bsf_WriteDependencies ( int depname, int ndep, const int *dep )
 {
   int i, k;
+  int depid;
 
-/* ndep must be at least 1 */
-  bsf_WriteCurrentIndentation ();
-  fprintf ( bsf_output, "%s { ", bsf_keyword[depname-BSF_FIRST_KEYWORD] );
-  for ( i = k = 0;  i < ndep-1;  i++, k++ ) {
-    fprintf ( bsf_output, "%d,", dep[i] );
-    if ( k > 10 ) {
-      fprintf ( bsf_output, "\n" );
-      bsf_WriteCurrentIndentation ();
-      fprintf ( bsf_output, "    " );
-    }
-    else
-      fprintf ( bsf_output, " " );
+  switch ( depname ) {
+case BSF_DEP_SPHERICAL:
+    depid = BSF_SYMB_SPHERICAL_PRODUCT;
+    break;
+default:
+    return;
   }
-  fprintf ( bsf_output, "%d }\n", dep[ndep-1] );
+/* ndep must be at least 1 */
+  BSFwci
+  bsf_current_length += fprintf ( bsf_output,
+          "%s { ", bsf_keyword[depid-BSF_FIRST_KEYWORD] );
+  for ( i = k = 0;  i < ndep-1;  i++, k++ ) {
+    bsf_current_length += fprintf ( bsf_output, "%d,", dep[i] );
+    BSFdol
+    BSFwci
+  }
+  bsf_current_length += fprintf ( bsf_output, "%d }", dep[ndep-1] );
+  BSFeol
 } /*bsf_WriteDependencies*/
 

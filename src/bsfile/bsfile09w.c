@@ -22,6 +22,8 @@
 #include "multibs.h"
 #include "bsfile.h"
 
+#include "bsfprivate.h"
+
 boolean bsf_WriteBSplineHoled ( int spdimen, int cpdimen, boolean rational,
                                 int hole_k, const double *knots,
                                 const point2d *domain_cp, const double *hole_cp,
@@ -29,33 +31,58 @@ boolean bsf_WriteBSplineHoled ( int spdimen, int cpdimen, boolean rational,
                                 bsf_WriteAttr_fptr WriteAttr, void *userData )
 {
   int i;
+  int sci;
 
-  fprintf ( bsf_output, "%s\n", "%Hole in a piecewise bicubic B-spline surface" );
-  fprintf ( bsf_output, "%s {\n", bsf_keyword[BSF_SYMB_BSHOLE-BSF_FIRST_KEYWORD] );
-  if ( name && *name )
-    fprintf ( bsf_output, "  %s \"%s\"\n",
+  sci = bsf_current_indentation;
+  BSFwci
+  bsf_current_length += fprintf ( bsf_output,
+          "%s", "%Hole in a piecewise bicubic B-spline surface" );
+  BSFeol
+  BSFwci
+  bsf_current_length += fprintf ( bsf_output,
+          "%s {", bsf_keyword[BSF_SYMB_BSHOLE-BSF_FIRST_KEYWORD] );
+  BSFeol
+  bsf_current_indentation += 2;
+  if ( name && *name ) {
+    BSFwci
+    bsf_current_length += fprintf ( bsf_output, "%s \"%s\"",
               bsf_keyword[BSF_SYMB_NAME-BSF_FIRST_KEYWORD], name );
-  bsf_WriteSpaceDim ( spdimen, rational );
-  fprintf ( bsf_output, "  %s %d\n",
-            bsf_keyword[BSF_SYMB_SIDES-BSF_FIRST_KEYWORD], hole_k );
-  for ( i = 0; i < hole_k; i++ ) {
-    fprintf ( bsf_output, "  %s",
-              bsf_keyword[BSF_SYMB_KNOTS-BSF_FIRST_KEYWORD] );
-    bsf_WriteKnotSequenced ( 10, &knots[11*i], false );
+    BSFeol
   }
-  fprintf ( bsf_output, "  %s %s\n",
+  bsf_WriteSpaceDim ( spdimen, rational );
+  BSFwci
+  bsf_current_length += fprintf ( bsf_output, "%s %d",
+            bsf_keyword[BSF_SYMB_SIDES-BSF_FIRST_KEYWORD], hole_k );
+  BSFeol
+  for ( i = 0; i < hole_k; i++ ) {
+    BSFwci
+    bsf_current_length += fprintf ( bsf_output, "%s",
+              bsf_keyword[BSF_SYMB_KNOTS-BSF_FIRST_KEYWORD] );
+    bsf_current_indentation += 2;
+    bsf_WriteKnotSequenced ( 10, &knots[11*i], false );
+    bsf_current_indentation -= 2;
+    BSFeol
+  }
+  BSFwci
+  bsf_current_length += fprintf ( bsf_output, "%s %s ",
             bsf_keyword[BSF_SYMB_DOMAIN-BSF_FIRST_KEYWORD],
             bsf_keyword[BSF_SYMB_CPOINTS-BSF_FIRST_KEYWORD] );
+  bsf_current_indentation += 2;
   bsf_WritePointsd ( 2, 1, 12*hole_k+1, 0, &domain_cp[0].x );
-  fprintf ( bsf_output, "  %s\n",
+  bsf_current_indentation -= 2;
+  BSFwci
+  bsf_current_length += fprintf ( bsf_output, "%s ",
             bsf_keyword[BSF_SYMB_CPOINTS-BSF_FIRST_KEYWORD] );
+  BSFeol
+  bsf_current_indentation += 2;
   bsf_WritePointsd ( cpdimen, 1, 12*hole_k+1, 0, hole_cp );
-  if ( WriteAttr ) {
-    bsf_current_indentation = 2;
+  bsf_current_indentation -= 2;
+  if ( WriteAttr )
     WriteAttr ( userData );
-    bsf_current_indentation = 0;
-  }
-  fprintf ( bsf_output, "}\n\n" );
+  bsf_current_indentation = sci;
+  BSFwci
+  bsf_current_length += fprintf ( bsf_output, "}" );
+  BSFeol
   return true;
 } /*bsf_WriteBSplineHoled*/
 

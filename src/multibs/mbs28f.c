@@ -58,7 +58,7 @@ static float _get_lparamf ( const point2f *p0, float t0,
 
 static void _mbs_AddLineLineIntersf ( const point2f *p0, float t0,
                                       const point2f *p1, float t1,
-                                      signpoint1f *inters,
+                                      mbs_signpoint1f *inters,
                                       char dim, const float *vert,
                                       float u, char sa )
 {
@@ -81,7 +81,7 @@ static float _mbs_FindLinePolylineIntersf ( const point2f *p0, float t0,
                                             char dim, short nlines,
                                             const float *vert,
                                             float a,
-                                            signpoint1f *inters, int *ninters )
+                                            mbs_signpoint1f *inters, int *ninters )
 {
   int   i, ni, maxinters;
   float b;
@@ -203,7 +203,7 @@ static boolean _mbs_popp ( _mbs_apolystrf *ap, float *t0, float *t1, float *ac )
 
 static void _mbs_AddLineBezcIntersf ( const point2f *p0, float t0,
                                       const point2f *p1, float t1,
-                                      signpoint1f *inters,
+                                      mbs_signpoint1f *inters,
                                       char dim, int deg, const float *cpts,
                                       float u, char as )
 {
@@ -223,7 +223,7 @@ static float _mbs_FindLineBezcIntersf ( const point2f *p0, float t0,
                                         char dim, short deg,
                                         const float *cpts,
                                         float a,
-                                        signpoint1f *inters, int *ninters )
+                                        mbs_signpoint1f *inters, int *ninters )
 {
 #define eps 1.0e-6
   void           *ssp;
@@ -342,7 +342,7 @@ static boolean _mbs_GetBoundPointf ( const char *bufp, short k,
   return true;
 } /*_mbs_GetBoundPointf*/
 
-static void _mbs_CleanLoopf ( signpoint1f *inters, int *ninters )
+static void _mbs_CleanLoopf ( mbs_signpoint1f *inters, int *ninters )
 {
   int i, j, ni;
 
@@ -375,7 +375,7 @@ static void _mbs_CleanLoopf ( signpoint1f *inters, int *ninters )
 void mbs_FindBoundLineIntersectionsf ( const void *bound,
                                        const point2f *p0, float t0,
                                        const point2f *p1, float t1,
-                                       signpoint1f *inters, int *ninters )
+                                       mbs_signpoint1f *inters, int *ninters )
 {
   int      maxinters, ni, lni;
   short    N;
@@ -460,7 +460,7 @@ void mbs_FindBoundLineIntersectionsf ( const void *bound,
   }
                          /* finally, sort the intersection points */
 
-  if ( pkv_SortFast ( sizeof(float), ID_IEEE754_FLOAT, sizeof(signpoint1f),
+  if ( pkv_SortFast ( sizeof(float), ID_IEEE754_FLOAT, sizeof(mbs_signpoint1f),
                       0, *ninters, inters ) != SORT_OK ) {
 out:
     *ninters = -1;

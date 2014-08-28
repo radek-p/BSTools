@@ -23,6 +23,8 @@
 #include "bsmesh.h"
 #include "bsfile.h"
 
+#include "bsfprivate.h"
+
 boolean bsf_ReadCamera ( CameraRecd *Camera, int *ident )
 {
   boolean frame, pos, orient, depth, projdata, parallel, _id;

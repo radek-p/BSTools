@@ -23,6 +23,8 @@
 #include "bsmesh.h"
 #include "bsfile.h"
 
+#include "bsfprivate.h"
+
 /* The procedure bsf_ReadIdentifiers reads the entire .bs data file, scanning */
 /* it to find all identifiers (ident n). It is supposed to be used by         */
 /* applications before appending data to the .bs file in order to make all    */

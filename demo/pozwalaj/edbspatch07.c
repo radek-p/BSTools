@@ -107,7 +107,8 @@ boolean GeomObjectBSplinePatchGenSphericalProduct ( GO_BSplinePatch *obj )
        dim != obj->me.cpdimen ) {
     cpoints = malloc ( ncp*dim*sizeof(double) );
     mkcp = malloc ( ncp );
-    if ( !cpoints || !mkcp ) goto failure;
+    if ( !cpoints || !mkcp )
+      goto failure;
     memset ( mkcp, MASK_CP_MOVEABLE, ncp );
   }
   if ( !equator->rational && dim == 4 ) {

@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -987,32 +987,33 @@ boolean mbs_multiBSChangeRightKnotsf ( int ncurves, int spdimen, int degree,
 
 
 typedef struct {
+    int     ident;
     boolean closing;
     byte    spdimen;
     short   degree;
-    short   lastknot;
+    int     lastknot;
     float   *knots;
     float   *points;
-  } polycurvef;
+  } mbs_polycurvef;
 
 typedef struct {
     float t;             /* this must be the first field */
     char  sign1, sign2;
-  } signpoint1f;
+  } mbs_signpoint1f;
 
-int  mbs_TrimCVBoundSizef ( int nelem, const polycurvef *bound );
+int  mbs_TrimCVBoundSizef ( int nelem, const mbs_polycurvef *bound );
 
-void *mbs_CompileTrimPatchBoundf ( int nelem, const polycurvef *bound,
+void *mbs_CompileTrimPatchBoundf ( int nelem, const mbs_polycurvef *bound,
                                    void *buffer );
 
 void mbs_FindBoundLineIntersectionsf ( const void *bound,
                                        const point2f *p0, float t0,
                                        const point2f* p1, float t1,
-                                       signpoint1f *inters, int *ninters );
+                                       mbs_signpoint1f *inters, int *ninters );
 
 boolean mbs_DrawTrimBSPatchDomf ( int degu, int lastuknot, const float *uknots,
                                   int degv, int lastvknot, const float *vknots,
-                                  int nelem, const polycurvef *bound,
+                                  int nelem, const mbs_polycurvef *bound,
                                   int nu, float au, float bu,
                                   int nv, float av, float bv,
                                   int maxinters,
