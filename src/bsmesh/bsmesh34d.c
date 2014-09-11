@@ -30,15 +30,19 @@ boolean bsm_DivideFacetd ( int spdimen, int inv,
 {
   int       i, j, d, fhe0, d0, fhe1, d1, nf, lastFacetStart;
   boolean   rightFace;
-  int       face1d, face2d, ktoraFaza;
+  int       face2d;
 
   if ( nV0 < 0 || nV0 >= inv || nV1 < 0 || nV1 >= inv || nV0 == nV1 )
     goto failure;
 
+  if(nV0>nV1){
+    i=nV0;
+    nV0=nV1;
+    nV1=i;
+  }
+
   *onv = *onfac = *onhe = 0;
-  face1d = 0;
   face2d = 0;
-  ktoraFaza = 1;
   nf = -1;
 
     /* zorientowanie sie w ktorej scianie ma lezec polkrawedz */
@@ -83,58 +87,52 @@ facet_found:
       omfhei[j] = imfhei[j];
   }
 
-  omfac[nf] = imfac[nf];
-  d = omfac[nf].degree;
+ omfac[nf]=imfac[nf];
 
-    /*w najgorszym wypadku zaczynamy iteracje od polkrawedzi ktore maja trafic do starej sciany
-      nastepnie iterujemy przez polkrawedzie nalezace do nowej sciany, a nastepnie znowu przez polkrawedzie starej.*/
-  omfhei[omfac[nf].firsthalfedge] = inhe;
-  for ( i = 0; i < d; i++ ) {
-    if ( imhe[imfhei[i+omfac[nf].firsthalfedge]].v0 == nV0 ) {
-      lastFacetStart = i+omfac[nf].firsthalfedge;
-      ktoraFaza = 2;
+    d=omfac[nf].degree;
+    omfhei[omfac[nf].firsthalfedge]=inhe;
+
+    i=0;
+    while(imhe[imfhei[imfac[nf].firsthalfedge + i]].v0!=nV1){
+        i++;
     }
-    if ( imhe[imfhei[i+omfac[nf].firsthalfedge]].v0 == nV1 )
-      ktoraFaza = 3;
-    switch ( ktoraFaza ) {
-  case 1:
-      omfhei[omfac[nf].firsthalfedge+i+1] = imfhei[i+omfac[nf].firsthalfedge];
-      face1d ++;
-      break;
-  case 2:
-      face2d++;
-      break;
-  case 3:
-      omfhei[omfac[nf].firsthalfedge+i+1-face2d] = imfhei[i+omfac[nf].firsthalfedge];
-      face1d ++;
-      break;
+
+    omfac[nf].degree=1;
+    j=1;
+    do{
+        omfhei[omfac[nf].firsthalfedge+j]=imfhei[imfac[nf].firsthalfedge + i];
+        i++;
+        j++;
+        i=i%d;
+        omfac[nf].degree++;
+    }while(imhe[imfhei[imfac[nf].firsthalfedge + i]].v0!=nV0);
+
+    lastFacetStart=i;
+    face2d=d-omfac[nf].degree+1;
+
+    for(i=omfac[nf].degree+omfac[nf].firsthalfedge; i<inhe-face2d+1;i++){
+        omfhei[i]=imfhei[i+face2d-1];
     }
-  }
 
-  omfac[nf].degree = face1d+1;
-  for ( i = omfac[nf].degree+omfac[nf].firsthalfedge; i < inhe-face2d+1; i++ )
-    omfhei[i] = imfhei[i+face2d-1];
+    for(i=nf+1; i<infac; i++){
+        omfac[i]=imfac[i];
+        omfac[i].firsthalfedge=omfac[i].firsthalfedge-face2d+1;
+    }
 
-    /*mamy tablice, zaczynajaca sie w omfac[nf].firsthalfedge+omfac[nf].degree
-        konczaca sie w nfac.
-        pierwsze face2d elementow ma wyladowac na miejscu (nfac-face2d)+i
-        nastepne na miejscu i-face2d
-    */
+    i=infac;
+    omfac[i].firsthalfedge=inhe-face2d+1;
+    omfac[i].degree=face2d+1;
+    j=0;
+    i=lastFacetStart;
 
-  for ( i = nf+1; i < infac; i++ ) {
-    omfac[i] = imfac[i];
-    omfac[i].firsthalfedge = omfac[i].firsthalfedge-face2d+1;
-  }
+    do{
+        omfhei[omfac[infac].firsthalfedge+j]=imfhei[imfac[nf].firsthalfedge + i];
+        i++;
+        j++;
+        i=i%d;
+    }while(imhe[imfhei[imfac[nf].firsthalfedge + i]].v0!=nV1);
 
-  i = infac;
-  omfac[i].firsthalfedge = inhe-face2d+1;
-  omfac[i].degree = face2d+1;
-
-  for ( j = omfac[i].firsthalfedge; j < *onhe-1; j++ ) {
-    omfhei[j] = imfhei[lastFacetStart];
-    lastFacetStart ++;
-  }
-  omfhei[inhe+1]=inhe+1;
+    omfhei[inhe+1]=inhe+1;
 
     /*omhe*/
   for ( i = 0; i < inhe; i++ )

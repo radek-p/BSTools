@@ -79,7 +79,6 @@ void InitSide10Menu_BSm ( void )
                       txtRemove );
   w = xge_NewButton ( win1, w, btnM1BSM_DIVIDE_FACET, 79, 19, 0, 224,
                       txtDivideFacet );
-  if ( w ) w->state = xgestate_BUTTON_INACTIVE;
   w = xge_NewIntWidget ( win1, w, intwM1BSM_EDGE0, 75, 19, 0, 248,
                          -2, 10, &intw_bsm_edge0, txtEdge, &bsm_edge_num0 );
   w = xge_NewIntWidget ( win1, w, intwM1BSM_EDGE1, 35, 19, 74, 248,
