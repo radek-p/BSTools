@@ -143,7 +143,7 @@ boolean GeomObjectBSplineMeshInitCube ( GO_BSplineMesh *obj, boolean add )
   BSMfacet       *fac;
   double         *vpc;
   int            *vhei, *fhei;
-  byte           *mkcp;
+  byte           *mkcp, *mkhe, *mkfac;
 
   if ( obj->me.obj_type != GO_BSPLINE_MESH )
     return false;
@@ -154,14 +154,19 @@ boolean GeomObjectBSplineMeshInitCube ( GO_BSplineMesh *obj, boolean add )
   vhei = malloc ( BSM_CUBE_NHE*sizeof(int) );
   fhei = malloc ( BSM_CUBE_NHE*sizeof(int) );
   mkcp = malloc ( BSM_CUBE_NV );
-  if ( !vert || !halfe || !fac || !vpc || !vhei || !fhei || !mkcp ) {
-    if ( vert ) free ( vert );
+  mkhe = malloc ( BSM_CUBE_NHE );
+  mkfac = malloc ( BSM_CUBE_NFAC );
+  if ( !vert || !halfe || !fac || !vpc || !vhei || !fhei ||
+       !mkcp || !mkhe || !mkfac ) {
+    if ( vert )  free ( vert );
     if ( halfe ) free ( halfe );
-    if ( fac )  free ( fac );
-    if ( vpc )  free ( vpc );
-    if ( vhei ) free ( vhei );
-    if ( fhei ) free ( fhei );
-    if ( mkcp ) free ( mkcp );
+    if ( fac )   free ( fac );
+    if ( vpc )   free ( vpc );
+    if ( vhei )  free ( vhei );
+    if ( fhei )  free ( fhei );
+    if ( mkcp )  free ( mkcp );
+    if ( mkhe )  free ( mkhe );
+    if ( mkfac ) free ( mkfac );
     return false;
   }
   memcpy ( vert, cubevert, BSM_CUBE_NV*sizeof(BSMvertex) );
@@ -170,16 +175,18 @@ boolean GeomObjectBSplineMeshInitCube ( GO_BSplineMesh *obj, boolean add )
   memcpy ( vhei, cubevhei, BSM_CUBE_NHE*sizeof(int) );
   memcpy ( fhei, cubefachei, BSM_CUBE_NHE*sizeof(int) );
   memset ( mkcp, MASK_CP_MOVEABLE, BSM_CUBE_NV );
+  memset ( mkhe, 0, BSM_CUBE_NHE );
+  memset ( mkfac, 0, BSM_CUBE_NFAC );
   GeomObjectSetupIniPoints ( 3, false, &obj->me.cpdimen, BSM_CUBE_NV,
                              &cubevc[0].x, vpc );
   if ( add )
     GeomObjectExtendBSplineMesh ( obj, 3, false,
                       BSM_CUBE_NV, vert, vhei, vpc, BSM_CUBE_NHE, halfe,
-                      BSM_CUBE_NFAC, fac, fhei, mkcp );
+                      BSM_CUBE_NFAC, fac, fhei, mkcp, mkhe, mkfac );
   else
     GeomObjectAssignBSplineMesh ( obj, 3, false,
                       BSM_CUBE_NV, vert, vhei, vpc, BSM_CUBE_NHE, halfe,
-                      BSM_CUBE_NFAC, fac, fhei, mkcp );
+                      BSM_CUBE_NFAC, fac, fhei, mkcp, mkhe, mkfac );
   obj->me.dlistmask = 0;
   obj->spvlist_ok = false;
   return true;
@@ -192,7 +199,7 @@ boolean GeomObjectBSplineMeshInitTetrahedron ( GO_BSplineMesh *obj, boolean add 
   BSMfacet       *fac;
   double         *vpc;
   int            *vhei, *fhei;
-  byte           *mkcp;
+  byte           *mkcp, *mkhe, *mkfac;
 
   if ( obj->me.obj_type != GO_BSPLINE_MESH )
     return false;
@@ -203,14 +210,19 @@ boolean GeomObjectBSplineMeshInitTetrahedron ( GO_BSplineMesh *obj, boolean add 
   vhei = malloc ( BSM_TETRAHEDRON_NHE*sizeof(int) );
   fhei = malloc ( BSM_TETRAHEDRON_NHE*sizeof(int) );
   mkcp = malloc ( BSM_TETRAHEDRON_NV );
-  if ( !vert || !halfe || !fac || !vpc || !vhei || !fhei || !mkcp ) {
-    if ( vert ) free ( vert );
+  mkhe = malloc ( BSM_TETRAHEDRON_NHE );
+  mkfac = malloc ( BSM_TETRAHEDRON_NFAC );
+  if ( !vert || !halfe || !fac || !vpc || !vhei || !fhei ||
+       !mkcp || !mkhe || !mkfac ) {
+    if ( vert )  free ( vert );
     if ( halfe ) free ( halfe );
-    if ( fac )  free ( fac );
-    if ( vpc )  free ( vpc );
-    if ( vhei ) free ( vhei );
-    if ( fhei ) free ( fhei );
-    if ( mkcp ) free ( mkcp );
+    if ( fac )   free ( fac );
+    if ( vpc )   free ( vpc );
+    if ( vhei )  free ( vhei );
+    if ( fhei )  free ( fhei );
+    if ( mkcp )  free ( mkcp );
+    if ( mkhe )  free ( mkhe );
+    if ( mkfac ) free ( mkfac );
     return false;
   }
   memcpy ( vert, tetrahvert, BSM_TETRAHEDRON_NV*sizeof(BSMvertex) );
@@ -219,18 +231,20 @@ boolean GeomObjectBSplineMeshInitTetrahedron ( GO_BSplineMesh *obj, boolean add 
   memcpy ( vhei, tetrahvhei, BSM_TETRAHEDRON_NHE*sizeof(int) );
   memcpy ( fhei, tetrahfhei, BSM_TETRAHEDRON_NHE*sizeof(int) );
   memset ( mkcp, MASK_CP_MOVEABLE, BSM_TETRAHEDRON_NV );
+  memset ( mkhe, 0, BSM_TETRAHEDRON_NHE );
+  memset ( mkfac, 0, BSM_TETRAHEDRON_NFAC );
   GeomObjectSetupIniPoints ( 3, false, &obj->me.cpdimen, BSM_TETRAHEDRON_NV,
                              &tetrahvc[0].x, vpc );
   if ( add )
     GeomObjectExtendBSplineMesh ( obj, 3, false,
                       BSM_TETRAHEDRON_NV, vert, vhei, vpc,
                       BSM_TETRAHEDRON_NHE, halfe,
-                      BSM_TETRAHEDRON_NFAC, fac, fhei, mkcp );
+                      BSM_TETRAHEDRON_NFAC, fac, fhei, mkcp, mkhe, mkfac );
   else
     GeomObjectAssignBSplineMesh ( obj, 3, false,
                       BSM_TETRAHEDRON_NV, vert, vhei, vpc,
                       BSM_TETRAHEDRON_NHE, halfe,
-                      BSM_TETRAHEDRON_NFAC, fac, fhei, mkcp );
+                      BSM_TETRAHEDRON_NFAC, fac, fhei, mkcp, mkhe, mkfac );
   obj->me.dlistmask = 0;  
   obj->spvlist_ok = false;
   return true;
@@ -243,7 +257,7 @@ boolean GeomObjectBSplineMeshInitDodecahedron ( GO_BSplineMesh *obj, boolean add
   BSMfacet       *fac;
   double         *vpc;
   int            *vhei, *fhei;
-  byte           *mkcp;
+  byte           *mkcp, *mkhe, *mkfac;
 
   if ( obj->me.obj_type != GO_BSPLINE_MESH )
     return false;
@@ -254,14 +268,19 @@ boolean GeomObjectBSplineMeshInitDodecahedron ( GO_BSplineMesh *obj, boolean add
   vhei = malloc ( BSM_DODECAHEDRON_NHE*sizeof(int) );
   fhei = malloc ( BSM_DODECAHEDRON_NHE*sizeof(int) );
   mkcp = malloc ( BSM_DODECAHEDRON_NV );
-  if ( !vert || !halfe || !fac || !vpc || !vhei || !fhei || !mkcp ) {
-    if ( vert ) free ( vert );
+  mkhe = malloc ( BSM_DODECAHEDRON_NHE );
+  mkfac = malloc ( BSM_DODECAHEDRON_NFAC );
+  if ( !vert || !halfe || !fac || !vpc || !vhei || !fhei ||
+       !mkcp || !mkhe || !mkfac ) {
+    if ( vert )  free ( vert );
     if ( halfe ) free ( halfe );
-    if ( fac )  free ( fac );
-    if ( vpc )  free ( vpc );
-    if ( vhei ) free ( vhei );
-    if ( fhei ) free ( fhei );
-    if ( mkcp ) free ( mkcp );
+    if ( fac )   free ( fac );
+    if ( vpc )   free ( vpc );
+    if ( vhei )  free ( vhei );
+    if ( fhei )  free ( fhei );
+    if ( mkcp )  free ( mkcp );
+    if ( mkhe )  free ( mkhe );
+    if ( mkfac ) free ( mkfac );
     return false;
   }
   memcpy ( vert, dodecvert, BSM_DODECAHEDRON_NV*sizeof(BSMvertex) );
@@ -270,18 +289,20 @@ boolean GeomObjectBSplineMeshInitDodecahedron ( GO_BSplineMesh *obj, boolean add
   memcpy ( vhei, dodecvhei, BSM_DODECAHEDRON_NHE*sizeof(int) );
   memcpy ( fhei, dodecfhei, BSM_DODECAHEDRON_NHE*sizeof(int) );
   memset ( mkcp, MASK_CP_MOVEABLE, BSM_DODECAHEDRON_NV );
+  memset ( mkhe, 0, BSM_DODECAHEDRON_NHE );
+  memset ( mkfac, 0, BSM_DODECAHEDRON_NFAC );
   GeomObjectSetupIniPoints ( 3, false, &obj->me.cpdimen, BSM_DODECAHEDRON_NV,
                              &dodecvc[0].x, vpc );
   if ( add )
     GeomObjectExtendBSplineMesh ( obj, 3, false,
                       BSM_DODECAHEDRON_NV, vert, vhei, vpc,
                       BSM_DODECAHEDRON_NHE, halfe,
-                      BSM_DODECAHEDRON_NFAC, fac, fhei, mkcp );
+                      BSM_DODECAHEDRON_NFAC, fac, fhei, mkcp, mkhe, mkfac );
   else
     GeomObjectAssignBSplineMesh ( obj, 3, false,
                       BSM_DODECAHEDRON_NV, vert, vhei, vpc,
                       BSM_DODECAHEDRON_NHE, halfe,
-                      BSM_DODECAHEDRON_NFAC, fac, fhei, mkcp );
+                      BSM_DODECAHEDRON_NFAC, fac, fhei, mkcp, mkhe, mkfac );
   obj->me.dlistmask = 0;  
   obj->spvlist_ok = false;
   return true;
@@ -294,7 +315,7 @@ boolean GeomObjectBSplineMeshInitKGon ( GO_BSplineMesh *obj, int k, boolean add 
   BSMfacet    *mfac;
   int         *mvhei, *mfhei;
   double      *mvpc;
-  byte        *mkcp;
+  byte        *mkcp, *mkhe, *mkfac;
   int         i, cpdimen;
   double      phi;
 
@@ -308,16 +329,21 @@ boolean GeomObjectBSplineMeshInitKGon ( GO_BSplineMesh *obj, int k, boolean add 
   mvhei = malloc ( k*sizeof(int) );
   mfhei = malloc ( k*sizeof(int) );
   mkcp = malloc ( k );
+  mkhe = malloc ( k );
+  mkfac = malloc ( 1 );
   cpdimen = obj->me.spdimen;
   mvpc = malloc ( k*cpdimen*sizeof(double) );
-  if ( !mv || !mhe || !mfac || !mvpc || !mvhei || !mfhei || !mkcp ) {
-    if ( mv ) free ( mv );
-    if ( mhe ) free ( mhe );
-    if ( mfac ) free ( mfac );
-    if ( mvpc ) free ( mvpc );
+  if ( !mv || !mhe || !mfac || !mvpc || !mvhei || !mfhei ||
+       !mkcp || !mkhe || !mkfac ) {
+    if ( mv )    free ( mv );
+    if ( mhe )   free ( mhe );
+    if ( mfac )  free ( mfac );
+    if ( mvpc )  free ( mvpc );
     if ( mvhei ) free ( mvhei );
     if ( mfhei ) free ( mfhei );
-    if ( mkcp ) free ( mkcp );
+    if ( mkcp )  free ( mkcp );
+    if ( mkhe )  free ( mkhe );
+    if ( mkfac ) free ( mkfac );
     return false;
   }
   mfac[0].degree = k;
@@ -341,14 +367,18 @@ boolean GeomObjectBSplineMeshInitKGon ( GO_BSplineMesh *obj, int k, boolean add 
       mvpc[i*cpdimen+2] = 0.0;
   }
   memset ( mkcp, MASK_CP_MOVEABLE, k );
+  memset ( mkhe, 0, k );
+  mkfac[0] = 0;
   obj->rational = false;
   obj->me.cpdimen = cpdimen;
   if ( add )
     GeomObjectExtendBSplineMesh ( obj, cpdimen, false,
-                        k, mv, mvhei, mvpc, k, mhe, 1, mfac, mfhei, mkcp );
+                        k, mv, mvhei, mvpc, k, mhe, 1, mfac, mfhei,
+                        mkcp, mkhe, mkfac );
   else
     GeomObjectAssignBSplineMesh ( obj, cpdimen, false,
-                        k, mv, mvhei, mvpc, k, mhe, 1, mfac, mfhei, mkcp );
+                        k, mv, mvhei, mvpc, k, mhe, 1, mfac, mfhei,
+                        mkcp, mkhe, mkfac );
   obj->me.dlistmask = 0;
   obj->spvlist_ok = false;
   return true;
@@ -362,7 +392,7 @@ boolean GeomObjectBSplineMeshInitKPrism ( GO_BSplineMesh *obj, int k, boolean ad
   BSMfacet    *mfac;
   int         *mvhei, *mfhei;
   double      *mvpc;
-  byte        *mkcp;
+  byte        *mkcp, *mkhe, *mkfac;
   int         cpdimen;
   int         i, j, fhe;
   double      phi;
@@ -380,16 +410,21 @@ boolean GeomObjectBSplineMeshInitKPrism ( GO_BSplineMesh *obj, int k, boolean ad
   mvhei = malloc ( nhe*sizeof(int) );
   mfhei = malloc ( nhe*sizeof(int) );
   mkcp = malloc ( nv );
+  mkhe = malloc ( nhe );
+  mkfac = malloc ( nfac );
   cpdimen = obj->me.spdimen;
   mvpc = malloc ( nv*cpdimen*sizeof(double) );
-  if ( !mv || !mhe || !mfac || !mvpc || !mvhei || !mfhei || !mkcp ) {
-    if ( mv ) free ( mv );
-    if ( mhe ) free ( mhe );
-    if ( mfac ) free ( mfac );
-    if ( mvpc ) free ( mvpc );
+  if ( !mv || !mhe || !mfac || !mvpc || !mvhei || !mfhei ||
+       !mkcp || !mkhe || !mkfac ) {
+    if ( mv )    free ( mv );
+    if ( mhe )   free ( mhe );
+    if ( mfac )  free ( mfac );
+    if ( mvpc )  free ( mvpc );
     if ( mvhei ) free ( mvhei );
     if ( mfhei ) free ( mfhei );
-    if ( mkcp ) free ( mkcp );
+    if ( mkcp )  free ( mkcp );
+    if ( mkhe )  free ( mkhe );
+    if ( mkfac ) free ( mkfac );
     return false;
   }
         /* setup the facets */
@@ -456,14 +491,18 @@ boolean GeomObjectBSplineMeshInitKPrism ( GO_BSplineMesh *obj, int k, boolean ad
     mhe[i].v1 = mhe[mhe[i].otherhalf].v0;
 
   memset ( mkcp, MASK_CP_MOVEABLE, nv );
+  memset ( mkhe, 0, nhe );
+  memset ( mkfac, 0, nfac );
   obj->rational = false;
   obj->me.cpdimen = cpdimen;
   if ( add )
     GeomObjectExtendBSplineMesh ( obj, cpdimen, false,
-                      nv, mv, mvhei, mvpc, nhe, mhe, nfac, mfac, mfhei, mkcp );
+                      nv, mv, mvhei, mvpc, nhe, mhe, nfac, mfac, mfhei,
+                      mkcp, mkhe, mkfac );
   else
     GeomObjectAssignBSplineMesh ( obj, cpdimen, false,
-                      nv, mv, mvhei, mvpc, nhe, mhe, nfac, mfac, mfhei, mkcp );
+                      nv, mv, mvhei, mvpc, nhe, mhe, nfac, mfac, mfhei,
+                      mkcp, mkhe, mkfac );
   obj->me.dlistmask = 0;
   obj->spvlist_ok = false;
   return true;

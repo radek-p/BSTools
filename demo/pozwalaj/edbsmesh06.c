@@ -40,7 +40,7 @@ boolean GeomObjectBSplineMeshRefinement ( GO_BSplineMesh *obj )
   BSMfacet       *omfac;
   int            *omvhei, *omfhei;
   double         *omvpc;
-  byte           *mkcp;
+  byte           *mkcp, *mkhe, *mkfac;
 
   if ( !bsm_CheckMeshIntegrity ( obj->nv, obj->meshv, obj->meshvhei,
                                  obj->nhe, obj->meshhe,
@@ -48,15 +48,17 @@ boolean GeomObjectBSplineMeshRefinement ( GO_BSplineMesh *obj )
     return false;
   if ( GeomObjectCopyCurrent () )
     current_go = (geom_object*)obj;
-  mkcp = NULL;
+  mkcp = mkhe = mkfac = NULL;
   if ( bsm_RefineBSMeshd ( obj->me.cpdimen, obj->degree,
                            obj->nv, obj->meshv, obj->meshvhei,
                            obj->meshvpc, obj->nhe, obj->meshhe,
                            obj->nfac, obj->meshfac, obj->meshfhei,
                            &onv, &omv, &omvhei, &omvpc, &onhe, &omhe,
                            &onfac, &omfac, &omfhei ) ) {
-    mkcp = malloc ( onv );
-    if ( !mkcp )
+    mkcp  = malloc ( onv );
+    mkhe  = malloc ( onhe );
+    mkfac = malloc ( onfac );
+    if ( !mkcp || !mkhe || !mkfac )
       goto failure;
     {
       void *sp;
@@ -75,9 +77,11 @@ boolean GeomObjectBSplineMeshRefinement ( GO_BSplineMesh *obj )
                                  onfac, omfac, omfhei ) )
       goto failure;
     memset ( mkcp, MASK_CP_MOVEABLE, onv );
+    memset ( mkhe, 0, onhe );
+    memset ( mkfac, 0, onfac );
     GeomObjectAssignBSplineMesh ( obj, obj->me.spdimen, obj->rational,
                                   onv, omv, omvhei, omvpc, onhe, omhe,
-                                  onfac, omfac, omfhei, mkcp );
+                                  onfac, omfac, omfhei, mkcp, mkhe, mkfac );
     obj->me.dlistmask = 0;
     obj->spvlist_ok = false;
     obj->special_patches_ok = false;
@@ -92,6 +96,8 @@ failure:
   if ( omfhei ) free ( omfhei );
   if ( omvpc ) free ( omvpc );
   if ( mkcp ) free ( mkcp );
+  if ( mkhe ) free ( mkhe );
+  if ( mkfac ) free ( mkfac );
   return false;
 } /*GeomObjectBSplineMeshRefinement*/
 
@@ -103,7 +109,7 @@ boolean GeomObjectBSplineMeshDoubling ( GO_BSplineMesh *obj )
   BSMfacet    *omfac;
   int         *omvhei, *omfhei;
   double      *omvpc;
-  byte        *mkcp;
+  byte        *mkcp, *mkhe, *mkfac;
 
   if ( !bsm_CheckMeshIntegrity ( obj->nv, obj->meshv, obj->meshvhei,
                                  obj->nhe, obj->meshhe,
@@ -133,7 +139,10 @@ boolean GeomObjectBSplineMeshDoubling ( GO_BSplineMesh *obj )
   omfhei = malloc ( onhe*sizeof(int) );
   omvpc = malloc ( obj->me.cpdimen*onv*sizeof(double) );
   mkcp = malloc ( onv );
-  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc || !mkcp )
+  mkhe = malloc ( onhe );
+  mkfac = malloc ( onfac );
+  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc ||
+       !mkcp || !mkhe || !mkfac )
     goto failure;
   if ( !bsm_Doublingd ( obj->me.cpdimen,
                         obj->nv, obj->meshv, obj->meshvhei, obj->meshvpc,
@@ -147,9 +156,11 @@ boolean GeomObjectBSplineMeshDoubling ( GO_BSplineMesh *obj )
   if ( !obj->integrity_ok )
     goto failure;
   memset ( mkcp, MASK_CP_MOVEABLE, onv );
+  memset ( mkhe, 0, onhe );
+  memset ( mkfac, 0, onfac );
   GeomObjectAssignBSplineMesh ( obj, obj->me.spdimen, obj->rational,
                                 onv, omv, omvhei, omvpc, onhe, omhe,
-                                onfac, omfac, omfhei, mkcp );
+                                onfac, omfac, omfhei, mkcp, mkhe, mkfac );
   obj->me.dlistmask = 0;
   obj->spvlist_ok = false;
   obj->special_patches_ok = false;
@@ -163,6 +174,8 @@ failure:
   if ( omfhei ) free ( omfhei );
   if ( omvpc ) free ( omvpc );
   if ( mkcp ) free ( mkcp );
+  if ( mkhe ) free ( mkhe );
+  if ( mkfac ) free ( mkfac );
   return false;
 } /*GeomObjectBSplineMeshDoubling*/
 
@@ -174,7 +187,7 @@ boolean GeomObjectBSplineMeshAveraging ( GO_BSplineMesh *obj )
   BSMfacet    *omfac;
   int         *omvhei, *omfhei;
   double      *omvpc;
-  byte        *mkcp;
+  byte        *mkcp, *mkhe, *mkfac;
 
   if ( !bsm_CheckMeshIntegrity ( obj->nv, obj->meshv, obj->meshvhei,
                                  obj->nhe, obj->meshhe,
@@ -205,7 +218,10 @@ boolean GeomObjectBSplineMeshAveraging ( GO_BSplineMesh *obj )
   omfhei = malloc ( onhe*sizeof(int) );
   omvpc = malloc ( obj->me.cpdimen*onv*sizeof(double) );
   mkcp = malloc ( onv );
-  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc || !mkcp )
+  mkhe = malloc ( onhe );
+  mkfac = malloc ( onfac );
+  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc ||
+       !mkcp || !mkhe || !mkfac )
     goto failure;
   if ( !bsm_Averagingd ( obj->me.cpdimen,
                          obj->nv, obj->meshv, obj->meshvhei, obj->meshvpc,
@@ -219,9 +235,11 @@ boolean GeomObjectBSplineMeshAveraging ( GO_BSplineMesh *obj )
   if ( !obj->integrity_ok )
     goto failure;
   memset ( mkcp, MASK_CP_MOVEABLE, onv );
+  memset ( mkhe, 0, onhe );
+  memset ( mkfac, 0, onfac );
   GeomObjectAssignBSplineMesh ( obj, obj->me.spdimen, obj->rational,
                                 onv, omv, omvhei, omvpc, onhe, omhe,
-                                onfac, omfac, omfhei, mkcp );
+                                onfac, omfac, omfhei, mkcp, mkhe, mkfac );
   obj->me.dlistmask = 0;
   obj->spvlist_ok = false;
   obj->special_patches_ok = false;
@@ -235,6 +253,8 @@ failure:
   if ( omfhei ) free ( omfhei );
   if ( omvpc ) free ( omvpc );
   if ( mkcp ) free ( mkcp );
+  if ( mkhe ) free ( mkhe );
+  if ( mkfac ) free ( mkfac );
   return false;
 } /*GeomObjectBSplineMeshAveraging*/
 
@@ -247,7 +267,7 @@ boolean GeomObjectBSplineMeshExtractSubmesh ( GO_BSplineMesh *obj )
   BSMfacet    *omfac;
   int         *omvhei, *omfhei;
   double      *omvpc;
-  byte        *mkcp;
+  byte        *mkcp, *mkhe, *mkfac;
   boolean     *vtag;
   int         i;
 
@@ -275,7 +295,10 @@ boolean GeomObjectBSplineMeshExtractSubmesh ( GO_BSplineMesh *obj )
   omfhei = malloc ( onhe*sizeof(int) );
   omvpc = malloc ( obj->me.cpdimen*onv*sizeof(double) );
   mkcp = malloc ( onv );
-  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc || !mkcp )
+  mkhe = malloc ( onhe );
+  mkfac = malloc ( onfac );
+  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc ||
+       !mkcp || !mkhe || !mkfac )
     goto failure1;
   if ( !bsm_ExtractSubmeshVd ( obj->me.cpdimen,
                          obj->nv, obj->meshv, obj->meshvhei, obj->meshvpc,
@@ -289,9 +312,11 @@ boolean GeomObjectBSplineMeshExtractSubmesh ( GO_BSplineMesh *obj )
   if ( !obj->integrity_ok )
     goto failure1;
   memset ( mkcp, MASK_CP_MOVEABLE, onv );
+  memset ( mkhe, 0, onhe );
+  memset ( mkfac, 0, onfac );
   GeomObjectAssignBSplineMesh ( obj, obj->me.spdimen, obj->rational,
                                 onv, omv, omvhei, omvpc, onhe, omhe,
-                                onfac, omfac, omfhei, mkcp );
+                                onfac, omfac, omfhei, mkcp, mkhe, mkfac );
   obj->me.dlistmask = 0;
   obj->spvlist_ok = false;
   obj->special_patches_ok = false;
@@ -306,6 +331,8 @@ failure1:
   if ( omfhei ) free ( omfhei );
   if ( omvpc ) free ( omvpc );
   if ( mkcp ) free ( mkcp );
+  if ( mkhe ) free ( mkhe );
+  if ( mkfac ) free ( mkfac );
 failure2:
   pkv_SetScratchMemTop ( sp );
   return false;
@@ -319,7 +346,7 @@ boolean GeomObjectBSplineMeshRemoveCurrentVertex ( GO_BSplineMesh *obj )
   BSMfacet    *omfac;
   int         *omvhei, *omfhei;
   double      *omvpc;
-  byte        *mkcp;
+  byte        *mkcp, *mkhe, *mkfac;
   int         cvn;
 
   if ( obj->me.obj_type != GO_BSPLINE_MESH )
@@ -355,7 +382,10 @@ boolean GeomObjectBSplineMeshRemoveCurrentVertex ( GO_BSplineMesh *obj )
   omfhei = malloc ( onhe*sizeof(int) );
   omvpc = malloc ( obj->me.cpdimen*onv*sizeof(double) );
   mkcp = malloc ( onv );
-  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc || !mkcp )
+  mkhe = malloc ( onhe );
+  mkfac = malloc ( onfac );
+  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc ||
+       !mkcp || !mkhe || !mkfac )
     goto failure;
   if ( !bsm_RemoveVertexd ( obj->me.cpdimen,
                            obj->nv, obj->meshv, obj->meshvhei, obj->meshvpc,
@@ -372,9 +402,11 @@ boolean GeomObjectBSplineMeshRemoveCurrentVertex ( GO_BSplineMesh *obj )
     memcpy ( mkcp, obj->mkcp, cvn );
   if ( cvn < obj->nv-1 )
     memcpy ( &mkcp[cvn], &obj->mkcp[cvn+1], obj->nv-cvn-1 );
+  memset ( mkhe, 0, onhe );
+  memset ( mkfac, 0, onfac );
   GeomObjectAssignBSplineMesh ( obj, obj->me.spdimen, obj->rational,
                                 onv, omv, omvhei, omvpc, onhe, omhe,
-                                onfac, omfac, omfhei, mkcp );
+                                onfac, omfac, omfhei, mkcp, mkhe, mkfac );
   obj->me.dlistmask = 0;
   obj->spvlist_ok = false;
   obj->special_patches_ok = false;
@@ -388,6 +420,8 @@ failure:
   if ( omfhei ) free ( omfhei );
   if ( omvpc ) free ( omvpc );
   if ( mkcp ) free ( mkcp );
+  if ( mkhe ) free ( mkhe );
+  if ( mkfac ) free ( mkfac );
   return false;
 } /*GeomObjectBSplineMeshRemoveCurrentVertex*/
 
@@ -399,7 +433,7 @@ boolean GeomObjectBSplineMeshContractCurrentEdge ( GO_BSplineMesh *obj )
   BSMfacet    *omfac;
   int         *omvhei, *omfhei;
   double      *omvpc;
-  byte        *mkcp;
+  byte        *mkcp, *mkhe, *mkfac;
   int         che;
 
   if ( obj->me.obj_type != GO_BSPLINE_MESH )
@@ -435,7 +469,10 @@ boolean GeomObjectBSplineMeshContractCurrentEdge ( GO_BSplineMesh *obj )
   omfhei = malloc ( onhe*sizeof(int) );
   omvpc = malloc ( obj->me.cpdimen*onv*sizeof(double) );
   mkcp = malloc ( onv );
-  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc || !mkcp )
+  mkhe = malloc ( onhe );
+  mkfac = malloc ( onfac );
+  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc ||
+       !mkcp || !mkhe || !mkfac )
     goto failure;
   if ( bsm_ContractEdged ( obj->me.cpdimen,
                            obj->nv, obj->meshv, obj->meshvhei, obj->meshvpc,
@@ -449,9 +486,11 @@ boolean GeomObjectBSplineMeshContractCurrentEdge ( GO_BSplineMesh *obj )
   if ( !obj->integrity_ok )
     goto failure;
   memset ( mkcp, MASK_CP_MOVEABLE, onv );
+  memset ( mkhe, 0, onhe );
+  memset ( mkfac, 0, onfac );
   GeomObjectAssignBSplineMesh ( obj, obj->me.spdimen, obj->rational,
                                 onv, omv, omvhei, omvpc, onhe, omhe,
-                                onfac, omfac, omfhei, mkcp );
+                                onfac, omfac, omfhei, mkcp, mkhe, mkfac );
   obj->me.dlistmask = 0;
   obj->spvlist_ok = false;
   obj->special_patches_ok = false;
@@ -465,6 +504,8 @@ failure:
   if ( omfhei ) free ( omfhei );
   if ( omvpc ) free ( omvpc );
   if ( mkcp ) free ( mkcp );
+  if ( mkhe ) free ( mkhe );
+  if ( mkfac ) free ( mkfac );
   return false;
 } /*GeomObjectBSplineMeshContractCurrentEdge*/
 
@@ -500,13 +541,13 @@ boolean GeomObjectBSplineMeshGlueEdges ( GO_BSplineMesh *obj )
   BSMfacet    *omfac;
   int         *omvhei, *omfhei;
   double      *omvpc;
-  byte        *mkcp;
+  byte        *mkcp, *mkhe, *mkfac;
   
   if ( !bsm_CheckMeshIntegrity ( obj->nv, obj->meshv, obj->meshvhei,
                                  obj->nhe, obj->meshhe,
                                  obj->nfac, obj->meshfac, obj->meshfhei ) )
     return false;
-  mkcp = NULL;
+  mkcp = mkhe = mkfac = NULL;
   if ( !bsm_GlueTwoHalfedgesNum ( obj->nv, obj->meshv, obj->meshvhei,
                         obj->nhe, obj->meshhe, obj->nfac, obj->meshfac, obj->meshfhei,
                         obj->current_edge[0], obj->current_edge[1],
@@ -519,7 +560,10 @@ boolean GeomObjectBSplineMeshGlueEdges ( GO_BSplineMesh *obj )
   omfhei = malloc ( onhe*sizeof(int) );
   omvpc = malloc ( obj->me.cpdimen*onv*sizeof(double) );
   mkcp = malloc ( onv );
-  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc || !mkcp )
+  mkhe = malloc ( onhe );
+  mkfac = malloc ( onfac );
+  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc ||
+       !mkcp || !mkhe || !mkfac )
     goto failure;
   if ( !bsm_GlueTwoHalfedgesd ( obj->me.cpdimen,
               obj->nv, obj->meshv, obj->meshvhei, obj->meshvpc,
@@ -532,9 +576,11 @@ boolean GeomObjectBSplineMeshGlueEdges ( GO_BSplineMesh *obj )
   if ( !obj->integrity_ok )
     goto failure;
   memcpy ( mkcp, obj->mkcp, onv );
+  memcpy ( mkhe, obj->mkhe, onhe );
+  memcpy ( mkfac, obj->mkfac, onfac );
   GeomObjectAssignBSplineMesh ( obj, obj->me.spdimen, obj->rational,
                                 onv, omv, omvhei, omvpc, onhe, omhe,
-                                onfac, omfac, omfhei, mkcp );
+                                onfac, omfac, omfhei, mkcp, mkhe, mkfac );
   obj->current_edge[0] = obj->current_edge[1] = -1;
   obj->me.dlistmask = 0;
   obj->spvlist_ok = false;
@@ -549,6 +595,8 @@ failure:
   if ( omfhei ) free ( omfhei );
   if ( omvpc ) free ( omvpc );
   if ( mkcp ) free ( mkcp );
+  if ( mkhe ) free ( mkhe );
+  if ( mkfac ) free ( mkfac );
   return false;
 } /*GeomObjectBSplineMeshGlueEdges*/
 
@@ -560,13 +608,13 @@ boolean GeomObjectBSplineMeshGlueEdgeLoops ( GO_BSplineMesh *obj )
   BSMfacet    *omfac;
   int         *omvhei, *omfhei;
   double      *omvpc;
-  byte        *mkcp;
+  byte        *mkcp, *mkhe, *mkfac;
   
   if ( !bsm_CheckMeshIntegrity ( obj->nv, obj->meshv, obj->meshvhei,
                                  obj->nhe, obj->meshhe,
                                  obj->nfac, obj->meshfac, obj->meshfhei ) )
     return false;
-  mkcp = NULL;
+  mkcp = mkhe = mkfac = NULL;
   llgt = bsm_HalfedgeLoopLength ( obj->nv, obj->meshv, obj->meshvhei,
                                   obj->nhe, obj->meshhe, obj->current_edge[0] );
   if ( llgt < 0 )
@@ -581,7 +629,10 @@ boolean GeomObjectBSplineMeshGlueEdgeLoops ( GO_BSplineMesh *obj )
   omfhei = malloc ( onhe*sizeof(int) );
   omvpc = malloc ( obj->me.cpdimen*onv*sizeof(double) );
   mkcp = malloc ( onv );
-  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc || !mkcp )
+  mkhe = malloc ( onhe );
+  mkfac = malloc ( onfac );
+  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc ||
+       !mkcp || !mkhe || !mkfac )
     goto failure;
   if ( !bsm_GlueHalfedgeLoopsd ( obj->me.cpdimen,
               obj->nv, obj->meshv, obj->meshvhei, obj->meshvpc,
@@ -594,9 +645,11 @@ boolean GeomObjectBSplineMeshGlueEdgeLoops ( GO_BSplineMesh *obj )
   if ( !obj->integrity_ok )
     goto failure;
   memcpy ( mkcp, obj->mkcp, onv );
+  memcpy ( mkhe, obj->mkhe, onhe );
+  memcpy ( mkfac, obj->mkfac, onfac );
   GeomObjectAssignBSplineMesh ( obj, obj->me.spdimen, obj->rational,
                                 onv, omv, omvhei, omvpc, onhe, omhe,
-                                onfac, omfac, omfhei, mkcp );
+                                onfac, omfac, omfhei, mkcp, mkhe, mkfac );
   obj->current_edge[0] = obj->current_edge[1] = -1;
   obj->me.dlistmask = 0;
   obj->spvlist_ok = false;
@@ -611,6 +664,8 @@ failure:
   if ( omfhei ) free ( omfhei );
   if ( omvpc ) free ( omvpc );
   if ( mkcp ) free ( mkcp );
+  if ( mkhe ) free ( mkhe  );
+  if ( mkfac ) free ( mkfac );
   return false;
 } /*GeomObjectBSplineMeshGlueEdgeLoops*/
 
@@ -622,13 +677,13 @@ boolean GeomObjectBSplineMeshSealHole ( GO_BSplineMesh *obj )
   BSMfacet    *omfac;
   int         *omvhei, *omfhei;
   double      *omvpc;
-  byte        *mkcp;
+  byte        *mkcp, *mkhe, *mkfac;
 
   if ( !bsm_CheckMeshIntegrity ( obj->nv, obj->meshv, obj->meshvhei,
                                  obj->nhe, obj->meshhe,
                                  obj->nfac, obj->meshfac, obj->meshfhei ) )
     return false;
-  mkcp = NULL;
+  mkcp = mkhe = mkfac = NULL;
   if ( !bsm_SealMeshHoleNum ( obj->nv, obj->meshv, obj->meshvhei,
                               obj->nhe, obj->meshhe,
                               obj->nfac, obj->meshfac, obj->meshfhei,
@@ -642,7 +697,10 @@ boolean GeomObjectBSplineMeshSealHole ( GO_BSplineMesh *obj )
   omfhei = malloc ( onhe*sizeof(int) );
   omvpc = malloc ( obj->me.cpdimen*onv*sizeof(double) );
   mkcp = malloc ( onv );
-  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc || !mkcp )
+  mkhe = malloc ( onhe );
+  mkfac = malloc ( onfac );
+  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc ||
+       !mkcp || !mkhe || !mkfac )
     goto failure;
   if ( !bsm_SealMeshHoled ( obj->me.cpdimen,
               obj->nv, obj->meshv, obj->meshvhei, obj->meshvpc,
@@ -655,9 +713,11 @@ boolean GeomObjectBSplineMeshSealHole ( GO_BSplineMesh *obj )
   if ( !obj->integrity_ok )
     goto failure;
   memcpy ( mkcp, obj->mkcp, onv );
+  memset ( mkhe, 0, onhe );
+  memset ( mkfac, 0, onfac );
   GeomObjectAssignBSplineMesh ( obj, obj->me.spdimen, obj->rational,
                                 onv, omv, omvhei, omvpc, onhe, omhe,
-                                onfac, omfac, omfhei, mkcp );
+                                onfac, omfac, omfhei, mkcp, mkhe, mkfac );
   obj->current_edge[0] = obj->current_edge[1] = -1;
   obj->me.dlistmask = 0;
   obj->spvlist_ok = false;
@@ -672,6 +732,8 @@ failure:
   if ( omfhei ) free ( omfhei );
   if ( omvpc ) free ( omvpc );
   if ( mkcp ) free ( mkcp );
+  if ( mkhe ) free ( mkhe );
+  if ( mkfac ) free ( mkfac );
   return false;
 } /*GeomObjectBSplineMeshSealHole*/
 
@@ -683,7 +745,7 @@ boolean GeomObjectBSplineMeshSplitBoundaryEdge ( GO_BSplineMesh *obj )
   BSMfacet    *omfac;
   int         *omvhei, *omfhei;
   double      *omvpc;
-  byte        *mkcp;
+  byte        *mkcp, *mkhe, *mkfac;
 
   if ( !bsm_CheckMeshIntegrity ( obj->nv, obj->meshv, obj->meshvhei,
                                  obj->nhe, obj->meshhe,
@@ -700,7 +762,10 @@ boolean GeomObjectBSplineMeshSplitBoundaryEdge ( GO_BSplineMesh *obj )
   omfhei = malloc ( onhe*sizeof(int) );
   omvpc = malloc ( obj->me.cpdimen*onv*sizeof(double) );
   mkcp = malloc ( onv );
-  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc || !mkcp )
+  mkhe = malloc ( onhe );
+  mkfac = malloc ( onfac );
+  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc ||
+       !mkcp || !mkhe || !mkfac )
     goto failure;
   if ( !bsm_SplitBoundaryEdged ( obj->me.cpdimen,
               obj->nv, obj->meshv, obj->meshvhei, obj->meshvpc,
@@ -713,10 +778,12 @@ boolean GeomObjectBSplineMeshSplitBoundaryEdge ( GO_BSplineMesh *obj )
   if ( !obj->integrity_ok )
     goto failure;
   memcpy ( mkcp, obj->mkcp, onv );
+  memset ( mkhe, 0, onhe );
+  memset ( mkfac, 0, onfac );
   mkcp[onv-1] = MASK_CP_MOVEABLE;
   GeomObjectAssignBSplineMesh ( obj, obj->me.spdimen, obj->rational,
                                 onv, omv, omvhei, omvpc, onhe, omhe,
-                                onfac, omfac, omfhei, mkcp );
+                                onfac, omfac, omfhei, mkcp, mkhe, mkfac );
   obj->current_edge[0] = obj->current_edge[1] = -1;
   obj->me.dlistmask = 0;
   obj->spvlist_ok = false;
@@ -731,6 +798,8 @@ failure:
   if ( omfhei ) free ( omfhei );
   if ( omvpc ) free ( omvpc );
   if ( mkcp ) free ( mkcp );
+  if ( mkhe ) free ( mkhe );
+  if ( mkfac ) free ( mkfac );
   return false;
 } /*GeomObjectBSplineMeshSplitBoundaryEdge*/
 
@@ -742,7 +811,7 @@ boolean GeomObjectBSplineMeshRemoveCurrentFacet ( GO_BSplineMesh *obj )
   BSMfacet    *omfac;
   int         *omvhei, *omfhei;
   double      *omvpc;
-  byte        *mkcp;
+  byte        *mkcp, *mkhe, *mkfac;
   int         cfn;
 
   if ( obj->me.obj_type != GO_BSPLINE_MESH )
@@ -778,7 +847,10 @@ boolean GeomObjectBSplineMeshRemoveCurrentFacet ( GO_BSplineMesh *obj )
   omfhei = malloc ( onhe*sizeof(int) );
   omvpc = malloc ( obj->me.cpdimen*onv*sizeof(double) );
   mkcp = malloc ( onv );
-  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc || !mkcp )
+  mkhe = malloc ( onhe );
+  mkfac = malloc ( onfac );
+  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc ||
+       !mkcp || !mkhe || !mkfac )
     goto failure;
   if ( !bsm_RemoveFacetd ( obj->me.cpdimen,
                            obj->nv, obj->meshv, obj->meshvhei, obj->meshvpc,
@@ -792,9 +864,11 @@ boolean GeomObjectBSplineMeshRemoveCurrentFacet ( GO_BSplineMesh *obj )
   if ( !obj->integrity_ok )
     goto failure;
   memset ( mkcp, MASK_CP_MOVEABLE, onv );
+  memset ( mkhe, 0, onhe );
+  memset ( mkfac, 0, onfac );
   GeomObjectAssignBSplineMesh ( obj, obj->me.spdimen, obj->rational,
                                 onv, omv, omvhei, omvpc, onhe, omhe,
-                                onfac, omfac, omfhei, mkcp );
+                                onfac, omfac, omfhei, mkcp, mkhe, mkfac );
   obj->spvlist_ok = false;
   obj->me.dlistmask = 0;
   obj->special_patches_ok = false;
@@ -808,6 +882,8 @@ failure:
   if ( omfhei ) free ( omfhei );
   if ( omvpc ) free ( omvpc );
   if ( mkcp ) free ( mkcp );
+  if ( mkhe ) free ( mkhe );
+  if ( mkfac ) free ( mkfac );
   return false;
 } /*GeomObjectBSplineMeshRemoveCurrentFacet*/
 
@@ -819,7 +895,7 @@ boolean GeomObjectBSplineMeshDoubleCurrentFacEdges ( GO_BSplineMesh *obj )
   BSMfacet    *omfac;
   int         *omvhei, *omfhei;
   double      *omvpc;
-  byte        *mkcp;
+  byte        *mkcp, *mkhe, *mkfac;
   int         cfn;
 
   if ( obj->me.obj_type != GO_BSPLINE_MESH )
@@ -855,7 +931,10 @@ boolean GeomObjectBSplineMeshDoubleCurrentFacEdges ( GO_BSplineMesh *obj )
   omfhei = malloc ( onhe*sizeof(int) );
   omvpc = malloc ( obj->me.cpdimen*onv*sizeof(double) );
   mkcp = malloc ( onv );
-  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc || !mkcp )
+  mkhe = malloc ( onhe );
+  mkfac = malloc ( onfac );
+  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc ||
+       !mkcp || !mkhe || !mkfac )
     goto failure;
   if ( !bsm_FacetEdgeDoublingd ( obj->me.cpdimen,
                            obj->nv, obj->meshv, obj->meshvhei, obj->meshvpc,
@@ -870,9 +949,11 @@ boolean GeomObjectBSplineMeshDoubleCurrentFacEdges ( GO_BSplineMesh *obj )
     goto failure;
   memset ( mkcp, MASK_CP_MOVEABLE, obj->nv );
   memset ( &mkcp[obj->nv], MASK_CP_MOVEABLE | marking_mask, onv-obj->nv );
+  memset ( mkhe, 0, onhe );
+  memset ( mkfac, 0, onfac );
   GeomObjectAssignBSplineMesh ( obj, obj->me.spdimen, obj->rational,
                                 onv, omv, omvhei, omvpc, onhe, omhe,
-                                onfac, omfac, omfhei, mkcp );
+                                onfac, omfac, omfhei, mkcp, mkhe, mkfac );
   obj->me.dlistmask = 0;
   obj->spvlist_ok = false;
   obj->special_patches_ok = false;
@@ -886,6 +967,8 @@ failure:
   if ( omfhei ) free ( omfhei );
   if ( omvpc ) free ( omvpc );
   if ( mkcp ) free ( mkcp );
+  if ( mkhe ) free ( mkhe );
+  if ( mkfac ) free ( mkfac );
   return false;
 } /*GeomObjectBSplineMeshDoubleCurrentFacEdges*/
 
@@ -897,7 +980,7 @@ boolean GeomObjectBSplineMeshDivideFacet ( GO_BSplineMesh *obj )
   BSMfacet    *omfac;
   int         *omvhei, *omfhei;
   double      *omvpc;
-  byte        *mkcp;
+  byte        *mkcp, *mkhe, *mkfac;
   int         v0, v1;
 
   if ( obj->me.obj_type != GO_BSPLINE_MESH )
@@ -917,7 +1000,10 @@ boolean GeomObjectBSplineMeshDivideFacet ( GO_BSplineMesh *obj )
   omfhei = malloc ( onhe*sizeof(int) );
   omvpc = malloc ( obj->me.cpdimen*onv*sizeof(double) );
   mkcp = malloc ( onv );
-  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc || !mkcp )
+  mkhe = malloc ( onhe );
+  mkfac = malloc ( onfac );
+  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc ||
+       !mkcp || !mkhe || !mkfac )
     goto failure;
   {
     void *sp;
@@ -945,9 +1031,11 @@ boolean GeomObjectBSplineMeshDivideFacet ( GO_BSplineMesh *obj )
   if ( !obj->integrity_ok )
     goto failure;
   memcpy ( mkcp, obj->mkcp, onv );
+  memset ( mkhe, 0, onhe );
+  memset ( mkfac, 0, onfac );
   GeomObjectAssignBSplineMesh ( obj, obj->me.spdimen, obj->rational,
                                 onv, omv, omvhei, omvpc, onhe, omhe,
-                                onfac, omfac, omfhei, mkcp );
+                                onfac, omfac, omfhei, mkcp, mkhe, mkfac );
   obj->me.dlistmask = 0;
   obj->spvlist_ok = false;
   obj->special_patches_ok = false;
@@ -961,6 +1049,8 @@ failure:
   if ( omfhei ) free ( omfhei );
   if ( omvpc ) free ( omvpc );
   if ( mkcp ) free ( mkcp );
+  if ( mkhe ) free ( mkhe );
+  if ( mkfac ) free ( mkfac );
   return false;
 } /*GeomObjectBSplineMeshDivideFacet*/
 

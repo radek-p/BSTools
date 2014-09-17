@@ -41,7 +41,7 @@ static int    bsf_linenum, bsf_colnum; /* for locating errors */
 const char *bsf_keyword[BSF_NKEYWORDS] = /* this table must be sorted */
   { "BCurve",           /* alphabetically, uppercase before lowercase */
     "BPatch",           /* and the contents must match numbers in     */
-    "BSCurve",          /* bsfile.h */
+    "BSCurve",          /* bsfprivate.h */
     "BSHole",
     "BSMesh",
     "BSPatch",
@@ -56,8 +56,10 @@ const char *bsf_keyword[BSF_NKEYWORDS] = /* this table must be sorted */
     "depth",
     "dim",
     "domain",
+    "facetmk",
     "facets",
     "frame",
+    "halfedgemk",
     "halfedges",
     "ident",
     "knots",

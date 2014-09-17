@@ -78,18 +78,16 @@ int bsf_ReadPointsd ( int maxcpdimen, int maxnpoints,
   return ncp;
 } /*bsf_ReadPointsd*/
 
-int bsf_ReadPointsMK ( int maxnpoints, unsigned int *mk )
+static int _bsf_ReadMK ( int maxnk, unsigned int *mk )
 {
   int np;
   int num;
 
-  if ( bsf_nextsymbol != BSF_SYMB_CPOINTSMK )
-    return 0;
   bsf_GetNextSymbol ();
   if ( bsf_nextsymbol != BSF_SYMB_LBRACE )
     return 0;
   bsf_GetNextSymbol ();
-  for ( np = 0; np < maxnpoints; ) {
+  for ( np = 0; np < maxnk; ) {
     if ( !bsf_ReadIntNumber ( &num ) )
       return 0;
     if ( mk )  /* NULL is allowed here */
@@ -104,5 +102,26 @@ int bsf_ReadPointsMK ( int maxnpoints, unsigned int *mk )
     return 0;
   bsf_GetNextSymbol ();
   return np;
+} /*_bsf_ReadMK*/
+
+int bsf_ReadPointsMK ( int maxnpoints, unsigned int *mk )
+{
+  if ( bsf_nextsymbol != BSF_SYMB_CPOINTSMK )
+    return 0;
+  return _bsf_ReadMK ( maxnpoints, mk );
 } /*bsf_ReadPointsMK*/
+
+int bsf_ReadHEdgeMK ( int maxnhe, unsigned int *hemk )
+{
+  if ( bsf_nextsymbol != BSF_SYMB_HALFEDGEMK )
+    return 0;
+  return _bsf_ReadMK ( maxnhe, hemk );
+} /*bsf_ReadHEdgeMK*/
+
+int bsf_ReadFacetMK ( int maxnfac, unsigned int *fmk )
+{
+  if ( bsf_nextsymbol != BSF_SYMB_FACETMK )
+    return 0;
+  return _bsf_ReadMK ( maxnfac, fmk );
+} /*bsf_ReadFacetMK*/
 

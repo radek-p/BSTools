@@ -128,6 +128,8 @@ typedef void (*bsf_dependency_fptr) ( void *userData,
                                       int depname, int ndep, int *dep );
 typedef void (*bsf_trimmed_fptr) ( void *userData, mbs_polycurved *elem );
 typedef void (*bsf_CPMark_fptr) ( void *userData, int ncp, unsigned int *mk );
+typedef void (*bsf_HEMark_fptr) ( void *userData, int nhe, unsigned int *mk );
+typedef void (*bsf_FacetMark_fptr) ( void *userData, int nfac, unsigned int *mk );
 typedef void (*bsf_Camera_fptr) ( void *userData, int ident, CameraRecd *Camera );
 typedef void (*bsf_Colour_fptr) ( void *userData, point3d *colour );
 
@@ -161,6 +163,8 @@ typedef struct {
     bsf_BSH_fptr        BSplineHoleReader;
     bsf_polyline_fptr   PolylineReader;
     bsf_CPMark_fptr     CPMarkReader;
+    bsf_HEMark_fptr     HEdgeMarkReader;
+    bsf_FacetMark_fptr  FacetMarkReader;
     bsf_Camera_fptr     CameraReader;
     bsf_Colour_fptr     ColourReader;
     bsf_dependency_fptr DepReader;
@@ -194,6 +198,10 @@ void bsf_DependencyReadFunc ( bsf_UserReaders *readers,
                               bsf_dependency_fptr DepReader, int maxdep );
 void bsf_CPMarkReadFunc ( bsf_UserReaders *readers,
                           bsf_CPMark_fptr CPMarkReader );
+void bsf_HalfedgeMarkReadFunc ( bsf_UserReaders *readers,  
+                                bsf_HEMark_fptr HEdgeMarkReader );
+void bsf_FacetMarkReadFunc ( bsf_UserReaders *readers,        
+                             bsf_FacetMark_fptr FacetMarkReader );
 void bsf_CameraReadFuncd ( bsf_UserReaders *readers,
                            bsf_Camera_fptr CameraReader );
 void bsf_ColourReadFuncd ( bsf_UserReaders *readers,
@@ -210,7 +218,6 @@ boolean bsf_ReadIdentifiers ( const char *filename, void *usrdata,
 boolean bsf_ReadTrimmedDomaind ( bsf_UserReaders *readers );
 boolean bsf_ReadDependencies ( bsf_UserReaders *readers );
 
-boolean bsf_ReadCPMark ( int maxcp, unsigned int *mk );
 boolean bsf_ReadCamera ( CameraRecd *Camera, int *ident );
 boolean bsf_ReadColour ( point3d *colour );
 
@@ -338,13 +345,16 @@ boolean bsf_WritePolylined ( int spdimen, int cpdimen, boolean rational,
                              const char *name, int ident,
                              bsf_WriteAttr_fptr WriteAttr, void *userData );
 
-/* writing other objects and attributes */
-void bsf_WritePointsMK ( int npoints, const unsigned int *mk );
+/* writing attributes */
 boolean bsf_WriteColour ( point3d *colour );
-boolean bsf_WriteCamera ( CameraRecd *Camera, int ident );
-
+void bsf_WritePointsMK ( int npoints, const unsigned int *mk );
+void bsf_WriteHEdgesMK ( int nhe, const unsigned int *hemk );
+void bsf_WriteFacetsMK ( int nfac, const unsigned int *fmk );
 /* writing domain description for trimmed patches */
 boolean bsf_WriteTrimmedDomaind ( int nelem, const mbs_polycurved *bound );
+
+/* writing other objects */
+boolean bsf_WriteCamera ( CameraRecd *Camera, int ident );
 
 #ifdef __cplusplus
 }

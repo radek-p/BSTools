@@ -68,7 +68,7 @@ void GeomObjectReadBSplineMesh ( void *usrdata,
   BSMfacet       *fac;
   double         *vpc;
   int            *vhei, *fhei;
-  byte           *mkcp;
+  byte           *mkcp, *mkhe, *mkfac;
   int            cpdimen;
 
   if ( !bsm_CheckMeshIntegrity ( nv, mv, mvhei, nhe, mhe, nfac, mfac, mfhei ) )
@@ -84,7 +84,10 @@ void GeomObjectReadBSplineMesh ( void *usrdata,
     vhei = malloc ( nhe*sizeof(int) );
     fhei = malloc ( nhe*sizeof(int) );
     mkcp = malloc ( nv );
-    if ( !vert || !halfe || !fac || !vpc || !vhei || !fhei || !mkcp ) {
+    mkhe = malloc ( nhe );
+    mkfac = malloc ( nfac );
+    if ( !vert || !halfe || !fac || !vpc || !vhei || !fhei ||
+         !mkcp || !mkhe || !mkfac ) {
       if ( vert ) free ( vert );
       if ( halfe ) free ( halfe );
       if ( fac )  free ( fac );
@@ -92,12 +95,14 @@ void GeomObjectReadBSplineMesh ( void *usrdata,
       if ( vhei ) free ( vhei );
       if ( fhei ) free ( fhei );
       if ( mkcp ) free ( mkcp );
+      if ( mkhe ) free ( mkhe );
+      if ( mkfac ) free ( mkfac );
       GeomObjectDeleteBSplineMesh ( obj );
       return;
     }
     GeomObjectAssignBSplineMesh ( obj, spdimen, rational,
                       nv, vert, vhei, vpc, nhe, halfe,
-                      nfac, fac, fhei, mkcp );
+                      nfac, fac, fhei, mkcp, mkhe, mkfac );
     memcpy ( vert, mv, nv*sizeof(BSMvertex) );
     memcpy ( vhei, mvhei, nhe*sizeof(int) );
     GeomObjectSetupIniPoints ( spdimen, rational, &obj->me.cpdimen,

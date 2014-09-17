@@ -56,7 +56,7 @@ typedef struct {
     int         *meshfhei;
     int         savedsize;
     double      *savedcpoints;
-    byte        *mkcp;
+    byte        *mkcp, *mkhe, *mkfac;
     boolean     rational, subdivision;
     boolean     view_surf, view_cnet, view_special, view_holefill;
     boolean     integrity_ok;
@@ -85,12 +85,14 @@ void GeomObjectAssignBSplineMesh ( GO_BSplineMesh *obj,
                       int spdimen, boolean rational,
                       int nv, BSMvertex *mv, int *mvhei, double *mvpc,
                       int nhe, BSMhalfedge *mhe,
-                      int nfac, BSMfacet *mfac, int *mfhei, byte *mkcp );
+                      int nfac, BSMfacet *mfac, int *mfhei,
+                      byte *mkcp, byte *mkhe, byte *mkfac );
 boolean GeomObjectExtendBSplineMesh ( GO_BSplineMesh *obj,
                       int spdimen, boolean rational,
                       int nv, BSMvertex *mv, int *mvhei, double *mvpc,
                       int nhe, BSMhalfedge *mhe,
-                      int nfac, BSMfacet *mfac, int *mfhei, byte *mkcp );
+                      int nfac, BSMfacet *mfac, int *mfhei,
+                      byte *mkcp, byte *mkhe, byte *mkfac );
 boolean GeomObjectInitBSplineMesh ( GO_BSplineMesh *obj,
                                     char spdimen, boolean rational );
 geom_object *GeomObjectAddBSplineMesh ( const char *name,

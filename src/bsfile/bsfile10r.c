@@ -306,7 +306,6 @@ boolean _bsf_ReadCPMark ( bsf_UserReaders *readers, int maxnpoints )
     if ( readers->CPMarkReader )
       readers->CPMarkReader ( readers->userData, nmk, mk );
   }
-
   pkv_SetScratchMemTop ( sp );
   return true;
 
@@ -314,6 +313,58 @@ failure:
   pkv_SetScratchMemTop ( sp );
   return false;
 } /*_bsf_ReadCPMark*/
+
+boolean _bsf_ReadHEdgeMark ( bsf_UserReaders *readers, int maxnhe )
+{
+  void         *sp;
+  unsigned int *mk;
+  int          nmk;
+
+  sp = pkv_GetScratchMemTop ();
+  mk = (unsigned int*)pkv_GetScratchMemi ( maxnhe );
+  if ( !mk )
+    goto failure;
+  memset ( mk, 0, maxnhe*sizeof(int) );
+  nmk = bsf_ReadHEdgeMK ( maxnhe, mk );
+  if ( nmk <= 0 )
+    goto failure;
+  if ( readers ) {
+    if ( readers->HEdgeMarkReader )
+      readers->HEdgeMarkReader ( readers->userData, nmk, mk );
+  }
+  pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
+} /*_bsf_ReadHEdgeMark*/
+
+boolean _bsf_ReadFacetMark ( bsf_UserReaders *readers, int maxnfac )
+{
+  void         *sp;
+  unsigned int *mk;
+  int          nmk;
+
+  sp = pkv_GetScratchMemTop ();
+  mk = (unsigned int*)pkv_GetScratchMemi ( maxnfac );
+  if ( !mk )
+    goto failure;
+  memset ( mk, 0, maxnfac*sizeof(int) );
+  nmk = bsf_ReadFacetMK ( maxnfac, mk );
+  if ( nmk <= 0 )
+    goto failure;
+  if ( readers ) {
+    if ( readers->FacetMarkReader )
+      readers->FacetMarkReader ( readers->userData, nmk, mk );
+  }
+  pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
+} /*_bsf_ReadFacetMark*/
 
 boolean _bsf_ReadColour ( bsf_UserReaders *readers )
 {
@@ -478,6 +529,8 @@ void bsf_ClearReaders ( bsf_UserReaders *readers )
     readers->DepReader          = NULL;
     readers->TrimmedReader      = NULL;
     readers->CPMarkReader       = NULL;
+    readers->HEdgeMarkReader    = NULL;
+    readers->FacetMarkReader    = NULL;
     readers->CameraReader       = NULL;
     readers->ColourReader       = NULL;
     readers->userData           = NULL;
@@ -580,6 +633,18 @@ void bsf_CPMarkReadFunc ( bsf_UserReaders *readers,
 {
   readers->CPMarkReader = CPMarkReader;
 } /*bsf_CPMarkReadFunc*/
+
+void bsf_HalfedgeMarkReadFunc ( bsf_UserReaders *readers,
+                                bsf_HEMark_fptr HEdgeMarkReader )
+{
+  readers->HEdgeMarkReader = HEdgeMarkReader;
+} /*bsf_HEdgeMarkReadFunc*/
+
+void bsf_FacetMarkReadFunc ( bsf_UserReaders *readers,
+                             bsf_FacetMark_fptr FacetMarkReader )
+{
+  readers->FacetMarkReader = FacetMarkReader;
+} /*bsf_FacetMarkReadFunc*/
 
 void bsf_CameraReadFuncd ( bsf_UserReaders *readers,
                            bsf_Camera_fptr CameraReader )

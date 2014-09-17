@@ -3825,4 +3825,13 @@ Wersja 0.34.
 11.09.2014.
 892. Poprawiony blad w procedurze bsm_DivideFacetd.
 
+12.09.2014.
+893. Do formatu .bs dodana mozliwosc zapisywania i czytania oznaczen
+    polkrawedzi i scian siatki (dotychczas byly tylko wierzcholki siatki,
+    tj. punkty kontrolne).
+
+17.09.2014.
+894. Poprawiony blad (w procedurze czytania pliku .bs) w programie pozwalaj.
+
+
 

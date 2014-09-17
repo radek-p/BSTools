@@ -114,6 +114,8 @@ void GeomObjectEndReading ( void *usrdata, int obj_type, boolean success )
   byte  *mk;
   int   i, ncp;
 
+  if ( !last_go )
+    return;
   attrib = (rw_object_attributes*)usrdata;
   switch ( obj_type ) {
 case BSF_BEZIER_CURVE:
@@ -285,6 +287,8 @@ boolean GeomObjectWriteAttributes ( void *usrdata )
 
   sp = pkv_GetScratchMemTop ();
   go = (geom_object*)usrdata;
+  if ( !go )
+    goto failure;
         /* write the object's dependencies information and other */
         /* object-specific attributes */
   switch ( go->obj_type ) {

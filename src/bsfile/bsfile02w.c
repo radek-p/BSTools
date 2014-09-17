@@ -83,26 +83,41 @@ void bsf_WritePointsd ( int spdimen, int cols, int rows, int pitch,
   bsf_current_indentation = sci;
 } /*bsf_WritePointsd*/
 
-void bsf_WritePointsMK ( int npoints, const unsigned int *mk )
+static void _bsf_WriteMK ( int nmk, const unsigned int *mk, int key )
 {
   int i;
   int sci;
 
-  if ( mk && npoints > 0 ) {
+  if ( mk && nmk > 0 ) {
     sci = bsf_current_indentation;
     BSFwci
     bsf_current_indentation += 2;
     bsf_current_length +=
           fprintf ( bsf_output, "%s {",
-                    bsf_keyword[BSF_SYMB_CPOINTSMK-BSF_FIRST_KEYWORD] );
-    for ( i = 0; i < npoints-1; i++ ) {
+                    bsf_keyword[key-BSF_FIRST_KEYWORD] );
+    for ( i = 0; i < nmk-1; i++ ) {
       bsf_current_length += fprintf ( bsf_output, "%d,", mk[i] );
       BSFdol
       BSFwci
     }
-    bsf_current_length += fprintf ( bsf_output, "%d}", mk[npoints-1] );
+    bsf_current_length += fprintf ( bsf_output, "%d}", mk[nmk-1] );
     BSFeol
     bsf_current_indentation = sci;
   }
+} /*_bsf_WriteMK*/
+
+void bsf_WritePointsMK ( int npoints, const unsigned int *mk )
+{
+  _bsf_WriteMK ( npoints, mk, BSF_SYMB_CPOINTSMK );
 } /*bsf_WritePointsMK*/
+
+void bsf_WriteHEdgesMK ( int nhe, const unsigned int *hemk )
+{
+  _bsf_WriteMK ( nhe, hemk, BSF_SYMB_HALFEDGEMK );
+} /*bsf_WriteHEdgesMK*/
+
+void bsf_WriteFacetsMK ( int nfac, const unsigned int *fmk )
+{
+  _bsf_WriteMK ( nfac, fmk, BSF_SYMB_FACETMK );
+} /*bsf_WriteFacetsMK*/
 

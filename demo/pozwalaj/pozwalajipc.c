@@ -311,12 +311,12 @@ void AssignBSMeshData ( GO_BSplineMesh *obj, int size, char *buf )
   BSMfacet     *mfac, *_mfac;
   int          *mvhei, *mfhei, *_mvhei, *_mfhei;
   point3d      *mvpc, *_mvpc;
-  byte         *mkcp, *_mkcp;
+  byte         *mkcp, *_mkcp, *_mkhe, *_mkfac;
 
   msize = NULL;
   mv = NULL;  mhe = NULL;  mfac = NULL;  mvhei = mfhei = NULL;
   mvpc = NULL;
-  mkcp = NULL;
+  mkcp = _mkhe = _mkfac = NULL;
   nv = nhe = nfac = 0;
   do {
     ibuf = (int*)buf;
@@ -369,9 +369,15 @@ void AssignBSMeshData ( GO_BSplineMesh *obj, int size, char *buf )
       _mkcp = MallocCopy ( mkcp, nv );
     else
       _mkcp = MallocCopy ( obj->mkcp, nv );
-    if ( _mv && _mvhei && _mvpc && _mhe && _mfac && _mfhei && _mkcp ) {
+    _mkhe = malloc ( nhe );
+    _mkfac = malloc ( nfac );
+    if ( _mv && _mvhei && _mvpc && _mhe && _mfac && _mfhei &&
+         _mkcp && _mkhe && _mkfac ) {
+      memset ( _mkhe, 0, nhe );
+      memset ( _mkfac, 0, nfac );
       GeomObjectAssignBSplineMesh ( obj, 3, false, nv, _mv, _mvhei, (double*)_mvpc,
-                                    nhe, _mhe, nfac, _mfac, _mfhei, _mkcp );
+                                    nhe, _mhe, nfac, _mfac, _mfhei,
+                                    _mkcp, _mkhe, _mkfac );
       if ( bsm_sw_log_it ) {
         if ( bsf_OpenOutputFile ( logfilename, true ) ) {
           GeomObjectWriteObj ( (geom_object*)obj );
@@ -387,6 +393,8 @@ void AssignBSMeshData ( GO_BSplineMesh *obj, int size, char *buf )
       if ( _mfac ) free ( _mfac );
       if ( _mfhei ) free ( _mfhei );
       if ( _mkcp ) free ( _mkcp );
+      if ( _mkhe ) free ( _mkhe );
+      if ( _mkfac ) free ( _mkfac );
     }
   }
 } /*AssignBSMeshData*/

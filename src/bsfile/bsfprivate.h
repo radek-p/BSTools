@@ -44,26 +44,28 @@
 #define BSF_SYMB_DEPTH             24
 #define BSF_SYMB_DIM               25
 #define BSF_SYMB_DOMAIN            26
-#define BSF_SYMB_FACETS            27
-#define BSF_SYMB_FRAME             28
-#define BSF_SYMB_HALFEDGES         29
-#define BSF_SYMB_IDENT             30
-#define BSF_SYMB_KNOTS             31
-#define BSF_SYMB_KNOTS_U           32
-#define BSF_SYMB_KNOTS_V           33
-#define BSF_SYMB_NAME              34
-#define BSF_SYMB_PARALLEL          35
-#define BSF_SYMB_PERSPECTIVE       36
-#define BSF_SYMB_POINTS            37
-#define BSF_SYMB_POLYLINE          38
-#define BSF_SYMB_POSITION          39
-#define BSF_SYMB_RATIONAL          40
-#define BSF_SYMB_SIDES             41
-#define BSF_SYMB_SPHERICAL_PRODUCT 42
-#define BSF_SYMB_TRIMMED           43
-#define BSF_SYMB_UNIFORM           44
-#define BSF_SYMB_VERTICES          45
-#define BSF_LAST_KEYWORD           46  /* number of the last keyword */
+#define BSF_SYMB_FACETMK           27
+#define BSF_SYMB_FACETS            28
+#define BSF_SYMB_FRAME             29
+#define BSF_SYMB_HALFEDGEMK        30
+#define BSF_SYMB_HALFEDGES         31
+#define BSF_SYMB_IDENT             32
+#define BSF_SYMB_KNOTS             33
+#define BSF_SYMB_KNOTS_U           34
+#define BSF_SYMB_KNOTS_V           35
+#define BSF_SYMB_NAME              36
+#define BSF_SYMB_PARALLEL          37
+#define BSF_SYMB_PERSPECTIVE       38
+#define BSF_SYMB_POINTS            39
+#define BSF_SYMB_POLYLINE          40
+#define BSF_SYMB_POSITION          41
+#define BSF_SYMB_RATIONAL          42
+#define BSF_SYMB_SIDES             43
+#define BSF_SYMB_SPHERICAL_PRODUCT 44
+#define BSF_SYMB_TRIMMED           45
+#define BSF_SYMB_UNIFORM           46
+#define BSF_SYMB_VERTICES          47
+#define BSF_LAST_KEYWORD           48  /* number of the last keyword */
 
 /* namely, this table */
 #define BSF_NKEYWORDS (BSF_LAST_KEYWORD-BSF_FIRST_KEYWORD+1)
@@ -95,6 +97,8 @@ boolean bsf_ReadIdent ( int *ident );
 int bsf_ReadPointsd ( int maxcpdimen, int maxnpoints,
                       double *points, int *cpdimen );
 int bsf_ReadPointsMK ( int maxnpoints, unsigned int *mk );
+int bsf_ReadHEdgeMK ( int maxnhe, unsigned int *hemk );
+int bsf_ReadFacetMK ( int maxnfac, unsigned int *fmk );
 
 boolean bsf_ReadSpaceDim ( int maxdim, int *spdimen );
 boolean bsf_ReadCurveDegree ( int maxdeg, int *degree );
@@ -104,6 +108,8 @@ boolean bsf_ReadKnotSequenced ( int maxlastknot, int *lastknot, double *knots,
                                 boolean *closed );
 
 boolean _bsf_ReadCPMark ( bsf_UserReaders *readers, int maxnpoints );
+boolean _bsf_ReadHEdgeMark ( bsf_UserReaders *readers, int maxnhe );
+boolean _bsf_ReadFacetMark ( bsf_UserReaders *readers, int maxnfac );
 boolean _bsf_ReadColour ( bsf_UserReaders *readers );
 
 /* ////////////////////////////////////////////////////////////////////////// */

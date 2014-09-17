@@ -260,6 +260,16 @@ case BSF_SYMB_CPOINTSMK:
         goto failure;
       break;
 
+case BSF_SYMB_HALFEDGEMK:
+      if ( !_bsf_ReadHEdgeMark ( readers, maxnhe ) )
+        goto failure;
+      break;
+
+case BSF_SYMB_FACETMK:
+      if ( !_bsf_ReadFacetMark ( readers, maxnfac ) )
+        goto failure;
+      break;
+
 case BSF_SYMB_COLOR:
 case BSF_SYMB_COLOUR:
       if ( !_bsf_ReadColour ( readers ) )
