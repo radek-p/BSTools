@@ -62,18 +62,21 @@ void GeomObjectReadBSplineMesh ( void *usrdata,
                     int nfac, const BSMfacet *mfac, const int *mfhei,
                     int spdimen, boolean rational )
 {
-  GO_BSplineMesh *obj;
-  BSMvertex      *vert;
-  BSMhalfedge    *halfe;
-  BSMfacet       *fac;
-  double         *vpc;
-  int            *vhei, *fhei;
-  byte           *mkcp, *mkhe, *mkfac;
-  int            cpdimen;
+  GO_BSplineMesh       *obj;
+  BSMvertex            *vert;
+  BSMhalfedge          *halfe;
+  BSMfacet             *fac;
+  double               *vpc;
+  int                  *vhei, *fhei;
+  byte                 *mkcp, *mkhe, *mkfac;
+  int                  cpdimen;
+  rw_object_attributes *attrib;
 
   if ( !bsm_CheckMeshIntegrity ( nv, mv, mvhei, nhe, mhe, nfac, mfac, mfhei ) )
     return;
   obj = (GO_BSplineMesh*)GeomObjectAddBSplineMesh ( name, spdimen, rational );
+  attrib = (rw_object_attributes*)usrdata;
+  attrib->go_being_read = (geom_object*)obj;
   if ( obj ) {
     obj->me.ident = ident;
     cpdimen = obj->me.cpdimen;

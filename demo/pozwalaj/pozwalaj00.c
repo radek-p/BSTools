@@ -67,10 +67,11 @@ xge_3Dwind    g00win3D;
 xge_widget    *geom00win3D = NULL;
 
 boolean       markbits[5] = {true,false,false,false,false},
-              swwin0mark = false, swwin0translate = false, swwin0scale = false,
-              swwin0rotate = false, swwin0shear = false, swwin0panzoom = false,
-              swwin0coordinates = false,
-              sw_bsm_selectvertex, sw_bsm_selectedge;
+              swwin0mark = false, swwin0markedg = false,
+              swwin0translate = false, swwin0scale = false,
+              swwin0rotate = false, swwin0shear = false,
+              swwin0panzoom = false, swwin0coordinates = false,
+              sw_bsm_selectvertex = false, sw_bsm_selectedge = false;
 
 xge_widget    *win0statl = NULL, *win0cmdl = NULL;
 boolean       win0statusline = false, win0commandline = false;

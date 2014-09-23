@@ -29,6 +29,7 @@
 #include "xgledit.h"
 
 #include "editor.h"
+#include "edcolours.h"
 #include "editor_bsp.h"
 
 
@@ -42,7 +43,7 @@ void GeomObjectDrawBSplinePatch ( GO_BSplinePatch *obj )
     glCallList ( obj->me.displaylist );
   else {
     glNewList ( obj->me.displaylist, GL_COMPILE_AND_EXECUTE );
-    glColor3fv ( xglec_Grey1 );
+    glColor3fv ( OBJC_BSP_PATCH_CPLINES );
     pitch = obj->me.cpdimen*(obj->lastknot_v-obj->degree_v);
     DrawBSplinePatchWF ( obj->me.cpdimen, obj->me.spdimen,
                          obj->degree_u, obj->lastknot_u, obj->knots_u,
@@ -64,7 +65,7 @@ void GeomObjectDrawBSplinePNet ( GO_BSplinePatch *obj )
     glCallList ( obj->me.displaylist+1 );
   else {
     glNewList ( obj->me.displaylist+1, GL_COMPILE_AND_EXECUTE );
-    glColor3fv ( xglec_Green );
+    glColor3fv ( OBJC_BSP_CNET );
     DrawARectNet ( obj->me.cpdimen, obj->me.spdimen,
                    obj->lastknot_u-obj->degree_u,
                    obj->lastknot_v-obj->degree_v,
@@ -74,19 +75,19 @@ void GeomObjectDrawBSplinePNet ( GO_BSplinePatch *obj )
     switch ( obj->bsp_type ) {
   case BSP_TYPE_BLENDING_G1:
   case BSP_TYPE_BLENDING_G2:
-      glColor3fv ( xglec_Yellow );
+      glColor3fv ( OBJC_BSP_CP_UNMARKED );
       DrawCPoints ( obj->me.cpdimen, obj->me.spdimen, ncp, obj->cpoints,
                     obj->mkcp, 0, MASK_CP_MOVEABLE | MASK_CP_BOUNDARY );
-      glColor3fv ( xglec_OrangeRed );
+      glColor3fv ( OBJC_BSP_CP_MARKED );
       DrawCPoints ( obj->me.cpdimen, obj->me.spdimen, ncp, obj->cpoints,
                     obj->mkcp, marking_mask,
                     MASK_MARKED | MASK_CP_MOVEABLE | MASK_CP_BOUNDARY );
       break;
   default:
-      glColor3fv ( xglec_Yellow );
+      glColor3fv ( OBJC_BSP_CP_UNMARKED );
       DrawCPoints ( obj->me.cpdimen, obj->me.spdimen, ncp, obj->cpoints,
                     obj->mkcp, 0, MASK_CP_MOVEABLE );
-      glColor3fv ( xglec_OrangeRed );
+      glColor3fv ( OBJC_BSP_CP_MARKED );
       DrawCPoints ( obj->me.cpdimen, obj->me.spdimen, ncp, obj->cpoints,
                     obj->mkcp, marking_mask, MASK_MARKED | MASK_CP_MOVEABLE );
       break;

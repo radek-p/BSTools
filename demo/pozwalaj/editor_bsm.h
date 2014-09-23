@@ -162,6 +162,7 @@ boolean GeomObjectBSplineMeshSplitBoundaryEdge ( GO_BSplineMesh *obj );
 boolean GeomObjectBSplineMeshRemoveCurrentFacet ( GO_BSplineMesh *obj );
 boolean GeomObjectBSplineMeshDoubleCurrentFacEdges ( GO_BSplineMesh *obj );
 boolean GeomObjectBSplineMeshDivideFacet ( GO_BSplineMesh *obj );
+boolean GeomObjectBSplineMeshDoubleEdgeLoop ( GO_BSplineMesh *obj );
 
 boolean GeomObjectBSplineMeshInitTetrahedron ( GO_BSplineMesh *obj, boolean add );
 boolean GeomObjectBSplineMeshInitCube ( GO_BSplineMesh *obj, boolean add );
@@ -207,6 +208,8 @@ void GeomObjectBSplineMeshUnselectEdge ( GO_BSplineMesh *obj );
 
 boolean GeomObjectBSplineMeshMarkBetweenVertices ( GO_BSplineMesh *obj,
                                                    boolean mark );
+boolean GeomObjectBSplineMeshMarkHalfedgesBetweenVertices ( GO_BSplineMesh *obj,
+                                                            boolean mark );
 boolean GeomObjectBSplineMeshFilterPolyline ( GO_BSplineMesh *obj );
 
 void GeomObjectBSplineMeshDisplayInfoText ( GO_BSplineMesh *obj );

@@ -30,6 +30,7 @@
 
 #include "render.h"
 #include "editor.h"
+#include "edcolours.h"
 #include "editor_bezc.h"
 
 
@@ -185,7 +186,7 @@ void GeomObjectDrawBezierCurve ( GO_BezierCurve *obj )
     glCallList ( obj->me.displaylist+1 );
   else {
     glNewList ( obj->me.displaylist+1, GL_COMPILE_AND_EXECUTE );
-    glColor3fv ( xglec_White );
+    glColor3fv ( OBJC_BEZC_CURVE );
     if ( obj->degree == 1 )
       DrawAPolyline ( obj->me.cpdimen, obj->me.spdimen, 2, obj->cpoints );
     else
@@ -207,24 +208,24 @@ void GeomObjectDrawBezierCPoly ( GO_BezierCurve *obj )
   else {
     ncp = obj->degree+1;
     glNewList ( obj->me.displaylist, GL_COMPILE_AND_EXECUTE );
-    glColor3fv ( xglec_Green );
+    glColor3fv ( OBJC_BEZC_CPOLY0 );
     if ( obj->rational && obj->weightpoints ) {
       DrawLineSegments ( obj->me.cpdimen, obj->me.spdimen, ncp-1,
                          obj->cpoints, obj->weightpoints );
-      glColor3fv ( xglec_Green4 );
+      glColor3fv ( OBJC_BEZC_CPOLY1 );
       DrawLineSegments ( obj->me.cpdimen, obj->me.spdimen, ncp-1,
                          obj->weightpoints, &obj->cpoints[(int)obj->me.cpdimen] );
     }
     else
       DrawAPolyline ( obj->me.cpdimen, obj->me.spdimen, ncp, obj->cpoints );
-    glColor3fv ( xglec_Yellow );
+    glColor3fv ( OBJC_BEZC_CP_UNMARKED );
     DrawCPoints ( obj->me.cpdimen, obj->me.spdimen, ncp, obj->cpoints,
                   obj->mkcp, 0, MASK_CP_MOVEABLE );
-    glColor3fv ( xglec_OrangeRed );
+    glColor3fv ( OBJC_BEZC_CP_MARKED );
     DrawCPoints ( obj->me.cpdimen, obj->me.spdimen, ncp, obj->cpoints,
                   obj->mkcp, marking_mask, MASK_MARKED | MASK_CP_MOVEABLE );
     if ( obj->rational ) {
-      glColor3fv ( xglec_DarkOliveGreen2 );
+      glColor3fv ( OBJC_BEZC_CP_WEIGHT );
       DrawPoints ( obj->me.cpdimen, obj->me.spdimen, ncp-1, obj->weightpoints );
     }
     glEndList ();
@@ -252,7 +253,7 @@ void GeomObjectDrawBezierCurvature ( GO_BezierCurve *obj )
     dens = obj->graph_dens;
     scf = xge_LogSlidebarValued ( 0.01, 100.0, obj->curvature_scale );
     glNewList ( obj->me.displaylist+2, GL_COMPILE_AND_EXECUTE );
-    glColor3fv ( xglec_CornflowerBlue );
+    glColor3fv ( OBJC_BEZC_CURVATURE );
     glBegin ( GL_LINES );
     switch ( obj->me.spdimen ) {
   case 2:
@@ -322,7 +323,7 @@ void GeomObjectDrawBezierTorsion ( GO_BezierCurve *obj )
     dens = obj->graph_dens;
     scf = xge_LogSlidebarValued ( 0.01, 100.0, obj->torsion_scale );
     glNewList ( obj->me.displaylist+3, GL_COMPILE_AND_EXECUTE );
-    glColor3fv ( xglec_SpringGreen2 );
+    glColor3fv ( OBJC_BEZC_TORSION );
     glBegin ( GL_LINES );
     switch ( obj->me.spdimen ) {
   case 3:
@@ -618,12 +619,15 @@ void GeomObjectReadBezierCurve ( void *usrdata,
                                  const point4d *cpoints, int spdimen,
                                  boolean rational )
 {
-  GO_BezierCurve *obj;
-  double         *cp, *wcp;
-  byte           *mkcp;
-  int            ncp, cpdimen;
+  GO_BezierCurve       *obj;
+  double               *cp, *wcp;
+  byte                 *mkcp;
+  int                  ncp, cpdimen;
+  rw_object_attributes *attrib;
 
   obj = (GO_BezierCurve*)GeomObjectAddBezierCurve ( name, spdimen, rational );
+  attrib = (rw_object_attributes*)usrdata;
+  attrib->go_being_read = (geom_object*)obj;
   if ( obj ) {
     obj->me.ident = ident;
     ncp = degree+1;

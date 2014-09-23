@@ -3833,5 +3833,15 @@ Wersja 0.34.
 17.09.2014.
 894. Poprawiony blad (w procedurze czytania pliku .bs) w programie pozwalaj.
 
+895. Nowa procedura w libpsout, psl_BkMapsTo.
 
+896. Poprawiona literowka w nazwie stalej symbolicznej w eg1holef.h,
+    eg1holed.h, eg2holef.h, eg2holed.h
+
+22.09.2014.
+897. Zmiany w programie pozwalaj: mozliwosc zaznaczania polkrawedzi.
+
+898. Do libbsfile dodana procedura podwajania polkrawedzi tworzacych
+    zamknieta petle (autor: Anna Sierhej). Procedura jeszcze wymaga
+    uruchomienia.
 

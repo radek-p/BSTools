@@ -53,7 +53,8 @@ extern xge_3Dwind     g00win3D;
 extern xge_widget     *geom00win3D;
 
 extern boolean        markbits[5],
-                      swwin0mark, swwin0translate, swwin0scale, swwin0rotate,
+                      swwin0mark, swwin0markedg, swwin0translate,
+                      swwin0scale, swwin0rotate,
                       swwin0shear, swwin0panzoom, swwin0coordinates,
                       sw_bsm_selectvertex, sw_bsm_selectedge;
 

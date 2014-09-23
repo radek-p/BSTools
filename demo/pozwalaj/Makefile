@@ -50,9 +50,10 @@ OBJECTS = pozwalaj00.o pozwalaj01.o pozwalaj02.o statustext.o \
 
 INCL = $(SRCDIR)/pozwalaj.h $(SRCDIR)/pozwalaj0.h
 
-EDINC = $(SRCDIR)/editor.h $(SRCDIR)/editor_bezc.h $(SRCDIR)/editor_bsc.h \
-  $(SRCDIR)/editor_bezp.h $(SRCDIR)/editor_bsp.h $(SRCDIR)/editor_bsm.h \
-  $(SRCDIR)/editor_bsh.h $(SRCDIR)/arrowbtn.h
+EDINC = $(SRCDIR)/editor.h $(SRCDIR)/edcolours.h \
+  $(SRCDIR)/editor_bezc.h $(SRCDIR)/editor_bsc.h $(SRCDIR)/editor_bezp.h \
+  $(SRCDIR)/editor_bsp.h $(SRCDIR)/editor_bsm.h $(SRCDIR)/editor_bsh.h \
+  $(SRCDIR)/arrowbtn.h
 
 PROC_OBJECTS = pozwalaj_proc00.o pozwalaj_proc01.o pozwalaj_proc02.o \
    pozwalaj_proc03.o pozwalaj_proc04.o pozwalaj_proc05.o pozwalaj_proc06.o \

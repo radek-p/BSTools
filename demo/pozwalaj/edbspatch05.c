@@ -94,12 +94,15 @@ void GeomObjectReadBSplinePatch ( void *usrdata,
                  int pitch, const point4d *cpoints,
                  int spdimen, boolean rational )
 {
-  GO_BSplinePatch *obj;
-  double          *cp, *knu, *knv;
-  byte            *mkcp;
-  int             ncp, cpdimen;
+  GO_BSplinePatch      *obj;
+  double               *cp, *knu, *knv;
+  byte                 *mkcp;
+  int                  ncp, cpdimen;
+  rw_object_attributes *attrib;
 
   obj = (GO_BSplinePatch*)GeomObjectAddBSplinePatch ( name, spdimen, rational );
+  attrib = (rw_object_attributes*)usrdata;
+  attrib->go_being_read = (geom_object*)obj;
   if ( obj ) {
     obj->me.ident = ident;
     ncp = (lastknotu-degreeu)*(lastknotv-degreev);

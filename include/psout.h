@@ -118,6 +118,7 @@ void psl_BkArrow ( float t, boolean sgn );
 void psl_Draw ( float ta, float tb, float w );
 void psl_ADraw ( float ta, float tb, float ea, float eb, float w );
 void psl_MapsTo ( float t );
+void psl_BkMapsTo ( float t );
 void psl_DrawEye ( float t, byte cc, float mag, float ang );
 
 #ifdef __cplusplus

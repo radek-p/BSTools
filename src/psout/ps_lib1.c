@@ -180,7 +180,7 @@ void psl_ADraw ( float ta, float tb, float ea, float eb, float w )
   ps_Draw_Line( x1, y1, x2, y2 );
 }  /*psl_ADraw*/
 
-void psl_MapsTo ( float t )
+static void _psl_MapsToPath ( float t )
 {
 #define MAG 0.85
   float x, y, x1, y1, x2, y2, x3, y3;
@@ -226,10 +226,22 @@ void psl_MapsTo ( float t )
   psl_GoPerp ( (float)(5.6*MAG), &x3, &y3 );
   sprintf ( s, "%6.2f %6.2f %6.2f %6.2f %6.2f %6.2f curveto", x1, y1, x2, y2, x3, y3 );
   ps_Write_Command ( s );
+} /*_psl_MapsToPath*/
+
+void psl_MapsTo ( float t )
+{
+  _psl_MapsToPath ( t );
   ps_Write_Command ( "closepath fill" );
 } /*psl_MapsTo*/
 
-#define mx              (float)1.4
+void psl_BkMapsTo ( float t )
+{
+  _psl_MapsToPath ( t );
+  ps_Set_Line_Width ( 4.0 );
+  ps_Write_Command ( "closepath stroke" );
+} /*psl_BkMapsTo*/
+
+#define mx (float)1.4
 
 static void SetupTrans(trans2f *tr, float mag, float ang, float t, byte cc)
 {

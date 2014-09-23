@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -40,7 +40,7 @@ extern "C" {
 #define G1H_CENTRAL_POINT_GIVEN        2
 
 #define G1HQUERY_CENTRAL_DERIVATIVES1  2
-#define G1H_CENRTAL_DERIVATIVES1_ALT   1
+#define G1H_CENTRAL_DERIVATIVES1_ALT   1
 #define G1H_CENTRAL_DERIVATIVES1_GIVEN 2
 
 #define G1HQUERY_DOMAIN_CURVES         3

@@ -1054,3 +1054,128 @@ failure:
   return false;
 } /*GeomObjectBSplineMeshDivideFacet*/
 
+boolean GeomObjectBSplineMeshDoubleEdgeLoop ( GO_BSplineMesh *obj )
+{
+  void        *sp;
+  int         inv, inhe, infac, onv, onhe, onfac;
+  int         *loop, loop_length;
+  boolean     *mkv;
+  byte        *imkhe, *omkcp, *omkhe, *omkfac;
+  int         i, v0, v1, vd, vfhe, he;
+  BSMvertex   *imv, *omv;
+  BSMhalfedge *imhe, *omhe;
+  BSMfacet    *omfac;
+  int         *imvhei, *omvhei, *omfhei;
+  double      *omvpc;
+
+  if ( obj->me.obj_type != GO_BSPLINE_MESH )
+    return false;
+
+  sp = pkv_GetScratchMemTop ();
+  omv = NULL;  omhe = NULL;  omfac = NULL;  omvhei = omfhei = NULL;
+  omvpc = NULL;  omkcp = NULL;  omkhe = NULL;  omkfac = NULL;
+
+  inv = obj->nv;
+  inhe = obj->nhe;
+  infac = obj->nfac;
+  loop = pkv_GetScratchMemi ( inhe );
+  mkv = pkv_GetScratchMem ( inv*sizeof(boolean) );
+  if ( !loop || !mkv )
+    goto failure;
+
+        /* find the halfedge loop, if there is one */
+  imv = obj->meshv;
+  imvhei = obj->meshvhei;
+  imhe = obj->meshhe;
+  imkhe = obj->mkhe;
+  memset ( mkv, false, inv*sizeof(boolean) );
+  loop_length = 0;
+  for ( i = 0; i < inhe; i++ )
+    if ( imkhe[i] & marking_mask ) {
+      loop[0] = i;
+      loop_length = 1;
+      break;
+    }
+  if ( loop_length == 0 )
+    goto failure;
+  v0 = imhe[loop[0]].v0;
+  mkv[v0] = true;
+  v1 = imhe[loop[0]].v1;
+  do {
+    mkv[v1] = true;
+    vd = imv[v1].degree;
+    vfhe = imv[v1].firsthalfedge;
+    for ( i = 0; i < vd; i++ ) {
+      he = imvhei[vfhe+i];
+      if ( imkhe[he] & marking_mask ) {
+        loop[loop_length++] = he;
+        v1 = imhe[he].v1;
+        if ( mkv[v1] && v1 != v0 )
+          goto failure;
+        break;
+      }
+    }
+    if ( i >= vd )
+      goto failure;
+  } while ( v1 != v0 );
+  if ( loop_length < 3 )
+    goto failure;
+/*
+printf ( "halfedge loop: " );
+for ( i = 0; i < loop_length; i++ )
+  printf ( "%d ", loop[i] );
+printf ( "\n" );
+*/
+        /* allocate the memory and call the loop doubling procedure */
+  bsm_EdgeLoopDoublingNum ( inv, inhe, infac, loop_length, &onv, &onhe, &onfac );
+  omv = malloc ( onv*sizeof(BSMvertex) );
+  omhe = malloc ( onhe*sizeof(BSMhalfedge) );
+  omfac = malloc ( onfac*sizeof(BSMfacet) );
+  omvhei = malloc ( onhe*sizeof(int) );
+  omfhei = malloc ( onhe*sizeof(int) );
+  omvpc = malloc ( obj->me.cpdimen*onv*sizeof(double) );
+  omkcp = malloc ( onv );
+  omkhe = malloc ( onhe );
+  omkfac = malloc ( onfac );
+  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc ||
+       !omkcp || !omkhe || !omkfac )
+    goto failure;
+  if ( !bsm_EdgeLoopDoublingd ( obj->me.cpdimen,
+                                inv, imv, imvhei, obj->meshvpc,
+                                inhe, imhe, infac, obj->meshfac, obj->meshfhei,
+                                loop_length, loop,
+                                &onv, omv, omvhei, omvpc,
+                                &onhe, omhe, &onfac, omfac, omfhei ) )
+    goto failure;
+
+  obj->integrity_ok = bsm_CheckMeshIntegrity ( onv, omv, omvhei, onhe, omhe,
+                                 onfac, omfac, omfhei );
+  if ( !obj->integrity_ok )
+    goto failure;
+  memset ( omkcp, MASK_CP_MOVEABLE, onv );
+  memset ( omkhe, 0, onhe );
+  memset ( omkfac, 0, onfac );
+  GeomObjectAssignBSplineMesh ( obj, obj->me.spdimen, obj->rational,
+                                onv, omv, omvhei, omvpc, onhe, omhe,
+                                onfac, omfac, omfhei, omkcp, omkhe, omkfac );
+  obj->me.dlistmask = 0;
+  obj->spvlist_ok = false;
+  obj->special_patches_ok = false;
+
+  pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  if ( omv ) free ( omv );
+  if ( omhe ) free ( omhe );
+  if ( omfac ) free ( omfac );
+  if ( omvhei ) free ( omvhei );
+  if ( omfhei ) free ( omfhei );
+  if ( omvpc ) free ( omvpc );
+  if ( omkcp ) free ( omkcp );
+  if ( omkhe ) free ( omkhe );
+  if ( omkfac ) free ( omkfac );
+  pkv_SetScratchMemTop ( sp );
+  return false;
+} /*GeomObjectBSplineMeshDoubleEdgeLoop*/
+

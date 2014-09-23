@@ -29,6 +29,7 @@
 #include "xgledit.h"
 
 #include "editor.h"
+#include "edcolours.h"
 #include "editor_bsm.h"
 
 /*#define DUMPIT*/
@@ -73,12 +74,12 @@ void GeomObjectDrawBSplineSubdivMesh ( GO_BSplineMesh *obj )
     free ( mfhei1 );  mfhei1 = mfhei2;
     nv1 = nv2;  nhe1 = nhe2;  nfac1 = nfac2;
   }
-  glColor3fv ( xglec_White );
+  glColor3fv ( OBJC_MESH_SURF_BOUNDARY );
   GeomObjectDrawMeshEdges ( obj->me.cpdimen, obj->me.spdimen,
                             nv1, mv1, mvpc1, mvhei1,
                             nhe1, mhe1, nfac1, mfac1, mfhei1,
                             MASK_HE_BOUNDARY );
-  glColor3fv ( xglec_Grey1 );
+  glColor3fv ( OBJC_MESH_SURF_INNER );
   GeomObjectDrawMeshEdges ( obj->me.cpdimen, obj->me.spdimen,
                             nv1, mv1, mvpc1, mvhei1,
                             nhe1, mhe1, nfac1, mfac1, mfhei1,
@@ -120,11 +121,11 @@ void GeomObjectDrawMeshPatch ( int d, int *vertnum, int *mtab, void *usrptr )
     pitch = d*dim;
     mbs_BSPatchToBezd ( dim, degree, lkn, knu, degree, lkn, knv,
                         pitch, cp, &ku, NULL, NULL, &kv, NULL, NULL, pitch, bp );
-    glColor3fv ( xglec_White );
+    glColor3fv ( OBJC_MESH_SURF_BOUNDARY );
     DrawBezierPatchWF ( dim, obj->me.spdimen, degree, degree, pitch, bp,
                         1, 1, 8*obj->density, 8*obj->density,
                         true, true, true, true );
-    glColor3fv ( xglec_Grey1 );
+    glColor3fv ( OBJC_MESH_SURF_INNER );
     DrawBezierPatchWF ( dim, obj->me.spdimen, degree, degree, pitch, bp,
                         obj->density, obj->density, 8*obj->density, 8*obj->density,
                         false, false, false, false );
@@ -157,17 +158,17 @@ void GeomObjectBSplineMeshOutputBezierPatch ( int n, int m, const double *cp,
   obj = (GO_BSplineMesh*)usrptr;
   if ( obj->me.obj_type != GO_BSPLINE_MESH )
     return;
-  glColor3fv ( xglec_White );
+  glColor3fv ( OBJC_MESH_SURF_BOUNDARY );
   DrawBezierPatchWF ( obj->me.cpdimen, obj->me.spdimen, n, m,
                       (n+1)*obj->me.cpdimen, cp,
                       1, 1, 8*obj->density, 8*obj->density,
                       true, true, true, true );
   if ( obj->fill_G1 )
-    glColor3fv ( xglec_Wheat2 );
+    glColor3fv ( OBJC_MESH_SURF_G1 );
   else if ( obj->fill_G2 )
-    glColor3fv ( xglec_LightSkyBlue1 );
+    glColor3fv ( OBJC_MESH_SURF_G2 );
   else
-    glColor3fv ( xglec_Thistle2 );
+    glColor3fv ( OBJC_MESH_SURF_G1Q2 );
   DrawBezierPatchWF ( obj->me.cpdimen, obj->me.spdimen, n, m,
                       (n+1)*obj->me.cpdimen, cp,
                       obj->density, obj->density, 8*obj->density, 8*obj->density,
@@ -278,41 +279,81 @@ void GeomObjectDrawBSplineMNet ( GO_BSplineMesh *obj )
     glCallList ( obj->me.displaylist+BSM_DL_CNET );
   else {
     glNewList ( obj->me.displaylist+BSM_DL_CNET, GL_COMPILE_AND_EXECUTE );
-    glColor3fv ( xglec_GreenYellow );
-    GeomObjectDrawMeshEdges ( obj->me.cpdimen, obj->me.spdimen,
-                              obj->nv, obj->meshv, obj->meshvpc, obj->meshvhei,
-                              obj->nhe, obj->meshhe,
-                              obj->nfac, obj->meshfac, obj->meshfhei,
-                              MASK_HE_BOUNDARY );
-    glColor3fv ( xglec_Green3 );
-    GeomObjectDrawMeshEdges ( obj->me.cpdimen, obj->me.spdimen,
-                              obj->nv, obj->meshv, obj->meshvpc, obj->meshvhei,
-                              obj->nhe, obj->meshhe,
-                              obj->nfac, obj->meshfac, obj->meshfhei,
-                              MASK_HE_INNER );
+    if ( !obj->mkhe || !marking_mask ) {
+      glColor3fv ( OBJC_MESH_EDGE_BOUNDARY );
+      GeomObjectDrawMeshEdges ( obj->me.cpdimen, obj->me.spdimen,
+                                obj->nv, obj->meshv, obj->meshvpc, obj->meshvhei,
+                                obj->nhe, obj->meshhe,
+                                obj->nfac, obj->meshfac, obj->meshfhei,
+                                MASK_HE_BOUNDARY );
+      glColor3fv ( OBJC_MESH_EDGE_INNER );
+      GeomObjectDrawMeshEdges ( obj->me.cpdimen, obj->me.spdimen,
+                                obj->nv, obj->meshv, obj->meshvpc, obj->meshvhei,
+                                obj->nhe, obj->meshhe,
+                                obj->nfac, obj->meshfac, obj->meshfhei,
+                                MASK_HE_INNER );
+    }
+    else {
+      glColor3fv ( OBJC_MESH_EDGE_BOUNDARY );
+      GeomObjectDrawMeshHalfedges ( obj->me.cpdimen, obj->me.spdimen,
+                                obj->nv, obj->meshv, obj->meshvpc, obj->meshvhei,
+                                obj->nhe, obj->meshhe,
+                                obj->nfac, obj->meshfac, obj->meshfhei,
+                                MASK_HE_BOUNDARY,
+                                obj->mkhe, marking_mask, true, true, true );
+      GeomObjectDrawMeshHalfedges ( obj->me.cpdimen, obj->me.spdimen,
+                                obj->nv, obj->meshv, obj->meshvpc, obj->meshvhei,
+                                obj->nhe, obj->meshhe,
+                                obj->nfac, obj->meshfac, obj->meshfhei,
+                                MASK_HE_BOUNDARY,
+                                obj->mkhe, marking_mask, false, true, false );
+      glLineWidth ( 2.0 );
+      glColor3fv ( OBJC_MESH_EDGE_MKBOUNDARY );
+      GeomObjectDrawMeshHalfedges ( obj->me.cpdimen, obj->me.spdimen,
+                                obj->nv, obj->meshv, obj->meshvpc, obj->meshvhei,
+                                obj->nhe, obj->meshhe,
+                                obj->nfac, obj->meshfac, obj->meshfhei,
+                                MASK_HE_BOUNDARY,
+                                obj->mkhe, marking_mask, false, false, true );
+      glColor3fv ( OBJC_MESH_EDGE_MKINNER );
+      GeomObjectDrawMeshHalfedges ( obj->me.cpdimen, obj->me.spdimen,
+                                obj->nv, obj->meshv, obj->meshvpc, obj->meshvhei,
+                                obj->nhe, obj->meshhe,
+                                obj->nfac, obj->meshfac, obj->meshfhei,
+                                MASK_HE_INNER,
+                                obj->mkhe, marking_mask, false, false, true );
+      glLineWidth ( 1.0 );
+      glColor3fv ( OBJC_MESH_EDGE_INNER );
+      GeomObjectDrawMeshHalfedges ( obj->me.cpdimen, obj->me.spdimen,
+                                obj->nv, obj->meshv, obj->meshvpc, obj->meshvhei,
+                                obj->nhe, obj->meshhe,
+                                obj->nfac, obj->meshfac, obj->meshfhei,
+                                MASK_HE_INNER,
+                                obj->mkhe, marking_mask, true, false, true );
+    }
     if ( obj->blending ) {
-      glColor3fv ( xglec_OrangeRed );
+      glColor3fv ( OBJC_MESH_VERTEX_MARKED );
       DrawCPoints ( obj->me.cpdimen, obj->me.spdimen, obj->nv, obj->meshvpc,
                     obj->mkcp, marking_mask,
                     MASK_MARKED | MASK_CP_BOUNDARY | MASK_CP_MOVEABLE );
-      glColor3fv ( xglec_Yellow );
+      glColor3fv ( OBJC_MESH_VERTEX_BOUNDARY );
       DrawCPoints ( obj->me.cpdimen, obj->me.spdimen, obj->nv, obj->meshvpc,
                     obj->mkcp, 0, MASK_CP_BOUNDARY | MASK_CP_MOVEABLE );
-      glColor3fv ( xglec_Salmon3 );
+      glColor3fv ( OBJC_MESH_VERTEX_BMARKED );
       DrawCPoints ( obj->me.cpdimen, obj->me.spdimen, obj->nv, obj->meshvpc,
                     obj->mkcp, marking_mask, MASK_MARKED | MASK_CP_MOVEABLE );
-      glColor3fv ( xglec_YellowGreen );
+      glColor3fv ( OBJC_MESH_VERTEX_BOUNDARY );
       DrawCPoints ( obj->me.cpdimen, obj->me.spdimen, obj->nv, obj->meshvpc,
                     obj->mkcp, 0, MASK_CP_MOVEABLE );
-      glColor3fv ( xglec_LightBlue2 );
+      glColor3fv ( OBJC_MESH_VERTEX_CHANGED );
       DrawCPoints ( obj->me.cpdimen, obj->me.spdimen, obj->nv, obj->meshvpc,
                     obj->mkcp, 0, MASK_CP_SPECIAL );
     }
     else {
-      glColor3fv ( xglec_OrangeRed );
+      glColor3fv ( OBJC_MESH_VERTEX_MARKED );
       DrawCPoints ( obj->me.cpdimen, obj->me.spdimen, obj->nv, obj->meshvpc,
                     obj->mkcp, marking_mask, MASK_MARKED | MASK_CP_MOVEABLE );
-      glColor3fv ( xglec_Yellow );
+      glColor3fv ( OBJC_MESH_VERTEX_UNMARKED );
       DrawCPoints ( obj->me.cpdimen, obj->me.spdimen, obj->nv, obj->meshvpc,
                     obj->mkcp, 0, MASK_CP_MOVEABLE );
     }
@@ -324,7 +365,13 @@ void GeomObjectDrawBSplineMNet ( GO_BSplineMesh *obj )
 /* ///////////////////////////////////////////////////////////////////////// */
 void GeomObjectDrawBSplineMElements ( GO_BSplineMesh *obj )
 {
-  int i;
+  int     i;
+  GLfloat *vcolour[BSM_NCURRENT_VERTICES] =
+            {OBJC_MESH_VERTEX_SEL0,OBJC_MESH_VERTEX_SEL1};
+  GLfloat *ecolour[BSM_NCURRENT_EDGES] =
+            {OBJC_MESH_EDGE_SEL0,OBJC_MESH_EDGE_SEL1};
+  GLfloat *fcolour[BSM_NCURRENT_FACETS] =
+            {OBJC_MESH_FACET_SEL0,OBJC_MESH_FACET_SEL1};
 
   if ( obj->me.obj_type != GO_BSPLINE_MESH )
     return;
@@ -332,24 +379,27 @@ void GeomObjectDrawBSplineMElements ( GO_BSplineMesh *obj )
     glCallList ( obj->me.displaylist+BSM_DL_ELEM );
   else {
     glNewList ( obj->me.displaylist+BSM_DL_ELEM, GL_COMPILE_AND_EXECUTE );
-    glColor3fv ( xglec_DarkOrchid3 );
     for ( i = 0; i < BSM_NCURRENT_FACETS; i++ )
-      if ( obj->current_facet[i] >= 0 && obj->current_facet[i] < obj->nfac )
+      if ( obj->current_facet[i] >= 0 && obj->current_facet[i] < obj->nfac ) {
+        glColor3fv ( fcolour[i] );
         GeomObjectDrawMeshFacet ( obj->me.cpdimen, obj->me.spdimen,
                                   obj->nv, obj->meshv, obj->meshvpc, obj->meshvhei,
                                   obj->nhe, obj->meshhe,
                                   obj->nfac, obj->meshfac, obj->meshfhei,
                                   obj->current_facet[i] );
+      }
     for ( i = 0; i < BSM_NCURRENT_EDGES; i++ )
-      if ( obj->current_edge[i] >= 0 && obj->current_edge[i] < obj->nhe )
+      if ( obj->current_edge[i] >= 0 && obj->current_edge[i] < obj->nhe ) {
+        glColor3fv ( ecolour[i] );
         GeomObjectDrawMeshHalfedge ( obj->me.cpdimen, obj->me.spdimen,
                                      obj->nv, obj->meshv, obj->meshvpc, obj->meshvhei,
                                      obj->nhe, obj->meshhe,
                                      obj->nfac, obj->meshfac, obj->meshfhei,
                                      obj->current_edge[i] );
+      }
     for ( i = 0; i < BSM_NCURRENT_VERTICES; i++ )
       if ( obj->current_vertex[i] >= 0 && obj->current_vertex[i] < obj->nv ) {
-        glColor3fv ( xglec_Orchid1 );
+        glColor3fv ( vcolour[i] );
         GeomObjectDrawMeshVertex ( obj->me.cpdimen, obj->me.spdimen,
                                    obj->nv, obj->meshv, obj->meshvpc, obj->meshvhei,
                                    obj->nhe, obj->meshhe,
@@ -435,12 +485,12 @@ void GeomObjectDrawBSplineMSpecialElements ( GO_BSplineMesh *obj )
   else {
     glNewList ( obj->me.displaylist+BSM_DL_SPECIAL, GL_COMPILE_AND_EXECUTE );
     if ( !obj->subdivision ) {
-      glColor3fv ( xglec_Red1 );
+      glColor3fv ( OBJC_MESH_SPECIAL_VSUBNET );
       bsm_FindSpecialVSubnets ( obj->nv, obj->meshv, obj->meshvhei,
                                 obj->nhe, obj->meshhe,
                                 obj->nfac, obj->meshfac, obj->meshfhei,
                                 obj->degree-1, obj, GeomObjectBSMDrawVSpecial );
-      glColor3fv ( xglec_Plum );
+      glColor3fv ( OBJC_MESH_SPECIAL_FSUBNET );
       bsm_FindSpecialFSubnets ( obj->nv, obj->meshv, obj->meshvhei,
                                 obj->nhe, obj->meshhe,
                                 obj->nfac, obj->meshfac, obj->meshfhei,

@@ -31,6 +31,7 @@
 
 #include "render.h"
 #include "editor.h"
+#include "edcolours.h"
 #include "editor_bsc.h"
 
 void GeomObjectBSplineCurveInitMC ( GO_BSplineCurve *obj )
@@ -317,7 +318,7 @@ void GeomObjectDrawBSplineCurve ( GO_BSplineCurve *obj )
     glCallList ( obj->me.displaylist+1 );
   else {
     glNewList ( obj->me.displaylist+1, GL_COMPILE_AND_EXECUTE );
-    glColor3fv ( xglec_White );
+    glColor3fv ( OBJC_BSC_CURVE );
     if ( obj->degree == 1 )
       DrawAPolyline ( obj->me.cpdimen, obj->me.spdimen, obj->lastknot-1, obj->cpoints );
     else
@@ -341,24 +342,24 @@ void GeomObjectDrawBSplineCPoly ( GO_BSplineCurve *obj )
     if ( obj->closed )
       ncp -= obj->degree-1;
     glNewList ( obj->me.displaylist, GL_COMPILE_AND_EXECUTE );
-    glColor3fv ( xglec_Green );
+    glColor3fv ( OBJC_BSC_CPOLY0 );
     if ( obj->rational && obj->weightpoints ) {
       DrawLineSegments ( obj->me.cpdimen, obj->me.spdimen, ncp-1,
                          obj->cpoints, obj->weightpoints );
-      glColor3fv ( xglec_Green4 );
+      glColor3fv ( OBJC_BSC_CPOLY1 );
       DrawLineSegments ( obj->me.cpdimen, obj->me.spdimen, ncp-1,
                          obj->weightpoints, &obj->cpoints[(int)obj->me.cpdimen] );
     }
     else
       DrawAPolyline ( obj->me.cpdimen, obj->me.spdimen, ncp, obj->cpoints );
-    glColor3fv ( xglec_Yellow );
+    glColor3fv ( OBJC_BSC_CP_UNMARKED );
     DrawCPoints ( obj->me.cpdimen, obj->me.spdimen, ncp, obj->cpoints,
                   obj->mkcp, 0, MASK_CP_MOVEABLE );
-    glColor3fv ( xglec_OrangeRed );
+    glColor3fv ( OBJC_BSC_CP_MARKED );
     DrawCPoints ( obj->me.cpdimen, obj->me.spdimen, ncp, obj->cpoints,
                   obj->mkcp, marking_mask, MASK_MARKED | MASK_CP_MOVEABLE );
     if ( obj->rational ) {
-      glColor3fv ( xglec_DarkOliveGreen2 );
+      glColor3fv ( OBJC_BSC_CP_WEIGHT );
       DrawPoints ( obj->me.cpdimen, obj->me.spdimen, ncp-1, obj->weightpoints );
     }
     glEndList ();
@@ -387,7 +388,7 @@ void GeomObjectDrawBSplineBPoly ( GO_BSplineCurve *obj )
       mbs_multiBSCurvesToBezd ( dim, 1, deg, lkn, obj->knots, 0, obj->cpoints,
                                 &kpcs, &olkn, NULL, 0, bpoly );
       glNewList ( obj->me.displaylist+2, GL_COMPILE_AND_EXECUTE );
-      glColor3fv ( xglec_Green3 );
+      glColor3fv ( OBJC_BSC_BEZPOLY );
       for ( i = k = 0;  i < kpcs;  i++, k += dim*(deg+1) )
         DrawAPolyline ( dim, obj->me.spdimen, deg+1, &bpoly[k] );
       glEndList ();
@@ -426,7 +427,7 @@ void GeomObjectDrawBSplineCurvature ( GO_BSplineCurve *obj )
       dens = obj->graph_dens;
       scf = xge_LogSlidebarValued ( 0.01, 100.0, obj->curvature_scale );
       glNewList ( obj->me.displaylist+3, GL_COMPILE_AND_EXECUTE );
-      glColor3fv ( xglec_CornflowerBlue );
+      glColor3fv ( OBJC_BSC_CURVATURE );
       glBegin ( GL_LINES );
       switch ( obj->me.spdimen ) {
     case 2:
@@ -515,7 +516,7 @@ void GeomObjectDrawBSplineTorsion ( GO_BSplineCurve *obj )
       dens = obj->graph_dens;
       scf = xge_LogSlidebarValued ( 0.01, 100.0, obj->torsion_scale );
       glNewList ( obj->me.displaylist+4, GL_COMPILE_AND_EXECUTE );
-      glColor3fv ( xglec_SpringGreen2 );
+      glColor3fv ( OBJC_BSC_TORSION );
       glBegin ( GL_LINES );
       switch ( obj->me.spdimen ) {
     case 3:
@@ -1173,12 +1174,15 @@ void GeomObjectReadBSplineCurve ( void *usrdata, const char *name, int ident,
                                   const point4d *cpoints, int spdimen,
                                   boolean rational )
 {
-  GO_BSplineCurve *obj;
-  double          *cp, *wcp, *kn;
-  byte            *mkcp;
-  int             ncp, cpdimen;
+  GO_BSplineCurve      *obj;
+  double               *cp, *wcp, *kn;
+  byte                 *mkcp;
+  int                  ncp, cpdimen;
+  rw_object_attributes *attrib;
 
   obj = (GO_BSplineCurve*)GeomObjectAddBSplineCurve ( name, spdimen, rational );
+  attrib = (rw_object_attributes*)usrdata;
+  attrib->go_being_read = (geom_object*)obj;
   if ( obj ) {
     obj->me.ident = ident;
     ncp = lastknot - degree;

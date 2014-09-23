@@ -344,6 +344,20 @@ boolean bsm_DivideFacetd ( int spdimen, int inv,
                            double *optc, int* onhe, BSMhalfedge *omhe,
                            int *onfac, BSMfacet *omfac, int *omfhei );
 
+/* doubling edges forming a closed loop */
+void bsm_EdgeLoopDoublingNum ( int inv, int inhe, int infac,
+                               int EdgeLoopLength,
+                               int *onv, int *onhe, int *onfac );
+
+boolean bsm_EdgeLoopDoublingd ( int spdimen,
+                                int inv, BSMvertex *imv, int *imvhei, double *iptc,
+                                int inhe, BSMhalfedge *imhe,
+                                int infac, BSMfacet *imfac, int *imfhei,
+                                int EdgeLoopLength, int *EdgeLoop,
+                                int *onv, BSMvertex *omv, int *omvhei, double *optc,
+                                int *onhe, BSMhalfedge *omhe,
+                                int *onfac, BSMfacet *omfac, int *omfhei );
+
 #ifdef __cplusplus
 }
 #endif

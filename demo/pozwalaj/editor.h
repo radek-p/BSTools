@@ -83,14 +83,17 @@ typedef struct geom_object {
 /* auxiliary data structure for reading optional object */
 /* attributes from data files; */
 typedef struct {
-    int    obj_type;
-    int    nmk;
-    byte   *mk;
-    double colour[3];
+    geom_object *go_being_read;
+    int         obj_type;
+    int         nmk;
+    byte        *mk;
+    int         nhemk;
+    byte        *hemk;
+    double      colour[3];
         /* dependencies read in from a file */
-    int    filedepname;
-    int    filedepnum;
-    int    *filedepid;
+    int         filedepname;
+    int         filedepnum;
+    int         *filedepid;
   } rw_object_attributes;
 
 extern geom_object *first_go, *last_go, *current_go, *currentp_go;
@@ -159,6 +162,13 @@ void GeomObjectDrawMeshHalfedge ( int cpdimen, int spdimen,
                                   int nhe, BSMhalfedge *mhe,
                                   int nfac, BSMfacet *mfac, int *mfhei,
                                   int henum );
+void GeomObjectDrawMeshHalfedges ( int cpdimen, int spdimen,
+                                   int nv, BSMvertex *mv, double *mvc, int *mvhei,
+                                   int nhe, BSMhalfedge *mhe,
+                                   int nfac, BSMfacet *mfac, int *mfhei,
+                                   byte edgemask,
+                                   byte *hemark, byte hemask, boolean inv,
+                                   boolean half0, boolean half1 );
 void GeomObjectDrawMeshVertex ( int cpdimen, int spdimen,
                                 int nv, BSMvertex *mv, double *mvc, int *mvhei,
                                 int nhe, BSMhalfedge *mhe,
@@ -236,6 +246,8 @@ void GeomObjectOutputToRenderer3D ( boolean all );
 void GeomObjectBeginReading ( void *usrdata, int obj_type );
 void GeomObjectEndReading ( void *usrdata, int obj_type, boolean success );
 void GeomObjectReadColour ( void *usrdata, point3d *colour );
+void GeomObjectReadCPMK ( void *usrdata, int ncp, unsigned int *mk );
+void GeomObjectReadHEMK ( void *usrdata, int nhe, unsigned int *mk );
 void GeomObjectReadDependency ( void *usrdata,
                                 int depname, int ndep, int *dep );
 boolean GeomObjectResolveDependencies ( void );

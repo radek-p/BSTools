@@ -18,8 +18,12 @@ char txtPicture[]           = "Picture";
 char txtAbout[]             = "About";
 char txtBit[]               = "bit";
 char txtMarkUnmark[]        = "mark/unmark";
+char txtMarkVertices[]      = "mark vertices";
+char txtMarkEdges[]         = "mark edges";
 char txtMark[]              = "mark";
 char txtUnmark[]            = "unmark";
+char txtVert[]              = "vert.";
+char txtHEdg[]              = "halfed.";
 char txtTranslate[]         = "translate";
 char txtScale[]             = "scale";
 char txtRotate[]            = "rotate";
@@ -84,6 +88,7 @@ char txtFacet[]             = "facet";
 char txtRemove[]            = "remove";
 char txtFilter[]            = "filter";
 char txtDoubleEdges[]       = "double edges";
+char txtDoubleLoop[]        = "double loop";
 char txtGlueEdges[]         = "glue edges";
 char txtGlueLoops[]         = "glue loops";
 char txtSealHole[]          = "seal hole";
@@ -230,4 +235,5 @@ char ErrorMsgCurveMustBeCubicAndClosed[] =
              "Error: Curve must be at least cubic and closed.";
 char ErrorMsgCurveMustBeNonRationalAnd3D[] =
              "Error: Curve must be non-rational and 3D.";
+char ErrorMsgCannotDoubleLoop[]       = "Error: Cannot double the edge loop.";
 

@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -185,7 +185,7 @@ case G2H_DEFAULT:
     }
     break;
 
-case G2H_CENRTAL_DERIVATIVES1_ALT:
+case G2H_CENTRAL_DERIVATIVES1_ALT:
     for ( i = 0; i < hole_k; i++ ) {
       SubtractPoints2f ( &omcbc[i*(G2H_OMCDEG+1)+5], &omcbc[i*(G2H_OMCDEG+1)],
                          &omcbc[i*(G2H_OMCDEG+1)+1] );

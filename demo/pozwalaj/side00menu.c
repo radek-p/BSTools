@@ -73,26 +73,28 @@ xge_widget *InitSide00Menu ( xge_widget *prev )
   xge_SetWidgetPositioning ( w, 2, 20, -16 );
   side00widgets = side00awidgets = w;
 
-  w = xge_NewSwitch ( win0, NULL, swM01MARK, 100, 16, 0, 22, txtMarkUnmark,
+  w = xge_NewSwitch ( win0, NULL, swM01MARK, 100, 16, 0, 22, txtMarkVertices,
                       &swwin0mark );
-  w = xge_NewSwitch ( win0, w, swM01MKBIT_0, 16, 16,  0, 42, NULL, &markbits[0] );
-  w = xge_NewSwitch ( win0, w, swM01MKBIT_1, 16, 16, 18, 42, NULL, &markbits[1] );
-  w = xge_NewSwitch ( win0, w, swM01MKBIT_2, 16, 16, 36, 42, NULL, &markbits[2] );
-  w = xge_NewSwitch ( win0, w, swM01MKBIT_3, 16, 16, 54, 42, NULL, &markbits[3] );
-  w = xge_NewSwitch ( win0, w, swM01MKBIT_4, 42, 16, 72, 42, txtBit, &markbits[4] );
-  w = xge_NewSwitch ( win0, w, swM01TRANSLATE, 100, 16, 0, 62, txtTranslate,
+  w = xge_NewSwitch ( win0, w, swM01MARKHE, 100, 16, 0, 42, txtMarkEdges,
+                      &swwin0markedg );
+  w = xge_NewSwitch ( win0, w, swM01MKBIT_0, 16, 16,  0, 62, NULL, &markbits[0] );
+  w = xge_NewSwitch ( win0, w, swM01MKBIT_1, 16, 16, 18, 62, NULL, &markbits[1] );
+  w = xge_NewSwitch ( win0, w, swM01MKBIT_2, 16, 16, 36, 62, NULL, &markbits[2] );
+  w = xge_NewSwitch ( win0, w, swM01MKBIT_3, 16, 16, 54, 62, NULL, &markbits[3] );
+  w = xge_NewSwitch ( win0, w, swM01MKBIT_4, 42, 16, 72, 62, txtBit, &markbits[4] );
+  w = xge_NewSwitch ( win0, w, swM01TRANSLATE, 100, 16, 0, 82, txtTranslate,
                       &swwin0translate );
-  w = xge_NewSwitch ( win0, w, swM01SCALE, 100, 16, 0, 82, txtScale,
+  w = xge_NewSwitch ( win0, w, swM01SCALE, 100, 16, 0, 102, txtScale,
                       &swwin0scale );
-  w = xge_NewSwitch ( win0, w, swM01ROTATE, 100, 16, 0, 102, txtRotate,
+  w = xge_NewSwitch ( win0, w, swM01ROTATE, 100, 16, 0, 122, txtRotate,
                       &swwin0rotate );
-  w = xge_NewSwitch ( win0, w, swM01SHEAR, 100, 16, 0, 122, txtShear,
+  w = xge_NewSwitch ( win0, w, swM01SHEAR, 100, 16, 0, 142, txtShear,
                       &swwin0shear );
-  w = xge_NewSwitch ( win0, w, swM01PANZOOM, 100, 16, 0, 142, txtPanZoom,
+  w = xge_NewSwitch ( win0, w, swM01PANZOOM, 100, 16, 0, 162, txtPanZoom,
                       &swwin0panzoom );
-  w = xge_NewSwitch ( win0, w, swM01SELECT_VERTEX, 100, 16, 0, 162,
+  w = xge_NewSwitch ( win0, w, swM01SELECT_VERTEX, 100, 16, 0, 182,
                       txtSelectVertex, &sw_bsm_selectvertex );
-  w = xge_NewSwitch ( win0, w, swM01SELECT_EDGE, 100, 16, 0, 182,
+  w = xge_NewSwitch ( win0, w, swM01SELECT_EDGE, 100, 16, 0, 202,
                       txtSelectEdge, &sw_bsm_selectedge );
   w = xge_NewSwitch ( win0, w, swM01COORDINATES, 100, 16, 0, xge_HEIGHT-36,
                       txtCoordinates, &swwin0coordinates );
@@ -234,6 +236,9 @@ case xgemsg_SWITCH_COMMAND:
       return 1;
   case swM01MARK:
       SelectGeomTool ( xge_3DWIN_SELECTING_TOOL, &swwin0mark );
+      return 1;
+  case swM01MARKHE:
+
       return 1;
   case swM01TRANSLATE:
       SelectGeomTool ( xge_3DWIN_MOVING_TOOL, &swwin0translate );

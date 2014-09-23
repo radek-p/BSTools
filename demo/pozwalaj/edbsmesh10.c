@@ -67,7 +67,7 @@ boolean GeomObjectBSplineMeshMarkBetweenVertices ( GO_BSplineMesh *obj,
     goto failure;
   if ( dist[v1] >= nv )
     goto failure;
-  for ( ; ; ) {
+  for (;;) {
     if ( mark )
       mkcp[v1] |= marking_mask;
     else
@@ -108,6 +108,72 @@ failure:
   pkv_SetScratchMemTop ( sp );
   return false;
 } /*GeomObjectBSplineMeshMarkBetweenVertices*/
+
+boolean GeomObjectBSplineMeshMarkHalfedgesBetweenVertices ( GO_BSplineMesh *obj,
+                                                            boolean mark )
+{
+  void        *sp;
+  int         nv, nhe, nfac;
+  BSMvertex   *mv;
+  BSMhalfedge *mhe;
+  BSMfacet    *mfac;
+  int         *mvhei, *mfhei;
+  byte        *mkhe;
+  int         *dist, d;
+  int         v0, v1, v2, deg, fhe, he, i;
+
+  sp = pkv_GetScratchMemTop ();
+  if ( obj->me.obj_type != GO_BSPLINE_MESH )
+    goto failure;
+  nv = obj->nv;
+  nhe = obj->nhe;
+  nfac = obj->nfac;
+  v0 = obj->current_vertex[0];
+  v1 = obj->current_vertex[1];
+  if ( v0 < 0 || v0 >= nv || v1 < 0 || v1 >= nv )
+    goto failure;
+  dist = pkv_GetScratchMemi ( nv );
+  if ( !dist )
+    goto failure;
+  mv = obj->meshv;
+  mhe = obj->meshhe;
+  mfac = obj->meshfac;
+  mvhei = obj->meshvhei;
+  mfhei = obj->meshfhei;
+  mkhe = obj->mkhe;
+  if ( !bsm_FindVertexDistances1 ( nv, mv, mvhei, nhe, mhe, nfac, mfac, mfhei,
+                                   v0, dist ) )
+    goto failure;
+  if ( dist[v1] >= nv )
+    goto failure;
+  while ( v1 != v0 ) {
+    deg = mv[v1].degree;
+    fhe = mv[v1].firsthalfedge;
+    d = dist[v1]-1;
+    v2 = mhe[mvhei[fhe]].v1;
+    for ( i = 0; i < deg; i++ ) {
+      he = mvhei[fhe+i];
+      v2 = mhe[he].v1;
+      if ( dist[v2] == d ) {
+        if ( mark )
+          mkhe[he] |= marking_mask;
+        else
+          mkhe[he] &= ~marking_mask;
+        v1 = v2;
+        break;
+      }
+    }
+    if ( i >= deg )
+      break;
+  }
+  obj->me.dlistmask &= ~BSM_DLM_CNET;
+  pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  pkv_SetScratchMemTop ( sp );
+  return false;
+} /*GeomObjectBSplineMeshMarkHalfedgesBetweenVertices*/
 
 boolean GeomObjectBSplineMeshFilterPolyline ( GO_BSplineMesh *obj )
 {

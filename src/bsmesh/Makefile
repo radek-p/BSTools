@@ -17,16 +17,17 @@ include ../../options.mak
 
 OBJECTS = $(SRCDIR)/bsmesh00.o $(SRCDIR)/bsmesh01.o $(SRCDIR)/bsmesh02.o \
   $(SRCDIR)/bsmesh03d.o $(SRCDIR)/bsmesh04.o  $(SRCDIR)/bsmesh05d.o \
-  $(SRCDIR)/bsmesh06d.o $(SRCDIR)/bsmesh07d.o $(SRCDIR)/bsmesh08.o \
+  $(SRCDIR)/bsmesh06d.o $(SRCDIR)/bsmesh07d.o $(SRCDIR)/bsmesh08.o  \
   $(SRCDIR)/bsmesh09d.o $(SRCDIR)/bsmesh10.o  $(SRCDIR)/bsmesh11d.o \
-  $(SRCDIR)/bsmesh12.o  $(SRCDIR)/bsmesh13d.o $(SRCDIR)/bsmesh14.o \
+  $(SRCDIR)/bsmesh12.o  $(SRCDIR)/bsmesh13d.o $(SRCDIR)/bsmesh14.o  \
   $(SRCDIR)/bsmesh15d.o $(SRCDIR)/bsmesh16.o  $(SRCDIR)/bsmesh17d.o \
-  $(SRCDIR)/bsmesh18.o  $(SRCDIR)/bsmesh19.o  $(SRCDIR)/bsmesh20.o \
-  $(SRCDIR)/bsmesh21.o  $(SRCDIR)/bsmesh22.o  $(SRCDIR)/bsmesh23.o \
+  $(SRCDIR)/bsmesh18.o  $(SRCDIR)/bsmesh19.o  $(SRCDIR)/bsmesh20.o  \
+  $(SRCDIR)/bsmesh21.o  $(SRCDIR)/bsmesh22.o  $(SRCDIR)/bsmesh23.o  \
   $(SRCDIR)/bsmesh24.o  $(SRCDIR)/bsmesh25d.o $(SRCDIR)/bsmesh26d.o \
-  $(SRCDIR)/bsmesh27d.o $(SRCDIR)/bsmesh28d.o $(SRCDIR)/bsmesh29.o \
+  $(SRCDIR)/bsmesh27d.o $(SRCDIR)/bsmesh28d.o $(SRCDIR)/bsmesh29.o  \
   $(SRCDIR)/bsmesh30.o  $(SRCDIR)/bsmesh31d.o $(SRCDIR)/bsmesh32d.o \
-  $(SRCDIR)/bsmesh33d.o $(SRCDIR)/bsmesh34d.o $(SRCDIR)/bsmesh35d.o
+  $(SRCDIR)/bsmesh33d.o $(SRCDIR)/bsmesh34d.o $(SRCDIR)/bsmesh35d.o \
+  $(SRCDIR)/bsmesh36d.o
 
 TARGET = $(LIBDIR)/libbsmesh.a
 
@@ -109,6 +110,8 @@ $(SRCDIR)/bsmesh33d.o: $(SRCDIR)/bsmesh33d.c $(INCDIR)/bsmesh.h $(SRCDIR)/bsmpri
 $(SRCDIR)/bsmesh34d.o: $(SRCDIR)/bsmesh34d.c $(INCDIR)/bsmesh.h $(SRCDIR)/bsmprivate.h
 
 $(SRCDIR)/bsmesh35d.o: $(SRCDIR)/bsmesh35d.c $(INCDIR)/bsmesh.h $(SRCDIR)/bsmprivate.h
+
+$(SRCDIR)/bsmesh36d.o: $(SRCDIR)/bsmesh36d.c $(INCDIR)/bsmesh.h $(SRCDIR)/bsmprivate.h
 
 clean:
 	rm -f $(OBJECTS)

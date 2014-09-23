@@ -69,44 +69,53 @@ void InitSide10Menu_BSm ( void )
                          -2, 10, &intw_bsm_vert0, txtVertex, &bsm_vertex_num0 );
   w = xge_NewIntWidget ( win1, w, intwM1BSM_VERTEX1, 35, 19, 74, 144,
                          -2, 10, &intw_bsm_vert1, NULL, &bsm_vertex_num1 );
-  w = xge_NewButton ( win1, w, btnM1BSM_MARK_VERT, 39, 19, 0, 164,
+  w = xge_NewButton ( win1, w, btnM1BSM_MARK_VERT, 27, 19, 0, 164,
                       txtMark );
-  w = xge_NewButton ( win1, w, btnM1BSM_UNMARK_VERT, 39, 19, 40, 164,
+  w = xge_NewButton ( win1, w, btnM1BSM_UNMARK_VERT, 39, 19, 28, 164,
                       txtUnmark );
-  w = xge_NewButton ( win1, w, btnM1BSM_FILTER, 39, 19, 0, 184, txtFilter );
-  w = xge_NewButton ( win1, w, btnM1BSM_ENTER_LINE, 39, 19, 40, 184, txtLine );
-  w = xge_NewButton ( win1, w, btnM1BSM_REMOVE_VERTEX, 79, 19, 0, 204,
+  w = xge_NewTextWidget ( win1, w, 0, 45, 19, 70, 164, txtVert );
+  w = xge_NewButton ( win1, w, btnM1BSM_MARK_HEDGE, 27, 19, 0, 184,
+                      txtMark );
+  w = xge_NewButton ( win1, w, btnM1BSM_UNMARK_HEDGE, 39, 19, 28, 184,
+                      txtUnmark );
+  w = xge_NewTextWidget ( win1, w, 0, 45, 19, 70, 184, txtHEdg );
+  w = xge_NewButton ( win1, w, btnM1BSM_FILTER, 39, 19, 0, 204, txtFilter );
+  w = xge_NewButton ( win1, w, btnM1BSM_ENTER_LINE, 39, 19, 40, 204, txtLine );
+  w = xge_NewButton ( win1, w, btnM1BSM_REMOVE_VERTEX, 79, 19, 0, 224,
                       txtRemove );
-  w = xge_NewButton ( win1, w, btnM1BSM_DIVIDE_FACET, 79, 19, 0, 224,
+  w = xge_NewButton ( win1, w, btnM1BSM_DIVIDE_FACET, 79, 19, 0, 244,
                       txtDivideFacet );
-  w = xge_NewIntWidget ( win1, w, intwM1BSM_EDGE0, 75, 19, 0, 248,
+  w = xge_NewButton ( win1, w, btnM1BSM_DOUBLE_LOOP, 79, 19, 0, 264,
+                      txtDoubleLoop );
+  w->state = xgestate_BUTTON_INACTIVE;
+  w = xge_NewIntWidget ( win1, w, intwM1BSM_EDGE0, 75, 19, 0, 288,
                          -2, 10, &intw_bsm_edge0, txtEdge, &bsm_edge_num0 );
-  w = xge_NewIntWidget ( win1, w, intwM1BSM_EDGE1, 35, 19, 74, 248,
+  w = xge_NewIntWidget ( win1, w, intwM1BSM_EDGE1, 35, 19, 74, 288,
                          -2, 10, &intw_bsm_edge1, NULL, &bsm_edge_num1 );
-  w = xge_NewButton ( win1, w, btnM1BSM_SHRINK_EDGE, 79, 19, 0, 268,
+  w = xge_NewButton ( win1, w, btnM1BSM_SHRINK_EDGE, 79, 19, 0, 308,
                       txtShrink );
-  w = xge_NewButton ( win1, w, btnM1BSM_CONTRACT_EDGE, 79, 19, 0, 288,
+  w = xge_NewButton ( win1, w, btnM1BSM_CONTRACT_EDGE, 79, 19, 0, 328,
                       txtContract );
-  w = xge_NewButton ( win1, w, btnM1BSM_GLUE_EDGES, 79, 19, 0, 308,
+  w = xge_NewButton ( win1, w, btnM1BSM_GLUE_EDGES, 79, 19, 0, 348,
                       txtGlueEdges );
-  w = xge_NewButton ( win1, w, btnM1BSM_GLUE_EDGE_LOOPS, 79, 19, 0, 328,
+  w = xge_NewButton ( win1, w, btnM1BSM_GLUE_EDGE_LOOPS, 79, 19, 0, 368,
                       txtGlueLoops );
-  w = xge_NewButton ( win1, w, btnM1BSM_SEAL_HOLE, 79, 19, 0, 348,
+  w = xge_NewButton ( win1, w, btnM1BSM_SEAL_HOLE, 79, 19, 0, 388,
                       txtSealHole );
-  w = xge_NewButton ( win1, w, btnM1BSM_SPLIT_BOUNDARY_EDGE, 79, 19, 0, 368,
+  w = xge_NewButton ( win1, w, btnM1BSM_SPLIT_BOUNDARY_EDGE, 79, 19, 0, 408,
                       txtSplitEdge );
-  w = xge_NewIntWidget ( win1, w, intwM1BSM_FACET0, 75, 19, 0, 392,
+  w = xge_NewIntWidget ( win1, w, intwM1BSM_FACET0, 75, 19, 0, 432,
                          -2, 10, &intw_bsm_fac0, txtFacet, &bsm_facet_num0 );
-  w = xge_NewIntWidget ( win1, w, intwM1BSM_FACET1, 35, 19, 74, 392,
+  w = xge_NewIntWidget ( win1, w, intwM1BSM_FACET1, 35, 19, 74, 432,
                          -2, 10, &intw_bsm_fac1, NULL, &bsm_facet_num1 );
-  w = xge_NewButton ( win1, w, btnM1BSM_REMOVE_FACET, 79, 19, 0, 412,
+  w = xge_NewButton ( win1, w, btnM1BSM_REMOVE_FACET, 79, 19, 0, 452,
                       txtRemove );
-  w = xge_NewButton ( win1, w, btnM1BSM_DOUBLE_FAC_EDGES, 79, 19, 0, 432,
+  w = xge_NewButton ( win1, w, btnM1BSM_DOUBLE_FAC_EDGES, 79, 19, 0, 472,
                       txtDoubleEdges );
   for ( ww = w; ww; ww = ww->prev )
     xge_SetWidgetPositioning ( ww, 0, ww->x, ww->y );
   side10wdg_bsm_editcontents = xge_NewMenu ( win1, NULL, scwM1BSM_ECONTENTS,
-                      SIDEMENUWIDTH0, 455, 0, 20, w );
+                      SIDEMENUWIDTH0, 495, 0, 20, w );
   side10wdg_bsm_editscroll = xge_NewScrollWidget ( win1, NULL, scwM1BSM_ESCROLL,
                       SIDEMENUWIDTH0, xge_HEIGHT-TOPMENUHEIGHT-20, 0, 20,
                       &side10_bsm_editsw, side10wdg_bsm_editcontents );
@@ -697,6 +706,22 @@ case xgemsg_BUTTON_COMMAND:
       else
         xge_DisplayErrorMessage ( ErrorMsgCannotDoIt, 0 );
       return 1;
+  case btnM1BSM_MARK_HEDGE:
+      if ( GeomObjectBSplineMeshMarkHalfedgesBetweenVertices ( obj, 1 ) ) {
+        xge_SetWindow ( win0 );
+        xge_Redraw ();
+      }
+      else
+        xge_DisplayErrorMessage ( ErrorMsgCannotDoIt, 0 );
+      return 1;
+  case btnM1BSM_UNMARK_HEDGE:
+      if ( GeomObjectBSplineMeshMarkHalfedgesBetweenVertices ( obj, 0 ) ) {
+        xge_SetWindow ( win0 );
+        xge_Redraw ();
+      }
+      else
+        xge_DisplayErrorMessage ( ErrorMsgCannotDoIt, 0 );
+      return 1;
   case btnM1BSM_FILTER:
       if ( GeomObjectBSplineMeshFilterPolyline ( obj ) ) {
         xge_SetClipping ( geom00win );
@@ -731,6 +756,14 @@ case xgemsg_BUTTON_COMMAND:
       }
       else
         xge_DisplayErrorMessage ( ErrorMsgNoValidPairOfVertices, 0 );
+      return 1;
+  case btnM1BSM_DOUBLE_LOOP:
+      if ( GeomObjectBSplineMeshDoubleEdgeLoop ( obj ) ) {
+        rendered_picture = false;
+        xge_RedrawAll ();
+      }
+      else
+        xge_DisplayErrorMessage ( ErrorMsgCannotDoubleLoop, 0 );
       return 1;
   case btnM1BSM_SHRINK_EDGE:
       if ( GeomObjectBSplineMeshShrinkCurrentEdge ( obj ) ) {

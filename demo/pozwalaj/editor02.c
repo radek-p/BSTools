@@ -613,6 +613,176 @@ default:
   glLineWidth ( 1.0 );
 } /*GeomObjectDrawMeshHalfedge*/
 
+void GeomObjectDrawMeshHalfedges ( int cpdimen, int spdimen,
+                                   int nv, BSMvertex *mv, double *mvc, int *mvhei,
+                                   int nhe, BSMhalfedge *mhe,
+                                   int nfac, BSMfacet *mfac, int *mfhei,
+                                   byte edgemask,
+                                   byte *hemark, byte hemask, boolean inv,
+                                   boolean half0, boolean half1 )
+{
+  int     i, j, v0, v1;
+  boolean ok, inner, boundary;
+  double  midpoint[4];
+
+#define CHECKIT1 \
+  { \
+    if ( inv ) { \
+      if ( mhe[i].otherhalf < 0 ) \
+        ok = boundary && !(hemark[i] & hemask); \
+      else \
+        ok = inner && !(hemark[i] & hemask); \
+    } \
+    else { \
+      if ( mhe[i].otherhalf < 0 ) \
+        ok = boundary && (hemark[i] & hemask); \
+      else \
+        ok = inner && (hemark[i] & hemask); \
+    } \
+  }
+
+#define CHECKIT2 \
+  { \
+    if ( inv ) { \
+      if ( mhe[i].otherhalf < 0 ) \
+        ok = boundary && !(hemark[i] & hemask); \
+      else if ( mhe[i].v0 < mhe[i].v1 ) \
+        ok = inner && !((hemark[i] | hemark[mhe[i].otherhalf]) & hemask); \
+      else \
+        ok = false; \
+    } \
+    else { \
+      if ( mhe[i].otherhalf < 0 ) \
+        ok = boundary && (hemark[i] & hemask); \
+      else if ( mhe[i].v0 < mhe[i].v1 ) \
+        ok = inner && ((hemark[i] | hemark[mhe[i].otherhalf]) & hemask); \
+      else \
+        ok = false; \
+    } \
+  }
+
+  glBegin ( GL_LINES );
+    boundary = edgemask & MASK_HE_BOUNDARY;
+    inner    = edgemask & MASK_HE_INNER;
+    if ( !half0 || !half1 ) {
+      switch ( cpdimen ) {
+    case 2:
+        for ( i = 0; i < nhe; i++ ) {
+          CHECKIT1
+          if ( ok ) {
+            v0 = mhe[i].v0;  v1 = mhe[i].v1;
+            MidPoint2d ( (point2d*)&mvc[2*v0], (point2d*)&mvc[2*v1],
+                         (point2d*)midpoint );
+            glVertex2dv ( midpoint );
+            if ( half0 )
+              glVertex2dv ( &mvc[2*v0] );
+            else
+              glVertex2dv ( &mvc[2*v1] );
+          }
+        }
+        break;
+    case 3:
+        if ( spdimen == 2 ) {
+          for ( i = 0; i < nhe; i++ ) {
+            CHECKIT1
+            if ( ok ) {
+              v0 = mhe[i].v0;  v1 = mhe[i].v1;
+              MidPoint3d ( (point3d*)&mvc[3*v0], (point3d*)&mvc[3*v1],
+                           (point3d*)midpoint );
+              glVertex4d ( midpoint[0], midpoint[1], 0.0, midpoint[2] );
+              if ( half0 )
+                glVertex4d ( mvc[3*v0], mvc[3*v0+1], 0.0, mvc[3*v0+2] );
+              else
+                glVertex4d ( mvc[3*v1], mvc[3*v1+1], 0.0, mvc[3*v1+2] );
+            }
+          }
+        }
+        else {
+          for ( i = 0; i < nhe; i++ ) {
+            CHECKIT1
+            if ( ok ) {
+              v0 = mhe[i].v0;  v1 = mhe[i].v1;
+              MidPoint3d ( (point3d*)&mvc[3*v0], (point3d*)&mvc[3*v1],
+                           (point3d*)midpoint );
+              glVertex3dv ( midpoint );
+              if ( half0 )
+                glVertex3dv ( &mvc[3*v0] );
+              else
+                glVertex3dv ( &mvc[3*v1] );
+            }
+          }
+        }
+        break;
+    case 4:
+        for ( i = 0; i < nhe; i++ ) {
+          CHECKIT1
+          if ( ok ) {
+            v0 = mhe[i].v0;  v1 = mhe[i].v1;
+            MidPoint4d ( (point4d*)&mvc[4*v0], (point4d*)&mvc[4*v1],
+                         (point4d*)midpoint );
+            glVertex4dv ( midpoint );
+            if ( half0 )
+              glVertex4dv ( &mvc[4*v0] );
+            else
+              glVertex4dv ( &mvc[4*v1] );
+          }
+        }
+        break;
+    default:
+        break;
+      }
+    }
+    else {
+      switch ( cpdimen ) {
+    case 2:
+        for ( i = 0; i < nhe; i++ ) {
+          CHECKIT2
+          if ( ok ) {
+            glVertex2dv ( &mvc[2*mhe[i].v0] );
+            glVertex2dv ( &mvc[2*mhe[i].v1] );
+          }
+        }
+        break;
+    case 3:
+        if ( spdimen == 2 ) {
+          for ( i = 0; i < nhe; i++ ) {
+            CHECKIT2
+            if ( ok ) {
+              j = 3*mhe[i].v0;
+              glVertex4d ( mvc[j], mvc[j+1], 0.0, mvc[j+2] );
+              j = 3*mhe[i].v1;
+              glVertex4d ( mvc[j], mvc[j+1], 0.0, mvc[j+2] );
+            }
+          }
+        }
+        else {
+          for ( i = 0; i < nhe; i++ ) {
+            CHECKIT2
+            if ( ok ) {
+              glVertex3dv ( &mvc[3*mhe[i].v0] );
+              glVertex3dv ( &mvc[3*mhe[i].v1] );
+            }
+          }
+        }
+        break;
+    case 4:
+        for ( i = 0; i < nhe; i++ ) {
+          CHECKIT2
+          if ( ok ) {
+            glVertex4dv ( &mvc[4*mhe[i].v0] );
+            glVertex4dv ( &mvc[4*mhe[i].v1] );
+          }
+        }
+        break;
+    default:
+        break;
+      }
+    }
+  glEnd ();
+#undef CHECKIT1
+#undef CHECKIT2
+} /*GeomObjectDrawMeshHalfedges*/
+
 void GeomObjectDrawMeshVertex ( int cpdimen, int spdimen,
                                 int nv, BSMvertex *mv, double *mvc, int *mvhei,
                                 int nhe, BSMhalfedge *mhe,

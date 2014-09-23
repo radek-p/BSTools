@@ -30,6 +30,7 @@
 
 #include "render.h"
 #include "editor.h"
+#include "edcolours.h"
 #include "editor_bezp.h"
 
 
@@ -163,13 +164,13 @@ void GeomObjectDrawBezierPatch ( GO_BezierPatch *obj )
   else {
     glNewList ( obj->me.displaylist, GL_COMPILE_AND_EXECUTE );
     pitch = obj->me.cpdimen*(obj->degree_v+1);
-    glColor3fv ( xglec_White );
+    glColor3fv ( OBJC_BEZP_PATCH_BOUNDARY );
     DrawBezierPatchWF ( obj->me.cpdimen, obj->me.spdimen,
                         obj->degree_u, obj->degree_v,
                         pitch, obj->cpoints, 1, 1,
                         8*obj->dens_u, 8*obj->dens_v,
                         true, true, true, true );
-    glColor3fv ( xglec_Grey1 );
+    glColor3fv ( OBJC_BEZP_PATCH_CPLINES );
     DrawBezierPatchWF ( obj->me.cpdimen, obj->me.spdimen,
                         obj->degree_u, obj->degree_v,
                         pitch, obj->cpoints, obj->dens_u, obj->dens_v,
@@ -190,15 +191,15 @@ void GeomObjectDrawBezierPNet ( GO_BezierPatch *obj )
     glCallList ( obj->me.displaylist+1 );
   else {
     glNewList ( obj->me.displaylist+1, GL_COMPILE_AND_EXECUTE );
-    glColor3fv ( xglec_Green );
+    glColor3fv ( OBJC_BEZP_CNET );
     DrawARectNet ( obj->me.cpdimen, obj->me.spdimen,
                    obj->degree_u+1, obj->degree_v+1,
                    obj->me.cpdimen*(obj->degree_v+1), obj->cpoints );
     ncp = (obj->degree_u+1)*(obj->degree_v+1);
-    glColor3fv ( xglec_Yellow );
+    glColor3fv ( OBJC_BEZP_CP_UNMARKED );
     DrawCPoints ( obj->me.cpdimen, obj->me.spdimen, ncp, obj->cpoints,
                   obj->mkcp, 0, MASK_CP_MOVEABLE );
-    glColor3fv ( xglec_OrangeRed );
+    glColor3fv ( OBJC_BEZP_CP_MARKED );
     DrawCPoints ( obj->me.cpdimen, obj->me.spdimen, ncp, obj->cpoints,
                   obj->mkcp, marking_mask, MASK_MARKED | MASK_CP_MOVEABLE );
     glEndList ();
@@ -515,12 +516,15 @@ void GeomObjectReadBezierPatch ( void *usrdata, const char *name, int ident,
                                  int pitch, const point4d *cpoints, int spdimen,
                                  boolean rational )
 {
-  GO_BezierPatch *obj;
-  double         *cp;
-  byte           *mkcp;
-  int            ncp, cpdimen, i;
+  GO_BezierPatch       *obj;
+  double               *cp;
+  byte                 *mkcp;
+  int                  ncp, cpdimen, i;
+  rw_object_attributes *attrib;
 
   obj = (GO_BezierPatch*)GeomObjectAddBezierPatch ( name, spdimen, rational );
+  attrib = (rw_object_attributes*)usrdata;
+  attrib->go_being_read = (geom_object*)obj;
   if ( obj ) {
     obj->me.ident = ident;
     ncp = (degreeu+1)*(degreev+1);
