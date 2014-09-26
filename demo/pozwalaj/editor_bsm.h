@@ -140,6 +140,9 @@ void GeomObjectBSplineMeshMarkCPoints ( GO_BSplineMesh *obj,
                                         byte mask, int action );
 void GeomObjectBSplineMeshMarkCPoint ( GO_BSplineMesh *obj,
                                        byte mask, int action );
+void GeomObjectBSplineMeshMarkHalfedges ( GO_BSplineMesh *obj,
+                                          CameraRecd *CPos, Box2s *box,  
+                                          byte mask, int action );
 boolean GeomObjectBSplineMeshSaveCPoints ( GO_BSplineMesh *obj );
 void GeomObjectBSplineMeshUndoLastTransformation ( GO_BSplineMesh *obj );
 void GeomObjectBSplineMeshTransformCPoints ( GO_BSplineMesh *obj,

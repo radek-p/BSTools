@@ -188,8 +188,8 @@ void SetToolSwitches ( char tool, char coord )
   char sw_bsm;
 
   sw_bsm = sw_bsm_selectvertex;
-  swwin0mark = swwin0translate = swwin0scale = swwin0rotate =
-  swwin0shear = swwin0panzoom = sw_bsm_selectvertex =
+  swwin0mark = swwin0markedg = swwin0translate = swwin0scale =
+  swwin0rotate = swwin0shear = swwin0panzoom = sw_bsm_selectvertex =
   sw_bsm_selectedge = false;
   switch ( tool ) {
 case xge_3DWIN_SELECTING_TOOL:
@@ -238,7 +238,7 @@ case xgemsg_SWITCH_COMMAND:
       SelectGeomTool ( xge_3DWIN_SELECTING_TOOL, &swwin0mark );
       return 1;
   case swM01MARKHE:
-
+      SelectGeomTool ( xge_3DWIN_SELECTING_TOOL, &swwin0markedg );
       return 1;
   case swM01TRANSLATE:
       SelectGeomTool ( xge_3DWIN_MOVING_TOOL, &swwin0translate );

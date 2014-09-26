@@ -40,9 +40,9 @@
 #define MASK_MARKED (MASK_CP_MARKED_0 | MASK_CP_MARKED_1 | \
                      MASK_CP_MARKED_2 | MASK_CP_MARKED_3 | MASK_CP_MARKED_4)
 
-#define MARK_CP_SELECT    0
-#define MARK_CP_UNSELECT  1
-#define MARK_CP_TGSELECT  2
+#define MARK_SELECT    0
+#define MARK_UNSELECT  1
+#define MARK_TGSELECT  2
 
 /* range of coefficients for G1 quasi G2 polygonal hole filling */
 #define Q2COEFF_MIN       1.0
@@ -216,6 +216,8 @@ boolean GeomObjectFindCPoint ( char spdimen, CameraRecd *CPos, short x, short y 
 void GeomObjectSetCPoint ( CameraRecd *CPos, short x, short y );
 void GeomObjectMarkCPoints ( char spdimen, CameraRecd *CPos, Box2s *box,
                              boolean clear );
+void GeomObjectMarkHalfedges ( char spdimen, CameraRecd *CPos, Box2s *box,
+                               int action );
 void GeomObjectSetMarkingMask ( boolean bits[4] );
 boolean GeomObjectSaveCPoints ( char spdimen );
 void GeomObjectUndoLastTransformation ( char spdimen );

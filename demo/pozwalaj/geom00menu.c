@@ -364,7 +364,10 @@ case xgemsg_3DWIN_SELECT_POINTS:
         return false;
       }
     }
-    GeomObjectMarkCPoints ( 3, CPos, &ww->selection_rect, MARK_CP_SELECT );
+    if ( swwin0mark )
+      GeomObjectMarkCPoints ( 3, CPos, &ww->selection_rect, MARK_SELECT );
+    if ( swwin0markedg )
+      GeomObjectMarkHalfedges ( 3, CPos, &ww->selection_rect, MARK_SELECT );
     xge_SetClipping ( ww->fww.er );
     ww->fww.er->redraw ( ww->fww.er, true );
     return 1;
@@ -372,8 +375,12 @@ case xgemsg_3DWIN_SELECT_POINTS:
 case xgemsg_3DWIN_UNSELECT_POINTS:
     if ( editing_shapefunc || editing_lights )
       ;
-    else
-      GeomObjectMarkCPoints ( 3, CPos, &ww->selection_rect, MARK_CP_UNSELECT );
+    else {
+      if ( swwin0mark )
+        GeomObjectMarkCPoints ( 3, CPos, &ww->selection_rect, MARK_UNSELECT );
+      if ( swwin0markedg )
+        GeomObjectMarkHalfedges ( 3, CPos, &ww->selection_rect, MARK_UNSELECT );
+    }
     xge_SetClipping ( ww->fww.er );
     ww->fww.er->redraw ( ww->fww.er, true );
     return 1;
@@ -381,8 +388,12 @@ case xgemsg_3DWIN_UNSELECT_POINTS:
 case xgemsg_3DWIN_TGSELECT_POINTS:
     if ( editing_shapefunc || editing_lights )
       ;
-    else
-      GeomObjectMarkCPoints ( 3, CPos, &ww->selection_rect, MARK_CP_TGSELECT );
+    else {
+      if ( swwin0mark )
+        GeomObjectMarkCPoints ( 3, CPos, &ww->selection_rect, MARK_TGSELECT );
+      if ( swwin0markedg )
+        GeomObjectMarkHalfedges ( 3, CPos, &ww->selection_rect, MARK_TGSELECT );
+    }
     xge_SetClipping ( ww->fww.er );
     ww->fww.er->redraw ( ww->fww.er, true );
     return 1;
@@ -647,19 +658,28 @@ case xgemsg_2DWIN_SELECT_POINTS:
         return false;
       }
     }
-    GeomObjectMarkCPoints ( 2, CPos, &ww->selection_rect, MARK_CP_SELECT );
+    if ( swwin0mark )
+      GeomObjectMarkCPoints ( 2, CPos, &ww->selection_rect, MARK_SELECT );
+    if ( swwin0markedg )
+      GeomObjectMarkHalfedges ( 2, CPos, &ww->selection_rect, MARK_SELECT );
     xge_SetClipping ( er );
     er->redraw ( er, true );
     return 1;
 
 case xgemsg_2DWIN_UNSELECT_POINTS:
-    GeomObjectMarkCPoints ( 2, CPos, &ww->selection_rect, MARK_CP_UNSELECT );
+    if ( swwin0mark )
+      GeomObjectMarkCPoints ( 2, CPos, &ww->selection_rect, MARK_UNSELECT );
+    if ( swwin0markedg )
+      GeomObjectMarkHalfedges ( 2, CPos, &ww->selection_rect, MARK_UNSELECT );
     xge_SetClipping ( er );
     er->redraw ( er, true );
     return 1;
 
 case xgemsg_2DWIN_TGSELECT_POINTS:
-    GeomObjectMarkCPoints ( 2, CPos, &ww->selection_rect, MARK_CP_TGSELECT );
+    if ( swwin0mark )
+      GeomObjectMarkCPoints ( 2, CPos, &ww->selection_rect, MARK_TGSELECT );
+    if ( swwin0markedg )
+      GeomObjectMarkHalfedges ( 2, CPos, &ww->selection_rect, MARK_TGSELECT );
     xge_SetClipping ( er );
     er->redraw ( er, true );
     return 1;

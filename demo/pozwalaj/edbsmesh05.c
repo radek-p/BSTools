@@ -90,6 +90,117 @@ void GeomObjectBSplineMeshMarkCPoint ( GO_BSplineMesh *obj,
   obj->me.dlistmask &= ~BSM_DLM_CNET;
 } /*GeomObjectBSplineMeshMarkCPoint*/
 
+static boolean _LB_Test ( double p, double q, double *t0, double *t1 )
+{
+  double r;
+
+  if ( p < 0.0 ) {
+    r = q/p;
+    if ( r > *t1 ) return false;
+    else if ( r > *t0 ) *t0 = r;
+  }
+  else if ( p > 0.0 ) {
+    r = q/p;
+    if ( r < *t0 ) return false;
+    else if ( r < *t1 ) *t1 = r;
+  }
+  else if ( q < 0.0 )
+    return false;
+  return true;
+} /*_LB_Test*/
+
+static boolean _EdgeBoxCoincidence ( CameraRecd *CPos, Box2s *box,
+                                     int cpdimen, int spdimen,
+                                     double *v0, double *v1 )
+{
+  point3d p0, p1, q0, q1;
+  double  t0, t1, d;
+
+  switch ( spdimen ) {
+case 2:
+    switch ( cpdimen ) {
+  case 2:
+      SetPoint3d ( &p0, v0[0], v0[1], 0.0 );
+      SetPoint3d ( &p1, v1[0], v1[1], 0.0 );
+      break;
+  case 3:
+      SetPoint3d ( &p0, v0[0]/v0[2], v0[1]/v0[2], 0.0 );
+      SetPoint3d ( &p1, v1[0]/v1[2], v1[1]/v1[2], 0.0 );
+      break;
+  default:
+      return false;
+    }
+    break;
+case 3:
+    switch ( cpdimen ) {
+  case 3:
+      memcpy ( &p0, v0, sizeof(point3d) );
+      memcpy ( &p1, v1, sizeof(point3d) );
+      break;
+  case 4:
+      Point4to3d ( (point4d*)v0, &p0 );
+      Point4to3d ( (point4d*)v1, &p1 );
+      break;
+  default:
+      return false;
+    }
+    break;
+default:
+    return false;
+  }
+  if ( !CameraClipLine3d ( CPos, &p0, 0.0, &p1, 1.0, &q0, &q1 ) )
+    return false;
+        /* Liang-Barsky clipping algorithm */
+  t0 = 0.0;  t1 = 1.0;
+  d = q1.x-q0.x;
+  if ( _LB_Test ( -d, q0.x-box->x0, &t0, &t1 ) )
+    if ( _LB_Test ( d, box->x1-q0.x, &t0, &t1 ) ) {
+      d = q1.y-q0.y;
+      if ( _LB_Test ( -d, q0.y-box->y0, &t0, &t1 ) )
+        if ( _LB_Test ( d, box->y1-q0.y, &t0, &t1 ) )
+          return true;
+    }
+  return false;
+} /*_EdgeBoxCoincidence*/
+
+void GeomObjectBSplineMeshMarkHalfedges ( GO_BSplineMesh *obj,
+                                          CameraRecd *CPos, Box2s *box,
+                                          byte mask, int action )
+{
+  int         nhe, cpdimen, spdimen, i;
+  BSMhalfedge *mhe;
+  double      *cp;
+  byte        *mkhe;
+
+  if ( obj->me.obj_type != GO_BSPLINE_MESH )
+    return;
+  nhe  = obj->nhe;
+  mhe  = obj->meshhe;
+  cp   = obj->meshvpc;
+  mkhe = obj->mkhe;
+  cpdimen = obj->me.cpdimen;
+  spdimen = obj->me.spdimen;
+  for ( i = 0; i < nhe; i++ )
+    if ( _EdgeBoxCoincidence ( CPos, box, cpdimen, spdimen,
+                               &cp[cpdimen*mhe[i].v0], &cp[cpdimen*mhe[i].v1] ) ) {
+      switch ( action ) {
+    case MARK_SELECT:
+        mkhe[i] |= mask;
+        break;
+    case MARK_UNSELECT:
+        mkhe[i] &= ~mask;
+        break;
+    case MARK_TGSELECT:
+        mkhe[i] ^= mask;
+        break;
+    default:
+        break;
+      }
+    }
+
+  obj->me.dlistmask &= ~BSM_DLM_CNET;
+} /*GeomObjectBSplineMeshMarkHalfedges*/
+
 boolean GeomObjectBSplineMeshSaveCPoints ( GO_BSplineMesh *obj )
 {
   int size;

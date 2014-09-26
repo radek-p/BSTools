@@ -81,10 +81,24 @@ void SetupObjectSpecificMenus ( geom_object *obj )
           side00menu->data1 != side00bwidgets &&
           side00menu->data1 != side00cwidgets) ||
           obj->spdimen != 3 ) {
-      if ( obj->obj_type == GO_BSPLINE_MESH )
+      if ( obj->obj_type == GO_BSPLINE_MESH ) {
         side00widgets = side00dwidgets;
-      else
+        if ( swwin0markedg ) {
+          if ( geom00win == geom00win2D )
+            xge_2DwindEnableGeomWidget ( &g00win2D, xge_2DWIN_SELECTING_TOOL );
+          else if ( geom00win == geom00win3D )
+            xge_3DwindEnableGeomWidget ( &g00win3D, xge_3DWIN_SELECTING_TOOL );
+        }
+      }
+      else {
         side00widgets = side00awidgets;
+        if ( !swwin0mark && !swwin0markedg ) {
+          if ( geom00win == geom00win2D )
+            xge_2DwindEnableGeomWidget ( &g00win2D, xge_2DWIN_NO_TOOL );
+          else if ( geom00win == geom00win3D )
+            xge_3DwindEnableGeomWidget ( &g00win3D, xge_3DWIN_NO_TOOL );
+        }
+      }
       xge_SetMenuWidgets ( side00menu, side00widgets, false );
     }
     switch ( obj->spdimen ) {

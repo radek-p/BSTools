@@ -481,13 +481,13 @@ void GeomObjectMarkPoints ( char cpdimen, char spdimen,
   for ( i = k = 0;  i < np;  i++, k += cpdimen )
     if ( GeomObjectPointInBox ( cpdimen, spdimen, &cp[k], CPos, box ) ) {
       switch ( action ) {
-    case MARK_CP_SELECT:
+    case MARK_SELECT:
         mkcp[i] |= mask;
         break;
-    case MARK_CP_UNSELECT:
+    case MARK_UNSELECT:
         mkcp[i] &= ~mask;
         break;
-    case MARK_CP_TGSELECT:
+    case MARK_TGSELECT:
         mkcp[i] ^= mask;
         break;
     default:
@@ -500,13 +500,13 @@ void GeomObjectMarkPoint ( int np, byte *mkcp, byte mask, int action )
 {
   if ( current_point_ind >= 0 && current_point_ind < np ) {
     switch ( action ) {
-  case MARK_CP_SELECT:
+  case MARK_SELECT:
       mkcp[current_point_ind] |= mask;
       break;
-  case MARK_CP_UNSELECT:
+  case MARK_UNSELECT:
       mkcp[current_point_ind] &= ~mask;
       break;
-  case MARK_CP_TGSELECT:
+  case MARK_TGSELECT:
       mkcp[current_point_ind] ^= mask;
       break;
   default:
@@ -586,6 +586,19 @@ void GeomObjectMarkCPoints ( char spdimen, CameraRecd *CPos, Box2s *box,
       }
   }
 } /*GeomObjectMarkCPoints*/
+
+void GeomObjectMarkHalfedges ( char spdimen, CameraRecd *CPos, Box2s *box,
+                               int action )
+{
+  geom_object *go;
+
+  for ( go = first_go; go; go = go->next )
+    if ( (go == current_go || go->active) && go->spdimen == spdimen &&
+         go->obj_type == GO_BSPLINE_MESH ) {
+      GeomObjectBSplineMeshMarkHalfedges ( (GO_BSplineMesh*)go, CPos, box,
+                                           marking_mask, action );
+    }
+} /*GeomObjectMarkHalfedges*/
 
 void GeomObjectSetMarkingMask ( boolean bits[5] )
 {

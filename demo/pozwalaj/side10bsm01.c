@@ -87,7 +87,7 @@ void InitSide10Menu_BSm ( void )
                       txtDivideFacet );
   w = xge_NewButton ( win1, w, btnM1BSM_DOUBLE_LOOP, 79, 19, 0, 264,
                       txtDoubleLoop );
-  w->state = xgestate_BUTTON_INACTIVE;
+/*  w->state = xgestate_BUTTON_INACTIVE; */
   w = xge_NewIntWidget ( win1, w, intwM1BSM_EDGE0, 75, 19, 0, 288,
                          -2, 10, &intw_bsm_edge0, txtEdge, &bsm_edge_num0 );
   w = xge_NewIntWidget ( win1, w, intwM1BSM_EDGE1, 35, 19, 74, 288,

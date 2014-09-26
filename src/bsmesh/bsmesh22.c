@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2010, 2012                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2010, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -21,7 +21,7 @@
 boolean bsm_FindVertexDistances1 ( int nv, BSMvertex *mv, int *mvhei,
                                    int nhe, BSMhalfedge *mhe,
                                    int nfac, BSMfacet *mfac, int *mfhei,
-                                   int v, int *dist )
+                                   int v, boolean back, int *dist )
 {
   void      *sp;
   pkv_queue *q;
@@ -56,22 +56,24 @@ boolean bsm_FindVertexDistances1 ( int nv, BSMvertex *mv, int *mvhei,
         pkv_QueueInsert ( q, &k );
       }
     }
-        /* take care also of boundary vertices */
-    j = mvhei[fhe+deg-1];
-    if ( mhe[j].otherhalf < 0 ) {
-      f = mhe[j].facetnum;
-      deg = mfac[f].degree;
-      fhe = mfac[f].firsthalfedge;
-      for ( k = 0; k < deg; k++ )
-        if ( mhe[mfhei[fhe+k]].v0 == i )
-          break;
-      if ( k == deg )
-        goto failure;
-      k = mhe[mfhei[fhe+k]].v1;
-      if ( !vtag[k] ) {
-        vtag[k] = 1;
-        dist[k] = d;
-        pkv_QueueInsert ( q, &k );
+    if ( back ) {
+        /* take care also of backwards oriented boundary halfedges */
+      j = mvhei[fhe+deg-1];
+      if ( mhe[j].otherhalf < 0 ) {
+        f = mhe[j].facetnum;
+        deg = mfac[f].degree;
+        fhe = mfac[f].firsthalfedge;
+        for ( k = 0; k < deg; k++ )
+          if ( mhe[mfhei[fhe+k]].v0 == i )
+            break;
+        if ( k == deg )
+          goto failure;
+        k = mhe[mfhei[fhe+k]].v1;
+        if ( !vtag[k] ) {
+          vtag[k] = 1;
+          dist[k] = d;
+          pkv_QueueInsert ( q, &k );
+        }
       }
     }
   } while ( !pkv_QueueEmpty ( q ) );

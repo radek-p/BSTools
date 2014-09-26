@@ -1059,9 +1059,9 @@ boolean GeomObjectBSplineMeshDoubleEdgeLoop ( GO_BSplineMesh *obj )
   void        *sp;
   int         inv, inhe, infac, onv, onhe, onfac;
   int         *loop, loop_length;
-  boolean     *mkv;
+  boolean     *mkv, bhe;
   byte        *imkhe, *omkcp, *omkhe, *omkfac;
-  int         i, v0, v1, vd, vfhe, he;
+  int         i, j, k, v0, v1, vd, vfhe, he, he1;
   BSMvertex   *imv, *omv;
   BSMhalfedge *imhe, *omhe;
   BSMfacet    *omfac;
@@ -1120,12 +1120,43 @@ boolean GeomObjectBSplineMeshDoubleEdgeLoop ( GO_BSplineMesh *obj )
   } while ( v1 != v0 );
   if ( loop_length < 3 )
     goto failure;
-/*
+        /* reorder the loop, if necessary */
+        /* if there is a boundary edge in the loop */
+        /* then its orientation must be preserved  */
+  bhe = false;
+  for ( i = 0; i < loop_length; i++ )
+    if ( imhe[loop[i]].otherhalf < 0 ) {
+      bhe = true;
+      break;
+    }
+  if ( bhe ) {  /* there is a boundary edge */
+    he = loop[i];
+    he1 = loop[(i+1) % loop_length];
+    if ( imhe[he].v1 != imhe[he1].v0 && imhe[he].v1 != imhe[he1].v1 ) {
+            /* reverse the entire loop */
+      for ( i = 0, j = loop_length-1;  i < j;  i++, j-- )
+        { k = loop[i];  loop[i] = loop[j];  loop[j] = k; }
+    }
+  }
+  for ( i = 0; i < loop_length-1; i++ ) {
+    he = loop[i];
+    he1 = loop[i+1];
+    if ( imhe[he].v1 != imhe[he1].v0 && imhe[he].v0 != imhe[he1].v1 ) {
+      if ( (loop[i] = imhe[he].otherhalf) < 0 )
+        goto failure;
+    }
+  }
+  he = loop[loop_length-1];
+  if ( imhe[he].v1 != imhe[loop[0]].v0 ) {
+    if ( (loop[loop_length-1] = imhe[he].otherhalf) < 0 )
+      goto failure;
+  }
+
 printf ( "halfedge loop: " );
 for ( i = 0; i < loop_length; i++ )
-  printf ( "%d ", loop[i] );
+  printf ( "%d (%d,%d), ", loop[i], imhe[loop[i]].v0, imhe[loop[i]].v1 );
 printf ( "\n" );
-*/
+
         /* allocate the memory and call the loop doubling procedure */
   bsm_EdgeLoopDoublingNum ( inv, inhe, infac, loop_length, &onv, &onhe, &onfac );
   omv = malloc ( onv*sizeof(BSMvertex) );

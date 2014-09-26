@@ -63,7 +63,7 @@ boolean GeomObjectBSplineMeshMarkBetweenVertices ( GO_BSplineMesh *obj,
   mfhei = obj->meshfhei;
   mkcp = obj->mkcp;
   if ( !bsm_FindVertexDistances1 ( nv, mv, mvhei, nhe, mhe, nfac, mfac, mfhei,
-                                   v0, dist ) )
+                                   v0, true, dist ) )
     goto failure;
   if ( dist[v1] >= nv )
     goto failure;
@@ -142,7 +142,7 @@ boolean GeomObjectBSplineMeshMarkHalfedgesBetweenVertices ( GO_BSplineMesh *obj,
   mfhei = obj->meshfhei;
   mkhe = obj->mkhe;
   if ( !bsm_FindVertexDistances1 ( nv, mv, mvhei, nhe, mhe, nfac, mfac, mfhei,
-                                   v0, dist ) )
+                                   v0, true, dist ) )
     goto failure;
   if ( dist[v1] >= nv )
     goto failure;
@@ -161,6 +161,23 @@ boolean GeomObjectBSplineMeshMarkHalfedgesBetweenVertices ( GO_BSplineMesh *obj,
           mkhe[he] &= ~marking_mask;
         v1 = v2;
         break;
+      }
+    }
+    if ( i >= deg ) {
+      i = mhe[mvhei[fhe]].facetnum;
+      deg = mfac[i].degree;
+      fhe = mfac[i].firsthalfedge;
+      for ( i = 0; i < deg; i++ ) {
+        he = mfhei[fhe+i];
+        v2 = mhe[he].v0;
+        if ( dist[v2] == d && mhe[he].v1 == v1 ) {
+          if ( mark )
+            mkhe[he] |= marking_mask;
+          else
+            mkhe[he] &= ~marking_mask;
+          v1 = v2;
+          break;
+        }
       }
     }
     if ( i >= deg )
@@ -205,7 +222,7 @@ boolean GeomObjectBSplineMeshFilterPolyline ( GO_BSplineMesh *obj )
   mvhei = obj->meshvhei;
   mfhei = obj->meshfhei;
   if ( !bsm_FindVertexDistances1 ( nv, mv, mvhei, nhe, mhe, nfac, mfac, mfhei,
-                                   v0, dist ) )
+                                   v0, true, dist ) )
     goto failure;
   if ( dist[v1] >= nv )
     goto failure;

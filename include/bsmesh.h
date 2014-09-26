@@ -251,7 +251,7 @@ void bsm_TagBoundaryZoneVertices ( int nv, BSMvertex *mv, int *mvhei,
 boolean bsm_FindVertexDistances1 ( int nv, BSMvertex *mv, int *mvhei,
                                    int nhe, BSMhalfedge *mhe,
                                    int nfac, BSMfacet *mfac, int *mfhei,
-                                   int v, int *dist );
+                                   int v, boolean back, int *dist );
 
 /* 2. measured with the number of facets (assuming that facets with a common) */
 /*    vertex are neighbours */
