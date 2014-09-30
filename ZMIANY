@@ -3849,4 +3849,13 @@ Wersja 0.34.
 899. W programie pozwalaj dodana mozliwosc zaznaczania/odznaczania
     polkrawedzi we wskazanym obszarze na obrazie.
 
+29.09.2014.
+900. Nowa procedura w libpkgeom, LiangBarskyClip2f.
+
+30.09.2014.
+901. Zmiany w programie pozwalaj - czytanie plikow .bs (obcieta dziedzina
+    plata B-sklejanego) i wyswietlanie brzegu obcietej dziedziny. Pozostaje
+    do zrobienia edycja, zapisywanie, wyswietlanie i ray tracing platow
+    obcietych.
+
 

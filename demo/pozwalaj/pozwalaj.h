@@ -407,6 +407,7 @@ void DrawG10winT2KNKnots ( xge_T2KnotWind *kwin );
 void DrawG10winT2KNKnotLines ( xge_T2KnotWind *kwin );
 void DrawG10winT2KNDomain ( xge_T2KnotWind *kwin );
 void DrawG10winT2KNDomainNet ( xge_T2KnotWind *kwin );
+void DrawG10winTrimmedDomain ( xge_T2KnotWind *kwin );
 void DrawG10winT2KN ( xge_widget *er, boolean onscreen );
 void Geom10winT2SetKnots ( xge_T2KnotWind *kwin,
                            int degreeu, int lastknotu, double *knotsu, boolean closedu,

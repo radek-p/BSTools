@@ -1180,10 +1180,12 @@ void GeomObjectReadBSplineCurve ( void *usrdata, const char *name, int ident,
   int                  ncp, cpdimen;
   rw_object_attributes *attrib;
 
-  obj = (GO_BSplineCurve*)GeomObjectAddBSplineCurve ( name, spdimen, rational );
   attrib = (rw_object_attributes*)usrdata;
-  attrib->go_being_read = (geom_object*)obj;
+  obj = (GO_BSplineCurve*)attrib->go_being_read;
   if ( obj ) {
+    strncpy ( obj->me.name, name, MAX_NAME_LENGTH+1 );
+    obj->me.spdimen = spdimen;
+    obj->me.cpdimen = rational ? spdimen+1 : spdimen;
     obj->me.ident = ident;
     ncp = lastknot - degree;
     cpdimen = obj->me.cpdimen;

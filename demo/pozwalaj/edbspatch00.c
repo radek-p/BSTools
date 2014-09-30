@@ -171,6 +171,7 @@ geom_object *GeomObjectCopyBSplinePatch ( GO_BSplinePatch *obj )
     copy->nkn1 = obj->nkn1;
     copy->nkn2 = obj->nkn2;
     copy->maxit = obj->maxit;
+    GeomObjectBSplinePatchCopyTrimmedDomain ( obj, copy );
     return &copy->me;
   }
   else
@@ -179,6 +180,7 @@ geom_object *GeomObjectCopyBSplinePatch ( GO_BSplinePatch *obj )
 
 void GeomObjectDeleteBSplinePatch ( GO_BSplinePatch *obj )
 {
+  GeomObjectBSplinePatchDeleteTrimmedDomain ( obj );
   GeomObjectBSplinePatchDestroyBlMat ( obj );
   if ( obj->knots_u )      free ( obj->knots_u );
   if ( obj->knots_v )      free ( obj->knots_v );

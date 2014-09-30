@@ -625,10 +625,12 @@ void GeomObjectReadBezierCurve ( void *usrdata,
   int                  ncp, cpdimen;
   rw_object_attributes *attrib;
 
-  obj = (GO_BezierCurve*)GeomObjectAddBezierCurve ( name, spdimen, rational );
   attrib = (rw_object_attributes*)usrdata;
-  attrib->go_being_read = (geom_object*)obj;
+  obj = (GO_BezierCurve*)attrib->go_being_read;
   if ( obj ) {
+    strncpy ( obj->me.name, name, MAX_NAME_LENGTH+1 );
+    obj->me.spdimen = spdimen;
+    obj->me.cpdimen = rational ? spdimen+1 : spdimen;
     obj->me.ident = ident;
     ncp = degree+1;
     cpdimen = obj->me.cpdimen;

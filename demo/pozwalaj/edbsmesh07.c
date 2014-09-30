@@ -74,10 +74,12 @@ void GeomObjectReadBSplineMesh ( void *usrdata,
 
   if ( !bsm_CheckMeshIntegrity ( nv, mv, mvhei, nhe, mhe, nfac, mfac, mfhei ) )
     return;
-  obj = (GO_BSplineMesh*)GeomObjectAddBSplineMesh ( name, spdimen, rational );
   attrib = (rw_object_attributes*)usrdata;
-  attrib->go_being_read = (geom_object*)obj;
+  obj = (GO_BSplineMesh*)attrib->go_being_read;
   if ( obj ) {
+    strncpy ( obj->me.name, name, MAX_NAME_LENGTH+1 );
+    obj->me.spdimen = spdimen;
+    obj->me.cpdimen = rational ? spdimen+1 : spdimen;
     obj->me.ident = ident;
     cpdimen = obj->me.cpdimen;
     vert = malloc ( nv*sizeof(BSMvertex) );

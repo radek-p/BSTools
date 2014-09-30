@@ -419,6 +419,12 @@ leave_it:
   pkv_SetScratchMemTop ( sp );
 } /*DrawG10winT2KNDomainNet*/
 
+void DrawG10winTrimmedDomain ( xge_T2KnotWind *kwin )
+{
+  GeomObjectBSplinePatchDrawTrimmedDomain ( (GO_BSplinePatch*)current_go,
+                                            &kwin->CPos );
+} /*DrawG10winTrimmedDomain*/
+
 void DrawG10winT2KN ( xge_widget *er, boolean onscreen )
 {
   xge_T2KnotWind *kwin;
@@ -428,8 +434,8 @@ void DrawG10winT2KN ( xge_widget *er, boolean onscreen )
   if ( kwin->display_coord && kwin->inside )
     xge_T2KnotWindDrawCursorPos ( kwin, xge_xx, xge_yy );
   DrawG10winT2KNDomain ( kwin );
-  /* if ( ?? ) */
-    DrawG10winT2KNDomainNet ( kwin );
+  DrawG10winT2KNDomainNet ( kwin );
+  DrawG10winTrimmedDomain ( kwin );
   xge_DrawGeomWinSelectionRect ( er, &kwin->selection_rect );
   xge_DrawGeomWinFrame ( er, onscreen );
 } /*DrawG10winT2KN*/

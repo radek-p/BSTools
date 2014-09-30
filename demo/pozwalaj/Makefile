@@ -41,6 +41,7 @@ OBJECTS = pozwalaj00.o pozwalaj01.o pozwalaj02.o statustext.o \
   edbezcurve.o edbscurve.o edbezpatch.o \
   edbspatch00.o edbspatch01.o edbspatch02.o edbspatch03.o edbspatch04.o \
   edbspatch05.o edbspatch06.o edbspatch07.o edbspatch08.o edbspatch09.o \
+  edbspatch10.o \
   edbsmesh00.o edbsmesh01.o edbsmesh02.o edbsmesh03.o edbsmesh04.o \
   edbsmesh05.o edbsmesh06.o edbsmesh07.o edbsmesh08.o edbsmesh09.o \
   edbsmesh10.o edbsmesh11.o edbsmesh12.o \
@@ -236,6 +237,9 @@ edbspatch08.o: $(SRCDIR)/edbspatch08.c \
   $(SRCDIR)/editor.h $(SRCDIR)/editor_bsp.h $(SRCDIR)/render.h
 
 edbspatch09.o: $(SRCDIR)/edbspatch09.c \
+  $(SRCDIR)/editor.h $(SRCDIR)/editor_bsp.h $(SRCDIR)/render.h
+
+edbspatch10.o: $(SRCDIR)/edbspatch10.c \
   $(SRCDIR)/editor.h $(SRCDIR)/editor_bsp.h $(SRCDIR)/render.h
 
 edbsmesh00.o: $(SRCDIR)/edbsmesh00.c \

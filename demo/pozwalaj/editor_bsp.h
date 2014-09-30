@@ -29,6 +29,13 @@
 #define BSP_NDL       2
 
 typedef struct {
+    int            nelem;
+    mbs_polycurved *bound;
+    int            bufsize;
+    byte           *buffer;
+  } BSP_TrimmedDomain;
+
+typedef struct {
     geom_object me;
     short int   bsp_type;
     int         maxknots_u, maxknots_v;
@@ -39,7 +46,7 @@ typedef struct {
     double      *savedcpoints;
     byte        *mkcp;
     boolean     rational, closed_u, closed_v, uniform_u, uniform_v,
-                clamped, nharmonic;
+                clamped, nharmonic, trimmed;
     int         dens_u, dens_v;
     boolean     view_surf, view_cnet;
         /* equator and meridian name for the spherical product */
@@ -55,6 +62,8 @@ typedef struct {
     boolean     blp_closed_u;
     double      blp_C;
     int         nkn1, nkn2, maxit;      /* nonlinear optimization parameters */
+        /* trimmed patch domain */
+    BSP_TrimmedDomain *trpd;
   } GO_BSplinePatch;
 
 
@@ -152,4 +161,13 @@ void GeomObjectBSplinePatchDisplayInfoText ( GO_BSplinePatch *obj );
 
 boolean GeomObjectBSplinePatchProcessDep ( GO_BSplinePatch *obj, geom_object *go );
 void GeomObjectBSplinePatchProcessDeletedDep ( GO_BSplinePatch *obj, geom_object *go );
+
+/* procedures related with domains of trimmed patches */
+void GeomObjectBSplinePatchCopyTrimmedDomain ( GO_BSplinePatch *obj,
+                                               GO_BSplinePatch *copy );
+void GeomObjectBSplinePatchDeleteTrimmedDomain ( GO_BSplinePatch *obj );
+void GeomObjectBSplinePatchEnterTrimmedDomain ( GO_BSplinePatch *obj,
+                                                int nelem, mbs_polycurved *elem );
+void GeomObjectBSplinePatchDrawTrimmedDomain ( GO_BSplinePatch *obj,
+                                               CameraRecd *CPos );
 

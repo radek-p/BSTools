@@ -42,16 +42,34 @@ void GeomObjectBeginReading ( void *usrdata, int obj_type )
 {
   rw_object_attributes *attrib;
 
-      /* initialise the attributes to default values */
   attrib = (rw_object_attributes*)usrdata;
-  attrib->go_being_read = NULL;
+        /* space dimension to be fixed later */
   switch ( obj_type ) {
 case BSF_BEZIER_CURVE:
+    attrib->go_being_read =
+         (geom_object*)GeomObjectAddBezierCurve ( "", 2, false );
+    goto init_attr;
 case BSF_BEZIER_PATCH:
+    attrib->go_being_read =
+         (geom_object*)GeomObjectAddBezierPatch ( "", 2, false );
+    goto init_attr;
 case BSF_BSPLINE_CURVE:
+    attrib->go_being_read =
+         (geom_object*)GeomObjectAddBSplineCurve ( "", 2, false );
+    goto init_attr;
 case BSF_BSPLINE_PATCH:
+    attrib->go_being_read =
+         (geom_object*)GeomObjectAddBSplinePatch ( "", 2, false );
+    goto init_attr;
 case BSF_BSPLINE_MESH:
-case BSF_BSPLINE_HOLE:
+    attrib->go_being_read =
+         (geom_object*)GeomObjectAddBSplineMesh ( "", 2, false );
+    goto init_attr;
+case BSF_BSPLINE_HOLE:  /* none processed yet */
+    return;
+
+      /* initialise the attributes to default values */
+init_attr:
     attrib->obj_type = obj_type;
         /* points marking */
     attrib->nmk = 0;
@@ -69,7 +87,9 @@ case BSF_BSPLINE_HOLE:
         /* others - in future */
     break;
 
-case BSF_TRIMMED_DOMAIN:  /* ignore at the moment */
+case BSF_TRIMMED_DOMAIN:
+    attrib->ntrd = 0;
+    attrib->trd_error = false;
     break;
 
 default:
@@ -183,15 +203,23 @@ case BSF_BSPLINE_HOLE:
       free ( attrib->hemk );
       attrib->hemk = NULL;
     }
+    attrib->go_being_read = NULL;
     break;
 
-case BSF_TRIMMED_DOMAIN:  /* ignore at the moment */
+case BSF_TRIMMED_DOMAIN:
+    if ( !attrib->trd_error && attrib->ntrd > 0 )
+      GeomObjectBSplinePatchEnterTrimmedDomain (
+          (GO_BSplinePatch*)attrib->go_being_read, attrib->ntrd, attrib->trdelem );
+    if ( attrib->trdelem ) {
+      free ( attrib->trdelem );
+      attrib->trdelem = NULL;
+    }
+    attrib->ntrd = attrib->trdl = 0;
     break;
 
 default:
     break;
   }
-  attrib->go_being_read = NULL;
 } /*GeomObjectEndReading*/
 
 void GeomObjectReadColour ( void *usrdata, point3d *colour )
@@ -275,19 +303,81 @@ boolean GeomObjectResolveDependencies ( void )
 void GeomObjectReadDependency ( void *usrdata,
                                 int depname, int ndep, int *dep )
 {
-  rw_object_attributes *rw;
+  rw_object_attributes *attrib;
 
-  rw = (rw_object_attributes*)usrdata;
-  rw->filedepname = depname;
-  rw->filedepnum = ndep;
+  attrib = (rw_object_attributes*)usrdata;
+  attrib->filedepname = depname;
+  attrib->filedepnum = ndep;
   if ( ndep > 0 ) {
-    rw->filedepid = malloc ( ndep*sizeof(int) );
-    if ( rw->filedepid )
-      memcpy ( rw->filedepid, dep, ndep*sizeof(int) );
+    attrib->filedepid = malloc ( ndep*sizeof(int) );
+    if ( attrib->filedepid )
+      memcpy ( attrib->filedepid, dep, ndep*sizeof(int) );
   }
   else
-    rw->filedepid = NULL;
+    attrib->filedepid = NULL;
 } /*GeomObjectReadDependency*/
+
+void GeomObjectReadTrimmedDomain ( void *usrdata, mbs_polycurved *elem )
+{
+  rw_object_attributes *attrib;
+  mbs_polycurved       *trdelem;
+  int                  trdl, ntrd;
+  int                  dim, deg, lkn, ncp;
+
+  attrib = (rw_object_attributes*)usrdata;
+  if ( attrib->trd_error )
+    return;
+        /* reallocate, if necessary */
+  ntrd = attrib->ntrd;
+  if ( ntrd+1 >= attrib->trdl ) {
+    trdl = attrib->ntrd+16;
+    trdelem = malloc ( trdl*sizeof(mbs_polycurved) );
+    if ( trdelem ) {
+      if ( ntrd && attrib->trdelem ) {
+        memcpy ( trdelem, attrib->trdelem, ntrd*sizeof(mbs_polycurved) );
+        free ( attrib->trdelem );
+      }
+      attrib->trdelem = trdelem;
+      attrib->trdl = trdl;
+    }
+    else {
+      attrib->trd_error = true;
+      return;
+    }
+  }
+        /* copy the data from a buffer into the destination arrays */
+  trdelem = attrib->trdelem;
+  trdelem[ntrd].ident = elem->ident;
+  trdelem[ntrd].closing = elem->closing;
+  trdelem[ntrd].spdimen = dim = elem->spdimen;
+  trdelem[ntrd].degree = deg = elem->degree;
+  trdelem[ntrd].lastknot = lkn = elem->lastknot;
+  trdelem[ntrd].points = NULL;
+  if ( elem->knots ) {
+    trdelem[ntrd].knots = malloc ( (lkn+1)*sizeof(double) );
+    if ( trdelem[ntrd].knots ) {
+      memcpy ( trdelem[ntrd].knots, elem->knots, (lkn+1)*sizeof(double) );
+      ncp = lkn-deg;
+    }
+    else
+      attrib->trd_error = true;
+  }
+  else if ( deg > 1 ) {
+    trdelem[ntrd].knots = NULL;
+    ncp = deg+1;
+  }
+  else {
+    trdelem[ntrd].knots = NULL;
+    ncp = lkn+1;
+  }
+  trdelem[ntrd].points = malloc ( ncp*dim*sizeof(double) );
+  if ( trdelem[ntrd].points ) {
+    memcpy ( trdelem[ntrd].points, elem->points, ncp*dim*sizeof(double) );
+    attrib->ntrd = ntrd+1;
+  }
+  else
+    attrib->trd_error = true;
+} /*GeomObjectReadTrimmedDomain*/
 
 boolean GeomObjectReadFile ( char *filename, bsf_Camera_fptr CameraReader )
 {
@@ -297,8 +387,8 @@ boolean GeomObjectReadFile ( char *filename, bsf_Camera_fptr CameraReader )
 
         /* register procedures entering the objects read in */
   bsf_ClearReaders ( &readers );
+  memset ( &attrib, 0, sizeof(rw_object_attributes) );
   readers.userData = (void*)&attrib;
-  attrib.mk = NULL;
   bsf_BeginReadingFuncd ( &readers, GeomObjectBeginReading );
   bsf_EndReadingFuncd ( &readers, GeomObjectEndReading );
   bsf_BC4ReadFuncd  ( &readers, GeomObjectReadBezierCurve, MAX_DEGREE );
@@ -309,6 +399,7 @@ boolean GeomObjectReadFile ( char *filename, bsf_Camera_fptr CameraReader )
                       MAX_DEGREE, MAX_BSP_KNOTS-1 );
   bsf_BSM4ReadFuncd ( &readers, GeomObjectReadBSplineMesh, MAX_DEGREE,
                       MAX_BSM_NV, MAX_BSM_NHE, MAX_BSM_NFAC );
+  bsf_TrimmedReadFuncd ( &readers, GeomObjectReadTrimmedDomain );
 /*
   bsf_BSH4ReadFuncd ( &readers, GeomObjectReadBSplineHole );
 */

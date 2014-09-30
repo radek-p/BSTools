@@ -54,6 +54,7 @@ boolean bsf_ReadTrimmedDomaind ( bsf_UserReaders *readers )
     readers->BeginReader ( readers->userData, BSF_TRIMMED_DOMAIN );
   in_contour = true;
   for (;;) {
+    elem.ident = -1;
     switch ( bsf_nextsymbol ) {
 case BSF_SYMB_BCURVE:
       maxdeg = readers->bc_maxdeg;

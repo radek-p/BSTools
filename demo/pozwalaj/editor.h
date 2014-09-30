@@ -83,17 +83,21 @@ typedef struct geom_object {
 /* auxiliary data structure for reading optional object */
 /* attributes from data files; */
 typedef struct {
-    geom_object *go_being_read;
-    int         obj_type;
-    int         nmk;
-    byte        *mk;
-    int         nhemk;
-    byte        *hemk;
-    double      colour[3];
+    geom_object    *go_being_read;
+    int            obj_type;
+    int            nmk;
+    byte           *mk;
+    int            nhemk;
+    byte           *hemk;
+    double         colour[3];
         /* dependencies read in from a file */
-    int         filedepname;
-    int         filedepnum;
-    int         *filedepid;
+    int            filedepname;
+    int            filedepnum;
+    int            *filedepid;
+        /* elements of a trimmed domain */
+    int            ntrd, trdl;
+    mbs_polycurved *trdelem;
+    boolean        trd_error;
   } rw_object_attributes;
 
 extern geom_object *first_go, *last_go, *current_go, *currentp_go;
@@ -253,6 +257,7 @@ void GeomObjectReadHEMK ( void *usrdata, int nhe, unsigned int *mk );
 void GeomObjectReadDependency ( void *usrdata,
                                 int depname, int ndep, int *dep );
 boolean GeomObjectResolveDependencies ( void );
+void GeomObjectReadTrimmedDomain ( void *usrdata, mbs_polycurved *elem );
 boolean GeomObjectReadFile ( char *filename, bsf_Camera_fptr CameraReader );
 boolean GeomObjectWriteAttributes ( void *usrdata );
 boolean GeomObjectWriteObj ( geom_object *go );

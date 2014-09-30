@@ -3,7 +3,7 @@
 # This file is a part of the BSTools package
 # written by Przemyslaw Kiciak
 # /////////////////////////////////////////////////////////////////////
-# (C) Copyright by Przemyslaw Kiciak, 2005, 2013
+# (C) Copyright by Przemyslaw Kiciak, 2005, 2014
 # this package is distributed under the terms of the
 # Lesser GNU Public License, see the file COPYING.LIB
 # /////////////////////////////////////////////////////////////////////
@@ -16,9 +16,9 @@ LIBDIR = ../../lib
 include ../../options.mak
 
 OBJECTS = geom2f.o geom3f.o geom4f.o \
-  quaternionf.o convhf.o convcone2f.o raylinef.o \
+  quaternionf.o convhf.o convcone2f.o raylinef.o lbclipf.o \
   geom2d.o geom3d.o geom4d.o \
-  quaterniond.o convhd.o convcone2d.o raylined.o \
+  quaterniond.o convhd.o convcone2d.o raylined.o lbclipd.o \
   geom3df.o geom3fd.o
 
 TARGET = $(LIBDIR)/libpkgeom.a
@@ -64,6 +64,12 @@ convcone2d.o: convcone2d.c $(INCDIR)/pkgeom.h $(INCDIR)/pkgeomf.h $(INCDIR)/pkge
 raylinef.o: raylinef.c $(INCDIR)/pkgeom.h $(INCDIR)/pkgeomf.h $(INCDIR)/pkgeomd.h
 
 raylined.o: raylined.c $(INCDIR)/pkgeom.h $(INCDIR)/pkgeomf.h $(INCDIR)/pkgeomd.h
+
+lbclipf.o: lbclipf.c $(INCDIR)/msgpool.h $(INCDIR)/pkgeom.h $(INCDIR)/pkgeomf.h \
+  $(INCDIR)/pkgeomd.h $(INCDIR)/pkgeomclip.h
+
+lbclipd.o: lbclipd.c $(INCDIR)/msgpool.h $(INCDIR)/pkgeom.h $(INCDIR)/pkgeomf.h \
+  $(INCDIR)/pkgeomd.h $(INCDIR)/pkgeomclip.h
 
 clean:
 	rm -f $(OBJECTS)
