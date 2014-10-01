@@ -121,23 +121,19 @@ void GeomObjectBSplinePatchDeleteTrimmedDomain ( GO_BSplinePatch *obj )
 void GeomObjectBSplinePatchEnterTrimmedDomain ( GO_BSplinePatch *obj,
                                                 int nelem, mbs_polycurved *elem )
 {
-  mbs_polycurved    *delem;
   BSP_TrimmedDomain *trpd;
   int               i;
 
   trpd = NULL;
-  delem = NULL;
   if ( obj->me.obj_type != GO_BSPLINE_PATCH )
     goto failure;
   if ( obj->trpd )
     GeomObjectBSplinePatchDeleteTrimmedDomain ( obj );
   trpd = malloc ( sizeof(BSP_TrimmedDomain) );
-  delem = malloc ( nelem*sizeof(mbs_polycurved) );
-  if ( !trpd || !delem )
+  if ( !trpd )
     goto failure;
-  memcpy ( delem, elem, nelem*sizeof(mbs_polycurved) );
   trpd->nelem = nelem;
-  trpd->bound = delem;
+  trpd->bound = elem;
   trpd->bufsize = 0;
   trpd->buffer = NULL;
   obj->trpd = trpd;
@@ -151,8 +147,8 @@ failure:
     if ( elem[i].knots )  free ( elem[i].knots );
     if ( elem[i].points ) free ( elem[i].points );
   }
-  if ( trpd )  free ( trpd );
-  if ( delem ) free ( delem );
+  free ( elem );
+  if ( trpd ) free ( trpd );
   obj->trpd = NULL;
   obj->trimmed = false;
 } /*GeomObjectBSplinePatchEnterTrimmedDomain*/

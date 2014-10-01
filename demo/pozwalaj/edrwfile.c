@@ -147,8 +147,9 @@ static void _GeomObjectGetHEMK ( geom_object *go, int *nhe, byte **mk )
 void GeomObjectEndReading ( void *usrdata, int obj_type, boolean success )
 {
   rw_object_attributes *attrib;
-  byte  *mk;
-  int   i, ncp, nhe;
+  byte                 *mk;
+  int                  i, ncp, nhe, nelem;
+  mbs_polycurved       *elem;
 
   attrib = (rw_object_attributes*)usrdata;
   if ( !attrib->go_being_read )
@@ -207,13 +208,28 @@ case BSF_BSPLINE_HOLE:
     break;
 
 case BSF_TRIMMED_DOMAIN:
-    if ( !attrib->trd_error && attrib->ntrd > 0 )
-      GeomObjectBSplinePatchEnterTrimmedDomain (
-          (GO_BSplinePatch*)attrib->go_being_read, attrib->ntrd, attrib->trdelem );
     if ( attrib->trdelem ) {
-      free ( attrib->trdelem );
-      attrib->trdelem = NULL;
+      if ( attrib->go_being_read &&
+           !attrib->trd_error && attrib->ntrd > 0 ) {
+        nelem = attrib->ntrd;
+        elem = malloc ( nelem*sizeof(mbs_polycurved) );
+        if ( elem ) {  /* pass the trimmed domain boundary to the object */
+          memcpy ( elem, attrib->trdelem, nelem*sizeof(mbs_polycurved) );
+          GeomObjectBSplinePatchEnterTrimmedDomain (
+                   (GO_BSplinePatch*)attrib->go_being_read, nelem, elem );
+          elem = attrib->trdelem;
+        }
+        else {  /* deallocate the trimmed domain boundary description */
+          elem = attrib->trdelem;
+          for ( i = 0; i < nelem; i++ ) {
+            if ( elem[i].knots )  free ( elem[i].knots );
+            if ( elem[i].points ) free ( elem[i].points );
+          }
+        }
+        free ( elem );
+      }
     }
+    attrib->trdelem = NULL;
     attrib->ntrd = attrib->trdl = 0;
     break;
 
