@@ -290,7 +290,7 @@ static double _mbs_FindLineBezcIntersd ( const point2d *p0, double t0,
           mbs_BisectBC1d ( deg, ap.ac, bc );
           u = 0.5*(u0+u1);
           if ( _mbs_varsign ( deg, ap.ac ) ) {
-            if ( _mbs_pushp ( &ap, u, u1, ap.ac ) )
+            if ( !_mbs_pushp ( &ap, u, u1, ap.ac ) )
               goto out;
           }
           if ( _mbs_varsign ( deg, bc ) ) {
