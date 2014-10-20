@@ -161,8 +161,8 @@ void SelectGeomTool ( char tool, boolean *sw )
   boolean on;
   on = *sw;
 
-  swwin0mark = swwin0translate = swwin0scale = swwin0rotate =
-  swwin0shear = swwin0panzoom =
+  swwin0mark = swwin0markedg = swwin0translate = swwin0scale =
+  swwin0rotate = swwin0shear = swwin0panzoom =
   sw_bsm_selectvertex = sw_bsm_selectedge = false;
   if ( on ) {
     if ( geom00win == geom00win2D )

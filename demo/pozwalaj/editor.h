@@ -90,6 +90,7 @@ typedef struct {
     int            nhemk;
     byte           *hemk;
     double         colour[3];
+    boolean        integrity_ok;
         /* dependencies read in from a file */
     int            filedepname;
     int            filedepnum;

@@ -84,7 +84,7 @@ boolean bsm_CheckMeshIntegrity ( int nv, const BSMvertex *mv, const int *mvhei,
     }
   }
 
-        /* verify the points */
+        /* verify the verticess */
   for ( i = 0; i < nv; i++ ) {
     d = mv[i].degree;
     j = mv[i].firsthalfedge;
@@ -173,8 +173,46 @@ boolean bsm_CheckMeshIntegrity ( int nv, const BSMvertex *mv, const int *mvhei,
       }
     }
   }
-
   pkv_SetScratchMemTop ( sp );
+
+        /* vertices of each facet must not appear more than once */
+  wlv = pkv_GetScratchMem ( nv );
+  if ( !wlv )
+    FAILURE ( 22, -1 );
+  memset ( wlv, 0, nv );
+  for ( i = 0; i < nfac; i++ ) {
+    d = mfac[i].degree;
+    j = mfac[i].firsthalfedge;
+    for ( k = 0; k < d; k++ ) {
+      l = mhe[mfhei[j+k]].v0;
+      if ( wlv[l] )
+        FAILURE ( 23, i );
+      wlv[l] = 1;
+    }
+    for ( k = 0; k < d; k++ )
+      wlv[mhe[mfhei[j+k]].v0] = 0;
+  }
+  pkv_SetScratchMemTop ( sp );
+
+        /* facets surrounding each facet must not appear more than once */
+  wlf = pkv_GetScratchMem ( nfac );
+  if ( !wlf )
+    FAILURE ( 24, -1 );
+  memset ( wlf, 0, nfac );
+  for ( i = 0; i < nv; i++ ) {
+    d = mv[i].degree;
+    j = mv[i].firsthalfedge;
+    for ( k = 0; k < d; k++ ) {
+      l = mhe[mvhei[j+k]].facetnum;
+      if ( wlf[l] )
+        FAILURE ( 25, i );
+      wlf[l] = 1;
+    }
+    for ( k = 0; k < d; k++ )
+      wlf[mhe[mvhei[j+k]].facetnum] = 0;
+  }
+  pkv_SetScratchMemTop ( sp );
+
   return true;
 
 failure:

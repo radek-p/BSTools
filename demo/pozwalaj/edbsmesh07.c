@@ -72,10 +72,12 @@ void GeomObjectReadBSplineMesh ( void *usrdata,
   int                  cpdimen;
   rw_object_attributes *attrib;
 
-  if ( !bsm_CheckMeshIntegrity ( nv, mv, mvhei, nhe, mhe, nfac, mfac, mfhei ) )
-    return;
   attrib = (rw_object_attributes*)usrdata;
   obj = (GO_BSplineMesh*)attrib->go_being_read;
+  if ( !bsm_CheckMeshIntegrity ( nv, mv, mvhei, nhe, mhe, nfac, mfac, mfhei ) ) {
+    attrib->integrity_ok = false;
+    return;
+  }
   if ( obj ) {
     strncpy ( obj->me.name, name, MAX_NAME_LENGTH+1 );
     obj->me.spdimen = spdimen;

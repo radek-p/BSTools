@@ -71,6 +71,7 @@ case BSF_BSPLINE_HOLE:  /* none processed yet */
       /* initialise the attributes to default values */
 init_attr:
     attrib->obj_type = obj_type;
+    attrib->integrity_ok = true;  /* in case of error this will be changed */
         /* points marking */
     attrib->nmk = 0;
     attrib->mk = NULL;
@@ -163,6 +164,13 @@ case BSF_BSPLINE_MESH:
 case BSF_BSPLINE_HOLE:
     if ( success ) {
       /* the object has been read in, it is the last in the list, */
+      /* but if there is an error (e.g. mesh inconsistency), */
+      /* the object has to be deleted from the list */
+      if ( !attrib->integrity_ok ) {
+        current_go = attrib->go_being_read;
+        GeomObjectDeleteCurrent ();
+        goto cleanup;
+      }
       /* assign the attributes */
         /* point marking */
       _GeomObjectGetCPMK ( attrib->go_being_read, &ncp, &mk );
@@ -193,6 +201,7 @@ case BSF_BSPLINE_HOLE:
     else {
       if ( attrib->filedepid ) free ( attrib->filedepid );
     }
+cleanup:
     attrib->filedepname = -1;
     attrib->filedepnum = 0;
     attrib->filedepid = NULL;

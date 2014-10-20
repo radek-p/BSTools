@@ -429,6 +429,9 @@ boolean GeomObjectBSplinePatchFlipUV ( GO_BSplinePatch *obj )
   cl = obj->closed_u;   obj->closed_u = obj->closed_v;      obj->closed_v = cl;
   i = obj->dens_u;      obj->dens_u = obj->dens_v;          obj->dens_v = i;
 
+  if ( obj->trimmed )
+    GeomObjectBSplinePatchFlipTrimmedDomain ( obj );
+
   pkv_SetScratchMemTop ( sp );
   GeomObjectBSplinePatchDisplayInfoText ( obj );
   return true;

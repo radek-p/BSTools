@@ -170,4 +170,5 @@ void GeomObjectBSplinePatchEnterTrimmedDomain ( GO_BSplinePatch *obj,
                                                 int nelem, mbs_polycurved *elem );
 void GeomObjectBSplinePatchDrawTrimmedDomain ( GO_BSplinePatch *obj,
                                                CameraRecd *CPos );
+void GeomObjectBSplinePatchFlipTrimmedDomain ( GO_BSplinePatch *obj );
 

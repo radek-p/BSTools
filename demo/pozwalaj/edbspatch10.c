@@ -259,34 +259,32 @@ static void _DrawTrdPolyline ( CameraRecd *CPos, int npoints,
                                int cpdim, double *cp )
 {
   void    *sp;
-  point2d p, q;
-  XPoint  *s;
+  vector3d cliplines[4];
+  point2d p, *q;
   int     i;
 
   sp = pkv_GetScratchMemTop ();
-  s = pkv_GetScratchMem ( npoints*sizeof(XPoint) );
-  if ( !s )
+  q = pkv_GetScratchMem ( npoints*sizeof(point2d) );
+  if ( !q )
     goto way_out;
+  _GetClipLines ( CPos, cliplines );
   switch ( cpdim ) {
 case 2:
-    for ( i = 0; i < npoints; i++ ) {
-      CameraProjectPoint2d ( CPos, (point2d*)&cp[2*i], &q );
-      s[i].x = (int)(q.x+0.5);
-      s[i].y = (int)(q.y+0.5);
-    }
-    break;
+    for ( i = 0; i < npoints; i++ )
+      CameraProjectPoint2d ( CPos, (point2d*)&cp[2*i], &q[i] );
+    goto draw_it;
 case 3:
     for ( i = 0; i < npoints; i++ ) {
       Point3to2d ( (point3d*)&cp[3*i], &p );
-      CameraProjectPoint2d ( CPos, &p, &q );
-      s[i].x = (int)(q.x+0.5);
-      s[i].y = (int)(q.y+0.5);
+      CameraProjectPoint2d ( CPos, &p, &q[i] );
     }
+draw_it:
+    for ( i = 0; i < npoints-1; i++ )
+      mbs_ClipBC2d ( 4, cliplines, 1, &q[i], xge_DrawBC2d );
     break;
 default:
-    goto way_out;
+    break;
   }
-  xgeDrawLines ( npoints, s );
 way_out:
   pkv_SetScratchMemTop ( sp );
 } /*_DrawTrdPolyline*/
@@ -318,4 +316,38 @@ void GeomObjectBSplinePatchDrawTrimmedDomain ( GO_BSplinePatch *obj,
                          elem[i].spdimen, elem[i].points );
   }
 } /*GeomObjectBSplinePatchDrawTrimmedDomain*/
+
+static void _FlipXYPoints ( int dim, int npoints, double *points )
+{
+  int    i, k;
+  double s;
+
+  for ( i = k = 0;  i < npoints;  i++, k += dim )
+    { s = points[k];  points[k] = points[k+1];  points[k+1] = s; }
+} /*_FlipXYPoints*/
+
+void GeomObjectBSplinePatchFlipTrimmedDomain ( GO_BSplinePatch *obj )
+  
+{
+  BSP_TrimmedDomain *trpd;
+  int               nelem, i;
+  mbs_polycurved    *elem;
+
+  if ( obj->me.obj_type != GO_BSPLINE_PATCH )
+    return;
+  if ( !obj->trimmed || !obj->trpd )
+    return;
+  trpd  = obj->trpd;
+  elem  = trpd->bound;
+  nelem = trpd->nelem;
+  for ( i = 0; i < nelem; i++ ) {
+    if ( elem[i].knots )  /* flip a B-spline curve */
+      _FlipXYPoints ( elem[i].spdimen, elem[i].lastknot-elem[i].degree,
+                      elem[i].points );
+    else if ( elem[i].degree > 1 ) /* flip a Bezier curve */
+      _FlipXYPoints ( elem[i].spdimen, elem[i].degree+1, elem[i].points );
+    else /* flip a polyline */
+      _FlipXYPoints ( elem[i].spdimen, elem[i].lastknot+1, elem[i].points );
+  }
+} /*GeomObjectBSplinePatchFlipTrimmedDomain*/
 

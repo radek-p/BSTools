@@ -42,7 +42,7 @@ boolean bsf_WriteBezierCurved ( int spdimen, int cpdimen, boolean rational,
   bsf_current_indentation += 2;
   if ( name && *name ) {
     BSFwci
-    bsf_current_length += fprintf ( bsf_output, "  %s \"%s\"",
+    bsf_current_length += fprintf ( bsf_output, "%s \"%s\"",
               bsf_keyword[BSF_SYMB_NAME-BSF_FIRST_KEYWORD], name );
     BSFeol
   }
