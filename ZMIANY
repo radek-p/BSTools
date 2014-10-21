@@ -3870,5 +3870,12 @@ Wersja 0.34.
 
 904. Drobne poprawki w programie pozwalaj.
 
+21.10.2014.
+905. W programie pozwalaj poprawione generowanie petli z krawedzi przed
+    wywolaniem procedury bsm_EdgeLoopDoublingd i dodane markowanie
+    wierzcholkow i polkrawedzi po podwojeniu petli, dla ulatwienia dalszej
+    edycji siatki.
+
+
 
 

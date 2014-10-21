@@ -41,16 +41,43 @@ boolean bsm_EdgeLoopDoublingd ( int spdimen,
   int     i, j, k, l, m, n, vd, vf, vf2, fhe,
           e0, e1, e2, e3, e4, e5, e6, e7, e8, e9, v0, v1, v2, v3;
   int     pfn, pffhe, phe;
-  boolean ce8, ce9;
+  boolean ce8, ce9, incycle;
   boolean *fiel;
+  pkv_queue *q;
 
   sp = pkv_GetScratchMemTop ();
+  q = NULL;
   fiel = pkv_GetScratchMem ( infac*sizeof(boolean) );
   if ( !fiel )
     goto failure;
   memset ( fiel, false, infac*sizeof(boolean) );
-  for ( i = 0; i < EdgeLoopLength; i++ )
-    fiel[imhe[EdgeLoop[i]].facetnum] = true;
+
+  q = pkv_InitQueue ( infac, sizeof(int) );
+  if ( !q )
+    goto failure;
+  vf = imhe[EdgeLoop[0]].facetnum;
+  fiel[vf] = true;
+  pkv_QueueInsert ( q, &vf );
+  do {
+    pkv_QueueRemoveFirst(q, &vf2);
+    for ( i = imfac[vf2].firsthalfedge;
+          i < imfac[vf2].degree+imfac[vf2].firsthalfedge;
+          i++ ) {
+      fhe = imfhei[i];
+      incycle = false;
+      for ( j = 0; j < EdgeLoopLength; j++ ) {
+        if ( EdgeLoop[j] == fhe )
+          incycle = true;
+      }
+      if ( !incycle && imhe[fhe].otherhalf != -1 ) {
+        vf = imhe[imhe[fhe].otherhalf].facetnum;
+        if ( !fiel[vf] ) {
+          fiel[vf] = true;
+          pkv_QueueInsert ( q, &vf );
+        }
+      }
+    }
+  } while ( !pkv_QueueEmpty ( q ) );
 
   *onv = inv + EdgeLoopLength;
   *onhe = inhe + 4*EdgeLoopLength;
@@ -65,9 +92,9 @@ boolean bsm_EdgeLoopDoublingd ( int spdimen,
 
   for ( i = 0; i < EdgeLoopLength; i++ ) {
     v1 = imhe[EdgeLoop[i]].v1;
-        /* podwyzszam stopien tylko wtedy kiedy pomiedzy cyklem brzegowym */
-        /* nie wystepuje polkrawedz nienalezaca do cyklu. W przeciwnym */
-        /* przypadku stopien wierzcholka moze sie nawet zmniejszyc. */
+        /* the vertex degree is increased only if there is no halfedge not */
+        /* being the loop element, between the loop halfedges. Otherwise the */
+        /* vertex degree may even decrease */
     vf = imhe[EdgeLoop[i]].facetnum;
     vf2 = imhe[EdgeLoop[(i+1)%EdgeLoopLength]].facetnum;
     if ( vf == vf2 )
@@ -77,7 +104,7 @@ boolean bsm_EdgeLoopDoublingd ( int spdimen,
       while ( vf != vf2 ) {
         pffhe = imfac[vf].firsthalfedge;
         while ( imhe[imfhei[pffhe]].v0 != v1 )
-          pffhe++;
+          pffhe ++;
         vf = imhe[imhe[imfhei[pffhe]].otherhalf].facetnum;
         omv[v1].degree --;
       }
@@ -86,22 +113,13 @@ boolean bsm_EdgeLoopDoublingd ( int spdimen,
       goto failure;
   }
 
-  for ( i = k = m = 0;  i < inv;  i++ ) {
+  for ( i = m = 0;  i < inv;  i++ ) {
     memcpy ( &omvhei[m], &imvhei[imv[i].firsthalfedge],
              imv[i].degree*sizeof(int) );
     omv[i].firsthalfedge = m;
     m += omv[i].degree;
-    for ( j = imv[i].firsthalfedge; j < imv[i].firsthalfedge+imv[i].degree; j ++ ) {
-      if ( fiel[imhe[imvhei[j]].facetnum] ) {
-        for ( l = 0; l < EdgeLoopLength; l++ ) {
-          if ( EdgeLoop[l] == imvhei[j] )
-            k ++;
-        }
-      }
-      else
-        k++;
-    }
   }
+  k = m - EdgeLoopLength;
 
         /* generate the new data */
   for ( i = 0, k += EdgeLoopLength, l = inhe,
@@ -113,7 +131,7 @@ boolean bsm_EdgeLoopDoublingd ( int spdimen,
         e6 = e4, e7 = e5 ) {
     e0 = EdgeLoop[i];
     e1 = imhe[e0].otherhalf;
-    e2 = inhe+4*i;  e3 = e2+1;  e4 = e3+1;  e5 = e4+1;
+    e2 = inhe + 4*i;  e3 = e2 + 1;  e4 = e3 + 1;  e5 = e4 + 1;
     v0 = imhe[e0].v1;
     v1 = inv+i;
     omhe[e2].otherhalf = e0;
@@ -129,8 +147,8 @@ boolean bsm_EdgeLoopDoublingd ( int spdimen,
     omhe[e4].v0 = omhe[e5].v1 = omhe[e3].v1 = v0;
     omhe[e2].facetnum = omhe[e3].facetnum =
     omhe[e4].facetnum = omhe[e7].facetnum = infac+i;
-      /*TU degree = 3 + liczba niezaznaczonych polkrawedzi pomiedzy e0 */
-      /* a nastepnym w cyklu brzegowym*/
+      /* here degree = 3 + number of unmarked halfedges between e0 */
+      /* and the next element of the loop */
     omv[v1].degree = 3;
     omv[v1].firsthalfedge = k;
     omvhei[k] = e5;
@@ -168,23 +186,21 @@ boolean bsm_EdgeLoopDoublingd ( int spdimen,
         omvhei[vf+n] = e3;
         n ++;
       }
-      else if ( fiel[imhe[imvhei[m+j]].facetnum] ) {
-            /* sprawdzam czy przypadkiem nie natknelam sie na jakas */
-            /* nastepna krawedz z bordercycle */
-      }
       else {
-        omvhei[vf+n] = imvhei[m+j];
-        n ++;
+        if ( fiel[imhe[imvhei[m+j]].facetnum] ) {
+            /* is there another edge from the loop ? */
+        }
+        else {
+          omvhei[vf+n] = imvhei[m+j];
+          n ++;
+        }
       }
     }
   }
 
-    /* przycinam imvhei */
-
-
-    /* zamiana e8 i e9 w odpowiednich scianach. */
+    /* exchanging e8 and e9 in appropriate facets */
   for ( i = 0; i < EdgeLoopLength; i++ ) {
-      /*szukamy miejsca gdzie siedzi nasza polkrawedz*/
+      /* searching for the location of our halfedge */
     vf = imhe[EdgeLoop[i]].facetnum;
     vd = imfac[vf].degree;
     fhe = imfac[vf].firsthalfedge;
@@ -192,11 +208,11 @@ boolean bsm_EdgeLoopDoublingd ( int spdimen,
       if ( imfhei[j] == EdgeLoop[i] ) {
         k = (j-fhe-1) % vd;
         if ( k < 0 )
-          k +=vd;
+          k += vd;
         e8 = imfhei[fhe+k];
         e9 = imfhei[fhe + (j-fhe+1) % vd];
-          /*jesli e8 samo w sobie nie nalezy do border cycle, */
-          /* to wymaga przenumerowania, podobnie e9 */
+          /* if e8 is not an element of the loop, it must be renumbered */
+          /* similarly e9 */
         ce8 = false;
         ce9 = false;
         for ( l = 0; l < EdgeLoopLength; l++ ) {
@@ -216,10 +232,12 @@ boolean bsm_EdgeLoopDoublingd ( int spdimen,
       }
     }
   }
+  if ( q ) PKV_FREE ( q );
   pkv_SetScratchMemTop ( sp );
   return true;
 
 failure:
+  if ( q ) PKV_FREE ( q );
   pkv_SetScratchMemTop ( sp );
   return false;
 } /*bsm_EdgeLoopDoublingd*/

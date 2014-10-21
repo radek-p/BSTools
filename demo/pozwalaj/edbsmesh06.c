@@ -1054,6 +1054,42 @@ failure:
   return false;
 } /*GeomObjectBSplineMeshDivideFacet*/
 
+static void _MarkVerticesInsideLoop ( int nv, BSMvertex *mv, int *mvhei,
+                                      int nhe, BSMhalfedge *mhe,
+                                      int nfac, BSMfacet *mfac, int *mfhei,
+                                      int inhe, int v0, byte *mkcp )
+{
+  pkv_queue *q;
+  int       deg, fhe, i, v1, he;
+  byte      mask;
+  
+  memset ( mkcp, MASK_CP_MOVEABLE, nv );
+  mask = marking_mask & ~MASK_CP_MOVEABLE;
+  if ( !mask )
+    return;
+  q = pkv_InitQueue ( nv, sizeof(int) );
+  if ( q ) {
+    mkcp[v0] |= mask;
+    pkv_QueueInsert ( q, &v0 );
+    do {
+      pkv_QueueRemoveFirst ( q, &v0 );
+      deg = mv[v0].degree;
+      fhe = mv[v0].firsthalfedge;
+      for ( i = 0; i < deg; i++ ) {
+        he = mvhei[fhe+i];
+        if ( he < inhe ) {
+          v1 = mhe[he].v1;
+          if ( !(mkcp[v1] & mask) ) {
+            mkcp[v1] |= marking_mask;
+            pkv_QueueInsert ( q, &v1 );
+          }
+        }
+      }
+    } while ( !pkv_QueueEmpty ( q ) );
+    PKV_FREE ( q );
+  }
+} /*_MarkVerticesInsideLoop*/
+
 boolean GeomObjectBSplineMeshDoubleEdgeLoop ( GO_BSplineMesh *obj )
 {
   void        *sp;
@@ -1093,6 +1129,9 @@ boolean GeomObjectBSplineMeshDoubleEdgeLoop ( GO_BSplineMesh *obj )
   for ( i = 0; i < inhe; i++ )
     if ( imkhe[i] & marking_mask ) {
       loop[0] = i;
+      j = imhe[i].otherhalf;
+      if ( j >= 0 )
+        imkhe[j] &= ~marking_mask;
       loop_length = 1;
       break;
     }
@@ -1109,6 +1148,9 @@ boolean GeomObjectBSplineMeshDoubleEdgeLoop ( GO_BSplineMesh *obj )
       he = imvhei[vfhe+i];
       if ( imkhe[he] & marking_mask ) {
         loop[loop_length++] = he;
+        j = imhe[he].otherhalf;
+        if ( j >= 0 )
+          imkhe[j] &= ~marking_mask;
         v1 = imhe[he].v1;
         if ( mkv[v1] && v1 != v0 )
           goto failure;
@@ -1183,9 +1225,16 @@ printf ( "\n" );
                                  onfac, omfac, omfhei );
   if ( !obj->integrity_ok )
     goto failure;
+
+        /* mark vertices and loop halfedges to facilitate further editing */
   memset ( omkcp, MASK_CP_MOVEABLE, onv );
+  _MarkVerticesInsideLoop ( onv, omv, omvhei, onhe, omhe, onfac, omfac, omfhei,
+                            inhe, onv-1, omkcp );
   memset ( omkhe, 0, onhe );
+  for ( i = 0; i < loop_length; i++ )
+    omkhe[loop[i]] = marking_mask;
   memset ( omkfac, 0, onfac );
+
   GeomObjectAssignBSplineMesh ( obj, obj->me.spdimen, obj->rational,
                                 onv, omv, omvhei, omvpc, onhe, omhe,
                                 onfac, omfac, omfhei, omkcp, omkhe, omkfac );
