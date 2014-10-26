@@ -56,7 +56,7 @@ case BSF_SYMB_NAME:
         goto failure;
       bsf_GetNextSymbol ();
       if ( bsf_nextsymbol == BSF_SYMB_STRING ) {
-        strcpy ( name, bsf_namebuffer );
+        strcpy ( name, bsf_name );
         bsf_GetNextSymbol ();
       }
       else

@@ -19,7 +19,7 @@ OBJECTS = scratchmem.o sqangle.o pksort.o pksort2.o arraysc.o writearray.o \
   signf.o signd.o exchange.o selectfd.o zeromat.o reverse.o rpower.o \
   sort2f.o sort2d.o transpose.o drawline.o errmsg.o dmalloc.o hexbyte.o \
   quicksort.o heap.o binom.o degtext.o queue.o tictoc.o pkvthreads.o \
-  findncpu.o multicounter.o
+  findncpu.o multicounter.o pkvscanner.o
 
 TARGET = $(LIBDIR)/libpkvaria.a
 
@@ -64,6 +64,7 @@ pkvthreads.o: pkvthreads.c pkvprivate.h \
   $(INCDIR)/msgpool.h $(INCDIR)/pkvaria.h $(INCDIR)/pkvthreads.h
 findncpu.o: findncpu.c $(INCDIR)/msgpool.h $(INCDIR)/pkvaria.h \
   $(INCDIR)/pkvthreads.h
+pkvscanner.o: pkvscanner.c $(INCDIR)/pkvaria.h $(INCDIR)/pkvscanner.h
 
 clean:
 	rm -f $(OBJECTS)

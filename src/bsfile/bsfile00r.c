@@ -24,19 +24,21 @@
 
 #include "bsfprivate.h"
 
-#define INBUFSIZE   1024
-#define NAMEBUFSIZE   (BSF_MAX_NAME_LENGTH+1)
+#define INBUFSIZE    1024
+#define NAMEBUFSIZE  (BSF_MAX_NAME_LENGTH+1)
 
 /* ///////////////////////////////////////////////////////////////////////// */
-FILE   *bsf_input = NULL;
-static char   *inbuffer = NULL;
-char          *bsf_namebuffer = NULL;
-static int    inbufpos, inbufcont, namebufcont;
-static int    nextchar;
-int           bsf_nextsymbol;
-int           bsf_nextint;
-double        bsf_nextfloat;
-static int    bsf_linenum, bsf_colnum; /* for locating errors */
+typedef struct {
+    FILE *bsf_input;
+  } bsf_input_struct;
+
+static bsf_input_struct bsf_input_data;
+static pkv_scanner      bsf_scanner;
+
+char                    *bsf_name = NULL;
+int                     bsf_nextsymbol;
+int                     bsf_nextint;
+double                  bsf_nextfloat;
 
 const char *bsf_keyword[BSF_NKEYWORDS] = /* this table must be sorted */
   { "BCurve",           /* alphabetically, uppercase before lowercase */
@@ -79,215 +81,57 @@ const char *bsf_keyword[BSF_NKEYWORDS] = /* this table must be sorted */
     "vertices" };
 
 /* ///////////////////////////////////////////////////////////////////////// */
-static void GetNextChar ( void )
-{
-  if ( inbufpos >= inbufcont ) {
-    inbufcont = fread ( inbuffer, 1, INBUFSIZE, bsf_input );
-    if ( !inbufcont ) {
-      nextchar = EOF;
-      return;
-    }
-    inbufpos = 0;
-  }
-  nextchar = (int)inbuffer[inbufpos++];
-  if ( nextchar == '\n' )
-    bsf_linenum ++, bsf_colnum = 0;
-  else
-    bsf_colnum ++;
-} /*GetNextChar*/
-
 void bsf_GetNextSymbol ( void )
 {
-  int i, j, k, l;
-
-#define ADDTONBUF \
-{ if ( namebufcont < NAMEBUFSIZE-1 ) \
-    bsf_namebuffer[namebufcont++] = (char)nextchar; \
-  else { \
-    bsf_nextsymbol = BSF_SYMB_ERROR; \
-    return; \
-  }}
-
-repeat_scan:
-  if ( isdigit ( nextchar ) ) {
-        /* integral part */
-    bsf_nextsymbol = BSF_SYMB_INTEGER;
-    namebufcont = 0;
-    do {
-      ADDTONBUF
-      GetNextChar ();
-    } while ( isdigit ( nextchar ) );
-    if ( nextchar == '.' ) {
-        /* fractional part */
-      ADDTONBUF
-      GetNextChar ();
-      while ( isdigit ( nextchar ) ) {
-        ADDTONBUF
-        GetNextChar ();
-      }
-      bsf_nextsymbol = BSF_SYMB_FLOAT;
-    }
-    if ( nextchar == 'e' || nextchar == 'E' ) {
-        /* exponent */
-      ADDTONBUF
-      GetNextChar ();
-      if ( nextchar == '-' || nextchar == '+' ) {
-        ADDTONBUF
-        GetNextChar ();
-      }
-      if ( !isdigit ( nextchar ) ) {
-        bsf_nextsymbol = BSF_SYMB_ERROR;
-        return;
-      }
-      do {
-        ADDTONBUF
-        GetNextChar ();
-      } while ( isdigit ( nextchar ) );
-      bsf_nextsymbol = BSF_SYMB_FLOAT;
-    }
-        /* convert the character string to a number */
-    bsf_namebuffer[namebufcont] = 0;
-    if ( bsf_nextsymbol == BSF_SYMB_INTEGER ) {
-      sscanf ( bsf_namebuffer, "%d", &bsf_nextint );
-      bsf_nextfloat = (double)bsf_nextint;
-    }
-    else
-      sscanf ( bsf_namebuffer, "%lf", &bsf_nextfloat );
-  }
-  else if ( isalpha ( nextchar ) ) {
-        /* a keyword */
-    namebufcont = 0;
-    do {
-      ADDTONBUF
-      GetNextChar ();
-    } while ( isalpha ( nextchar ) || nextchar == '_' );
-    bsf_namebuffer[namebufcont] = 0;
-        /* binary search in the keyword table */
-    i = k = 0;  j = BSF_NKEYWORDS;
-    do {
-      k = (i+j)/2;
-      l = strcmp ( bsf_namebuffer, bsf_keyword[k] );
-      if ( l == 0 ) {
-        bsf_nextsymbol = BSF_FIRST_KEYWORD + k;
-        return;
-      }
-      else if ( l < 0 )
-        j = k;
-      else
-        i = k+1;
-    } while ( j-i > 0 );
-    bsf_nextsymbol = BSF_SYMB_ERROR;  /* keyword not found */
-  }
-  else {
-    switch ( nextchar ) {
-case ' ':    /* blank space */
-case '\t':   /* tab */
-case '\n':   /* end of line */
-      GetNextChar ();
-      goto repeat_scan;
-
-case '%':    /* comment; skip the entire line */
-      do {
-        GetNextChar ();
-      } while ( nextchar != '\n' && nextchar != EOF );
-      if ( nextchar != EOF )
-        GetNextChar ();
-      goto repeat_scan;
-
-case ',':
-      bsf_nextsymbol = BSF_SYMB_COMMA;
-      GetNextChar ();
-      break;
-
-case '+':
-      bsf_nextsymbol = BSF_SYMB_PLUS;
-      GetNextChar ();
-      break;
-
-case '-':
-      bsf_nextsymbol = BSF_SYMB_MINUS;
-      GetNextChar ();
-      break;
-
-case '{':
-      bsf_nextsymbol = BSF_SYMB_LBRACE;
-      GetNextChar ();
-      break;
-
-case '}':
-      bsf_nextsymbol = BSF_SYMB_RBRACE;
-      GetNextChar ();
-      break;
-
-case '"':
-      GetNextChar ();
-      namebufcont = 0;
-      while ( nextchar != '"' && nextchar != EOF ) {
-        ADDTONBUF
-        GetNextChar ();
-      }
-      if ( nextchar == '"' ) {
-        bsf_namebuffer[namebufcont] = 0;
-        GetNextChar ();
-        bsf_nextsymbol = BSF_SYMB_STRING;
-      }
-      else
-        bsf_nextsymbol = BSF_SYMB_ERROR;
-      break;
-
-case EOF:
-      bsf_nextsymbol = BSF_SYMB_EOF;
-      break;
-
-default:    /* skip anything else */
-      GetNextChar ();
-      goto repeat_scan;
-    }
+  bsf_nextsymbol = pkv_GetNextSymbol ( &bsf_scanner );
+  switch ( bsf_nextsymbol ) {
+case BSF_SYMB_INTEGER:
+    bsf_nextint = bsf_scanner.nextinteger;
+    break;
+case BSF_SYMB_FLOAT:
+    bsf_nextint = bsf_scanner.nextinteger;
+    bsf_nextfloat = bsf_scanner.nextfloat;
+    break;
+case PKV_SYMB_IDENT:
+    bsf_nextsymbol = pkv_BinSearchNameTable ( BSF_NKEYWORDS, BSF_FIRST_KEYWORD,
+                                              bsf_keyword, bsf_scanner.nextname );
+    break;
+default:
+    break;
   }
 } /*bsf_GetNextSymbol*/
 
-static boolean InitInputBuffer ( void )
-{
-  inbuffer = malloc ( INBUFSIZE );
-  bsf_namebuffer = malloc ( NAMEBUFSIZE );
-  if ( inbuffer && bsf_namebuffer ) {
-    inbufpos = inbufcont = 0;
-    bsf_linenum = 1;  bsf_colnum = 0;
-    GetNextChar ();
-    bsf_GetNextSymbol ();
-    return true;
-  }
-  else {
-    if ( inbuffer ) free ( inbuffer );
-    if ( bsf_namebuffer ) free ( bsf_namebuffer );
-    inbuffer = bsf_namebuffer = NULL;
-    return false;
-  }
-} /*InitInputBuffer*/
-
 void bsf_CloseInputFile ( void )
 {
-  if ( bsf_input ) {
-    fclose ( bsf_input );
-    bsf_input = NULL;
+  if ( bsf_input_data.bsf_input ) {
+    fclose ( bsf_input_data.bsf_input );
+    bsf_input_data.bsf_input = NULL;
+    bsf_name = NULL;
   }
-  if ( inbuffer ) {
-    free ( inbuffer );
-    inbuffer = NULL;
-  }
-  if ( bsf_namebuffer ) {
-    free ( bsf_namebuffer );
-    bsf_namebuffer = NULL;
-  }
+  pkv_ShutDownScanner ( &bsf_scanner );
 } /*bsf_CloseInputFile*/
+
+static int _bsf_ReadInputFile ( void *userdata, int buflength, char *buffer )
+{
+  bsf_input_struct *instr;
+  int              inbufcount;
+
+  instr = (bsf_input_struct*)userdata;
+  inbufcount = fread ( buffer, 1, buflength, instr->bsf_input );
+  return inbufcount;
+} /*_bsf_ReadInputFile*/
 
 boolean bsf_OpenInputFile ( const char *filename )
 {
-  bsf_input = fopen ( filename, "r+" );
-  if ( !bsf_input )
+  bsf_input_data.bsf_input = fopen ( filename, "r+" );
+  if ( !bsf_input_data.bsf_input )
     return false;
-  if ( InitInputBuffer () )
+  if ( pkv_InitScanner ( &bsf_scanner, BSF_MAX_NAME_LENGTH, '%', '\n',
+                         _bsf_ReadInputFile, &bsf_input_data ) ) {
+    bsf_GetNextSymbol ();
+    bsf_name = bsf_scanner.nextname;
     return true;
+  }
   else {
     bsf_CloseInputFile ();
     return false;
@@ -297,6 +141,6 @@ boolean bsf_OpenInputFile ( const char *filename )
 void bsf_PrintErrorLocation ( void )
 {
   fprintf ( stderr, "Error detected at line %d, column %d\n",
-            bsf_linenum, bsf_colnum );
+            bsf_scanner.linenum+1, bsf_scanner.colnum+1 );
 } /*bsf_PrintErrorLocation*/
 

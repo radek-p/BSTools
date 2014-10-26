@@ -3876,6 +3876,22 @@ Wersja 0.34.
     wierzcholkow i polkrawedzi po podwojeniu petli, dla ulatwienia dalszej
     edycji siatki.
 
+26.10.2014.
+906. Do libpkvaria dodane procedury pkv_InitScanner, pkv_GetNextChar,
+    pkv_GetNextSymbol, pkv_ShutDownScanner i pkv_BinSearchNameTable, ktorych
+    celem jest czytanie plikow tekstowych z danymi w rozmaitych formatach;
+    procedury zapewniaja rozpoznawanie symboli leksykalnych, ktorymi moga
+    byc liczby, nazwy zlozone z liter i cyfr (pierwsza litera), napisy w
+    podwojnych apostrofach "" i symbole specjalne jednoznakowe
+    (+ - * / ( ) [ ] { } : ; . , ~ @ # $ % ^ &), ponadto pomijane sa
+    separatory (spacje, tabulatory i znaki nowej linii, a takze komentarze,
+    tj. teksty od pewnego znaku do innego podanego znaku (np. od % do konca
+    linii). Procedura pkv_BinSearchNameTable dokonuje binarnego wyszukiwania
+    identyfikatora w posortowanej tablicy napisow (np. slow kluczowych).
+
+910. Zmieniona procedura bsf_GetNextSymbol i wspolpracujace z nia procedury
+    czytania pliku w libbsfile; teraz posluguje sie procedurami
+    pkv_GetNextSymbol i pkv_BinSearchNameTable.
 
 
 
