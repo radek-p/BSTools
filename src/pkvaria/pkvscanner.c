@@ -17,25 +17,45 @@
 #include "pkvscanner.h"
 
 boolean pkv_InitScanner ( pkv_scanner *sc,
-                          int maxnamelength,
+                          int inbuflength, char *inbuffer,
+                          int maxnamelength, char *namebuffer,
                           char bcomment, char ecomment,
                           int (*InputData)(void *usrdata,int buflength,char *buffer),
                           void *userdata )
 {
   memset ( sc, 0, sizeof(pkv_scanner) );
-  PKV_MALLOC ( sc->inbuffer, PKV_SCANNER_BUFLENGTH );
-  PKV_MALLOC ( sc->nextname, maxnamelength+1 )
+        /* attach or allocate buffers */
+  if ( inbuffer ) {
+    sc->inbuffer = inbuffer;
+    sc->alloc_inb = false;
+  }
+  else {
+    if ( inbuflength < 1 )
+      inbuflength = PKV_SCANNER_BUFLENGTH;
+    PKV_MALLOC ( sc->inbuffer, inbuflength );
+    sc->alloc_inb = true;
+  }
+  sc->inbuflength = inbuflength;
+  if ( namebuffer ) {
+    sc->nextname = namebuffer;
+    sc->alloc_nb = false;
+  }
+  else {
+    PKV_MALLOC ( sc->nextname, maxnamelength+1 )
+    sc->alloc_nb = true;
+  }
   if ( !sc->inbuffer || !sc->nextname )
     goto failure;
-  sc->inbuflength = PKV_SCANNER_BUFLENGTH;
   sc->namebuflength = maxnamelength+1;
-  sc->inbufpos = sc->inbufcount = sc->namebufcount = 0;
-  sc->linenum = sc->colnum = 0;
-  sc->nextsymbol = PKV_SYMB_NONE;
+        /* store data */
   sc->bcomment = bcomment;
   sc->ecomment = ecomment;
   sc->InputData = InputData;
   sc->userdata = userdata;
+        /* initialise input position */
+  sc->inbufpos = sc->inbufcount = sc->namebufcount = 0;
+  sc->linenum = sc->colnum = 0;
+  sc->nextsymbol = PKV_SYMB_NONE;
   pkv_GetNextChar ( sc );
   return true;
 
@@ -47,8 +67,11 @@ failure:
 void pkv_GetNextChar ( pkv_scanner *sc )
 {
   if ( sc->inbufpos >= sc->inbufcount ) {
+    if ( !sc->InputData || !sc->inbuffer )
+      goto end_of_input;
     sc->inbufcount = sc->InputData ( sc->userdata, sc->inbuflength, sc->inbuffer );
     if ( sc->inbufcount <= 0 ) {
+end_of_input:
       sc->nextchar = EOF;
       return;
     }
@@ -132,6 +155,7 @@ repeat_scan:
     switch ( sc->nextchar ) {
   case ' ':
   case '\n':
+  case '\r':
   case '\t':
       pkv_GetNextChar ( sc );
       goto repeat_scan;
@@ -182,6 +206,8 @@ repeat_scan:
       sc->nextsymbol = PKV_SYMB_DOT;       goto get_next_char;
   case ';':
       sc->nextsymbol = PKV_SYMB_SEMICOLON; goto get_next_char;
+  case ':':
+      sc->nextsymbol = PKV_SYMB_COLON;     goto get_next_char;
   case '%':
       sc->nextsymbol = PKV_SYMB_PERCENT;   goto get_next_char;
   case '#':
@@ -216,8 +242,12 @@ get_next_char:
 
 void pkv_ShutDownScanner ( pkv_scanner *sc )
 {
-  if ( sc->inbuffer ) PKV_FREE ( sc->inbuffer );
-  if ( sc->nextname ) PKV_FREE ( sc->nextname );
+  if ( sc->alloc_inb ) {
+    if ( sc->inbuffer ) PKV_FREE ( sc->inbuffer );
+  }
+  if ( sc->alloc_nb ) {
+    if ( sc->nextname ) PKV_FREE ( sc->nextname );
+  }
   memset ( sc, 0, sizeof(pkv_scanner) );
   sc->nextsymbol = PKV_SYMB_ERROR;
 } /*pkv_ShutDownScanner*/

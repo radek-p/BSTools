@@ -3889,9 +3889,11 @@ Wersja 0.34.
     linii). Procedura pkv_BinSearchNameTable dokonuje binarnego wyszukiwania
     identyfikatora w posortowanej tablicy napisow (np. slow kluczowych).
 
-910. Zmieniona procedura bsf_GetNextSymbol i wspolpracujace z nia procedury
+907. Zmieniona procedura bsf_GetNextSymbol i wspolpracujace z nia procedury
     czytania pliku w libbsfile; teraz posluguje sie procedurami
     pkv_GetNextSymbol i pkv_BinSearchNameTable.
 
+1.11.2014.
+908. Poprawki w skanerze.
 
 

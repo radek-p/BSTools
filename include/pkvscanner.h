@@ -43,40 +43,43 @@ extern "C" {
 #define PKV_SYMB_COMMA      18
 #define PKV_SYMB_DOT        19
 #define PKV_SYMB_SEMICOLON  20
-#define PKV_SYMB_PERCENT    21
-#define PKV_SYMB_HASH       22
-#define PKV_SYMB_EXCLAM     23
-#define PKV_SYMB_TILDE      24
-#define PKV_SYMB_AT         25
-#define PKV_SYMB_DOLLAR     26
-#define PKV_SYMB_ET         27
-#define PKV_SYMB_BACKSLASH  28
-#define PKV_SYMB_QUESTION   29
-#define PKV_SYMB_VERTBAR    30
-#define PKV_SYMB_OTHER      31
-#define PKV_SYMB_IDENT      32
-#define PKV_SYMB_FIRSTOTHER 33
+#define PKV_SYMB_COLON      21
+#define PKV_SYMB_PERCENT    22
+#define PKV_SYMB_HASH       23
+#define PKV_SYMB_EXCLAM     24
+#define PKV_SYMB_TILDE      25
+#define PKV_SYMB_AT         26
+#define PKV_SYMB_DOLLAR     27
+#define PKV_SYMB_ET         28
+#define PKV_SYMB_BACKSLASH  29
+#define PKV_SYMB_QUESTION   30
+#define PKV_SYMB_VERTBAR    31
+#define PKV_SYMB_OTHER      32
+#define PKV_SYMB_IDENT      33
+#define PKV_SYMB_FIRSTOTHER 34
 
 #define PKV_SCANNER_BUFLENGTH 1024
 
 typedef struct pkv_scanner {
-    int    inbuflength, namebuflength;
-    char   *inbuffer;
-    char   *nextname;
-    char   bcomment, ecomment;
-    int    inbufpos, inbufcount, namebufcount;
-    int    linenum, colnum;
-    int    nextchar;
-    int    nextsymbol;
-    int    nextinteger;
-    double nextfloat;
-    int    (*InputData)( void *usrdata, int buflength, char *buffer );
-    void   *userdata;
+    int     inbuflength, namebuflength;
+    char    *inbuffer;
+    char    *nextname;
+    boolean alloc_inb, alloc_nb;
+    char    bcomment, ecomment;
+    int     inbufpos, inbufcount, namebufcount;
+    int     linenum, colnum;
+    int     nextchar;
+    int     nextsymbol;
+    int     nextinteger;
+    double  nextfloat;
+    int     (*InputData)( void *usrdata, int buflength, char *buffer );
+    void    *userdata;
   } pkv_scanner;
 
 
 boolean pkv_InitScanner ( pkv_scanner *sc,
-                          int maxnamelength,
+                          int inbuflength, char *inbuffer,
+                          int maxnamelength, char *namebuffer,
                           char bcomment, char ecomment,
                           int (*InputData)(void *userdata,int buflength,char *buffer),
                           void *userdata );

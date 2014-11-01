@@ -126,8 +126,8 @@ boolean bsf_OpenInputFile ( const char *filename )
   bsf_input_data.bsf_input = fopen ( filename, "r+" );
   if ( !bsf_input_data.bsf_input )
     return false;
-  if ( pkv_InitScanner ( &bsf_scanner, BSF_MAX_NAME_LENGTH, '%', '\n',
-                         _bsf_ReadInputFile, &bsf_input_data ) ) {
+  if ( pkv_InitScanner ( &bsf_scanner, 0, NULL, BSF_MAX_NAME_LENGTH, NULL,
+                         '%', '\n', _bsf_ReadInputFile, &bsf_input_data ) ) {
     bsf_GetNextSymbol ();
     bsf_name = bsf_scanner.nextname;
     return true;
