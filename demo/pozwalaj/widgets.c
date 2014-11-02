@@ -52,6 +52,8 @@ char txtCopy[]              = "Copy";
 char txtDelete[]            = "Delete";
 char txtPurge[]             = "Purge";
 char txtActive[]            = "active";
+char txtActivate[]          = "Activate";
+char txtDeactivate[]        = "Deactivate";
 char txtBezierCurve[]       = "Bezier curve";
 char txtBSplineCurve[]      = "B-spline curve";
 char txtBezierPatch[]       = "Bezier patch";
@@ -96,6 +98,7 @@ char txtSplitEdge[]         = "split edge";
 char txtDivideFacet[]       = "divide facet";
 char txtShrink[]            = "shrink";
 char txtContract[]          = "contract";
+char txtTriangulate[]       = "triangulate";
 char txtDensity[]           = "density";
 char txtDensityU[]          = "density u";
 char txtDensityV[]          = "density v";
@@ -236,4 +239,4 @@ char ErrorMsgCurveMustBeCubicAndClosed[] =
 char ErrorMsgCurveMustBeNonRationalAnd3D[] =
              "Error: Curve must be non-rational and 3D.";
 char ErrorMsgCannotDoubleLoop[]       = "Error: Cannot double the edge loop.";
-
+char ErrorMsgCannotTriangulateFacets[] ="Error: Cannot triangulate the facets.";

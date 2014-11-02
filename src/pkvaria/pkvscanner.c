@@ -19,7 +19,7 @@
 boolean pkv_InitScanner ( pkv_scanner *sc,
                           int inbuflength, char *inbuffer,
                           int maxnamelength, char *namebuffer,
-                          char bcomment, char ecomment,
+                          int bcomment, int ecomment,
                           int (*InputData)(void *usrdata,int buflength,char *buffer),
                           void *userdata )
 {
@@ -165,6 +165,7 @@ repeat_scan:
       do {
         ADDTONBUF
       } while ( sc->nextchar != '"' );
+      sc->nextname[sc->namebufcount] = 0;
       pkv_GetNextChar ( sc );
       sc->nextsymbol = PKV_SYMB_STRING;
       break;

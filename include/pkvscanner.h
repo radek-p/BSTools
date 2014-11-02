@@ -65,7 +65,7 @@ typedef struct pkv_scanner {
     char    *inbuffer;
     char    *nextname;
     boolean alloc_inb, alloc_nb;
-    char    bcomment, ecomment;
+    int     bcomment, ecomment;
     int     inbufpos, inbufcount, namebufcount;
     int     linenum, colnum;
     int     nextchar;
@@ -80,7 +80,7 @@ typedef struct pkv_scanner {
 boolean pkv_InitScanner ( pkv_scanner *sc,
                           int inbuflength, char *inbuffer,
                           int maxnamelength, char *namebuffer,
-                          char bcomment, char ecomment,
+                          int bcomment, int ecomment,
                           int (*InputData)(void *userdata,int buflength,char *buffer),
                           void *userdata );
 void pkv_GetNextChar ( pkv_scanner *sc );

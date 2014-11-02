@@ -358,6 +358,20 @@ boolean bsm_EdgeLoopDoublingd ( int spdimen,
                                 int *onhe, BSMhalfedge *omhe,
                                 int *onfac, BSMfacet *omfac, int *omfhei );
 
+/* dividing all facets to triangles */
+void bsm_TriangulateFacetsNum ( int inv, BSMvertex *imv, int *imvhei,
+                                int inhe, BSMhalfedge *imhe,
+                                int infac, BSMfacet *imfac, int *imfhei,
+                                int *onv, int *onhe, int *onfac );
+
+boolean bsm_TriangulateFacetsd ( int spdimen, int inv,
+                                 const BSMvertex *imv, const int *imvhei,
+                                 double *iptc, int inhe, const BSMhalfedge *imhe,
+                                 int infac, const BSMfacet *imfac, const int *imfhei,
+                                 int *onv, BSMvertex *omv, int *omvhei,
+                                 double *optc, int *onhe, BSMhalfedge *omhe,
+                                 int *onfac, BSMfacet *omfac, int *omfhei );
+
 #ifdef __cplusplus
 }
 #endif

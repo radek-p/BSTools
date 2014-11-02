@@ -11,21 +11,9 @@
 #include <math.h>
 
 #include "pkvaria.h"
+#include "pkvscanner.h"
 
 #include "calc.h"
-
-  /* lexical symbols */
-#define sEND      0
-#define sNUMBER   1
-#define sPLUS     2
-#define sMINUS    3
-#define sMULT     4
-#define sDIV      5
-#define sLPAREN   6
-#define sRPAREN   7
-#define sNAME     8
-#define sCOMMA    9
-#define sERROR   10
 
   /* built-in function identifiers, must be consecutive and match */
   /* with the contents of the name table */
@@ -44,7 +32,7 @@
 
 #define MAXPARAMS 10  /* maximal number of function parameters */
 
-static const char *name[NUMNAMES] = /* this array must be sorted alphabetically */
+static const char *names[NUMNAMES] = /* this array must be sorted alphabetically */
   { "PI",
     "abs",
     "arccos",
@@ -57,149 +45,37 @@ static const char *name[NUMNAMES] = /* this array must be sorted alphabetically 
     "sqrt",
     "tan" };
 
-static char *buf;           /* expression string */
-static int  pos;            /* current string position */
-
-static int    nextsymb;     /* next symbol */
-static double nextnum;      /* next number */
-static int    nextint;      /* next integer or function number */
-static char   nextname[21]; /* next name string */
-
-static void GetNextSymbol ( void )
+static void GetNextSymbol ( pkv_scanner *sc )
 {
-  double fct;
-  int    e, es;
-  int    i, j, k, l;
-
-  for (;;)
-    if ( isdigit ( buf[pos] ) ) {
-            /* integral part */
-      nextnum = (double)(buf[pos++]-'0');
-      while ( isdigit(buf[pos]) )
-        nextnum = 10.0*nextnum + (double)(buf[pos++]-'0');
-      if ( buf[pos] == '.' ) { /* fractional part */
-        pos ++;
-        fct = 0.1;
-        while ( isdigit(buf[pos]) ) {
-          nextnum += fct*(double)(buf[pos++]-'0');
-          fct *= 0.1;
-        }
-      }
-      if ( buf[pos] == 'e' || buf[pos] == 'E' ) { /* exponent */
-        pos ++;
-        e = 0;
-        es = 1;
-        if ( buf[pos] == '+' )
-          pos ++;
-        else if ( buf[pos] == '-' ) {
-          pos ++;
-          es = -1;
-        }
-        if ( !isdigit(buf[pos]) ) {
-          nextsymb = sERROR;
-          return;
-        }
-        while ( isdigit(buf[pos]) )
-          e = 10*e + (buf[pos++]-'0');
-        nextnum *= pow ( 10.0, es*e );
-      }
-      nextint = (int)nextnum;
-      nextsymb = sNUMBER;
-      return;
-    }
-    else if ( isalpha ( buf[pos] ) ) {
-        /* collect the name characters */
-      e = 0;
-      do {
-        nextname[e++] = buf[pos++];
-      } while ( isalpha ( buf[pos] ) && e < 20 );
-      nextname[e] = 0;
-      nextsymb = sNAME;
-        /* search the nametable, binary search */
-      i = k = 0;
-      j = NUMNAMES;
-      do {
-        k = (i+j)/2;
-        l = strcmp ( nextname, name[k] );
-        if ( l == 0 ) {  /* name found */
-          nextint = k;
-          return;
-        }
-        else if ( l < 0 )
-          j = k;
-        else
-          i = k+1;
-      } while ( j-i > 0 );
-      nextint = -1;  /* name not found */
-      return;
-    }
-    else {
-      switch ( buf[pos] ) {
-    case 0:
-        nextsymb = sEND;
-        return;
-    case '+':
-        nextsymb = sPLUS;
-        pos ++;
-        return;
-    case '-':
-        nextsymb = sMINUS;
-        pos ++;
-        return;
-    case '*':
-        nextsymb = sMULT;
-        pos ++;
-        return;
-    case '/':
-        nextsymb = sDIV;
-        pos ++;
-        return;
-    case '(':
-        nextsymb = sLPAREN;
-        pos ++;
-        return;
-    case ')':
-        nextsymb = sRPAREN;
-        pos ++;
-        return;
-    case ',':
-        nextsymb = sCOMMA;
-        pos++;
-        return;
-    case ' ':    /* spaces are skipped - this is the loop purpose */
-        pos ++;
-        break;
-    default:
-        nextsymb = sERROR;
-        return;
-      }
-    }
+  pkv_GetNextSymbol ( sc );
+  if ( sc->nextsymbol == PKV_SYMB_IDENT )
+    sc->nextinteger = pkv_BinSearchNameTable ( NUMNAMES, 0, names, sc->nextname );
 } /*GetNextSymbol*/
 
-static double Expression ( void );
+static double Expression ( pkv_scanner *sc );
 
-static double EvaluateFunction ( void )
+static double EvaluateFunction ( pkv_scanner *sc )
 {
   int    fname, nparams;
   double param[MAXPARAMS];
 
-  fname = nextint;
-  GetNextSymbol ();
+  fname = sc->nextinteger;
+  GetNextSymbol ( sc );
         /* compute the parameters */
   nparams = 0;
   memset ( param, 0, MAXPARAMS*sizeof(double) );
-  if ( nextsymb == sLPAREN ) {
+  if ( sc->nextsymbol == PKV_SYMB_LPAREN ) {
     for (;;) {
-      GetNextSymbol ();  /* skip the opening parenthesis or comma */
-      param[nparams++] = Expression ();
-      if ( nextsymb == sRPAREN )
+      GetNextSymbol ( sc );  /* skip the opening parenthesis or comma */
+      param[nparams++] = Expression ( sc );
+      if ( sc->nextsymbol == PKV_SYMB_RPAREN )
         break;
-      else if ( nextsymb != sCOMMA || nparams >= MAXPARAMS ) {
-        nextsymb = sERROR;
+      else if ( sc->nextsymbol != PKV_SYMB_COMMA || nparams >= MAXPARAMS ) {
+        sc->nextsymbol = PKV_SYMB_ERROR;
         return 0.0;
       }
     }
-    GetNextSymbol ();  /* skip the closing parenthesis */
+    GetNextSymbol ( sc );  /* skip the closing parenthesis */
   }
         /* compute the proper function value */
   switch ( fname ) {
@@ -215,28 +91,29 @@ case f_SIN:     return sin ( param[0] );
 case f_SQRT:    return sqrt ( param[0] );
 case f_TAN:     return tan ( param[0] );
 default:
-    nextsymb = sERROR;
+    sc->nextsymbol = PKV_SYMB_ERROR;
     return 0.0;
   }
 } /*EvaluateFunction*/
 
-static double Factor ( void )
+static double Factor ( pkv_scanner *sc )
 {
   double c;
 
-  switch ( nextsymb ) {
-case sNUMBER:
-    c = nextnum;
-    GetNextSymbol ();
+  switch ( sc->nextsymbol ) {
+case PKV_SYMB_INTEGER:
+case PKV_SYMB_FLOAT:
+    c = sc->nextfloat;
+    GetNextSymbol ( sc );
     return c;
-case sNAME:
-    c = EvaluateFunction ();
+case PKV_SYMB_IDENT:
+    c = EvaluateFunction ( sc );
     return c;
-case sLPAREN:
-    GetNextSymbol ();
-    c = Expression ();
-    if ( nextsymb == sRPAREN ) {
-      GetNextSymbol ();
+case PKV_SYMB_LPAREN:
+    GetNextSymbol ( sc );
+    c = Expression ( sc );
+    if ( sc->nextsymbol == PKV_SYMB_RPAREN ) {
+      GetNextSymbol ( sc );
       return c;
     }
     else
@@ -246,20 +123,20 @@ default:
   }
 } /*Factor*/
 
-static double Term ( void )
+static double Term ( pkv_scanner *sc )
 {
   double s;
 
-  s = Factor ();
+  s = Factor ( sc );
   for (;;) {
-    switch ( nextsymb ) {
-  case sMULT:
-      GetNextSymbol ();
-      s *= Factor ();
+    switch ( sc->nextsymbol ) {
+  case PKV_SYMB_STAR:
+      GetNextSymbol ( sc );
+      s *= Factor ( sc );
       break;
-  case sDIV:
-      GetNextSymbol ();
-      s /= Factor ();
+  case PKV_SYMB_SLASH:
+      GetNextSymbol ( sc );
+      s /= Factor ( sc );
       break;
   default:
       return s;
@@ -267,28 +144,28 @@ static double Term ( void )
   }
 } /*Term*/
 
-static double Expression ( void )
+static double Expression ( pkv_scanner *sc )
 {
   double w;
   int zn;
 
   zn = 1;
-  if ( nextsymb == sPLUS )
-    GetNextSymbol ();
-  else if ( nextsymb == sMINUS ) {
+  if ( sc->nextsymbol == PKV_SYMB_PLUS )
+    GetNextSymbol ( sc );
+  else if ( sc->nextsymbol == PKV_SYMB_MINUS ) {
     zn = -1;
-    GetNextSymbol ();
+    GetNextSymbol ( sc );
   }
-  w = zn*Term ();
+  w = zn*Term ( sc );
   for (;;) {
-    switch ( nextsymb ) {
-  case sPLUS:
-      GetNextSymbol ();
-      w += Term ();
+    switch ( sc->nextsymbol ) {
+  case PKV_SYMB_PLUS:
+      GetNextSymbol ( sc );
+      w += Term ( sc );
       break;
-  case sMINUS:
-      GetNextSymbol ();
-      w -= Term ();
+  case PKV_SYMB_MINUS:
+      GetNextSymbol ( sc );
+      w -= Term ( sc );
       break;
   default:
       return w;
@@ -296,12 +173,36 @@ static double Expression ( void )
   }
 } /*Expression*/
 
+typedef struct {
+    boolean all;
+  } expr_data;
+
+static int InputExprText ( void *userdata, int buflength, char *buffer )
+{
+  expr_data *mydata;
+
+  mydata = (expr_data*)userdata;
+  if ( mydata->all )
+    return 0;
+  else {  /* the text is already in the buffer */
+    mydata->all = true;
+    return strlen ( buffer );
+  }
+} /*InputExprText*/
+
 boolean EvaluateExpression ( char *text, double *value )
 {
-  buf = text;
-  pos = 0;
-  GetNextSymbol ();
-  *value = Expression ();
-  return nextsymb == sEND;
+  pkv_scanner sc;
+  expr_data   mydata;
+  char        name[65];
+
+  mydata.all = false;
+  if ( !pkv_InitScanner ( &sc, strlen(text), text, 64, name, 256, 256,
+                          InputExprText, (void*)&mydata ) )
+    return false;
+  GetNextSymbol ( &sc );
+  *value = Expression ( &sc );
+  GetNextSymbol ( &sc );
+  return sc.nextsymbol == PKV_SYMB_EOF;
 } /*EvaluateExpression*/
 

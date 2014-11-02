@@ -1259,3 +1259,77 @@ failure:
   return false;
 } /*GeomObjectBSplineMeshDoubleEdgeLoop*/
 
+boolean GeomObjectBSplineMeshTriangulateFacets ( GO_BSplineMesh *obj )
+{
+  void        *sp;
+  int         onv, onhe, onfac;
+  BSMvertex   *omv;
+  BSMhalfedge *omhe;
+  BSMfacet    *omfac;
+  int         *omvhei, *omfhei;
+  double      *omvpc;
+  byte        *omkcp, *omkhe, *omkfac;
+
+  if ( obj->me.obj_type != GO_BSPLINE_MESH )
+    return false;
+
+  sp = pkv_GetScratchMemTop ();
+  omv = NULL;  omhe = NULL;  omfac = NULL;  omvhei = omfhei = NULL;
+  omvpc = NULL;  omkcp = NULL;  omkhe = NULL;  omkfac = NULL;
+
+  bsm_TriangulateFacetsNum ( obj->nv, obj->meshv, obj->meshvhei,
+                             obj->nhe, obj->meshhe,
+                             obj->nfac, obj->meshfac, obj->meshfhei,
+                             &onv, &onhe, &onfac );
+  omv = malloc ( onv*sizeof(BSMvertex) );
+  omhe = malloc ( onhe*sizeof(BSMhalfedge) );
+  omfac = malloc ( onfac*sizeof(BSMfacet) );
+  omvhei = malloc ( onhe*sizeof(int) );
+  omfhei = malloc ( onhe*sizeof(int) );
+  omvpc = malloc ( obj->me.cpdimen*onv*sizeof(double) );
+  omkcp = malloc ( onv );
+  omkhe = malloc ( onhe );
+  omkfac = malloc ( onfac );
+  if ( !omv || !omhe || !omfac || !omvhei || !omfhei || !omvpc ||
+       !omkcp || !omkhe || !omkfac )
+    goto failure;
+
+  if ( !bsm_TriangulateFacetsd ( obj->me.cpdimen, obj->nv, obj->meshv, obj->meshvhei,
+                                 obj->meshvpc, obj->nhe, obj->meshhe,
+                                 obj->nfac, obj->meshfac, obj->meshfhei,
+                                 &onv, omv, omvhei, omvpc, &onhe, omhe,
+                                 &onfac, omfac, omfhei ) )
+    goto failure;
+  obj->integrity_ok = bsm_CheckMeshIntegrity ( onv, omv, omvhei, onhe, omhe,
+                                               onfac, omfac, omfhei );
+  if ( !obj->integrity_ok )
+    goto failure;
+
+  memset ( omkcp, MASK_CP_MOVEABLE, onv );
+  memset ( omkhe, 0, onhe );
+  memset ( omkfac, 0, onfac );
+  GeomObjectAssignBSplineMesh ( obj, obj->me.spdimen, obj->rational,
+                                onv, omv, omvhei, omvpc, onhe, omhe,
+                                onfac, omfac, omfhei, omkcp, omkhe, omkfac );
+  obj->me.dlistmask = 0;
+  obj->spvlist_ok = false;
+  obj->special_patches_ok = false;
+  obj->blending = false;
+
+  pkv_SetScratchMemTop ( sp );
+  return true;
+
+failure:
+  if ( omv ) free ( omv );
+  if ( omhe ) free ( omhe );
+  if ( omfac ) free ( omfac );
+  if ( omvhei ) free ( omvhei );
+  if ( omfhei ) free ( omfhei );
+  if ( omvpc ) free ( omvpc );
+  if ( omkcp ) free ( omkcp );
+  if ( omkhe ) free ( omkhe );
+  if ( omkfac ) free ( omkfac );
+  pkv_SetScratchMemTop ( sp );
+  return false;
+} /*GeomObjectBSplineMeshTriangulateFacets*/
+

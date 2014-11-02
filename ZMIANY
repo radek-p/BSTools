@@ -3897,3 +3897,20 @@ Wersja 0.34.
 908. Poprawki w skanerze.
 
 
+2.11.2014.
+909. Poprawki w skanerze (jeszcze byl blad w czytaniu "napisow".
+
+910. Do libbsmesh dodana procedura triangulacji wszystkich scian siatki
+    (autor: Anna Sierhej), procedura wymaga dopracowania (na razie nie
+    dziala).
+
+911. Do libbsmesh dodana nwa wersja procedury podwajania krawedzi tworzacych
+    zamknieta petle (autor: Anna Sierhej), trzeba ja przetestowac.
+
+912. Do programu pozwalaj dodana mozliwosc wywolywania procedury
+    triangulacji scian siatki.
+
+913. Zmieniony kalkulator wbudowany w program pozwalaj - teraz korzysta ze
+    skanera w libpkvaria.
+
+

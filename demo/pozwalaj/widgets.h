@@ -328,52 +328,53 @@
 #define intwM1BSM_FACET1              (SIDEMENU1_BSM+29)
 #define btnM1BSM_REMOVE_FACET         (SIDEMENU1_BSM+30)
 #define btnM1BSM_DOUBLE_FAC_EDGES     (SIDEMENU1_BSM+31)
+#define btnM1BSM_TRIANG_FACETS        (SIDEMENU1_BSM+32)
 
-#define swM1BSM_VIEW_SURF             (SIDEMENU1_BSM+32)
-#define swM1BSM_VIEW_CNET             (SIDEMENU1_BSM+33)
-#define intwM1BSM_DENSITY             (SIDEMENU1_BSM+34)
-#define swM1BSM_VIEW_SPECIAL          (SIDEMENU1_BSM+35)
-#define swM1BSM_HOLE_FILLING          (SIDEMENU1_BSM+36)
-#define btnM1BSM_COLOUR               (SIDEMENU1_BSM+37)
+#define swM1BSM_VIEW_SURF             (SIDEMENU1_BSM+33)
+#define swM1BSM_VIEW_CNET             (SIDEMENU1_BSM+34)
+#define intwM1BSM_DENSITY             (SIDEMENU1_BSM+35)
+#define swM1BSM_VIEW_SPECIAL          (SIDEMENU1_BSM+36)
+#define swM1BSM_HOLE_FILLING          (SIDEMENU1_BSM+37)
+#define btnM1BSM_COLOUR               (SIDEMENU1_BSM+38)
 
-#define intwM1BSM_DATA_KGON           (SIDEMENU1_BSM+38)
-#define btnM1BSM_DATA_KGON            (SIDEMENU1_BSM+39)
-#define btnM1BSM_DATA_TETRAHEDRON     (SIDEMENU1_BSM+40)
-#define btnM1BSM_DATA_CUBE            (SIDEMENU1_BSM+41)
-#define btnM1BSM_DATA_DODECAHEDRON    (SIDEMENU1_BSM+42)
-#define intwM1BSM_DATA_KPRISM         (SIDEMENU1_BSM+43)
-#define btnM1BSM_DATA_KPRISM          (SIDEMENU1_BSM+44)
-#define swM1BSM_DATA_REPLACE          (SIDEMENU1_BSM+45)
-#define swM1BSM_DATA_ADD              (SIDEMENU1_BSM+46)
+#define intwM1BSM_DATA_KGON           (SIDEMENU1_BSM+39)
+#define btnM1BSM_DATA_KGON            (SIDEMENU1_BSM+40)
+#define btnM1BSM_DATA_TETRAHEDRON     (SIDEMENU1_BSM+41)
+#define btnM1BSM_DATA_CUBE            (SIDEMENU1_BSM+42)
+#define btnM1BSM_DATA_DODECAHEDRON    (SIDEMENU1_BSM+43)
+#define intwM1BSM_DATA_KPRISM         (SIDEMENU1_BSM+44)
+#define btnM1BSM_DATA_KPRISM          (SIDEMENU1_BSM+45)
+#define swM1BSM_DATA_REPLACE          (SIDEMENU1_BSM+46)
+#define swM1BSM_DATA_ADD              (SIDEMENU1_BSM+47)
 
-#define scwM1BSM_OCONTENTS            (SIDEMENU1_BSM+47)
-#define scwM1BSM_OSCROLL              (SIDEMENU1_BSM+48)   
-#define swM1BSM_SUBDIVISION           (SIDEMENU1_BSM+49)
-#define swM1BSM_BLENDING              (SIDEMENU1_BSM+50)
-#define swM1BSM_G1                    (SIDEMENU1_BSM+51)
-#define swM1BSM_G2                    (SIDEMENU1_BSM+52)
-#define swM1BSM_G1_QUASI_G2           (SIDEMENU1_BSM+53)
-#define slM1BSM_G1Q2_PARAM            (SIDEMENU1_BSM+54)
-#define swM1BSM_HOLEFILL_COONS        (SIDEMENU1_BSM+55)
-#define swM1BSM_HOLEFILL_BEZIER       (SIDEMENU1_BSM+56)
-#define btnM1BSM_PRETRANSFORMATION    (SIDEMENU1_BSM+57)
-#define slM1BSM_BLENDING_CPARAM       (SIDEMENU1_BSM+58)
-#define swM1BSM_BLENDING_CONSTRAINTS  (SIDEMENU1_BSM+59)
-#define intwM1BSM_NKN1                (SIDEMENU1_BSM+60)
-#define intwM1BSM_NKN2                (SIDEMENU1_BSM+61)
-#define intwM1BSM_MAXIT               (SIDEMENU1_BSM+62)
-#define intwM1BSM_NLEVELS             (SIDEMENU1_BSM+63)
-#define btnM1SUGGESTLEVELS            (SIDEMENU1_BSM+64)
-#define btnM1SUGGESTBLOCKS            (SIDEMENU1_BSM+65)
-#define intwM1BSM_NBLOCKS             (SIDEMENU1_BSM+66)
-#define swM1BSM_SHAPE_ONLY            (SIDEMENU1_BSM+67)
-#define swM1BSM_ALT_MULTILEVEL        (SIDEMENU1_BSM+68)
-#define swM1BSM_COARSE_PRECOND        (SIDEMENU1_BSM+69)
-#define textedM1BSM_COARSE_NAME       (SIDEMENU1_BSM+70)
-#define intwM1BSM_NPTHREADS           (SIDEMENU1_BSM+71)
-#define btnM1BSM_BLENDING_OPTIMIZE    (SIDEMENU1_BSM+72)
-#define swM1BSM_LOG_IT                (SIDEMENU1_BSM+73)
-#define btnM1BSM_OPTIMIZE_SPECIALS    (SIDEMENU1_BSM+74)
+#define scwM1BSM_OCONTENTS            (SIDEMENU1_BSM+48)
+#define scwM1BSM_OSCROLL              (SIDEMENU1_BSM+49)   
+#define swM1BSM_SUBDIVISION           (SIDEMENU1_BSM+50)
+#define swM1BSM_BLENDING              (SIDEMENU1_BSM+51)
+#define swM1BSM_G1                    (SIDEMENU1_BSM+52)
+#define swM1BSM_G2                    (SIDEMENU1_BSM+53)
+#define swM1BSM_G1_QUASI_G2           (SIDEMENU1_BSM+54)
+#define slM1BSM_G1Q2_PARAM            (SIDEMENU1_BSM+55)
+#define swM1BSM_HOLEFILL_COONS        (SIDEMENU1_BSM+56)
+#define swM1BSM_HOLEFILL_BEZIER       (SIDEMENU1_BSM+57)
+#define btnM1BSM_PRETRANSFORMATION    (SIDEMENU1_BSM+58)
+#define slM1BSM_BLENDING_CPARAM       (SIDEMENU1_BSM+59)
+#define swM1BSM_BLENDING_CONSTRAINTS  (SIDEMENU1_BSM+60)
+#define intwM1BSM_NKN1                (SIDEMENU1_BSM+61)
+#define intwM1BSM_NKN2                (SIDEMENU1_BSM+62)
+#define intwM1BSM_MAXIT               (SIDEMENU1_BSM+63)
+#define intwM1BSM_NLEVELS             (SIDEMENU1_BSM+64)
+#define btnM1SUGGESTLEVELS            (SIDEMENU1_BSM+65)
+#define btnM1SUGGESTBLOCKS            (SIDEMENU1_BSM+66)
+#define intwM1BSM_NBLOCKS             (SIDEMENU1_BSM+67)
+#define swM1BSM_SHAPE_ONLY            (SIDEMENU1_BSM+68)
+#define swM1BSM_ALT_MULTILEVEL        (SIDEMENU1_BSM+69)
+#define swM1BSM_COARSE_PRECOND        (SIDEMENU1_BSM+70)
+#define textedM1BSM_COARSE_NAME       (SIDEMENU1_BSM+71)
+#define intwM1BSM_NPTHREADS           (SIDEMENU1_BSM+72)
+#define btnM1BSM_BLENDING_OPTIMIZE    (SIDEMENU1_BSM+73)
+#define swM1BSM_LOG_IT                (SIDEMENU1_BSM+74)
+#define btnM1BSM_OPTIMIZE_SPECIALS    (SIDEMENU1_BSM+75)
 
       /* B-spline holes */
 #define SIDEMENU1_BSH                         21*MENUINC
@@ -419,14 +420,16 @@
 
   /* Object list popup */
 #define POPUP12                               26*MENUINC
-#define txtedP12OBJNAME                      (POPUP12+1)
-#define lbP12OBJLIST                         (POPUP12+2)
-#define btnP12NEW                            (POPUP12+3)
-#define btnP12COPY                           (POPUP12+4)
-#define btnP12DELETE                         (POPUP12+5)
-#define btnP12PURGE                          (POPUP12+6)
-#define swP12SHOW                            (POPUP12+7)
-#define btnP12OK                             (POPUP12+8)
+#define txtedP12OBJNAME                     (POPUP12+ 1)
+#define lbP12OBJLIST                        (POPUP12+ 2)
+#define btnP12NEW                           (POPUP12+ 3)
+#define btnP12COPY                          (POPUP12+ 4)
+#define btnP12DELETE                        (POPUP12+ 5)
+#define btnP12PURGE                         (POPUP12+ 6)
+#define swP12SHOW                           (POPUP12+ 7)
+#define btnP12ACTIVATE                      (POPUP12+ 8)
+#define btnP12DEACTIVATE                    (POPUP12+ 9)
+#define btnP12OK                            (POPUP12+10)
 
   /* Colour popup */
 #define POPUP13                               27*MENUINC
@@ -506,6 +509,8 @@ extern char txtCopy[];
 extern char txtDelete[];
 extern char txtPurge[];
 extern char txtActive[];
+extern char txtActivate[];
+extern char txtDeactivate[];
 extern char txtBezierCurve[];
 extern char txtBSplineCurve[];
 extern char txtBezierPatch[];
@@ -550,6 +555,7 @@ extern char txtSplitEdge[];
 extern char txtDivideFacet[];
 extern char txtShrink[]; 
 extern char txtContract[];
+extern char txtTriangulate[];
 extern char txtDensity[];
 extern char txtDensityU[];
 extern char txtDensityV[];
@@ -682,4 +688,5 @@ extern char ErrorMsgNoValidPairOfVertices[];
 extern char ErrorMsgCurveMustBeCubicAndClosed[];
 extern char ErrorMsgCurveMustBeNonRationalAnd3D[];
 extern char ErrorMsgCannotDoubleLoop[];
+extern char ErrorMsgCannotTriangulateFacets[];
 

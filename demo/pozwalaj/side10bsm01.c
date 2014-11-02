@@ -112,10 +112,13 @@ void InitSide10Menu_BSm ( void )
                       txtRemove );
   w = xge_NewButton ( win1, w, btnM1BSM_DOUBLE_FAC_EDGES, 79, 19, 0, 472,
                       txtDoubleEdges );
+  w = xge_NewButton ( win1, w, btnM1BSM_TRIANG_FACETS, 79, 19, 0, 502,
+                      txtTriangulate );
+/*  w->state = xgestate_BUTTON_INACTIVE; */
   for ( ww = w; ww; ww = ww->prev )
     xge_SetWidgetPositioning ( ww, 0, ww->x, ww->y );
   side10wdg_bsm_editcontents = xge_NewMenu ( win1, NULL, scwM1BSM_ECONTENTS,
-                      SIDEMENUWIDTH0, 495, 0, 20, w );
+                      SIDEMENUWIDTH0, 525, 0, 20, w );
   side10wdg_bsm_editscroll = xge_NewScrollWidget ( win1, NULL, scwM1BSM_ESCROLL,
                       SIDEMENUWIDTH0, xge_HEIGHT-TOPMENUHEIGHT-20, 0, 20,
                       &side10_bsm_editsw, side10wdg_bsm_editcontents );
@@ -842,7 +845,20 @@ case xgemsg_BUTTON_COMMAND:
       else if ( !obj->integrity_ok )
         xge_DisplayErrorMessage ( ErrorMsgMeshIntegrity, 0 );
       else
+        xge_DisplayErrorMessage ( ErrorMsgCannotTriangulateFacets, 0 );
+      return 1;
+  case btnM1BSM_TRIANG_FACETS:
+      if ( GeomObjectBSplineMeshTriangulateFacets ( obj ) ) {
+        bsm_sw_blending = obj->blending;
+        SetupBSplineMeshVEFnum ( obj );
+        rendered_picture = false;
+        xge_RedrawAll ();
+      }
+      else if ( !obj->integrity_ok )
+        xge_DisplayErrorMessage ( ErrorMsgMeshIntegrity, 0 );
+      else
         xge_DisplayErrorMessage ( ErrorMsgCannotDoubleFacetEdges, 0 );
+      return 1;
       return 1;
   case btnM1BSM_DATA_KGON:
       if ( GeomObjectBSplineMeshInitKGon ( obj, bsm_degree1, bsm_sw_data_add ) ) {

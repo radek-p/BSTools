@@ -53,18 +53,22 @@ xge_widget *InitPopup12 ( void )
   xge_widget *w, *menu;
 
   memset ( &objectlist, 0, sizeof(xge_listbox) );
-  w = xge_NewListBox ( win1, NULL, lbP12OBJLIST, 180, 99, 20+10, 40+10,
+  w = xge_NewListBox ( win1, NULL, lbP12OBJLIST, 180, 164, 20+10, 40+10,
                        &objectlist );
   objectlist.bk0 = xgec_Blue6;
   objectlist.bk1 = xgec_Blue3;
-  w = xge_NewButton ( win1, w, btnP12NEW, 58, 19, 20+200, 40+10, txtNew );
-  w = xge_NewButton ( win1, w, btnP12COPY, 58, 19, 20+200, 40+34, txtCopy );
-  w = xge_NewButton ( win1, w, btnP12DELETE, 58, 19, 20+200, 40+58, txtDelete );
-  w = xge_NewButton ( win1, w, btnP12PURGE, 58, 19, 20+200, 40+82, txtPurge );
-  wdgActive = w = xge_NewSwitch ( win1, w, swP12SHOW, 58, 16, 20+200, 40+106,
+  w = xge_NewButton ( win1, w, btnP12NEW, 64, 19, 20+200, 40+10, txtNew );
+  w = xge_NewButton ( win1, w, btnP12COPY, 64, 19, 20+200, 40+34, txtCopy );
+  w = xge_NewButton ( win1, w, btnP12DELETE, 64, 19, 20+200, 40+58, txtDelete );
+  w = xge_NewButton ( win1, w, btnP12PURGE, 64, 19, 20+200, 40+82, txtPurge );
+  w = xge_NewButton ( win1, w, btnP12ACTIVATE, 64, 19, 20+200, 40+106,
+                      txtActivate );
+  w = xge_NewButton ( win1, w, btnP12DEACTIVATE, 64, 19, 20+200, 40+130,
+                      txtDeactivate );
+  wdgActive = w = xge_NewSwitch ( win1, w, swP12SHOW, 64, 16, 20+200, 40+158,
                                   txtActive, &swActive );
-  w = xge_NewButton ( win1, w, btnP12OK, 58, 19, 20+105, 40+160-30, txtOK );
-  menu = xge_NewFMenu ( win1, NULL, POPUP12, 268, 160, 20, 40, w );
+  w = xge_NewButton ( win1, w, btnP12OK, 64, 19, 20+106, 40+214-30, txtOK );
+  menu = xge_NewFMenu ( win1, NULL, POPUP12, 272, 214, 20, 40, w );
   menu->msgproc = xge_PopupMenuMsg;
   return menu;
 } /*InitPopup12*/
@@ -134,7 +138,8 @@ void CleanupPopup12 ( void )
 
 int Popup12CallBack ( xge_widget *er, int msg, int key, short x, short y )
 {
-  int sc;
+  int         sc;
+  geom_object *go;
 
   switch ( msg ) {
 case xgemsg_BUTTON_COMMAND:
@@ -170,6 +175,20 @@ case xgemsg_BUTTON_COMMAND:
         StopRendering ();
       rendered_picture = false;
       xge_RedrawAll ();
+      return 1;
+  case btnP12ACTIVATE:
+      for ( go = first_go; go; go = go->next )
+        go->active = true;
+      goto show_active_switch;
+  case btnP12DEACTIVATE:
+      for ( go = first_go; go; go = go->next )
+        go->active = false;
+show_active_switch:
+      swActive = current_go ? current_go->active : false;
+      xge_SetClipping ( wdgActive );
+      wdgActive->redraw ( wdgActive, true );
+      xge_SetWindow ( win0 );
+      xge_Redraw ();
       return 1;
   case btnP12OK:
       xge_RemovePopup ( true );
