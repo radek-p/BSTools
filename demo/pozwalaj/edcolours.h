@@ -33,6 +33,7 @@
 #define OBJC_BEZP_CP_MARKED        xglec_OrangeRed
 
 /* B-spline patches */
+#define OBJC_BSP_TRIMMED_BOUNDARY  xglec_White
 #define OBJC_BSP_PATCH_CPLINES     xglec_Grey1
 #define OBJC_BSP_CNET              xglec_Green
 #define OBJC_BSP_CP_UNMARKED       xglec_Yellow

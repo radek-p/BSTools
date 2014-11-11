@@ -35,7 +35,8 @@
 
 void GeomObjectDrawBSplinePatch ( GO_BSplinePatch *obj )
 {
-  int pitch;
+  int               pitch;
+  BSP_TrimmedDomain *trpd;
 
   if ( obj->me.obj_type != GO_BSPLINE_PATCH )
     return;
@@ -43,13 +44,31 @@ void GeomObjectDrawBSplinePatch ( GO_BSplinePatch *obj )
     glCallList ( obj->me.displaylist );
   else {
     glNewList ( obj->me.displaylist, GL_COMPILE_AND_EXECUTE );
-    glColor3fv ( OBJC_BSP_PATCH_CPLINES );
     pitch = obj->me.cpdimen*(obj->lastknot_v-obj->degree_v);
-    DrawBSplinePatchWF ( obj->me.cpdimen, obj->me.spdimen,
-                         obj->degree_u, obj->lastknot_u, obj->knots_u,
-                         obj->degree_v, obj->lastknot_v, obj->knots_v,
-                         pitch, obj->cpoints, obj->dens_u, obj->dens_v,
-                         true, !obj->closed_u, true, !obj->closed_v );
+    if ( (trpd = obj->trpd) ) { /* a trimmed patch */
+      glColor3fv ( OBJC_BSP_TRIMMED_BOUNDARY );
+      DrawTrimmedBSplinePatchBoundary ( obj->me.cpdimen, obj->me.spdimen,
+                                  obj->degree_u, obj->lastknot_u, obj->knots_u,
+                                  obj->degree_v, obj->lastknot_v, obj->knots_v,
+                                  pitch, obj->cpoints, obj->dens_u, obj->dens_v,
+                                  true, !obj->closed_u, true, !obj->closed_v,
+                                  trpd->nelem, trpd->bound );
+      glColor3fv ( OBJC_BSP_PATCH_CPLINES );
+      DrawTrimmedBSplinePatchWF ( obj->me.cpdimen, obj->me.spdimen,
+                                  obj->degree_u, obj->lastknot_u, obj->knots_u,
+                                  obj->degree_v, obj->lastknot_v, obj->knots_v,
+                                  pitch, obj->cpoints, obj->dens_u, obj->dens_v,
+                                  true, !obj->closed_u, true, !obj->closed_v,
+                                  trpd->nelem, trpd->bound );
+    }
+    else {  /* a non-trimmed patch */
+      glColor3fv ( OBJC_BSP_PATCH_CPLINES );
+      DrawBSplinePatchWF ( obj->me.cpdimen, obj->me.spdimen,
+                           obj->degree_u, obj->lastknot_u, obj->knots_u,
+                           obj->degree_v, obj->lastknot_v, obj->knots_v,
+                           pitch, obj->cpoints, obj->dens_u, obj->dens_v,
+                           true, !obj->closed_u, true, !obj->closed_v );
+    }
     glEndList ();
     obj->me.dlistmask |= BSP_DLM_PATCH;
   }

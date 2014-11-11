@@ -374,7 +374,7 @@ void GeomObjectReadTrimmedDomain ( void *usrdata, mbs_polycurved *elem )
   trdelem = attrib->trdelem;
   trdelem[ntrd].ident = elem->ident;
   trdelem[ntrd].closing = elem->closing;
-  trdelem[ntrd].spdimen = dim = elem->spdimen;
+  trdelem[ntrd].cpdimen = dim = elem->cpdimen;
   trdelem[ntrd].degree = deg = elem->degree;
   trdelem[ntrd].lastknot = lkn = elem->lastknot;
   trdelem[ntrd].points = NULL;
@@ -384,8 +384,10 @@ void GeomObjectReadTrimmedDomain ( void *usrdata, mbs_polycurved *elem )
       memcpy ( trdelem[ntrd].knots, elem->knots, (lkn+1)*sizeof(double) );
       ncp = lkn-deg;
     }
-    else
+    else {
       attrib->trd_error = true;
+      ncp = 0;
+    }
   }
   else if ( deg > 1 ) {
     trdelem[ntrd].knots = NULL;
@@ -395,13 +397,15 @@ void GeomObjectReadTrimmedDomain ( void *usrdata, mbs_polycurved *elem )
     trdelem[ntrd].knots = NULL;
     ncp = lkn+1;
   }
-  trdelem[ntrd].points = malloc ( ncp*dim*sizeof(double) );
-  if ( trdelem[ntrd].points ) {
-    memcpy ( trdelem[ntrd].points, elem->points, ncp*dim*sizeof(double) );
-    attrib->ntrd = ntrd+1;
+  if ( !attrib->trd_error ) {
+    trdelem[ntrd].points = malloc ( ncp*dim*sizeof(double) );
+    if ( trdelem[ntrd].points ) {
+      memcpy ( trdelem[ntrd].points, elem->points, ncp*dim*sizeof(double) );
+      attrib->ntrd = ntrd+1;
+    }
+    else
+      attrib->trd_error = true;
   }
-  else
-    attrib->trd_error = true;
 } /*GeomObjectReadTrimmedDomain*/
 
 boolean GeomObjectReadFile ( char *filename, bsf_Camera_fptr CameraReader )

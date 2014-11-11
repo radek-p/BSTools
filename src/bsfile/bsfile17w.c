@@ -42,7 +42,7 @@ boolean bsf_WriteTrimmedDomaind ( int nelem, const mbs_polycurved *bound )
     if ( i < nelem-1 && bound[i].closing )
       one_contour = false;
           /* each element must be planar, may be rational */
-    if ( bound[i].spdimen != 2 && bound[i].spdimen != 3 )
+    if ( bound[i].cpdimen != 2 && bound[i].cpdimen != 3 )
       return false;
   }
   if ( !bound[nelem-1].closing )
@@ -70,21 +70,21 @@ boolean bsf_WriteTrimmedDomaind ( int nelem, const mbs_polycurved *bound )
         /* write the curves and polylines; they have no attributes */
         /* in the current version of the .bs files language */
     if ( bound[i].knots ) {              /* write a B-spline curve */
-      result &= bsf_WriteBSplineCurved ( 2, bound[i].spdimen,
-                                         bound[i].spdimen > 2, bound[i].degree,
+      result &= bsf_WriteBSplineCurved ( 2, bound[i].cpdimen,
+                                         bound[i].cpdimen > 2, bound[i].degree,
                                          bound[i].lastknot, bound[i].knots,
                                          false, bound[i].points,
                                          NULL, bound[i].ident, NULL, NULL );
     }
     else if ( bound[i].lastknot <= 0 ) { /* write a Bezier curve */
-      result &= bsf_WriteBezierCurved ( 2, bound[i].spdimen,
-                                        bound[i].spdimen > 2, bound[i].degree,
+      result &= bsf_WriteBezierCurved ( 2, bound[i].cpdimen,
+                                        bound[i].cpdimen > 2, bound[i].degree,
                                         bound[i].points, NULL, bound[i].ident,
                                         NULL, NULL );
     }
     else {                               /* write a polyline */
-      result &= bsf_WritePolylined ( 2, bound[i].spdimen,
-                                     bound[i].spdimen > 2, false,
+      result &= bsf_WritePolylined ( 2, bound[i].cpdimen,
+                                     bound[i].cpdimen > 2, false,
                                      bound[i].lastknot+1, bound[i].points,
                                      NULL, bound[i].ident, NULL, NULL );
     }

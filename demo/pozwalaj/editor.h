@@ -152,6 +152,21 @@ void DrawBSplinePatchWF ( int cpdimen, int spdimen,
                           int pitch, const double *cpoints,
                           int densu, int densv, boolean firstu, boolean lastu,
                           boolean firstv, boolean lastv );
+void DrawTrimmedBSplinePatchWF ( int cpdimen, int spdimen,
+                                 int degu, int lknu, double *knu,
+                                 int degv, int lknv, double *knv,
+                                 int pitch, double *cpoints,
+                                 int densu, int densv, boolean firstu, boolean lastu,
+                                 boolean firstv, boolean lastv,
+                                 int bound_elem, mbs_polycurved *bound );
+void DrawTrimmedBSplinePatchBoundary ( int cpdimen, int spdimen,
+                                 int degu, int lknu, const double *knu,
+                                 int degv, int lknv, const double *knv,
+                                 int pitch, const double *cpoints,
+                                 int densu, int densv, boolean firstu, boolean lastu,
+                                 boolean firstv, boolean lastv,
+                                 int bound_elem, mbs_polycurved *bound );
+
 void GeomObjectDrawMeshEdges ( int cpdimen, int spdimen,
                                int nv, BSMvertex *mv, double *mvc, int *mvhei,
                                int nhe, BSMhalfedge *mhe,

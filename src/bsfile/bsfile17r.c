@@ -72,7 +72,7 @@ case BSF_SYMB_BCURVE:
           goto failure;
         if ( rational )
           dim ++;
-        elem.spdimen = dim;
+        elem.cpdimen = dim;
         pkv_Rearranged ( deg+1, dim, 4, dim, points );
         elem.degree = deg;
         elem.knots = NULL;
@@ -100,7 +100,7 @@ case BSF_SYMB_BSCURVE:
           goto failure;
         if ( rational )
           dim ++;
-        elem.spdimen = dim;
+        elem.cpdimen = dim;
         pkv_Rearranged ( lkn-deg, dim, 4, dim, points );
         elem.degree = deg;
         elem.lastknot = lkn;
@@ -123,7 +123,7 @@ case BSF_SYMB_POLYLINE:
           goto failure;
         if ( rational )
           dim ++;
-        elem.spdimen = dim;
+        elem.cpdimen = dim;
         pkv_Rearranged ( nvert, dim, 4, dim, points );
         elem.knots = NULL;
         elem.degree = 1;

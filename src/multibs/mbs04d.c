@@ -103,15 +103,48 @@ void mbs_deBoorC3Rd ( int degree, int lastknot,
   Point4to3d ( &p, cpoint );
 } /*mbs_deBoorC3Rd*/
 
-void mbs_deBoorP3d ( int degreeu, int lastknotu, const double *knotsu,
-                     int degreev, int lastknotv, const double *knotsv,
-                     int pitch,
-                     const point3d *ctlpoints,
-                     double u, double v, point3d *ppoint )
+boolean mbs_deBoorPd ( int degreeu, int lastknotu, const double *knotsu,
+                       int degreev, int lastknotv, const double *knotsv,
+                       int spdimen, int pitch,
+                       const double *ctlpoints,
+                       double u, double v, double *ppoint )
 {
+  void   *sp;
+  int    k, l;
+  double *q;
+
+  sp = pkv_GetScratchMemTop ();
+  q = pkv_GetScratchMemd ( (degreeu+1)*spdimen );
+  if ( !q )
+    return false;
+
+                                       /* find knot intervals */
+  k = mbs_FindKnotIntervald ( degreeu, lastknotu, knotsu, u, NULL );
+  l = mbs_FindKnotIntervald ( degreev, lastknotv, knotsv, v, NULL );
+
+                                       /* find arc of constant parameter v */
+  mbs_multideBoord ( degreev, 2*degreev+1,
+      &knotsv[l-degreev], degreeu+1, spdimen, pitch,
+      &ctlpoints[(k-degreeu)*pitch+(l-degreev)*spdimen], v, q );
+
+                                       /* find the point of this arc */
+  mbs_multideBoord ( degreeu, 2*degreeu+1, &knotsu[k-degreeu], 1,
+                     spdimen, 0, q, u, (double*)ppoint );
+
+  pkv_SetScratchMemTop ( sp );
+  return true;
+} /*mbs_deBoorP3d*/
+
+boolean mbs_deBoorP3d ( int degreeu, int lastknotu, const double *knotsu,
+                        int degreev, int lastknotv, const double *knotsv,
+                        int pitch,
+                        const point3d *ctlpoints,
+                        double u, double v, point3d *ppoint )
+{
+#ifndef OLD
   int    k, l;
   int    size_q;
-  double  *q;
+  double *q;
 
   q = pkv_GetScratchMem ( size_q = (degreeu+1)*sizeof(point3d) );
 
@@ -129,17 +162,24 @@ void mbs_deBoorP3d ( int degreeu, int lastknotu, const double *knotsu,
                      u, (double*)ppoint );
 
   pkv_FreeScratchMem ( size_q );
+  return true;
+#else
+  return mbs_deBoorPd ( degreeu, lastknotu, knotsu,
+                        degreev, lastknotv, knotsv,
+                        3, pitch, (double*) ctlpoints, u, v, (double*)ppoint );
+#endif
 } /*mbs_deBoorP3d*/
 
-void mbs_deBoorP3Rd ( int degreeu, int lastknotu, const double *knotsu,
-                      int degreev, int lastknotv, const double *knotsv,
-                      int pitch,
-                      const point4d *ctlpoints,
-                      double u, double v, point3d *ppoint )
+boolean mbs_deBoorP3Rd ( int degreeu, int lastknotu, const double *knotsu,
+                         int degreev, int lastknotv, const double *knotsv,
+                         int pitch,
+                         const point4d *ctlpoints,
+                         double u, double v, point3d *ppoint )
 {
+#ifndef OLD
   int    k, l;
   int    size_q;
-  double  *q;
+  double *q;
   point4d r;
 
   q = pkv_GetScratchMem ( size_q = (degreeu+1)*sizeof(point4d) );
@@ -159,17 +199,31 @@ void mbs_deBoorP3Rd ( int degreeu, int lastknotu, const double *knotsu,
   Point4to3d ( &r, ppoint );
 
   pkv_FreeScratchMem ( size_q );
+  return true;
+#else
+  point4d r;
+
+  if ( mbs_deBoorPd ( degreeu, lastknotu, knotsu,
+                      degreev, lastknotv, knotsv,
+                      4, pitch, (double*) ctlpoints, u, v, (double*)&r ) {
+    Point4To3d ( &r, ppoint );
+    return true;
+  }
+  else
+    return false;
+#endif
 } /*mbs_deBoorP3Rd*/
 
-void mbs_deBoorP4d ( int degreeu, int lastknotu, const double *knotsu,
-                     int degreev, int lastknotv, const double *knotsv,
-                     int pitch,
-                     const point4d *ctlpoints,
-                     double u, double v, point4d *ppoint )
+boolean mbs_deBoorP4d ( int degreeu, int lastknotu, const double *knotsu,
+                        int degreev, int lastknotv, const double *knotsv,
+                        int pitch,
+                        const point4d *ctlpoints,
+                        double u, double v, point4d *ppoint )
 {
+#ifndef OLD
   int    k, l;
   int    size_q;
-  double  *q;
+  double *q;
 
   q = pkv_GetScratchMem ( size_q = (degreeu+1)*sizeof(point4d) );
 
@@ -187,5 +241,11 @@ void mbs_deBoorP4d ( int degreeu, int lastknotu, const double *knotsu,
                      u, (double*)ppoint );
 
   pkv_FreeScratchMem ( size_q );
+  return true;
+#else
+  return mbs_deBoorPd ( degreeu, lastknotu, knotsu,
+                        degreev, lastknotv, knotsv,
+                        4, pitch, (double*) ctlpoints, u, v, (double*)ppoint );
+#endif
 } /*mbs_deBoorP4d*/
 

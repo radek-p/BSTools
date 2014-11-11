@@ -3914,3 +3914,31 @@ Wersja 0.34.
     skanera w libpkvaria.
 
 
+9.11.2014.
+914. Nowa procedura w libmultibs, mbs_deBoorPf, z ktorej teraz korzystaja
+    procedury mbs_deBoorP3f, mbs_deBoorP3Rf i mbs_deBoorP4f. Przy okazji
+    poprawiony blad w tych procedurach (bledny wynik, jesli parametr kolumny
+    siatki kontrolnej nie byly upakowane w tablicy bez przerw).
+
+915. Wyswietlanie brzegu plata obcietego w programie pozwalaj.
+
+916. Zmienione menu popup z lista obiektow w drugim oknie programu pozwalaj.
+
+
+10.11.2014.
+917. W strukturze mbs_polycurvef, sluzacej do reprezentowania brzegu platow
+    obcietych pole spdimen ma zmieniona nazwe na cpdimen (dla poprawienia
+    spojnosci nazewnictwa).
+
+918, Do procedury mbs_DrawTrimBSPatchDomf dodany parametr usrptr,
+    przekazywany do procedur aplikacji podanych jako parametry (te procedury
+    tez maja odpowiednio zmienione naglowki). Umozliwia to przekazywanie
+    informacji przez aplikacje bez uzywania zmiennych globalnych.
+
+
+11.11.2014.
+919. Dodane wyswietlanie obcietych platow B-sklejanych w pogramie pozwalaj -
+    jeszcze do poprawienia.
+
+
+

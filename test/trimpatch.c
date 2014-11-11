@@ -98,7 +98,7 @@ static void MapPoint ( const point2f *frame, const point2f *p, point2f *q )
   AddVector2Mf ( q, &frame[2], p->y, q );
 } /*MapPoint*/
 
-static void DrawLine1 ( point2f *p0, point2f *p1, int index )
+static void DrawLine1 ( void *usrptr, point2f *p0, point2f *p1, int index )
 {
   point2f q0, q1;
 
@@ -110,7 +110,7 @@ static void DrawLine1 ( point2f *p0, point2f *p1, int index )
   }
 } /*DrawLine1*/
 
-static void DrawCurve1 ( int dim, int degree, const float *cp )
+static void DrawCurve1 ( void *usrptr, int dim, int degree, const float *cp )
 {
 #define DENS 50
   int i, size;
@@ -162,7 +162,7 @@ out:
 #undef DENS
 } /*DrawCurve1*/
 
-static void DrawLine2 ( point2f *p0, point2f *p1, int index )
+static void DrawLine2 ( void *usrptr, point2f *p0, point2f *p1, int index )
 {
 #define LGT 0.05
   void     *sp;
@@ -193,7 +193,7 @@ static void DrawLine2 ( point2f *p0, point2f *p1, int index )
 #undef LGT
 } /*DrawLine2*/
 
-static void DrawCurve2 ( int dim, int degree, const float *cp )
+static void DrawCurve2 ( void *usrptr, int dim, int degree, const float *cp )
 {
 #define DENS 50
   int i, size;
@@ -243,11 +243,11 @@ static void test ( void )
   ps_Write_Command ( "1 setlinecap" );
   mbs_DrawTrimBSPatchDomf ( n1, NN1, u1, m1, MM1, v1, 8, boundary1,
                             1, 2.0, 2.0, 1, 2.0, 2.0,
-                            20, NULL, DrawLine1, DrawCurve1 );
+                            20, NULL, NULL, DrawLine1, DrawCurve1 );
 
   mbs_DrawTrimBSPatchDomf ( n1, NN1, u1, m1, MM1, v1, 8, boundary1,
                             4, 0.1, 2.0, 5, 0.3, 2.0,
-                            20, NULL, DrawLine2, DrawCurve2 );
+                            20, NULL, NULL, DrawLine2, DrawCurve2 );
 
   ps_CloseFile ();
 } /*test*/

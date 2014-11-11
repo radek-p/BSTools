@@ -32,7 +32,7 @@
 #include "editor.h"
 #include "editor_bsm.h"
 
-
+/* ////////////////////////////////////////////////////////////////////////// */
 void DrawAVertex ( int cpdimen, int spdimen, const double *cp )
 {
   switch ( cpdimen ) {
@@ -247,6 +247,7 @@ void DrawPoints ( int cpdimen, int spdimen, int np, const double *cp )
   glEnd ();
 } /*DrawPoints*/
 
+/* ////////////////////////////////////////////////////////////////////////// */
 void DrawBezierCurve ( int cpdimen, int spdimen, int deg, double *cp, int dd )
 {
   int    i;
@@ -400,6 +401,7 @@ void DrawBezierPatchWF ( int cpdimen, int spdimen, int degu, int degv,
   pkv_SetScratchMemTop ( sp );
 } /*DrawBezierPatchWF*/
 
+/* ////////////////////////////////////////////////////////////////////////// */
 void DrawBSplinePatchWF ( int cpdimen, int spdimen,
                           int degu, int lknu, const double *knu,
                           int degv, int lknv, const double *knv,
@@ -432,6 +434,401 @@ void DrawBSplinePatchWF ( int cpdimen, int spdimen,
   pkv_SetScratchMemTop ( sp );
 } /*DrawBSplinePatchWF*/
 
+static void _PointOnBSPatch ( int cpdimen, int spdimen,
+                              int degu, int lknu, const double *knu,
+                              int degv, int lknv, const double *knv,
+                              int pitch, const double *cpoints,
+                              double u, double v, point3d *p )
+{
+  double q[4];
+
+  mbs_deBoorPd ( degu, lknu, knu, degv, lknv, knv,
+                 cpdimen, pitch, cpoints, u, v, q );
+  switch ( spdimen ) {
+case 2:
+    if ( cpdimen == 2 )
+      SetPoint3d ( p, q[0], q[1], 0.0 );
+    else
+      SetPoint3d ( p, q[0]/q[2], q[1]/q[2], 0.0 );
+    return;
+case 3:
+    if ( cpdimen == 3 )
+      memcpy ( p, q, sizeof(point3d) );
+    else
+      Point4to3d ( (point4d*)&q, p );
+    return;
+default:
+    memset ( p, 0, sizeof(point3d) );
+    return;
+  }
+} /*_PointOnBSPatch*/
+
+static void _PointOnBSCurve ( int cpdimen, int spdimen,
+                              int deg, int lkn, const double *knots,
+                              const double *cpoints,
+                              double t, point3d *p )
+{
+  double q[4];
+
+  mbs_multideBoord ( deg, lkn, knots, 1, cpdimen, 0, cpoints, t, q );
+  switch ( spdimen ) {
+case 2:
+    if ( cpdimen == 2 )
+      SetPoint3d ( p, q[0], q[1], 0.0 );
+    else
+      SetPoint3d ( p, q[0]/q[2], q[1]/q[2], 0.0 );
+    return;
+case 3:
+    if ( cpdimen == 3 )
+      memcpy ( p, q, sizeof(point3d) );
+    else
+      Point4to3d ( (point4d*)&q, p );
+    return;
+default:
+    memset ( p, 0, sizeof(point3d) );
+    return;
+  }
+} /*_PointOnBSCurve*/
+
+typedef struct {
+        /* description of a B-spline patch */
+    int    cpdimen, spdimen;
+    int    degu, lknu;
+    double *knu;
+    int    degv, lknv;
+    double *knv;
+    int    pitch;
+    double *cpoints;
+        /* accuracy control */
+    double delta;
+        /* description of a constant parameter curve on the patch */
+    int    hv;        /* 1 - vertical, 2 - horizontal */
+    double uv;        /* constant parameter */
+    double *curvecp;  /* control points */
+  } trbs_line;
+
+static void _TrimmedBSplineNotifyLine ( void *usrptr, char hv, int k,
+                                        point2d *p0, point2d *p1 )
+{
+  trbs_line *trbsl;
+  double    *cpoints, *curvecp;
+  int       pitch;
+
+  trbsl = (trbs_line*)usrptr;
+  cpoints = trbsl->cpoints;
+  pitch = trbsl->pitch;
+  curvecp = trbsl->curvecp;
+  switch ( (trbsl->hv = hv) ) {
+case 1:    /* vertical, constant "u" parameter */
+    trbsl->uv = p0->x;
+    mbs_multideBoord ( trbsl->degu, trbsl->lknu, trbsl->knu,
+                       1, pitch, 0, cpoints, p0->x, curvecp );
+    break;
+case 2:    /* horizontal, constant "v" parameter */
+    trbsl->uv = p0->y;
+    mbs_multideBoord ( trbsl->degv, trbsl->lknv, trbsl->knv,
+                       trbsl->lknu-trbsl->degu, trbsl->cpdimen, pitch, cpoints,
+                       p0->y, curvecp );
+    break;
+default:
+    break;
+  }
+  trbsl->hv = hv;
+} /*_TrimmedBSplineNotifyLine*/
+
+static void _TrimmedBSplineDrawLine ( void *usrptr,
+                                      point2d *p0, point2d *p1, int index )
+{
+  trbs_line *trbsl;
+  int       cpdimen, spdimen, deg, lkn;
+  int       i, k;
+  double    *knots, *curvecp, t, t0, dt;
+  point3d   p;
+
+  if ( index != 1 )
+    return;
+
+  trbsl = (trbs_line*)usrptr;
+  cpdimen = trbsl->cpdimen;
+  spdimen = trbsl->spdimen;
+  curvecp = trbsl->curvecp;
+  switch ( trbsl->hv ) {
+case 1:
+    deg = trbsl->degv;
+    lkn = trbsl->lknv;
+    knots = trbsl->knv;
+    t0 = p0->y;  dt = p1->y-t0;
+    goto draw_arc;
+
+case 2:
+    deg = trbsl->degu;
+    lkn = trbsl->lknu;
+    knots = trbsl->knu;
+    t0 = p0->x;  dt = p1->x-t0;
+draw_arc:
+    k = (int)(dt/trbsl->delta) + 1;
+    glBegin ( GL_LINE_STRIP );
+    for ( i = 0; i <= k; i++ ) {
+      t = t0 + (double)i/(double)k*dt;
+      _PointOnBSCurve ( cpdimen, spdimen, deg, lkn, knots, curvecp, t, &p );
+      glVertex3dv ( &p.x );
+    }
+    glEnd ();
+    break;
+
+default:
+    break;
+  }
+} /*_TrimmedBSplineDrawLine*/
+
+void DrawTrimmedBSplinePatchWF ( int cpdimen, int spdimen,
+                                 int degu, int lknu, double *knu,
+                                 int degv, int lknv, double *knv,
+                                 int pitch, double *cpoints,
+                                 int densu, int densv, boolean firstu, boolean lastu,
+                                 boolean firstv, boolean lastv,
+                                 int bound_elem, mbs_polycurved *bound )
+{
+  void      *sp;
+  trbs_line trbsl;
+  int       csize;
+  double    lu, lv, diag;
+
+  sp = pkv_GetScratchMemTop ();
+  trbsl.cpdimen = cpdimen;
+  trbsl.spdimen = spdimen;
+  trbsl.degu = degu;
+  trbsl.lknu = lknu;
+  trbsl.knu = knu;
+  trbsl.degv = degv;
+  trbsl.lknv = lknv;
+  trbsl.knv = knv;
+  trbsl.pitch = pitch;
+  trbsl.cpoints = cpoints;
+  csize = max ( pitch, cpdimen*(lknu-degu) );
+  trbsl.curvecp = pkv_GetScratchMemd ( csize );
+  if ( trbsl.curvecp ) {
+    lu = knu[lknu-degu]-knu[degu];
+    lv = knv[lknv-degv]-knv[degv];
+    diag = sqrt ( lu*lu + lv*lv );
+    trbsl.delta = 0.01*diag;
+    mbs_DrawTrimBSPatchDomd ( degu, lknu, knu, degv, lknv, knv,
+            bound_elem, bound,
+            densu, 0.0, knu[lknu-degu]-knu[degu],
+            densv, 0.0, knv[lknv-degv]-knv[degv],
+            100, (void*)&trbsl,
+            _TrimmedBSplineNotifyLine, _TrimmedBSplineDrawLine, NULL );
+  }
+  pkv_SetScratchMemTop ( sp );
+
+/*
+  DrawBSplinePatchWF ( cpdimen, spdimen, degu, lknu, knu,
+                       degv, lknv, knv, pitch, cpoints,
+                       densu, densv, firstu, lastu, firstv, lastv );
+*/
+} /*DrawTrimmedBSplinePatchWF*/
+
+static void _DrawBezCurveOnBSPatch ( int cpdimen, int spdimen,
+                                     int degu, int lknu, const double *knu,
+                                     int degv, int lknv, const double *knv,
+                                     int pitch, const double *cpoints,
+                                     int ldim, int degree, double *bcp,
+                                     double delta )
+{
+#define MAX_DIV_LEVEL 16
+  typedef struct {
+      double  t0, t1;
+      double  cp[2];
+    } stk_el;
+
+  void     *sp;
+  int      elsize, cpsize;
+  stk_el   *stk, *stk1;
+  int      stkp, i;
+  point2d  p1, p;
+  vector2d v;
+  point3d  q;
+  double   lgt, w;
+
+  sp = pkv_GetScratchMemTop ();
+  cpsize = ldim*(degree+1);
+  elsize = sizeof(stk_el) + (cpsize-2)*sizeof(double);
+        /* push the entire curve on the stack */
+  stk = stk1 = (stk_el*)pkv_GetScratchMem ( elsize );
+  if ( !stk )
+    goto way_out;
+  stk->t0 = 0.0;  stk->t1 = 1.0;
+  memcpy ( stk->cp, bcp, cpsize*sizeof(double) );
+  stkp = 1;
+        /* recursive subdivision and drawing */
+  glBegin ( GL_LINE_STRIP );
+  if ( ldim == 2 )
+    memcpy ( &p, bcp, sizeof(point2d) );
+  else
+    SetPoint2d ( &p, bcp[0]/bcp[2], bcp[1]/bcp[2] );
+  _PointOnBSPatch ( cpdimen, spdimen, degu, lknu, knu, degv, lknv, knv,
+                    pitch, cpoints, p.x, p.y, &q );
+  glVertex3dv ( &q.x );
+  do {
+          /* get the curve piece from the stack top */
+    stk = stk1;
+          /* estimate the arc length */
+    lgt = 0.0;
+    if ( ldim == 2 ) { /* non-rational */
+      for ( i = 0; i < degree; i++ ) {
+        SubtractPoints2d ( (point2d*)&stk->cp[2*(i+1)], (point2d*)&stk->cp[2*i],
+                           &v );
+        lgt += sqrt ( DotProduct2d ( &v, &v ) );
+      }
+      memcpy ( &p, &stk->cp[2*degree], sizeof(point2d) );
+    }
+    else {    /* rational */
+      w = stk->cp[2];
+      SetPoint2d ( &p, stk->cp[0]/w, stk->cp[1]/w );
+      for ( i = 1; i <= degree; i++ ) {
+        w = stk->cp[3*i+2];
+        SetPoint2d ( &p1, stk->cp[3*i]/w, stk->cp[3*i+1]/w );
+        SubtractPoints2d ( &p1, &p, &v );
+        lgt += sqrt ( DotProduct2d ( &v, &v ) );
+        p = p1;
+      }
+    }
+
+    if ( lgt > delta && stkp <= MAX_DIV_LEVEL ) {  /* subdivide */
+      stk1 = (stk_el*)pkv_GetScratchMem ( elsize );
+      if ( !stk1 )
+        goto draw_it;
+      stkp ++;
+      stk1->t0 = stk->t0;
+      stk1->t1 = stk->t0 = 0.5*(stk->t0+stk->t1);
+      mbs_multiBisectBezCurvesd ( degree, 1, ldim, 0, stk->cp, stk1->cp );
+    }
+    else {
+draw_it:
+        /* if it is short enough - draw a line segment and pop */
+      _PointOnBSPatch ( cpdimen, spdimen, degu, lknu, knu, degv, lknv, knv,
+                        pitch, cpoints, p.x, p.y, &q );
+      glVertex3dv ( &q.x );
+      pkv_FreeScratchMem ( elsize );
+      stk1 = (stk_el*)((char*)stk-elsize);
+      stkp --;
+    }
+  } while ( stkp > 0 );
+  glEnd ();
+way_out:
+  pkv_SetScratchMemTop ( sp );
+#undef MAX_DIV_LEVEL
+} /*_DrawBezCurveOnBSPatch*/
+
+static void _DrawBSCurveOnBSPatch ( int cpdimen, int spdimen,
+                                    int degu, int lknu, const double *knu,
+                                    int degv, int lknv, const double *knv,
+                                    int pitch, const double *cpoints,
+                                    int ldim, int degree, int lkn, double *kn,
+                                    double *bscp, double delta )
+{
+  void   *sp;
+  int    kt, lknt, i;
+  double *bezcp;
+
+  sp = pkv_GetScratchMemTop ();
+  kt = mbs_NumKnotIntervalsd ( degree, lkn, kn );
+  if ( kt >= 1 ) {
+    bezcp = pkv_GetScratchMemd ( kt*(degree+1)*ldim );
+    if ( !bezcp )
+      goto way_out;
+    mbs_multiBSCurvesToBezd ( ldim, 1, degree, lkn, kn, 0, bscp,
+                              &kt, &lknt, NULL, 0, bezcp );
+    for ( i = 0; i < kt; i++ )
+      _DrawBezCurveOnBSPatch ( cpdimen, spdimen, degu, lknu, knu,
+                               degv, lknv, knv, pitch, cpoints,
+                               ldim, degree, &bezcp[i*ldim*(degree+1)], delta );
+  }
+way_out:
+  pkv_SetScratchMemTop ( sp );
+} /*_DrawBSCurveOnBSPatch*/
+
+static void _DrawPolylineOnBSPatch ( int cpdimen, int spdimen,
+                                     int degu, int lknu, const double *knu,
+                                     int degv, int lknv, const double *knv,
+                                     int pitch, const double *cpoints,
+                                     int ldim, int npoints, double *poly,
+                                     double delta )
+{
+  int      i, j, k;
+  point2d  p0, p1, p;
+  point3d  q;
+  vector2d v;
+  double   lgt;
+
+  glBegin ( GL_LINE_STRIP );
+  if ( ldim == 2 )
+    memcpy ( &p0, poly, sizeof(point2d) );
+  else
+    Point3to2d ( (point3d*)poly, &p0 );
+  _PointOnBSPatch ( cpdimen, spdimen, degu, lknu, knu, degv, lknv, knv,
+                    pitch, cpoints, p0.x, p0.y, &q );
+  glVertex3dv ( &q.x );
+  for ( i = 0; i < npoints-1; i++ ) {
+    if ( ldim == 2 )
+      memcpy ( &p1, &poly[2*(i+1)], sizeof(point2d) );
+    else
+      Point3to2d ( (point3d*)&poly[3*(i+1)], &p1 );
+    SubtractPoints2d ( &p1, &p0, &v );
+    lgt = sqrt ( DotProduct2d ( &v, &v ) );
+    k = (int)(lgt/delta)+1;
+    for ( j = 1; j <= k; j++ ) {
+      InterPoint2d ( &p0, &p1, (double)j/(double)k, &p );
+      _PointOnBSPatch ( cpdimen, spdimen, degu, lknu, knu, degv, lknv, knv,
+                        pitch, cpoints, p.x, p.y, &q );
+      glVertex3dv ( &q.x );
+    }
+    p0 = p1;
+  }
+  glEnd ();
+} /*_DrawPolylineOnBSPatch*/
+
+void DrawTrimmedBSplinePatchBoundary ( int cpdimen, int spdimen,
+                                 int degu, int lknu, const double *knu,
+                                 int degv, int lknv, const double *knv,
+                                 int pitch, const double *cpoints,
+                                 int densu, int densv, boolean firstu, boolean lastu,
+                                 boolean firstv, boolean lastv,
+                                 int bound_elem, mbs_polycurved *bound )
+{
+  int    i;
+  double lu, lv, diag, delta;
+
+  lu = knu[lknu-degu]-knu[degu];
+  lv = knv[lknv-degv]-knv[degv];
+  diag = sqrt ( lu*lu + lv*lv );
+  delta = 0.01*diag;
+  for ( i = 0; i < bound_elem; i++ ) {
+    if ( bound[i].knots ) { /* draw a B-spline curve */
+      _DrawBSCurveOnBSPatch ( cpdimen, spdimen,
+                              degu, lknu, knu, degv, lknv, knv,
+                              pitch, cpoints,
+                              bound[i].cpdimen, bound[i].degree,
+                              bound[i].lastknot, bound[i].knots, bound[i].points,
+                              delta );
+    }
+    else if ( bound[i].degree > 1 ) { /* draw a Bezier curve */
+      _DrawBezCurveOnBSPatch ( cpdimen, spdimen,
+                               degu, lknu, knu, degv, lknv, knv,
+                               pitch, cpoints,
+                               bound[i].cpdimen, bound[i].degree, bound[i].points,
+                               delta );
+    }
+    else { /* draw a polyline */
+      _DrawPolylineOnBSPatch ( cpdimen, spdimen, degu, lknu, knu,
+                               degv, lknv, knv, pitch, cpoints,
+                               bound[i].cpdimen, bound[i].lastknot+1,
+                               bound[i].points, delta );
+    }
+  }
+} /*DrawTrimmedBSplinePatchWF*/
+
+/* ////////////////////////////////////////////////////////////////////////// */
 void GeomObjectDrawMeshEdges ( int cpdimen, int spdimen,
                                int nv, BSMvertex *mv, double *mvc, int *mvhei,
                                int nhe, BSMhalfedge *mhe,

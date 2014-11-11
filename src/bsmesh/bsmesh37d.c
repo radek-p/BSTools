@@ -71,8 +71,8 @@ boolean bsm_TriangulateFacetsd ( int spdimen, int inv,
   t2mv = pkv_GetScratchMem ( *onv*sizeof(BSMvertex) );
   t2mvhei = pkv_GetScratchMemi ( *onhe );
   t2ptc = pkv_GetScratchMemd ( *onv*spdimen );
-  if ( !tmfac || !tmfhei || !tmhe || !tmv || !tmvhei || tptc ||
-       !t2mfac || !t2mfhei || !t2mhe || !t2mv || !t2mvhei || t2ptc )
+  if ( !tmfac || !tmfhei || !tmhe || !tmv || !tmvhei || !tptc ||
+       !t2mfac || !t2mfhei || !t2mhe || !t2mv || !t2mvhei || !t2ptc )
     goto failure;
 
   memcpy ( tmfac, imfac, infac*sizeof(BSMfacet) );

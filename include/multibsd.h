@@ -99,23 +99,29 @@ void mbs_deBoorC3Rd ( int degree, int lastknot,
                       const double *knots, const point4d *ctlpoints,
                       double t, point3d *cpoint );
 
-void mbs_deBoorP3d ( int degreeu, int lastknotu, const double *knotsu,
-                     int degreev, int lastknotv, const double *knotsv,
-                     int pitch,
-                     const point3d *ctlpoints,
-                     double u, double v, point3d *ppoint );
+boolean mbs_deBoorPd ( int degreeu, int lastknotu, const double *knotsu,
+                       int degreev, int lastknotv, const double *knotsv,
+                       int spdimen, int pitch,
+                       const double *ctlpoints,
+                       double u, double v, double *ppoint );
 
-void mbs_deBoorP3Rd ( int degreeu, int lastknotu, const double *knotsu,
-                      int degreev, int lastknotv, const double *knotsv,
-                      int pitch,
-                      const point4d *ctlpoints,
-                      double u, double v, point3d *ppoint );
+boolean mbs_deBoorP3d ( int degreeu, int lastknotu, const double *knotsu,
+                        int degreev, int lastknotv, const double *knotsv,
+                        int pitch,
+                        const point3d *ctlpoints,
+                        double u, double v, point3d *ppoint );
 
-void mbs_deBoorP4d ( int degreeu, int lastknotu, const double *knotsu,
-                     int degreev, int lastknotv, const double *knotsv,
-                     int pitch,
-                     const point4d *ctlpoints,
-                     double u, double v, point4d *ppoint );
+boolean mbs_deBoorP3Rd ( int degreeu, int lastknotu, const double *knotsu,
+                         int degreev, int lastknotv, const double *knotsv,
+                         int pitch,
+                         const point4d *ctlpoints,
+                         double u, double v, point3d *ppoint );
+
+boolean mbs_deBoorP4d ( int degreeu, int lastknotu, const double *knotsu,
+                        int degreev, int lastknotv, const double *knotsv,
+                        int pitch,
+                        const point4d *ctlpoints,
+                        double u, double v, point4d *ppoint );
 
 
 int mbs_multideBoorDerd ( int degree, int lastknot,
@@ -989,7 +995,7 @@ boolean mbs_multiBSChangeRightKnotsd ( int ncurves, int spdimen, int degree,
 typedef struct {
     int     ident;
     boolean closing;
-    byte    spdimen;
+    byte    cpdimen;
     short   degree;
     int     lastknot;
     double  *knots;
@@ -1017,9 +1023,10 @@ boolean mbs_DrawTrimBSPatchDomd ( int degu, int lastuknot, const double *uknots,
                                   int nu, double au, double bu,
                                   int nv, double av, double bv,
                                   int maxinters,
-                                  void (*NotifyLine)(char,int,point2d*,point2d*),
-                                  void (*DrawLine)(point2d*,point2d*,int),
-                                  void (*DrawCurve)(int,int,const double*) );
+                                  void *usrptr,
+                                  void (*NotifyLine)(void*,char,int,point2d*,point2d*),
+                                  void (*DrawLine)(void*,point2d*,point2d*,int),
+                                  void (*DrawCurve)(void*,int,int,const double*) );
 
 
 boolean mbs_MonotonicPolylined ( int spdimen, int npoints, int pitch,

@@ -60,7 +60,7 @@ void GeomObjectBSplinePatchCopyTrimmedDomain ( GO_BSplinePatch *obj,
   for ( i = 0; i < nelem; i++ ) {
     bound[i].ident    = -1;
     bound[i].closing  = obj->trpd->bound[i].closing;
-    bound[i].spdimen  = dim = obj->trpd->bound[i].spdimen;
+    bound[i].cpdimen  = dim = obj->trpd->bound[i].cpdimen;
     bound[i].degree   = deg = obj->trpd->bound[i].degree;
     bound[i].lastknot = lkn = obj->trpd->bound[i].lastknot;
     if ( obj->trpd->bound[i].knots ) {  /* a B-spline curve */
@@ -111,8 +111,6 @@ void GeomObjectBSplinePatchDeleteTrimmedDomain ( GO_BSplinePatch *obj )
   }
   if ( trpd->bound )
     free ( trpd->bound );
-  if ( trpd->buffer )
-    free ( trpd->buffer );
   free ( trpd );
   obj->trpd = NULL;
   obj->trimmed = false;
@@ -134,8 +132,6 @@ void GeomObjectBSplinePatchEnterTrimmedDomain ( GO_BSplinePatch *obj,
     goto failure;
   trpd->nelem = nelem;
   trpd->bound = elem;
-  trpd->bufsize = 0;
-  trpd->buffer = NULL;
   obj->trpd = trpd;
   obj->trimmed = true;
   return;
@@ -307,13 +303,13 @@ void GeomObjectBSplinePatchDrawTrimmedDomain ( GO_BSplinePatch *obj,
   for ( i = 0; i < nelem; i++ ) {
     if ( elem[i].knots )  /* draw a B-spline curve */
       _DrawTrdBSCurve ( CPos, elem[i].degree, elem[i].lastknot, 
-                        elem[i].knots, elem[i].spdimen, elem[i].points );
+                        elem[i].knots, elem[i].cpdimen, elem[i].points );
     else if ( elem[i].degree > 1 ) /* draw a Bezier curve */
       _DrawTrdBezCurve ( CPos, elem[i].degree,
-                         elem[i].spdimen, elem[i].points );
+                         elem[i].cpdimen, elem[i].points );
     else  /* draw a polyline */
       _DrawTrdPolyline ( CPos, elem[i].lastknot+1,
-                         elem[i].spdimen, elem[i].points );
+                         elem[i].cpdimen, elem[i].points );
   }
 } /*GeomObjectBSplinePatchDrawTrimmedDomain*/
 
@@ -342,12 +338,12 @@ void GeomObjectBSplinePatchFlipTrimmedDomain ( GO_BSplinePatch *obj )
   nelem = trpd->nelem;
   for ( i = 0; i < nelem; i++ ) {
     if ( elem[i].knots )  /* flip a B-spline curve */
-      _FlipXYPoints ( elem[i].spdimen, elem[i].lastknot-elem[i].degree,
+      _FlipXYPoints ( elem[i].cpdimen, elem[i].lastknot-elem[i].degree,
                       elem[i].points );
     else if ( elem[i].degree > 1 ) /* flip a Bezier curve */
-      _FlipXYPoints ( elem[i].spdimen, elem[i].degree+1, elem[i].points );
+      _FlipXYPoints ( elem[i].cpdimen, elem[i].degree+1, elem[i].points );
     else /* flip a polyline */
-      _FlipXYPoints ( elem[i].spdimen, elem[i].lastknot+1, elem[i].points );
+      _FlipXYPoints ( elem[i].cpdimen, elem[i].lastknot+1, elem[i].points );
   }
 } /*GeomObjectBSplinePatchFlipTrimmedDomain*/
 

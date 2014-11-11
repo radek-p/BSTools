@@ -36,9 +36,10 @@ boolean mbs_DrawTrimBSPatchDomd ( int degu, int lastuknot, const double *uknots,
                                   int nu, double au, double bu,
                                   int nv, double av, double bv,
                                   int maxinters,
-                                  void (*NotifyLine)(char,int,point2d*,point2d*),
-                                  void (*DrawLine)(point2d*,point2d*,int),
-                                  void (*DrawCurve)(int,int,const double*) )
+                                  void *usrptr,
+                                  void (*NotifyLine)(void*,char,int,point2d*,point2d*),
+                                  void (*DrawLine)(void*,point2d*,point2d*,int),
+                                  void (*DrawCurve)(void*,int,int,const double*) )
 {
   void    *buf, *sp;
   char    *bufp;
@@ -71,12 +72,12 @@ boolean mbs_DrawTrimBSPatchDomd ( int degu, int lastuknot, const double *uknots,
                                             inters, &ninters );
           if ( ninters ) {
             if ( NotifyLine != NULL )
-              NotifyLine ( 1, i, &p, &q );
+              NotifyLine ( usrptr, 1, i, &p, &q );
             InterPoint2d ( &p, &q, (inters[0].t-p.y)/(q.y-p.y), &c[0] );
             for ( k = j = 0; k < ninters-1; k++ ) {
               j += inters[k].sign1;
               InterPoint2d ( &p, &q, (inters[k+1].t-p.y)/(q.y-p.y), &c[1] );
-              DrawLine ( &c[0], &c[1], j );
+              DrawLine ( usrptr, &c[0], &c[1], j );
               c[0] = c[1];
             }
           }
@@ -97,12 +98,12 @@ boolean mbs_DrawTrimBSPatchDomd ( int degu, int lastuknot, const double *uknots,
                                             inters, &ninters );
           if ( ninters ) {
             if ( NotifyLine != NULL )
-              NotifyLine ( 2, i, &p, &q );
+              NotifyLine ( usrptr, 2, i, &p, &q );
             InterPoint2d ( &p, &q, (inters[0].t-p.x)/(q.x-p.x), &c[0] );
             for ( k = j = 0; k < ninters-1; k++ ) {
               j += inters[k].sign1;
               InterPoint2d ( &p, &q, (inters[k+1].t-p.x)/(q.x-p.x), &c[1] );
-              DrawLine ( &c[0], &c[1], j );
+              DrawLine ( usrptr, &c[0], &c[1], j );
               c[0] = c[1];
             }
           }
@@ -121,12 +122,12 @@ boolean mbs_DrawTrimBSPatchDomd ( int degu, int lastuknot, const double *uknots,
       case 0:
       case 1:
         for ( i = 0; i < N; i++ )
-          DrawCurve ( dim, 1, &cp[dim*i] );
+          DrawCurve ( usrptr, dim, 1, &cp[dim*i] );
         break;
 
       case 2:
       case 3:
-        DrawCurve ( dim, N, cp );
+        DrawCurve ( usrptr, dim, N, cp );
         break;
  
       default:

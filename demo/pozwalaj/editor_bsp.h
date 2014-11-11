@@ -31,8 +31,6 @@
 typedef struct {
     int            nelem;
     mbs_polycurved *bound;
-    int            bufsize;
-    byte           *buffer;
   } BSP_TrimmedDomain;
 
 typedef struct {

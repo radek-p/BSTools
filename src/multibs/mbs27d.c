@@ -51,7 +51,7 @@ int mbs_TrimCVBoundSized ( int nelem, const mbs_polycurved *bound )
 
   size = 0;
   for ( i = 0; i < nelem; i++ ) {
-    dim = bound[i].spdimen;
+    dim = bound[i].cpdimen;
     deg = bound[i].degree;
     if ( dim < 2 || dim > 3 || deg < 1 )
       return 0;
@@ -98,7 +98,7 @@ void *mbs_CompileTrimPatchBoundd ( int nelem, const mbs_polycurved *bound,
     bn      = (short*)(bufp+2);
     bpoints = (double*)(bufp+2+sizeof(short));
 
-    bufp[1] = (char)(dim = bound[i].spdimen);
+    bufp[1] = (char)(dim = bound[i].cpdimen);
     deg = bound[i].degree;
     if ( dim < 2 || dim > 3 || deg < 1 )
       goto failure;
