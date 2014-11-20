@@ -99,6 +99,7 @@ char txtDivideFacet[]       = "divide facet";
 char txtShrink[]            = "shrink";
 char txtContract[]          = "contract";
 char txtTriangulate[]       = "triangulate";
+char txtSimplify[]          = "simplify";
 char txtDensity[]           = "density";
 char txtDensityU[]          = "density u";
 char txtDensityV[]          = "density v";

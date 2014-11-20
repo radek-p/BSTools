@@ -71,6 +71,7 @@ boolean GeomObjectBSplinePatchInitBlG1 ( GO_BSplinePatch *obj )
   double  *knu, *knv, x, y;
   byte    *mkcp;
 
+  GeomObjectBSplinePatchDeleteTrimmedDomain ( obj );
   lknu = max ( obj->lastknot_u, 7 );
   lknv = max ( obj->lastknot_v, 7 );
   ncp = (lknu-2)*(lknv-2);
@@ -118,6 +119,7 @@ boolean GeomObjectBSplinePatchAdjustBlG1 ( GO_BSplinePatch *obj )
   double *knots;
 
   if ( obj->bsp_type != BSP_TYPE_BLENDING_G1 ) {
+    GeomObjectBSplinePatchDeleteTrimmedDomain ( obj );
     obj->bsp_type = BSP_TYPE_GENERAL;  /* to allow degree change */
     GeomObjectBSplinePatchDestroyBlMat ( obj );
     GeomObjectBSplinePatchSetRational ( obj, false );
@@ -165,6 +167,7 @@ boolean GeomObjectBSplinePatchInitBlG2 ( GO_BSplinePatch *obj )
   double  *knu, *knv, x, y;
   byte    *mkcp;
 
+  GeomObjectBSplinePatchDeleteTrimmedDomain ( obj );
   lknu = max ( obj->lastknot_u, 10 );
   lknv = max ( obj->lastknot_v, 10 );
   ncp = (lknu-3)*(lknv-3);
@@ -212,6 +215,7 @@ boolean GeomObjectBSplinePatchAdjustBlG2 ( GO_BSplinePatch *obj )
   double *knots;
 
   if ( obj->bsp_type != BSP_TYPE_BLENDING_G2 ) {
+    GeomObjectBSplinePatchDeleteTrimmedDomain ( obj );
     obj->bsp_type = BSP_TYPE_GENERAL;  /* to allow degree change */
     GeomObjectBSplinePatchDestroyBlMat ( obj );
     GeomObjectBSplinePatchSetRational ( obj, false );

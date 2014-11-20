@@ -100,17 +100,20 @@ void GeomObjectBSplinePatchDeleteTrimmedDomain ( GO_BSplinePatch *obj )
   if ( obj->me.obj_type != GO_BSPLINE_PATCH )
     return;
   trpd = obj->trpd;
+  if ( !obj->trpd )
+    return;
   nelem = trpd->nelem;
   bound = trpd->bound;
     /* deallocate all elements of the domain boundary */
-  for ( i = 0; i < nelem; i++ ) {
-    if ( bound[i].knots )
-      free ( bound[i].knots );
-    if ( bound[i].points )
-      free ( bound[i].points );
-  }
-  if ( trpd->bound )
+  if ( bound ) {
+    for ( i = 0; i < nelem; i++ ) {
+      if ( bound[i].knots )
+        free ( bound[i].knots );
+      if ( bound[i].points )
+        free ( bound[i].points );
+    }
     free ( trpd->bound );
+  }
   free ( trpd );
   obj->trpd = NULL;
   obj->trimmed = false;

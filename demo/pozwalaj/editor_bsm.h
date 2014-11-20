@@ -6,9 +6,9 @@
 
   /* maximal degree of a mesh facet or vertex */
 #define MAX_BSM_DEGREE     16
-#define MAX_BSM_NV     131072
-#define MAX_BSM_NHE    524288
-#define MAX_BSM_NFAC   131072
+#define MAX_BSM_NV     400000
+#define MAX_BSM_NHE   1600000
+#define MAX_BSM_NFAC   400000
 
 /* bit masks for mesh edges to be drawn */
 #define MASK_HE_INNER    0x01
