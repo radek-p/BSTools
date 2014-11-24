@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2010, 2012                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2010, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -438,6 +438,12 @@ memset ( omfhei, 0, *onhe*sizeof(int) );
           j ++;
         }
         else if ( i == v2 || i == v3 ) {
+          /* the procedure cannot deal with the mesh if the vertices v2 or v3 */
+          /* have a degree too small - so failure is acknowledged */
+          if ( imhe[imvhei[fhe+dv-1]].otherhalf >= 0 ) {
+            if ( dv <= 3 )
+              goto failure;
+          }
           omv[j].degree = dv-1;
           omv[j].firsthalfedge = k;
           for ( l = m = 0; l < dv; l++ )

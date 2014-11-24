@@ -23,6 +23,29 @@
 extern "C" {
 #endif
 
+/* error identifiers */
+#define BSM_ERROR_NO_SCRATCH_MEMORY           1
+#define BSM_ERROR_NOT_ENOUGH_ELEMENTS         2
+#define BSM_ERROR_INVALID_MVHEI               3
+#define BSM_ERROR_INVALID_MFHEI               4
+#define BSM_ERROR_INVALID_PERMUTATION         5
+#define BSM_ERROR_INVALID_HE_V0V1             6
+#define BSM_ERROR_INVALID_HE_FACETNUM         7
+#define BSM_ERROR_INVALID_HE_OTHERHALF        8
+#define BSM_ERROR_INVALID_HE_PAIR             9
+#define BSM_ERROR_INVALID_HE_PAIR_V0V1       10
+#define BSM_ERROR_INVALID_VERTEX_DEGREE      11
+#define BSM_ERROR_INVALID_VERTEX_INNERHE     12
+#define BSM_ERROR_INVALID_VERTEX_LASTHE      13
+#define BSM_ERROR_INVALID_INNER_VERTEX_DEG   14
+#define BSM_ERROR_INVALID_FACET_DEGREE       15
+#define BSM_ERROR_INVALID_FACET_VERT         16
+#define BSM_ERROR_INVALID_FACET_HEDGE        17
+#define BSM_ERROR_INVALID_FACET_ORIENTATON   18
+#define BSM_ERROR_INVALID_VERTEX_ORIENTATION 19
+#define BSM_ERROR_DOUBLE_FACET_VERTEX        20
+#define BSM_ERROR_DOUBLE_VERTEX_FACET        21
+
 /* mesh representation data structure */
 typedef struct {
     char degree;
@@ -57,7 +80,8 @@ typedef struct {
 
 boolean bsm_CheckMeshIntegrity ( int nv, const BSMvertex *mv, const int *mvhei,
                                  int nhe, const BSMhalfedge *mhe,
-                                 int nfac, const BSMfacet *mfac, const int *mfhei );
+                                 int nfac, const BSMfacet *mfac, const int *mfhei,
+                                 int *errcode, int *errelem );
 
 void bsm_TagMesh ( int nv, BSMvertex *mv, int *mvhei,
                    int nhe, BSMhalfedge *mhe,

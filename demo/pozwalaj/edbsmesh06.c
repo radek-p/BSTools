@@ -44,7 +44,8 @@ boolean GeomObjectBSplineMeshRefinement ( GO_BSplineMesh *obj )
 
   if ( !bsm_CheckMeshIntegrity ( obj->nv, obj->meshv, obj->meshvhei,
                                  obj->nhe, obj->meshhe,
-                                 obj->nfac, obj->meshfac, obj->meshfhei ) )
+                                 obj->nfac, obj->meshfac, obj->meshfhei,
+                                 NULL, NULL ) )
     return false;
   if ( GeomObjectCopyCurrent () )
     current_go = (geom_object*)obj;
@@ -74,7 +75,7 @@ boolean GeomObjectBSplineMeshRefinement ( GO_BSplineMesh *obj )
       pkv_SetScratchMemTop ( sp );
     }
     if ( !bsm_CheckMeshIntegrity ( onv, omv, omvhei, onhe, omhe,
-                                 onfac, omfac, omfhei ) )
+                                   onfac, omfac, omfhei, NULL, NULL ) )
       goto failure;
     memset ( mkcp, MASK_CP_MOVEABLE, onv );
     memset ( mkhe, 0, onhe );
@@ -113,7 +114,8 @@ boolean GeomObjectBSplineMeshDoubling ( GO_BSplineMesh *obj )
 
   if ( !bsm_CheckMeshIntegrity ( obj->nv, obj->meshv, obj->meshvhei,
                                  obj->nhe, obj->meshhe,
-                                 obj->nfac, obj->meshfac, obj->meshfhei ) )
+                                 obj->nfac, obj->meshfac, obj->meshfhei,
+                                 NULL, NULL ) )
     return false;
   bsm_DoublingNum ( obj->nv, obj->meshv, obj->meshvhei, obj->nhe, obj->meshhe,
                     obj->nfac, obj->meshfac, obj->meshfhei,
@@ -152,7 +154,7 @@ boolean GeomObjectBSplineMeshDoubling ( GO_BSplineMesh *obj )
                         &onfac, omfac, omfhei ) )
     goto failure;
   obj->integrity_ok = bsm_CheckMeshIntegrity ( onv, omv, omvhei, onhe, omhe,
-                                 onfac, omfac, omfhei );
+                                 onfac, omfac, omfhei, NULL, NULL );
   if ( !obj->integrity_ok )
     goto failure;
   memset ( mkcp, MASK_CP_MOVEABLE, onv );
@@ -191,7 +193,8 @@ boolean GeomObjectBSplineMeshAveraging ( GO_BSplineMesh *obj )
 
   if ( !bsm_CheckMeshIntegrity ( obj->nv, obj->meshv, obj->meshvhei,
                                  obj->nhe, obj->meshhe,
-                                 obj->nfac, obj->meshfac, obj->meshfhei ) )
+                                 obj->nfac, obj->meshfac, obj->meshfhei,
+                                 NULL, NULL ) )
     return false;
   bsm_AveragingNum ( obj->nv, obj->meshv, obj->meshvhei, obj->nhe, obj->meshhe,
                      obj->nfac, obj->meshfac, obj->meshfhei,
@@ -231,7 +234,7 @@ boolean GeomObjectBSplineMeshAveraging ( GO_BSplineMesh *obj )
                          &onfac, omfac, omfhei ) )
     goto failure;
   obj->integrity_ok = bsm_CheckMeshIntegrity ( onv, omv, omvhei, onhe, omhe,
-                                 onfac, omfac, omfhei );
+                                 onfac, omfac, omfhei, NULL, NULL );
   if ( !obj->integrity_ok )
     goto failure;
   memset ( mkcp, MASK_CP_MOVEABLE, onv );
@@ -280,7 +283,8 @@ boolean GeomObjectBSplineMeshExtractSubmesh ( GO_BSplineMesh *obj )
 
   if ( !bsm_CheckMeshIntegrity ( obj->nv, obj->meshv, obj->meshvhei,
                                  obj->nhe, obj->meshhe,
-                                 obj->nfac, obj->meshfac, obj->meshfhei ) )
+                                 obj->nfac, obj->meshfac, obj->meshfhei,
+                                 NULL, NULL ) )
     goto failure2;
   if ( !bsm_ExtractSubmeshVNum ( obj->nv, obj->meshv,
                      obj->meshvhei, obj->nhe, obj->meshhe,
@@ -308,7 +312,7 @@ boolean GeomObjectBSplineMeshExtractSubmesh ( GO_BSplineMesh *obj )
                          &onfac, omfac, omfhei ) )
     goto failure1;
   obj->integrity_ok = bsm_CheckMeshIntegrity ( onv, omv, omvhei, onhe, omhe,
-                                 onfac, omfac, omfhei );
+                                 onfac, omfac, omfhei, NULL, NULL );
   if ( !obj->integrity_ok )
     goto failure1;
   memset ( mkcp, MASK_CP_MOVEABLE, onv );
@@ -395,7 +399,7 @@ boolean GeomObjectBSplineMeshRemoveCurrentVertex ( GO_BSplineMesh *obj )
                            &onfac, omfac, omfhei ) )
     goto failure;
   obj->integrity_ok = bsm_CheckMeshIntegrity ( onv, omv, omvhei, onhe, omhe,
-                                 onfac, omfac, omfhei );
+                                 onfac, omfac, omfhei, NULL, NULL );
   if ( !obj->integrity_ok )
     goto failure;
   if ( cvn > 0 )
@@ -482,7 +486,7 @@ boolean GeomObjectBSplineMeshContractCurrentEdge ( GO_BSplineMesh *obj )
                            &onfac, omfac, omfhei ) < 0 )
     goto failure;
   obj->integrity_ok = bsm_CheckMeshIntegrity ( onv, omv, omvhei, onhe, omhe,
-                                 onfac, omfac, omfhei );
+                                 onfac, omfac, omfhei, NULL, NULL );
   if ( !obj->integrity_ok )
     goto failure;
   memset ( mkcp, MASK_CP_MOVEABLE, onv );
@@ -545,7 +549,8 @@ boolean GeomObjectBSplineMeshGlueEdges ( GO_BSplineMesh *obj )
   
   if ( !bsm_CheckMeshIntegrity ( obj->nv, obj->meshv, obj->meshvhei,
                                  obj->nhe, obj->meshhe,
-                                 obj->nfac, obj->meshfac, obj->meshfhei ) )
+                                 obj->nfac, obj->meshfac, obj->meshfhei,
+                                 NULL, NULL ) )
     return false;
   mkcp = mkhe = mkfac = NULL;
   if ( !bsm_GlueTwoHalfedgesNum ( obj->nv, obj->meshv, obj->meshvhei,
@@ -572,7 +577,7 @@ boolean GeomObjectBSplineMeshGlueEdges ( GO_BSplineMesh *obj )
               &onv, omv, omvhei, omvpc, &onhe, omhe, &onfac, omfac, omfhei ) )
     goto failure;
   obj->integrity_ok = bsm_CheckMeshIntegrity ( onv, omv, omvhei, onhe, omhe,
-                                 onfac, omfac, omfhei );
+                                 onfac, omfac, omfhei, NULL, NULL );
   if ( !obj->integrity_ok )
     goto failure;
   memcpy ( mkcp, obj->mkcp, onv );
@@ -612,7 +617,8 @@ boolean GeomObjectBSplineMeshGlueEdgeLoops ( GO_BSplineMesh *obj )
   
   if ( !bsm_CheckMeshIntegrity ( obj->nv, obj->meshv, obj->meshvhei,
                                  obj->nhe, obj->meshhe,
-                                 obj->nfac, obj->meshfac, obj->meshfhei ) )
+                                 obj->nfac, obj->meshfac, obj->meshfhei,
+                                 NULL, NULL ) )
     return false;
   mkcp = mkhe = mkfac = NULL;
   llgt = bsm_HalfedgeLoopLength ( obj->nv, obj->meshv, obj->meshvhei,
@@ -641,7 +647,7 @@ boolean GeomObjectBSplineMeshGlueEdgeLoops ( GO_BSplineMesh *obj )
               &onv, omv, omvhei, omvpc, &onhe, omhe, &onfac, omfac, omfhei ) )
     goto failure;
   obj->integrity_ok = bsm_CheckMeshIntegrity ( onv, omv, omvhei, onhe, omhe,
-                                 onfac, omfac, omfhei );
+                                 onfac, omfac, omfhei, NULL, NULL );
   if ( !obj->integrity_ok )
     goto failure;
   memcpy ( mkcp, obj->mkcp, onv );
@@ -681,7 +687,8 @@ boolean GeomObjectBSplineMeshSealHole ( GO_BSplineMesh *obj )
 
   if ( !bsm_CheckMeshIntegrity ( obj->nv, obj->meshv, obj->meshvhei,
                                  obj->nhe, obj->meshhe,
-                                 obj->nfac, obj->meshfac, obj->meshfhei ) )
+                                 obj->nfac, obj->meshfac, obj->meshfhei,
+                                 NULL, NULL ) )
     return false;
   mkcp = mkhe = mkfac = NULL;
   if ( !bsm_SealMeshHoleNum ( obj->nv, obj->meshv, obj->meshvhei,
@@ -709,7 +716,7 @@ boolean GeomObjectBSplineMeshSealHole ( GO_BSplineMesh *obj )
               &onv, omv, omvhei, omvpc, &onhe, omhe, &onfac, omfac, omfhei ) )
     goto failure;
   obj->integrity_ok = bsm_CheckMeshIntegrity ( onv, omv, omvhei, onhe, omhe,
-                                 onfac, omfac, omfhei );
+                                 onfac, omfac, omfhei, NULL, NULL );
   if ( !obj->integrity_ok )
     goto failure;
   memcpy ( mkcp, obj->mkcp, onv );
@@ -749,7 +756,8 @@ boolean GeomObjectBSplineMeshSplitBoundaryEdge ( GO_BSplineMesh *obj )
 
   if ( !bsm_CheckMeshIntegrity ( obj->nv, obj->meshv, obj->meshvhei,
                                  obj->nhe, obj->meshhe,
-                                 obj->nfac, obj->meshfac, obj->meshfhei ) )
+                                 obj->nfac, obj->meshfac, obj->meshfhei,
+                                 NULL, NULL ) )
     return false;
   onv = obj->nv+1;
   onhe = obj->nhe+1;
@@ -774,7 +782,7 @@ boolean GeomObjectBSplineMeshSplitBoundaryEdge ( GO_BSplineMesh *obj )
               &onv, omv, omvhei, omvpc, &onhe, omhe, &onfac, omfac, omfhei ) )
     goto failure;
   obj->integrity_ok = bsm_CheckMeshIntegrity ( onv, omv, omvhei, onhe, omhe,
-                                 onfac, omfac, omfhei );
+                                 onfac, omfac, omfhei, NULL, NULL );
   if ( !obj->integrity_ok )
     goto failure;
   memcpy ( mkcp, obj->mkcp, onv );
@@ -860,7 +868,7 @@ boolean GeomObjectBSplineMeshRemoveCurrentFacet ( GO_BSplineMesh *obj )
                            &onfac, omfac, omfhei ) )
     goto failure;
   obj->integrity_ok = bsm_CheckMeshIntegrity ( onv, omv, omvhei, onhe, omhe,
-                                 onfac, omfac, omfhei );
+                                 onfac, omfac, omfhei, NULL, NULL );
   if ( !obj->integrity_ok )
     goto failure;
   memset ( mkcp, MASK_CP_MOVEABLE, onv );
@@ -944,7 +952,7 @@ boolean GeomObjectBSplineMeshDoubleCurrentFacEdges ( GO_BSplineMesh *obj )
                            &onfac, omfac, omfhei ) )
     goto failure;
   obj->integrity_ok = bsm_CheckMeshIntegrity ( onv, omv, omvhei, onhe, omhe,
-                                 onfac, omfac, omfhei );
+                                 onfac, omfac, omfhei, NULL, NULL );
   if ( !obj->integrity_ok )
     goto failure;
   memset ( mkcp, MASK_CP_MOVEABLE, obj->nv );
@@ -1027,7 +1035,7 @@ boolean GeomObjectBSplineMeshDivideFacet ( GO_BSplineMesh *obj )
                            &onfac, omfac, omfhei ) )
     goto failure;
   obj->integrity_ok = bsm_CheckMeshIntegrity ( onv, omv, omvhei, onhe, omhe,
-                                 onfac, omfac, omfhei );
+                                 onfac, omfac, omfhei, NULL, NULL );
   if ( !obj->integrity_ok )
     goto failure;
   memcpy ( mkcp, obj->mkcp, onv );
@@ -1222,7 +1230,7 @@ printf ( "\n" );
     goto failure;
 
   obj->integrity_ok = bsm_CheckMeshIntegrity ( onv, omv, omvhei, onhe, omhe,
-                                 onfac, omfac, omfhei );
+                                 onfac, omfac, omfhei, NULL, NULL );
   if ( !obj->integrity_ok )
     goto failure;
 
@@ -1301,7 +1309,7 @@ boolean GeomObjectBSplineMeshTriangulateFacets ( GO_BSplineMesh *obj )
                                  &onfac, omfac, omfhei ) )
     goto failure;
   obj->integrity_ok = bsm_CheckMeshIntegrity ( onv, omv, omvhei, onhe, omhe,
-                                               onfac, omfac, omfhei );
+                                               onfac, omfac, omfhei, NULL, NULL );
   if ( !obj->integrity_ok )
     goto failure;
 

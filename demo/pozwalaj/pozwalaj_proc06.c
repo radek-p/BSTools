@@ -225,7 +225,8 @@ void BeginBSMOptimization ( void )
   if ( bsmsize.cpdimen == 3 &&
        bsm_CheckMeshIntegrity ( bsmsize.nv, meshv, meshvhei,
                                 bsmsize.nhe, meshhe,
-                                bsmsize.nfac, meshfac, meshfhei ) ) {
+                                bsmsize.nfac, meshfac, meshfhei,
+                                NULL, NULL ) ) {
     time0 = times ( &start );
     PKV_MALLOC ( _meshvpc, meshvpcsize );
     if ( !meshvpc )

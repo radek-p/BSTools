@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2011, 2012                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2011, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -40,7 +40,8 @@ boolean _g2mbl_MLAssignMeshd ( mesh_ml_optdata *d,
 
   sp = pkv_GetScratchMemTop ();
         /* verify the mesh */
-  if ( !bsm_CheckMeshIntegrity ( nv, mv, mvhei, nhe, mhe, nfac, mfac, mfhei ) )
+  if ( !bsm_CheckMeshIntegrity ( nv, mv, mvhei, nhe, mhe, nfac, mfac, mfhei,
+                                 NULL, NULL ) )
     goto failure;
           /* all facets must be quadrangles */
   for ( i = 0; i < nfac; i++ )

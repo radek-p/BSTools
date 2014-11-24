@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2010                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2010, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -24,6 +24,8 @@ void bsm_ContractEdgeNum ( int inv, BSMvertex *imv, int *imvhei,
                            int nche,
                            int *onv, int *onhe, int *onfac )
 {
+  int v0, v1;
+
   if ( nche < 0 || nche >= inhe ) {
     *onv = *onhe = *onfac = -1;
     return;
@@ -52,6 +54,13 @@ void bsm_ContractEdgeNum ( int inv, BSMvertex *imv, int *imvhei,
       *onhe -= 2;
       *onfac -= 1;
     }
+        /* if both vertices of the halfedge are boundary, */
+        /* the contracted vertex should be split - in the future */
+    v0 = imhe[nche].v0;
+    v1 = imhe[nche].v1;
+    if ( imhe[imvhei[imv[v0].firsthalfedge+imv[v0].degree-1]].otherhalf < 0 &&
+         imhe[imvhei[imv[v1].firsthalfedge+imv[v1].degree-1]].otherhalf < 0 )
+      *onv = *onhe = *onfac = -1;
   }
 } /*bsm_ContractEdgeNum*/
 

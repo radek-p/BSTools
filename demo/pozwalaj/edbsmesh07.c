@@ -74,7 +74,8 @@ void GeomObjectReadBSplineMesh ( void *usrdata,
 
   attrib = (rw_object_attributes*)usrdata;
   obj = (GO_BSplineMesh*)attrib->go_being_read;
-  if ( !bsm_CheckMeshIntegrity ( nv, mv, mvhei, nhe, mhe, nfac, mfac, mfhei ) ) {
+  if ( !bsm_CheckMeshIntegrity ( nv, mv, mvhei, nhe, mhe, nfac, mfac, mfhei,
+                                 NULL, NULL ) ) {
     attrib->integrity_ok = false;
     return;
   }

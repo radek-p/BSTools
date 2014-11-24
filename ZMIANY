@@ -3941,4 +3941,9 @@ Wersja 0.34.
     jeszcze do poprawienia.
 
 
+24.11.2014.
+920. Zmiany w libbsmesh - poprawiona diagnostyka bledow w siatce,
+    zdentyfikowany przypadek, z ktorym nie radzi sobie procedura
+    bsm_ContractEdged (produkowala bledny wynik, teraz sygnalizuje porazke).
+
 

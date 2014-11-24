@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2012, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2012, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -58,7 +58,7 @@ boolean bsm_RefinementMatd ( int degree,
     goto failure;
 
   if ( !bsm_CheckMeshIntegrity ( inv, imv, imvhei, inhe, imhe,
-                                 infac, imfac, imfhei ) )
+                                 infac, imfac, imfhei, NULL, NULL ) )
     goto failure;
 
   bsm_DoublingNum ( inv, imv, imvhei, inhe, imhe, infac, imfac, imfhei,
