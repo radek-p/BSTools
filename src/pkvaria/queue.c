@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2010                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2010, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -21,7 +21,7 @@ pkv_queue *pkv_InitQueue ( int nmax, int itemsize )
   pkv_queue *q;
   int       size;
 
-  size = (nmax+1)*itemsize+sizeof(pkv_queue)-1;
+  size = (nmax+1)*itemsize+sizeof(pkv_queue) - 1;
   PKV_MALLOC ( q, size );
   if ( q ) {
     q->nmax = nmax;

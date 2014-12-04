@@ -246,8 +246,11 @@ int             bsm_vertex_num0 = -1, bsm_vertex_num1 = -1,
                 bsm_facet_num0 = -1, bsm_facet_num1 = -1;
 xge_int_widget  intw_bsmdeg1, intw_bsmdeg2;
 int             bsm_degree1 = 3, bsm_degree2 = 3;
-xge_widget      *bsm_density;
 
+xge_int_widget  intw_bsm_simplify_x, intw_bsm_simplify_y, intw_bsm_simplify_z;
+int             bsm_simplify_xyz[4] = {20, 20, 20, 1};
+
+xge_widget      *bsm_density;
 boolean         bsm_sw_subdivision = false;
 boolean         bsm_sw_blending = false;
 boolean         bsm_sw_view_special = false;

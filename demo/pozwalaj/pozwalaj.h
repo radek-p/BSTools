@@ -217,6 +217,8 @@ extern int            bsm_vertex_num0, bsm_vertex_num1,
                       bsm_facet_num0, bsm_facet_num1;
 extern xge_int_widget intw_bsmdeg1, intw_bsmdeg2;
 extern int            bsm_degree1, bsm_degree2;
+extern xge_int_widget intw_bsm_simplify_x, intw_bsm_simplify_y, intw_bsm_simplify_z;
+extern int            bsm_simplify_xyz[4];
 
 extern xge_widget     *bsm_density;
 extern boolean        bsm_sw_subdivision;

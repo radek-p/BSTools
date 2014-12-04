@@ -396,6 +396,16 @@ boolean bsm_TriangulateFacetsd ( int spdimen, int inv,
                                  double *optc, int *onhe, BSMhalfedge *omhe,
                                  int *onfac, BSMfacet *omfac, int *omfhei );
 
+/* mesh simplification - experimental */
+boolean bsm_SimplifyMeshd ( int spdimen, int inv,
+                            const BSMvertex *imv, const int *imvhei,
+                            double *iptc, int inhe, const BSMhalfedge *imhe,
+                            int infac, const BSMfacet *imfac, const int *imfhei,
+                            int *nboxes,
+                            int *onv, BSMvertex **omv, int **omvhei,
+                            double **optc, int *onhe, BSMhalfedge **omhe,
+                            int *onfac, BSMfacet **omfac, int **omfhei );
+
 #ifdef __cplusplus
 }
 #endif

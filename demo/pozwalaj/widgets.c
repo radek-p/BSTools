@@ -241,3 +241,4 @@ char ErrorMsgCurveMustBeNonRationalAnd3D[] =
              "Error: Curve must be non-rational and 3D.";
 char ErrorMsgCannotDoubleLoop[]       = "Error: Cannot double the edge loop.";
 char ErrorMsgCannotTriangulateFacets[] ="Error: Cannot triangulate the facets.";
+char ErrorMsgCannotSimplifyMesh[]     = "Error: Cannot simplify this mesh.";

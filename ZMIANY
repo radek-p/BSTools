@@ -3946,4 +3946,15 @@ Wersja 0.34.
     zdentyfikowany przypadek, z ktorym nie radzi sobie procedura
     bsm_ContractEdged (produkowala bledny wynik, teraz sygnalizuje porazke).
 
+3.12.2014.
+921. Nowa procedura w libbsmesh, bsm_SimplifyMeshd (autor: Anna Sierhej), na
+    razie wymaga wielu poprawek.
+
+922. Zmiany w programie pozwalaj - dodanie mozliwosci wywolania procedury
+    bsm_SimplifyMeshd, poprawienie wywolywania innych procedur przetwarzania
+    siatek (wybieranie podsiatki i triangulacja wszystkich scian powoduja
+    wykonanie kopii obiektu i przetwarzaniu podlega kopia, oryginal zostaje
+    niezmieniony).
+
+
 
