@@ -31,6 +31,21 @@ pkv_queue *pkv_InitQueue ( int nmax, int itemsize )
   return q;
 } /*pkv_InitQueue*/
 
+pkv_queue *pkv_InitScratchQueue ( int nmax, int itemsize )
+{
+  pkv_queue *q;
+  int       size;
+
+  size = (nmax+1)*itemsize+sizeof(pkv_queue) - 1;
+  q = pkv_GetScratchMem ( size );
+  if ( q ) {
+    q->nmax = nmax;
+    q->itemsize = itemsize;
+    q->fr = q->en = 0;
+  }
+  return q;
+} /*pkv_InitScratchQueue*/
+
 void pkv_ResetQueue ( pkv_queue *q )
 {
   q->fr = q->en = 0;

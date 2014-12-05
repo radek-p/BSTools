@@ -36,8 +36,7 @@ boolean bsm_SimplifyMeshd ( int spdimen, int inv,
   int         i, j, k, l, vmed, vnext, he, fhe, deg, v, ile;
   int         *nxyz, ind, err;
   int         *Boxes, totalboxes;
-  pkv_queue   **Queues;
-  pkv_queue   *Bufor;
+  pkv_queue   *Bufor, **Queues;
   int         *newvnum;
   void        *sp;
   boolean     *disabled;
@@ -129,7 +128,7 @@ boolean bsm_SimplifyMeshd ( int spdimen, int inv,
   Boxes = pkv_GetScratchMemi ( totalboxes );
   if ( !Boxes )
     goto failure;
-  Bufor = pkv_InitQueue ( inv, sizeof(int) );
+  Bufor = pkv_InitScratchQueue ( inv, sizeof(int) );
   if ( !Bufor )
     goto failure;
   Queues = pkv_GetScratchMem ( totalboxes*sizeof(pkv_queue*) );
@@ -158,7 +157,7 @@ int qcnt = 0;
 #endif
   for ( i = 0; i < totalboxes; i++ ) {
     if ( Boxes[i] ) {
-      Queues[i] = pkv_InitQueue ( Boxes[i], sizeof(int) );
+      Queues[i] = pkv_InitScratchQueue ( Boxes[i], sizeof(int) );
       if ( !Queues[i] )
         goto failure;
 #ifdef DEBUG1
@@ -384,10 +383,6 @@ printf ( "%i\n", he );
     }
   }
 
-  PKV_FREE ( Bufor );
-  for ( i = 0; i < totalboxes; i++ )
-    if ( Queues[i] ) PKV_FREE ( Queues[i] );
-
   if ( isT ) { /* najnowsza siatka znajduje sie w t */
     t2nv = tnv;
     t2nhe = tnhe;
@@ -426,11 +421,6 @@ failure:
   if ( *optc )   PKV_FREE ( *optc );
   if ( *omhe )   PKV_FREE ( *omhe );
   if ( *omfac )  PKV_FREE ( *omfac );
-  if ( Bufor )   PKV_FREE ( Bufor );
-  if ( Queues ) {
-    for ( i = 0; i < totalboxes; i++ )
-      if ( Queues[i] ) PKV_FREE ( Queues[i] );
-  }
   pkv_SetScratchMemTop ( sp );
   return false;
 } /*bsm_SimplifyMeshd*/

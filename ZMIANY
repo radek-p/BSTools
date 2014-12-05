@@ -3956,5 +3956,10 @@ Wersja 0.34.
     wykonanie kopii obiektu i przetwarzaniu podlega kopia, oryginal zostaje
     niezmieniony).
 
+5.12.2014.
+923. Nowa procedura, pkv_InitScratchQueue, alokowana na stosie podrecznym.
+
+924. Zamiana pkv_InitQueue na pkv_InitScratchQueue w procedurze
+    bsm_SimplifyMeshd.
 
 

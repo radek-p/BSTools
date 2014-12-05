@@ -188,7 +188,10 @@ typedef struct {
   } pkv_queue;
 
 pkv_queue *pkv_InitQueue ( int nmax, int itemsize );
-/* use PKV_FREE to destroy queues */
+/* use PKV_FREE to destroy the queues allocated by the above procedure */
+pkv_queue *pkv_InitScratchQueue ( int nmax, int itemsize );
+/* use pkv_FreeScratchMemory or pkv_SetScratchMemTop to destroy the queues */
+/* allocated by the above procedure */
 void pkv_ResetQueue ( pkv_queue *q );
 boolean pkv_QueueEmpty ( pkv_queue *q );
 boolean pkv_QueueFull ( pkv_queue *q );
