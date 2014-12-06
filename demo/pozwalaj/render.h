@@ -35,6 +35,8 @@ void RendDestroy ( void );
 /* to be called before rendering a new scene */
 boolean RendReset ( void );
 
+boolean RendEnterTriangle3d ( point3d *p0, point3d *p1, point3d *p2,
+                              double *colour );
 boolean RendEnterBezPatch3d ( int n, int m, const point3d *cp, double *colour );
 boolean RendEnterBSPatch3d ( int n, int lknu, const double *knu,
                               int m, int lknv, const double *knv,
@@ -49,6 +51,7 @@ boolean RendEnterBSCurve3d ( int n, int lkn, const double *kn,
 boolean RendEnterBezCurve3Rd ( int n, point4d *cp, double r, double *colour );
 boolean RendEnterBSCurve3Rd ( int n, int lkn, const double *kn,
                              point4d *cp, double r, double *colour );
+
 boolean RendEnterCamerad ( CameraRecd *CPos, xge_widget *er );
 void RendEnterLightsd ( int nlights, const vector3d *light_dir,
                         const double *light_int );

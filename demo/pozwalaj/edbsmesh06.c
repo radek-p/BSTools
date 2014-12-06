@@ -42,6 +42,9 @@ boolean GeomObjectBSplineMeshRefinement ( GO_BSplineMesh *obj )
   double      *omvpc;
   byte        *mkcp, *mkhe, *mkfac;
 
+  if ( obj->degree <= 0 )
+    return false;
+
   if ( !bsm_CheckMeshIntegrity ( obj->nv, obj->meshv, obj->meshvhei,
                                  obj->nhe, obj->meshhe,
                                  obj->nfac, obj->meshfac, obj->meshfhei,

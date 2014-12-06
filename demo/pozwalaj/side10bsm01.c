@@ -59,7 +59,7 @@ void InitSide10Menu_BSm ( void )
   w = xge_NewStringEd ( win1, w, textedM1BSM_NAME, 109, 19, 0, 20,
                         MAX_NAME_LENGTH, objectname, &bsm_name_ed );
   w = xge_NewIntWidget ( win1, w, intwM1BSM_DEG, 109, 19, 0, 40,
-                         0, MAX_DEGREE+1, &intw_bsmdeg, txtDegree, &degree );
+                         -1, MAX_DEGREE+1, &intw_bsmdeg, txtDegree, &degree );
   w = xge_NewButton ( win1, w, btnM1BSM_REFINEMENT, 79, 19, 0, 60, txtRefine );
   w = xge_NewButton ( win1, w, btnM1BSM_DOUBLING, 79, 19, 0, 80, txtDouble );
   w = xge_NewButton ( win1, w, btnM1BSM_AVERAGING, 79, 19, 0, 100, txtAverage );

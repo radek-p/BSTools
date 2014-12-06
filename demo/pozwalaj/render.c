@@ -30,28 +30,42 @@
 
 #define MIN_T 1.0e-5
 
-/* object types, now nonrational and rational Bezier patches, more to be added */
-#define obj_BEZPATCH  1
-#define obj_RBEZPATCH 2
-#define obj_BEZCURVE  3
-#define obj_RBEZCURVE 4  /* to be used in some future */
+/* object types, more to be added */
+#define obj_TRIANGLE  1
+#define obj_BEZPATCH  2
+#define obj_RBEZPATCH 3
+#define obj_BEZCURVE  4
+#define obj_RBEZCURVE 5
 
 typedef struct {
-    char           type;  /* == obj_BEZPATCH */
-    double         colour[3];
-    BezPatchTreedp ptree;
+    Box3d           bbox;
+    point3d         p0;
+    vector3d        v1, v2, n;
+    double          L[3];
+  } triangle_data;
+
+typedef struct {
+    char            type;  /* == obj_TRIANGLE */
+    double          colour[3];
+    triangle_data   *trdata;
+  } renderobj_triangle;
+
+typedef struct {
+    char            type;  /* == obj_BEZPATCH */
+    double          colour[3];
+    BezPatchTreedp  ptree;
   } renderobj_bezpatch;
 
 typedef struct {
     char            type;  /* == obj_RBEZPATCH */
-    double           colour[3];
+    double          colour[3];
     RBezPatchTreedp ptree;
   } renderobj_rbezpatch;
 
 typedef struct {
-    char           type;  /* == obj_BEZCURVE */
-    double         colour[3];
-    BezCurveTreedp ctree;
+    char            type;  /* == obj_BEZCURVE */
+    double          colour[3];
+    BezCurveTreedp  ctree;
   } renderobj_bezcurve;
 
 typedef struct {
@@ -62,6 +76,7 @@ typedef struct {
 
 typedef union {
     char type;
+    renderobj_triangle   triang;
     renderobj_bezpatch   bezp;
     renderobj_rbezpatch  rbezp;
     renderobj_bezcurve   bezc;
@@ -672,6 +687,71 @@ static boolean ReallocObjTab ( void )
     return false;
 } /*ReallocObjTab*/
 
+boolean RendEnterTriangle3d ( point3d *p0, point3d *p1, point3d *p2,
+                              double *colour )
+{
+  renderobj_triangle *tr;
+  triangle_data      *trd;
+
+  if ( nobjects >= obj_tab_length ) {
+    if ( !ReallocObjTab () )
+      goto failure;
+  }
+  PKV_MALLOC ( trd, sizeof(triangle_data) );
+  if ( trd ) {
+    tr = &obj_tab[nobjects].triang;
+    tr->type = obj_TRIANGLE;
+    memcpy ( tr->colour, colour, 3*sizeof(double) );
+    tr->trdata = trd;
+        /* find the bounding box */
+    trd->bbox.x0 = trd->bbox.x1 = p0->x;
+    trd->bbox.y0 = trd->bbox.y1 = p0->y;
+    trd->bbox.z0 = trd->bbox.z1 = p0->z;
+    if ( p1->x < p2->x ) {
+      if ( p1->x < trd->bbox.x0 ) trd->bbox.x0 = p1->x;
+      if ( p2->x > trd->bbox.x1 ) trd->bbox.x1 = p2->x;
+    }
+    else {
+      if ( p2->x < trd->bbox.x0 ) trd->bbox.x0 = p2->x;
+      if ( p1->x > trd->bbox.x1 ) trd->bbox.x1 = p1->x;
+    }
+    if ( p1->y < p2->y ) {
+      if ( p1->y < trd->bbox.y0 ) trd->bbox.y0 = p1->y;
+      if ( p2->y > trd->bbox.y1 ) trd->bbox.y1 = p2->y;
+    }
+    else {
+      if ( p2->y < trd->bbox.y0 ) trd->bbox.y0 = p2->y;
+      if ( p1->y > trd->bbox.y1 ) trd->bbox.y1 = p1->y;
+    }
+    if ( p1->z < p2->z ) {
+      if ( p1->z < trd->bbox.z0 ) trd->bbox.z0 = p1->z;
+      if ( p2->z > trd->bbox.z1 ) trd->bbox.z1 = p2->z;
+    }
+    else {
+      if ( p2->z < trd->bbox.z0 ) trd->bbox.z0 = p2->z;
+      if ( p1->z > trd->bbox.z1 ) trd->bbox.z1 = p1->z;
+    }
+        /* compute the unit normal vector */
+    trd->p0 = *p0;
+    SubtractPoints3d ( p1, p0, &trd->v1 );
+    SubtractPoints3d ( p2, p0, &trd->v2 );
+    CrossProduct3d ( &trd->v1, &trd->v2, &trd->n );
+    NormalizeVector3d ( &trd->n );
+        /* find and decompose the normal equations matrix */
+    trd->L[0] = DotProduct3d ( &trd->v1, &trd->v1 );
+    trd->L[1] = DotProduct3d ( &trd->v2, &trd->v1 );
+    trd->L[2] = DotProduct3d ( &trd->v2, &trd->v2 );
+    if ( pkn_CholeskyDecompd ( 2, trd->L ) )
+      nobjects ++;
+    else
+      PKV_FREE ( trd );
+  }
+  return true;
+
+failure:
+  return false;
+} /*RendEnterTriangle3d*/
+
 boolean RendEnterBezPatch3d ( int n, int m, const point3d *cp, double *colour )
 {
   if ( nobjects >= obj_tab_length ) {
@@ -914,6 +994,9 @@ tnode* NewPatchNode ( int k )
   node->left = node->right = NULL;
   node->k = k;
   switch ( obj_tab[k].type ) {
+case obj_TRIANGLE:
+    memcpy ( &node->bbox, &obj_tab[k].triang.trdata->bbox, sizeof(Box3d) );
+    break;
 case obj_BEZPATCH:
     memcpy ( &node->bbox, &obj_tab[k].bezp.ptree->root->bbox, sizeof(Box3d) );
     break;
@@ -966,7 +1049,7 @@ boolean CompNodePrio ( void *node1, void *node2 )
   return d1 < d2;
 } /*CompNodePrio*/
 
-tnode* BuildPatchesTree ( int nobjects )
+tnode* BuildObjectTree ( int nobjects )
 {
   void   *sp;
   void   **pqueue;
@@ -1009,7 +1092,7 @@ tnode* BuildPatchesTree ( int nobjects )
   tn0 = pqueue[0];
   pkv_SetScratchMemTop ( sp );
   return tn0;
-} /*BuildPatchesTree*/
+} /*BuildObjectTree*/
 
 void DestroyTNodeTree ( tnode *node )
 {
@@ -1055,6 +1138,9 @@ boolean RendReset ( void )
     root = NULL;
     for ( i = 0; i < nobjects; i++ )
       switch ( obj_tab[i].type ) {
+    case obj_TRIANGLE:
+        PKV_FREE ( obj_tab[i].triang.trdata );
+        break;
     case obj_BEZPATCH:
         rbez_DestroyBezPatchTreed ( obj_tab[i].bezp.ptree );
         break;
@@ -1135,7 +1221,7 @@ boolean RendBegin ( void )
 
   dfsf = xge_LogSlidebarValued ( R_MINDFSF, R_MAXDFSF, render_dfsf );
         /* build the scene hierarchy binary tree */
-  root = BuildPatchesTree ( nobjects );
+  root = BuildObjectTree ( nobjects );
         /* setup the shape function texturing procedures */
   GetTexColour = GetTexColourSF;
   if ( swGaussian_c ) {
@@ -1257,6 +1343,41 @@ static char TestRayBBoxd ( ray3d *ray, Box3d *box )
   return 0;
 } /*TestRayBBoxd*/
 
+static void _rend_FindRayTriangleIntersd ( triangle_data *trd, ray3d *ray,
+                                           int *nint, RayObjectIntersd *inters )
+{
+#define TOL 1.0e-10
+  double   a, b, t, *L;
+  vector3d pq;
+  int      i;
+
+  SubtractPoints3d ( &trd->p0, &ray->p, &pq );
+  a = DotProduct3d ( &ray->v, &trd->n );
+  if ( fabs(a) < TOL )
+    return;
+  b = DotProduct3d ( &pq, &trd->n );
+  t = b/a;
+  if ( t <= 0.0 )
+    return;
+  AddVector3Md ( &pq, &ray->v, -t, &pq );
+  a = DotProduct3d ( &trd->v1, &pq );
+  b = DotProduct3d ( &trd->v2, &pq );
+  L = trd->L;
+  a /= L[0];
+  b = (b-L[1]*a)/(L[2]*L[2]);
+  if ( b >= 0.0 ) return;
+  a = (a-L[1]*b)/L[0];
+  if ( a >= 0.0 || (a+b) <= -1.0 )
+    return;
+  i = *nint;
+  inters[i].object_id = 0;
+  AddVector3Md ( &ray->p, &ray->v, t, &inters[i].p );
+  inters[i].nv = trd->n;
+  inters[i].u = a;  inters[i].v = b;  inters[i].t = t;
+  *nint = i+1;
+#undef TOL
+} /*_rend_FindRayTriangleIntersd*/
+
 boolean rFindRayTrInters ( ray3d *ray, tnode *node,
                            RayObjectIntersd *inters, int *k )
 {
@@ -1278,6 +1399,10 @@ boolean rFindRayTrInters ( ray3d *ray, tnode *node,
     if ( !_inters )
       return false;
     switch ( obj_tab[_k].type ) {
+  case obj_TRIANGLE:
+      _rend_FindRayTriangleIntersd ( obj_tab[_k].triang.trdata, ray,
+                                     &nint, _inters );
+      break;
   case obj_BEZPATCH:
       rbez_FindRayBezPatchIntersd ( obj_tab[_k].bezp.ptree, ray,
                     MAXPLEVEL, MAXINTERS, &nint, _inters );
@@ -1357,11 +1482,16 @@ boolean rFindShadowRayInters ( ray3d *ray, tnode *node )
   RayObjectIntersd inters;
 
   _k = node->k;
+  nint = 0;
   if ( _k >= 0 ) {
            /* it is a leaf, i.e. a Bezier patch or a Bezier curve; no ray/box */
            /* intersection is tested here, as the ray/patch or ray/curve offset */
            /* intersection procedures have their own tests */
     switch ( obj_tab[_k].type ) {
+  case obj_TRIANGLE:
+      _rend_FindRayTriangleIntersd ( obj_tab[_k].triang.trdata, ray,
+                                     &nint, &inters );
+      break;
   case obj_BEZPATCH:
       rbez_FindRayBezPatchIntersd ( obj_tab[_k].bezp.ptree, ray,
                     MAXPLEVEL, 1, &nint, &inters );
@@ -1418,6 +1548,7 @@ case obj_BEZPATCH:
 case obj_RBEZPATCH:
     t = cRShapeFunc ( n, m, cp, u, v, p, nv, vv );
     break;
+case obj_TRIANGLE:
 case obj_BEZCURVE:
 case obj_RBEZCURVE:
 default:
@@ -1454,6 +1585,8 @@ void GetTexColourNoSF ( char type, double *colour,
 {
   memcpy ( texcolour, colour, 3*sizeof(double) );
   switch ( type ) {
+case obj_TRIANGLE:
+    break;
 case obj_BEZPATCH:
     if ( !dShapeFunc ( n, m, (point3d*)cp, u, v, p, nv, vv ) )
       MultVector3d ( 0.85, texcolour, texcolour );
@@ -1514,6 +1647,11 @@ void GetPixelColour ( ray3d *ray, unsigned int *r, unsigned int *g,
   *r = *g = *b = 220;
   if ( FindRayTrInters ( ray, &iint, &k ) ) {
     switch ( obj_tab[k].type ) {
+  case obj_TRIANGLE:
+      GetTexColour ( obj_TRIANGLE, obj_tab[k].triang.colour, 0, 0,
+                     (point4d*)&obj_tab[k].triang.trdata->p0,
+                     iint.u, iint.v, &iint.p, &iint.nv, &ray->v, &texcolour );
+      break;
   case obj_BEZPATCH:
       GetTexColour ( obj_BEZPATCH, obj_tab[k].bezp.colour,
                      obj_tab[k].bezp.ptree->n, obj_tab[k].bezp.ptree->m,

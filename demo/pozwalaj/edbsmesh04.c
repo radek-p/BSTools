@@ -81,7 +81,7 @@ boolean GeomObjectBSplineMeshSetDegree ( GO_BSplineMesh *obj, int deg )
 {
   if ( obj->me.obj_type != GO_BSPLINE_MESH )
     return false;
-  if ( deg < 1 || deg > MAX_DEGREE )
+  if ( deg < -1 || deg > MAX_DEGREE )
     return false;
   obj->degree = deg;
   obj->me.dlistmask &= ~(BSM_DLM_SURF | BSM_DLM_SPECIAL);

@@ -3963,3 +3963,11 @@ Wersja 0.34.
     bsm_SimplifyMeshd.
 
 
+Wersja 0.35.
+6.12.2014.
+925. Do ray tracera w programie pozwalaj dorobiona mozliwosc rysowania
+    trojkatow - trojkatnych scian siatek. Odpowiednie przerobki sa potrzebne
+    w libbsfile (trojkaty sa wyswietlane, jesli powierzchnia ma zaznaczony
+    stopien -1).
+
+

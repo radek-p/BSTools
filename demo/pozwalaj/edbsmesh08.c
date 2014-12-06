@@ -91,6 +91,40 @@ void GeomObjectBSplineMeshOutputHoleFillingToRenderer3D ( int d, int k,
             GeomObjectBSplineMeshOutputBezPatchToRenderer3D );
 } /*GeomObjectBSplineMeshOutputHoleFillingToRenderer3D*/
 
+static void _OutputTriangularFacets ( GO_BSplineMesh *obj )
+{
+  int         nfac, *mfhei;
+  int         cpdimen;
+  int         i, j, fhe;
+  double      *vc, *colour;
+  BSMfacet    *mfac;
+  BSMhalfedge *mhe;
+  point3d     p[3];
+
+  cpdimen = obj->me.cpdimen;
+  colour = obj->me.colour;
+  nfac  = obj->nfac;
+  mfac  = obj->meshfac;
+  mfhei = obj->meshfhei;
+  mhe   = obj->meshhe;
+  vc    = obj->meshvpc;
+  for ( i = 0; i < nfac; i++ )
+    if ( mfac[i].degree == 3 ) {
+      fhe = mfac[i].firsthalfedge;
+      if ( cpdimen == 3 ) {
+        for ( j = 0; j < 3; j++ )
+          memcpy ( &p[j], &vc[3*mhe[mfhei[fhe+j]].v0], sizeof(point3d) );
+      }
+      else if ( cpdimen == 4 ) {
+        for ( j = 0; j < 3; j++ )
+          Point4to3d ( (point4d*)&vc[4*mhe[mfhei[fhe+j]].v0], &p[j] );
+      }
+      else
+        return;
+      RendEnterTriangle3d ( &p[0], &p[1], &p[2], colour );
+    }
+} /*_OutputTriangularFacets*/
+
 void GeomObjectBSplineMeshOutputToRenderer3D ( GO_BSplineMesh *obj )
 {
   bsm_special_elem_list *spvlist;
@@ -102,36 +136,41 @@ void GeomObjectBSplineMeshOutputToRenderer3D ( GO_BSplineMesh *obj )
     return;
   if ( obj->me.spdimen != 3 )
     return;
-  if ( obj->view_surf )
-    bsm_FindRegularSubnets ( obj->nv, obj->meshv, obj->meshvhei,
-                             obj->nhe, obj->meshhe,
-                             obj->nfac, obj->meshfac, obj->meshfhei,
-                             obj->degree+1, obj,
-                             GeomObjectOutputMeshBSPatchToRenderer3D );
-  if ( obj->subdivision ) {
-    /* *************** */
-  }
-  else if ( obj->degree == 3 && obj->view_holefill ) {
-    if ( obj->special_patches_ok ) {
-      deg = obj->special_deg;
-      d = 3*(deg+1)*(deg+1);
-      for ( i = 0, spv = obj->special_patches;
-            i < obj->nspecial_patches;
-            i++, spv = &spv[d] )
-        GeomObjectBSplineMeshOutputBezPatchToRenderer3D ( deg, deg, spv, obj );
+  if ( obj->degree > 0 ) {  /* a surface made of curved patches */
+    if ( obj->view_surf )
+      bsm_FindRegularSubnets ( obj->nv, obj->meshv, obj->meshvhei,
+                               obj->nhe, obj->meshhe,
+                               obj->nfac, obj->meshfac, obj->meshfhei,
+                               obj->degree+1, obj,
+                               GeomObjectOutputMeshBSPatchToRenderer3D );
+    if ( obj->subdivision ) {
+      /* *************** */
     }
-    else if ( GeomObjectBSplineMeshFindSpecialVertices ( obj, 2 ) ) {
-      spvlist = &obj->spvlist;
-      spel    = spvlist->spel;
-      spvert  = spvlist->spvert;
-      nsp     = spvlist->nspecials;
-      for ( i = 0; i < nsp; i++ ) {
-        if ( spel[i].el_type == 0 && spel[i].snet_rad == 2 )
-          GeomObjectBSplineMeshFillBicubicHole ( obj, spel[i].degree,
-              &spvert[spel[i].first_snet_vertex],
-              GeomObjectBSplineMeshOutputBezPatchToRenderer3D );
+    else if ( obj->degree == 3 && obj->view_holefill ) {
+      if ( obj->special_patches_ok ) {
+        deg = obj->special_deg;
+        d = 3*(deg+1)*(deg+1);
+        for ( i = 0, spv = obj->special_patches;
+              i < obj->nspecial_patches;
+              i++, spv = &spv[d] )
+          GeomObjectBSplineMeshOutputBezPatchToRenderer3D ( deg, deg, spv, obj );
+      }
+      else if ( GeomObjectBSplineMeshFindSpecialVertices ( obj, 2 ) ) {
+        spvlist = &obj->spvlist;
+        spel    = spvlist->spel;
+        spvert  = spvlist->spvert;
+        nsp     = spvlist->nspecials;
+        for ( i = 0; i < nsp; i++ ) {
+          if ( spel[i].el_type == 0 && spel[i].snet_rad == 2 )
+            GeomObjectBSplineMeshFillBicubicHole ( obj, spel[i].degree,
+                &spvert[spel[i].first_snet_vertex],
+                GeomObjectBSplineMeshOutputBezPatchToRenderer3D );
+        }
       }
     }
+  }
+  else {  /* output triangular facets */
+    _OutputTriangularFacets ( obj );
   }
 } /*GeomObjectBSplineMeshOutputToRenderer3D*/
 
