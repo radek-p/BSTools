@@ -21,11 +21,10 @@ INCLUDES = $(INCDIR)/pkvaria.h $(INCDIR)/pkvthreads.h \
   $(INCDIR)/raybez.h $(INCDIR)/raybezf.h $(INCDIR)/raybezd.h \
   $(SRCDIR)/raybezprivatef.h $(SRCDIR)/raybezprivated.h
 
-OBJECTS = raybezf.o rayrbezf.o raybeztreef.o \
+OBJECTS = rayboxf.o rayrboxf.o raybezf.o rayrbezf.o raybeztreef.o \
   raybezcoffsetf.o rayrbezcoffsetf.o rayrbeztreef.o rayboxtestf.o \
-  raybezd.o rayrbezd.o raybeztreed.o \
-  raybezcoffsetd.o rayrbezcoffsetd.o \
-  rayrbeztreed.o rayboxtestd.o \
+  rayboxd.o rayrboxd.o raybezd.o rayrbezd.o raybeztreed.o \
+  raybezcoffsetd.o rayrbezcoffsetd.o rayrbeztreed.o rayboxtestd.o \
   raypthreads.o rbezintersf.o rbezintersd.o \
   raybezconvhtest2f.o raybezconvhtest2d.o \
   rbshomotopyf.o rbshomotopyd.o \
@@ -47,6 +46,8 @@ $(TARGET): $(OBJECTS)
 
 raypthreads.o: raypthreads.c $(INCLUDES)
 
+rayboxf.o: rayboxf.c $(INCLUDES)
+rayrboxf.o: rayrboxf.c $(INCLUDES)
 rayboxtestf.o: rayboxtestf.c $(INCLUDES)
 raybezconvhtest1f.o: raybezconvhtest1f.c $(INCLUDES)
 raybezconvhtest2f.o: raybezconvhtest2f.c $(INCLUDES)
@@ -63,6 +64,8 @@ raybezchpointsf.o: raybezchpointsf.c $(INCLUDES)
 rayrbezchpointsf.o: rayrbezchpointsf.c $(INCLUDES)
 rayrbezphpointsf.o: rayrbezphpointsf.c $(INCLUDES)
 
+rayboxd.o: rayboxd.c $(INCLUDES)
+rayrboxd.o: rayrboxd.c $(INCLUDES)
 rayboxtestd.o: rayboxtestd.c $(INCLUDES)
 raybezconvhtest1d.o: raybezconvhtest1d.c $(INCLUDES)
 raybezconvhtest2d.o: raybezconvhtest2d.c $(INCLUDES)

@@ -40,8 +40,7 @@
 typedef struct {
     Box3d           bbox;
     point3d         p0;
-    vector3d        v1, v2, n;
-    double          L[3];
+    vector3d        a1, a2, n;
   } triangle_data;
 
 typedef struct {
@@ -690,9 +689,13 @@ static boolean ReallocObjTab ( void )
 boolean RendEnterTriangle3d ( point3d *p0, point3d *p1, point3d *p2,
                               double *colour )
 {
+#define TOL 1.0e-14
   renderobj_triangle *tr;
   triangle_data      *trd;
+  double             m11, m21, m22, l11, l21, l22;
+  vector3d           v1, v2;
 
+  trd = NULL;
   if ( nobjects >= obj_tab_length ) {
     if ( !ReallocObjTab () )
       goto failure;
@@ -733,23 +736,38 @@ boolean RendEnterTriangle3d ( point3d *p0, point3d *p1, point3d *p2,
     }
         /* compute the unit normal vector */
     trd->p0 = *p0;
-    SubtractPoints3d ( p1, p0, &trd->v1 );
-    SubtractPoints3d ( p2, p0, &trd->v2 );
-    CrossProduct3d ( &trd->v1, &trd->v2, &trd->n );
+    SubtractPoints3d ( p1, p0, &v1 );
+    SubtractPoints3d ( p2, p0, &v2 );
+    CrossProduct3d ( &v1, &v2, &trd->n );
     NormalizeVector3d ( &trd->n );
-        /* find and decompose the normal equations matrix */
-    trd->L[0] = DotProduct3d ( &trd->v1, &trd->v1 );
-    trd->L[1] = DotProduct3d ( &trd->v2, &trd->v1 );
-    trd->L[2] = DotProduct3d ( &trd->v2, &trd->v2 );
-    if ( pkn_CholeskyDecompd ( 2, trd->L ) )
-      nobjects ++;
-    else
-      PKV_FREE ( trd );
+        /* find the pseudo-inversion of the 3x2 matrix A=[v1,v2] */
+          /* compute A^T*A */
+    m11 = DotProduct3d ( &v1, &v1 );
+    if ( m11 <= TOL )
+      goto failure;
+    m21 = DotProduct3d ( &v2, &v1 );
+    m22 = DotProduct3d ( &v2, &v2 );
+          /* this is the Cholesky's decomposition of a 2x2 matrix A^T*A */
+    l11 = sqrt ( m11 );
+    l21 = m21/l11;
+    l22 = m22-m21*m21/m11;
+    if ( l22 <= TOL )
+      goto failure;
+          /* compute the rows a1^T, a2^T, of (A^T*A)^{-1}A^T */
+    MultVector3d ( 1.0/l11, &v1, &v1 );
+    AddVector3Md ( &v2, &v1, -l21, &v2 );
+    MultVector3d ( 1.0/l22, &v2, &trd->a2 );
+    AddVector3Md ( &v1, &trd->a2, -l21, &v1 );
+    MultVector3d ( 1.0/l11, &v1, &trd->a1 );
+    nobjects ++;
+    return true;
   }
-  return true;
-
+  else {
 failure:
-  return false;
+    if ( trd ) PKV_FREE ( trd );
+    return false;
+  }
+#undef TOL
 } /*RendEnterTriangle3d*/
 
 boolean RendEnterBezPatch3d ( int n, int m, const point3d *cp, double *colour )
@@ -974,16 +992,6 @@ failure:
   return false;
 } /*RendEnterBSCurve3Rd*/
 
-void FindSumBBox ( Box3d *box, Box3d *box1, Box3d *box2 )
-{
-  box->x0 = min ( box1->x0, box2->x0 );
-  box->x1 = max ( box1->x1, box2->x1 );
-  box->y0 = min ( box1->y0, box2->y0 );
-  box->y1 = max ( box1->y1, box2->y1 );
-  box->z0 = min ( box1->z0, box2->z0 );
-  box->z1 = max ( box1->z1, box2->z1 );
-} /*FindSumBBox*/
-
 tnode* NewPatchNode ( int k )
 {
   tnode *node;
@@ -1026,7 +1034,7 @@ tnode* NewInnerNode ( tnode *left, tnode *right )
   node->left = left;
   node->right = right;
   node->k = -1;
-  FindSumBBox ( &node->bbox, &left->bbox, &right->bbox );
+  rbez_FindSumBBoxd ( &left->bbox, &right->bbox, &node->bbox );
   return node;
 } /*NewInnerNode*/
 
@@ -1072,12 +1080,12 @@ tnode* BuildObjectTree ( int nobjects )
     last = i;
     pkv_HeapRemove ( pqueue, &last, 0, CompNodePrio );
     tn1 = pqueue[0];
-    FindSumBBox ( &box, &tn0->bbox, &tn1->bbox );
+    rbez_FindSumBBoxd ( &tn0->bbox, &tn1->bbox, &box );
     d1 = BoxDiameter ( &box );
     k = 0;
     for ( j = 1; j <= last; j++ ) {
       tn2 = pqueue[j];
-      FindSumBBox ( &box, &tn0->bbox, &tn2->bbox );
+      rbez_FindSumBBoxd ( &tn0->bbox, &tn2->bbox, &box );
       d2 = BoxDiameter ( &box );
       if ( d2 < d1 ) {
         k = j;
@@ -1308,46 +1316,11 @@ pkv_Tic ( &tic );
 } /*RendRestart*/
 
 /* ///////////////////////////////////////////////////////////////////////// */
-static char ClipTestd ( double p, double q, double *t0, double *t1 )
-{
-#define EPS 5.0e-6
-  double r;
-
-  if ( p < 0.0 ) {
-    r = q/p;
-    if ( r > *t1+EPS ) return 0;
-    else if ( r > *t0 ) *t0 = r;
-  }
-  else if ( p > 0.0 ) {
-    r = q/p;
-    if ( r < *t0-EPS ) return 0;
-    else if ( r < *t1 ) *t1 = r;
-  }
-  else if ( q < -EPS ) return 0;
-  return 1;
-#undef EPS 
-} /*ClipTestd*/
-
-static char TestRayBBoxd ( ray3d *ray, Box3d *box )
-{
-  double t0, t1;
-
-  t0 = 0.0;  t1 = 1.0e300;
-  if ( ClipTestd ( -ray->v.x, ray->p.x - box->x0, &t0, &t1 ) )
-    if ( ClipTestd (  ray->v.x, box->x1 - ray->p.x, &t0, &t1 ) )
-      if ( ClipTestd ( -ray->v.y, ray->p.y - box->y0, &t0, &t1 ) )
-        if ( ClipTestd (  ray->v.y, box->y1 - ray->p.y, &t0, &t1 ) )
-          if ( ClipTestd ( -ray->v.z, ray->p.z - box->z0, &t0, &t1 ) )
-            if ( ClipTestd (  ray->v.z, box->z1 - ray->p.z, &t0, &t1 ) )
-              return 1;
-  return 0;
-} /*TestRayBBoxd*/
-
 static void _rend_FindRayTriangleIntersd ( triangle_data *trd, ray3d *ray,
                                            int *nint, RayObjectIntersd *inters )
 {
 #define TOL 1.0e-10
-  double   a, b, t, *L;
+  double   a, b, t;
   vector3d pq;
   int      i;
 
@@ -1360,14 +1333,11 @@ static void _rend_FindRayTriangleIntersd ( triangle_data *trd, ray3d *ray,
   if ( t <= 0.0 )
     return;
   AddVector3Md ( &pq, &ray->v, -t, &pq );
-  a = DotProduct3d ( &trd->v1, &pq );
-  b = DotProduct3d ( &trd->v2, &pq );
-  L = trd->L;
-  a /= L[0];
-  b = (b-L[1]*a)/(L[2]*L[2]);
-  if ( b >= 0.0 ) return;
-  a = (a-L[1]*b)/L[0];
-  if ( a >= 0.0 || (a+b) <= -1.0 )
+  a = DotProduct3d ( &trd->a1, &pq );
+  if ( a >= 0.0 )
+    return;
+  b = DotProduct3d ( &trd->a2, &pq );
+  if ( b >= 0.0 || (a+b) <= -1.0 )
     return;
   i = *nint;
   inters[i].object_id = 0;
@@ -1441,7 +1411,7 @@ boolean rFindRayTrInters ( ray3d *ray, tnode *node,
       }
     }
   }
-  else if ( TestRayBBoxd ( ray, &node->bbox ) ) {
+  else if ( rbez_TestRayBBoxd ( ray, &node->bbox ) ) {
     int              k0, k1;
     boolean          r0, r1;
     RayObjectIntersd inters0, inters1;
@@ -1513,7 +1483,7 @@ boolean rFindShadowRayInters ( ray3d *ray, tnode *node )
     }
     return nint > 0;
   }
-  else if ( TestRayBBoxd ( ray, &node->bbox ) ) {
+  else if ( rbez_TestRayBBoxd ( ray, &node->bbox ) ) {
     if ( rFindShadowRayInters ( ray, node->left ) )
       return true;
     return rFindShadowRayInters ( ray, node->right );

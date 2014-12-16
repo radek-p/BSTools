@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2012                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2012, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -103,25 +103,9 @@ static void FindRCBoundingBoxf ( RBezCurveTreefp tree,
 
 static void UpdateRCBoundingBoxesf ( RBezCurveTreeVertexfp vertex )
 {
-  float   a;
-  boolean change;
-
   while ( vertex ) {
-    change = false;
-    a = min ( vertex->left->bbox.x0, vertex->right->bbox.x0 );
-    if ( vertex->bbox.x0 < a ) { vertex->bbox.x0 = a;  change = true; }
-    a = max ( vertex->left->bbox.x1, vertex->right->bbox.x1 );
-    if ( vertex->bbox.x1 > a ) { vertex->bbox.x1 = a;  change = true; }
-    a = min ( vertex->left->bbox.y0, vertex->right->bbox.y0 );
-    if ( vertex->bbox.y0 < a ) { vertex->bbox.y0 = a;  change = true; }
-    a = max ( vertex->left->bbox.y1, vertex->right->bbox.y1 );
-    if ( vertex->bbox.y1 > a ) { vertex->bbox.y1 = a;  change = true; }
-    a = min ( vertex->left->bbox.z0, vertex->right->bbox.z0 );
-    if ( vertex->bbox.z0 < a ) { vertex->bbox.z0 = a;  change = true; }
-    a = max ( vertex->left->bbox.z1, vertex->right->bbox.z1 );
-    if ( vertex->bbox.z1 > a ) { vertex->bbox.z1 = a;  change = true; }
-
-    if ( change )
+    if ( rbez_NarrowBBoxSumf ( &vertex->left->bbox, &vertex->right->bbox,
+                               &vertex->bbox ) )
       vertex = vertex->up;
     else
       return;

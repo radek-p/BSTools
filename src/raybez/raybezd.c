@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -62,11 +62,11 @@ static BezPatchTreeVertexdp
 } /*AllocTreeVertexd*/
 
 static void FindBoundingBoxd ( BezPatchTreedp tree,
-                                BezPatchTreeVertexdp vertex )
+                               BezPatchTreeVertexdp vertex )
 {
 #define EPS 1.0e-10
   int      n, m, ncp;
-  point3d  *cp, *cq, a, b;
+  point3d  *cp, *cq;
   vector3d v;
   int      i, j;
   double    du, dv, d;
@@ -74,37 +74,7 @@ static void FindBoundingBoxd ( BezPatchTreedp tree,
   n = tree->n;  m = tree->m;
   ncp = (n+1)*(m+1);
                                      /* find the bounding box */
-  cp = vertex->ctlpoints;
-  a = *cp;  cp ++;
-  if ( ncp & 1 ) {
-    vertex->bbox.x0 = vertex->bbox.x1 = a.x;
-    vertex->bbox.y0 = vertex->bbox.y1 = a.y;
-    vertex->bbox.z0 = vertex->bbox.z1 = a.z;
-    i = 2;
-  }
-  else {
-    b = *cp;  cp++;
-    pkv_Sort2d ( &a.x, &b.x );  vertex->bbox.x0 = a.x;  vertex->bbox.x1 = b.x;
-    pkv_Sort2d ( &a.y, &b.y );  vertex->bbox.y0 = a.y;  vertex->bbox.y1 = b.y;
-    pkv_Sort2d ( &a.z, &b.z );  vertex->bbox.z0 = a.z;  vertex->bbox.z1 = b.z;
-    i = 3;
-  }
-  for ( ; i < ncp; i += 2 ) {
-    a = *cp;  cp++;
-    b = *cp;  cp++;
-    pkv_Sort2d ( &a.x, &b.x );
-    vertex->bbox.x0 = min ( vertex->bbox.x0, a.x );
-    vertex->bbox.x1 = max ( vertex->bbox.x1, b.x );
-    pkv_Sort2d ( &a.y, &b.y );
-    vertex->bbox.y0 = min ( vertex->bbox.y0, a.y );
-    vertex->bbox.y1 = max ( vertex->bbox.y1, b.y );
-    pkv_Sort2d ( &a.z, &b.z );
-    vertex->bbox.z0 = min ( vertex->bbox.z0, a.z );
-    vertex->bbox.z1 = max ( vertex->bbox.z1, b.z );
-  }
-  vertex->bbox.x0 -= EPS;  vertex->bbox.x1 += EPS;
-  vertex->bbox.y0 -= EPS;  vertex->bbox.y1 += EPS;
-  vertex->bbox.z0 -= EPS;  vertex->bbox.z1 += EPS;
+  rbez_FindCPBoundingBox3d ( 1, ncp, 0, vertex->ctlpoints, EPS, &vertex->bbox );
                                      /* determine division direction */
   du = 0.0;
   for ( i = 0, cp = vertex->ctlpoints, cq = cp+(m+1);
@@ -139,25 +109,9 @@ static void FindBoundingBoxd ( BezPatchTreedp tree,
 
 static void UpdateBoundingBoxesd ( BezPatchTreeVertexdp vertex )
 {
-  double a;
-  char  change;
-
   while ( vertex ) {
-    change = 0;
-    a = min ( vertex->left->bbox.x0, vertex->right->bbox.x0 );
-    if ( vertex->bbox.x0 < a ) { vertex->bbox.x0 = a;  change = 1; }
-    a = max ( vertex->left->bbox.x1, vertex->right->bbox.x1 );
-    if ( vertex->bbox.x1 > a ) { vertex->bbox.x1 = a;  change = 1; }
-    a = min ( vertex->left->bbox.y0, vertex->right->bbox.y0 );
-    if ( vertex->bbox.y0 < a ) { vertex->bbox.y0 = a;  change = 1; }
-    a = max ( vertex->left->bbox.y1, vertex->right->bbox.y1 );
-    if ( vertex->bbox.y1 > a ) { vertex->bbox.y1 = a;  change = 1; }
-    a = min ( vertex->left->bbox.z0, vertex->right->bbox.z0 );
-    if ( vertex->bbox.z0 < a ) { vertex->bbox.z0 = a;  change = 1; }
-    a = max ( vertex->left->bbox.z1, vertex->right->bbox.z1 );
-    if ( vertex->bbox.z1 > a ) { vertex->bbox.z1 = a;  change = 1; }
-
-    if ( change )
+    if ( rbez_NarrowBBoxSumd ( &vertex->left->bbox, &vertex->right->bbox,
+                               &vertex->bbox ) )
       vertex = vertex->up;
     else
       return;
@@ -355,8 +309,8 @@ static void OutputSingularSolutiond ( ray3d *ray, BezPatchTreed *tree,
 } /*OutputSingularSolutiond*/
 
 int rbez_FindRayBezPatchIntersd ( BezPatchTreed *tree, ray3d *ray,
-                                   int maxlevel, int maxinters,
-                                   int *ninters, RayObjectIntersd *inters )
+                                  int maxlevel, int maxinters,
+                                  int *ninters, RayObjectIntersd *inters )
 {
   int      n, m, ncp;
   int      size_auxcp, size_stack;
@@ -379,7 +333,7 @@ int rbez_FindRayBezPatchIntersd ( BezPatchTreed *tree, ray3d *ray,
   auxcp = (point2d*)pkv_GetScratchMem ( size_auxcp = 2*ncp*sizeof(point2d) );
 
   if ( !auxcp || !stack )
-    exit ( 0 );
+    goto failure;
 
                         /* construct the Householder reflection */
   nh = ray->v;

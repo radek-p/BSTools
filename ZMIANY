@@ -3970,4 +3970,20 @@ Wersja 0.35.
     w libbsfile (trojkaty sa wyswietlane, jesli powierzchnia ma zaznaczony
     stopien -1).
 
+11.12.2014.
+926. Zmiany porzadkowe w libraybez - nowe procedury rbez_FindSumBBoxf
+    i rbez_NarrowBBoxSumd, ktore upraszczaja tworzenie boksow otaczajacych
+    dla elementow podzialu platow i krzywych.
+
+14.12.2014.
+927. Informacja o liczbie procesorow, jesli to mozliwe, jest brana przez
+    wywolanie procedury sysconf.
+
+
+16.12.2014.
+928. Poprawiony blad w procedurze rbez_FindRayRBezPatchIntersf, zrobiony
+    dosc dawno (w wersji 0.32); w zwiazku ze zmiana wartosci prowrotnych
+    procedury _rbez_NewtonMethod2f nalezalo zmienic kod po wywolaniu, co nie
+    zostalo wtedy zrobione.
+
 

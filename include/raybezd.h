@@ -140,6 +140,17 @@ typedef struct {
 } RayObjectIntersd, *RayObjectIntersdp;
 
 
+/* ////////////////////////////////////////////////////////////////////////// */
+void rbez_FindCPBoundingBox3d ( int nrows, int ncols, int pitch,
+                                point3d *cp, double eps, Box3d *bbox );
+void rbez_FindCPBoundingBox3Rd ( int nrows, int ncols, int pitch,
+                                 point4d *cp, double eps, Box3d *bbox );
+
+void rbez_FindSumBBoxd ( Box3d *box1, Box3d *box2, Box3d *box );
+boolean rbez_NarrowBBoxSumd ( Box3d *box1, Box3d *box2, Box3d *box );
+boolean rbez_TestRayBBoxd ( ray3d *ray, Box3d *box );
+
+/* ////////////////////////////////////////////////////////////////////////// */
 BezPatchTreedp
   rbez_NewBezPatchTreed ( int object_id,
                           unsigned char n, unsigned char m,
@@ -209,9 +220,6 @@ RBezCurveTreeVertexdp rbez_GetRBezCurveRightVertexd ( RBezCurveTreedp tree,
 int rbez_FindRayRBezcOffsetIntersd ( RBezCurveTreedp tree, ray3d *ray,
                                      int maxlevel, int maxinters,
                                      int *ninters, RayObjectIntersd *inters );
-
-/* ////////////////////////////////////////////////////////////////////////// */
-char rbez_TestRayBBoxd ( ray3d *ray, Box3d *box );
 
 /* ////////////////////////////////////////////////////////////////////////// */
 typedef struct {
