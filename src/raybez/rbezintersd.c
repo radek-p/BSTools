@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2012, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2012, 2014                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -38,24 +38,24 @@ vector3d *_rbi_GetRBezNVPatchd ( RBezPatchTreedp tree,
   int                   vn, vm, nvsize;
   vector3d              *nvcp;
 
-  if ( !vertex->normalvect ) {
+  if ( !vertex->nvcpoints ) {
     if ( (up = vertex->up) ) {
       if ( (nvcp = _rbi_GetRBezNVPatchd ( tree, up )) ) {
         nvsize = tree->nvsize;
         lv = up->left;
         rv = up->right;
-        PKV_MALLOC ( lv->normalvect, nvsize );
-        PKV_MALLOC ( rv->normalvect, nvsize );
-        if ( !lv->normalvect || !rv->normalvect ) {
-          if ( lv->normalvect ) PKV_FREE ( lv->normalvect );
-          if ( rv->normalvect ) PKV_FREE ( rv->normalvect );
+        PKV_MALLOC ( lv->nvcpoints, nvsize );
+        PKV_MALLOC ( rv->nvcpoints, nvsize );
+        if ( !lv->nvcpoints || !rv->nvcpoints ) {
+          if ( lv->nvcpoints ) PKV_FREE ( lv->nvcpoints );
+          if ( rv->nvcpoints ) PKV_FREE ( rv->nvcpoints );
           return NULL;
         }
-        memcpy ( rv->normalvect, nvcp, nvsize );
+        memcpy ( rv->nvcpoints, nvcp, nvsize );
         if ( !up->divdir )
-          mbs_BisectBP3ud ( tree->vn, tree->vm, rv->normalvect, lv->normalvect );
+          mbs_BisectBP3ud ( tree->vn, tree->vm, rv->nvcpoints, lv->nvcpoints );
         else
-          mbs_BisectBP3vd ( tree->vn, tree->vm, rv->normalvect, lv->normalvect );
+          mbs_BisectBP3vd ( tree->vn, tree->vm, rv->nvcpoints, lv->nvcpoints );
       }
     }
     else {    /* the vertex is the tree root */
@@ -63,14 +63,14 @@ vector3d *_rbi_GetRBezNVPatchd ( RBezPatchTreedp tree,
       tree->vn = (unsigned char)vn;
       tree->vm = (unsigned char)vm;
       tree->nvsize = nvsize = (vn+1)*(vm+1)*sizeof(vector3d);
-      PKV_MALLOC ( vertex->normalvect, nvsize );
-      if ( !vertex->normalvect )
+      PKV_MALLOC ( vertex->nvcpoints, nvsize );
+      if ( !vertex->nvcpoints )
         return NULL;
       mbs_BezP3RNormald ( tree->n, tree->m, vertex->ctlpoints,
-                          &vn, &vm, vertex->normalvect );
+                          &vn, &vm, vertex->nvcpoints );
     }
   }
-  return vertex->normalvect;
+  return vertex->nvcpoints;
 } /*_rbi_GetRBezNVPatchd*/
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -682,7 +682,7 @@ RBezCurveTreeVertexdp _rbi_GetRBezCurveLeftVertexd ( RBezCurveTreedp tree,
   boolean               leaf;
   RBezCurveTreeVertexdp lv;
 
-  leaf = vertex->leaf;
+  leaf = !vertex->left;
   lv = rbez_GetRBezCurveLeftVertexd ( tree, vertex );
   if ( leaf && lv ) {
     _rbi_FindRBezCurvePCentd ( tree, lv );
@@ -697,7 +697,7 @@ RBezCurveTreeVertexdp _rbi_GetRBezCurveRightVertexd ( RBezCurveTreedp tree,
   boolean               leaf;
   RBezCurveTreeVertexdp rv;
 
-  leaf = vertex->leaf;
+  leaf = !vertex->left;
   rv = rbez_GetRBezCurveRightVertexd ( tree, vertex );
   if ( leaf && rv ) {
     _rbi_FindRBezCurvePCentd ( tree, vertex->left );
@@ -1153,8 +1153,27 @@ failure:
 boolean _rbi_DivideDomainRd ( RBezPatchTreedp tree1, RBezPatchTreedp tree2,
                               rbiHyperDomaind *hca, rbiHyperDomaind *hcb )
 {
+  RBezPatchTreeVertexdp vert1, vert2;
+  boolean               divide_first;
+
+        /* choose the patch to subdivide, spline first */
+  vert1 = hca->vert1;
+  vert2 = hca->vert2;
+  if ( vert1->ctlpoints ) {
+    if ( vert2->ctlpoints )
+      goto by_length;
+    else
+      divide_first = false;
+  }
+  else if ( vert2->ctlpoints )
+    divide_first = true;
+  else {
+by_length:
+    divide_first = vert1->maxder > vert2->maxder;
+  }
+        /* divide the hypercube */
   hcb->level = ++hca->level;
-  if ( hca->vert1->maxder > hca->vert2->maxder ) {
+  if ( divide_first ) {
     hcb->vert1 = rbez_GetRBezLeftVertexd ( tree1, hca->vert1 );
     hca->vert1 = rbez_GetRBezRightVertexd ( tree1, hca->vert1 );
     if ( !hcb->vert1 || !hca->vert1 )
@@ -1210,6 +1229,8 @@ boolean rbi_FindRBezIntersectiond ( int n1, int m1, point4d *p1,
   do {
           /* pop the hypercube */
     hc = hcstack[hcsp--];
+    if ( hc.vert1->ctlpoints == NULL || hc.vert2->ctlpoints == NULL )
+      goto subdivide;
     if ( _rbi_PatchConvexHullTestRd ( n1, m1, hc.vert1->ctlpoints,
                                       &hc.vert1->pcent, &hc.vert1->nvcent,
                                       n2, m2, hc.vert2->ctlpoints,

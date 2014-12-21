@@ -30,30 +30,34 @@
 extern "C" {
 #endif
 
+#define RAYBEZ_WHITE  0
+#define RAYBEZ_GREY   1
+#define RAYBEZ_BLACK  2
+
 typedef struct _BezPatchTreeVertexd {
   struct _BezPatchTreeVertexd *left, *right,  /* pointers to subtrees */
-            *up;                              /* and up */
-  point3d   *ctlpoints;                       /* pointer to array */
+                              *up;            /* and up */
+  point3d                     *ctlpoints;     /* pointer to array */
                                               /* of control points */
-  vector3d  *normalvect;                      /* optional patch to describe */
+  vector3d                    *nvcpoints;     /* optional patch to describe */
                                               /* the normal vector */
-  double    u0, u1, v0, v1;                   /* patch piece domain */
-  Box3d     bbox;                             /* bounding box */
-  point3d   pcent;                            /* patch central point */
-  vector3d  nvcent;
-  double    maxder;                           /* maximal derivative */
-  short int level;
-  char      divdir;                           /* 0 - divide u */
+  double                      u0, u1, v0, v1; /* patch piece domain */
+  Box3d                       bbox;           /* bounding box */
+  point3d                     pcent;          /* patch central point */
+  vector3d                    nvcent;         /* normal vector */
+  double                      maxder;         /* maximal derivative length */
+  unsigned short              level;
+  unsigned char               divdir;         /* 0 - divide u */
                                               /* 1 - divide v */
-  boolean   leaf;
+  unsigned char               vertex_colour;
 } BezPatchTreeVertexd, *BezPatchTreeVertexdp;
 
 typedef struct {
   int                  object_id;  /* to be used by applications */
   unsigned char        n, m;       /* degree of the patch */
+  unsigned char        nvn, nvm;   /* degree of the normal vector patch */
   unsigned int         cpsize;     /* size of array of control points */
-  unsigned char        vn, vm;     /* degree of the normal vector patch */
-  unsigned int         nvsize;     /* size of array of yhe normal vector patch */
+  unsigned int         nvsize;     /* size of array of the normal vector patch */
                                    /* control points */
   BezPatchTreeVertexdp root;       /* root vertex representing the whole patch */
 } BezPatchTreed, *BezPatchTreedp;
@@ -61,27 +65,27 @@ typedef struct {
 
 typedef struct _RBezPatchTreeVertexd {
   struct _RBezPatchTreeVertexd *left, *right,  /* pointers to subtrees */
-            *up;                              /* and up */
-  point4d   *ctlpoints;                       /* pointer to array */
-                                              /* of control points */
-  vector3d  *normalvect;                      /* optional patch to describe */
-                                              /* the normal vector */
-  double    u0, u1, v0, v1;                   /* patch piece domain */
-  Box3d     bbox;                             /* bounding box */
-  point3d   pcent;                            /* patch central point */
-  vector3d  nvcent;
-  double    maxder;                           /* maximal derivative */
-  short int level;
-  char      divdir;                           /* 0 - divide u */
-                                              /* 1 - divide v */
-  boolean   leaf;
+                               *up;            /* and up */
+  point4d                      *ctlpoints;     /* pointer to array */
+                                               /* of control points */
+  vector3d                     *nvcpoints;     /* optional patch to describe */
+                                               /* the normal vector */
+  double                       u0, u1, v0, v1; /* patch piece domain */
+  Box3d                        bbox;           /* bounding box */
+  point3d                      pcent;          /* patch central point */
+  vector3d                     nvcent;         /* normal vector */
+  double                       maxder;         /* maximal derivative length */
+  unsigned short               level;
+  unsigned char                divdir;         /* 0 - divide u */
+                                               /* 1 - divide v */
+  unsigned char                vertex_colour;
 } RBezPatchTreeVertexd, *RBezPatchTreeVertexdp;
 
 typedef struct {
   int                  object_id;  /* to be used by applications */
   unsigned char        n, m;       /* degree of the patch */
-  unsigned int         cpsize;     /* size of array of control points */
   unsigned char        vn, vm;     /* degree of the normal vector patch */
+  unsigned int         cpsize;     /* size of array of control points */
   unsigned int         nvsize;     /* size of array of yhe normal vector patch */
                                    /* control points */
   RBezPatchTreeVertexdp root;      /* root vertex representing the whole patch */
@@ -97,8 +101,7 @@ typedef struct _BezCurveTreeVertexd {
     point3d ccent;                      /* curve central point */
     double  maxder;
     short   level;                      /* subdivision level */
-    boolean leaf;
-    char    pad;
+    short   pad;
   } BezCurveTreeVertexd, *BezCurveTreeVertexdp;
 
 typedef struct {
@@ -119,8 +122,7 @@ typedef struct _RBezCurveTreeVertexd {
     point3d ccent;                      /* curve central point */
     double  maxder;
     short   level;                      /* subdivision level */
-    boolean leaf;
-    char    pad;
+    short   pad;
   } RBezCurveTreeVertexd, *RBezCurveTreeVertexdp;
 
 typedef struct {
@@ -151,11 +153,17 @@ boolean rbez_NarrowBBoxSumd ( Box3d *box1, Box3d *box2, Box3d *box );
 boolean rbez_TestRayBBoxd ( ray3d *ray, Box3d *box );
 
 /* ////////////////////////////////////////////////////////////////////////// */
+/* the tree created by the two procedures below is built in the same way      */
 BezPatchTreedp
   rbez_NewBezPatchTreed ( int object_id,
                           unsigned char n, unsigned char m,
                           double u0, double u1, double v0, double v1,
                           CONST_ point3d *ctlpoints );
+BezPatchTreedp
+    rbez_NewBSPatchTreed ( int object_id,
+                   unsigned char n, unsigned int lknu, CONST_ double *knotsu,
+                   unsigned char v, unsigned int lknv, CONST_ double *knotsv,
+                   unsigned int pitch, CONST_ point3d *ctlpoints );
 
 void rbez_DestroyBezPatchTreed ( BezPatchTreedp tree );
 
@@ -170,12 +178,18 @@ int rbez_FindRayBezPatchIntersd ( BezPatchTreed *tree, ray3d *ray,
                                   int maxlevel, int maxinters,
                                   int *ninters, RayObjectIntersd *inters );
 
-
+/* ////////////////////////////////////////////////////////////////////////// */
+/* the tree created by the two procedures below is built in the same way      */
 RBezPatchTreedp
   rbez_NewRBezPatchTreed ( int object_id,
                            unsigned char n, unsigned char m,
                            double u0, double u1, double v0, double v1,
                            CONST_ point4d *ctlpoints );
+RBezPatchTreedp
+    rbez_NewRBSPatchTreed ( int object_id,
+                   unsigned char n, unsigned int lknu, CONST_ double *knotsu,
+                   unsigned char v, unsigned int lknv, CONST_ double *knotsv,
+                   unsigned int pitch, CONST_ point4d *ctlpoints );
 
 void rbez_DestroyRBezPatchTreed ( RBezPatchTreedp tree );
 
@@ -190,7 +204,7 @@ int rbez_FindRayRBezPatchIntersd ( RBezPatchTreed *tree, ray3d *ray,
                                    int maxlevel, int maxinters,
                                    int *ninters, RayObjectIntersd *inters );
 
-
+/* ////////////////////////////////////////////////////////////////////////// */
 BezCurveTreedp rbez_NewBezCurveTreed ( int object_id, short degree,
                                        double t0, double t1, double ext,
                                        CONST_ point3d *ctlpoints );

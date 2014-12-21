@@ -21,10 +21,12 @@ INCLUDES = $(INCDIR)/pkvaria.h $(INCDIR)/pkvthreads.h \
   $(INCDIR)/raybez.h $(INCDIR)/raybezf.h $(INCDIR)/raybezd.h \
   $(SRCDIR)/raybezprivatef.h $(SRCDIR)/raybezprivated.h
 
-OBJECTS = rayboxf.o rayrboxf.o raybezf.o rayrbezf.o raybeztreef.o \
-  raybezcoffsetf.o rayrbezcoffsetf.o rayrbeztreef.o rayboxtestf.o \
-  rayboxd.o rayrboxd.o raybezd.o rayrbezd.o raybeztreed.o \
-  raybezcoffsetd.o rayrbezcoffsetd.o rayrbeztreed.o rayboxtestd.o \
+OBJECTS = rayboxf.o rayrboxf.o raybezptreef.o raybezf.o \
+  rayrbezptreef.o rayrbezf.o raybezctreef.o \
+  raybezcoffsetf.o rayrbezcoffsetf.o rayrbezctreef.o rayboxtestf.o \
+  rayboxd.o rayrboxd.o raybezptreed.o raybezd.o \
+  rayrbezptreed.o rayrbezd.o raybezctreed.o \
+  raybezcoffsetd.o rayrbezcoffsetd.o rayrbezctreed.o rayboxtestd.o \
   raypthreads.o rbezintersf.o rbezintersd.o \
   raybezconvhtest2f.o raybezconvhtest2d.o \
   rbshomotopyf.o rbshomotopyd.o \
@@ -46,41 +48,45 @@ $(TARGET): $(OBJECTS)
 
 raypthreads.o: raypthreads.c $(INCLUDES)
 
-rayboxf.o: rayboxf.c $(INCLUDES)
-rayrboxf.o: rayrboxf.c $(INCLUDES)
-rayboxtestf.o: rayboxtestf.c $(INCLUDES)
+raybezchpointsf.o: raybezchpointsf.c $(INCLUDES)
+raybezcoffsetf.o: raybezcoffsetf.c $(INCLUDES)
 raybezconvhtest1f.o: raybezconvhtest1f.c $(INCLUDES)
 raybezconvhtest2f.o: raybezconvhtest2f.c $(INCLUDES)
+raybezctreef.o: raybezctreef.c $(INCLUDES)
 raybezf.o: raybezf.c $(INCLUDES)
-rayrbezf.o: rayrbezf.c $(INCLUDES)
-raybeztreef.o: raybeztreef.c $(INCLUDES)
-raybezcoffsetf.o: raybezcoffsetf.c $(INCLUDES)
+raybezphpointsf.o: raybezphpointsf.c $(INCLUDES)
+raybezptreef.o: raybezptreef.c $(INCLUDES)
+rayboxf.o: rayboxf.c $(INCLUDES)
+rayboxtestf.o: rayboxtestf.c $(INCLUDES)
+rayrbezchpointsf.o: rayrbezchpointsf.c $(INCLUDES)
 rayrbezcoffsetf.o: rayrbezcoffsetf.c $(INCLUDES)
-rayrbeztreef.o: rayrbeztreef.c $(INCLUDES)
+rayrbezctreef.o: rayrbezctreef.c $(INCLUDES)
+rayrbezf.o: rayrbezf.c $(INCLUDES)
+rayrbezphpointsf.o: rayrbezphpointsf.c $(INCLUDES)
+rayrbezptreef.o: rayrbezptreef.c $(INCLUDES)
+rayrboxf.o: rayrboxf.c $(INCLUDES)
 rbezintersf.o: rbezintersf.c $(INCLUDES)
 rbshomotopyf.o: rbshomotopyf.c $(INCLUDES)
-raybezphpointsf.o: raybezphpointsf.c $(INCLUDES)
-raybezchpointsf.o: raybezchpointsf.c $(INCLUDES)
-rayrbezchpointsf.o: rayrbezchpointsf.c $(INCLUDES)
-rayrbezphpointsf.o: rayrbezphpointsf.c $(INCLUDES)
 
-rayboxd.o: rayboxd.c $(INCLUDES)
-rayrboxd.o: rayrboxd.c $(INCLUDES)
-rayboxtestd.o: rayboxtestd.c $(INCLUDES)
+raybezchpointsd.o: raybezchpointsd.c $(INCLUDES)
+raybezcoffsetd.o: raybezcoffsetd.c $(INCLUDES)
 raybezconvhtest1d.o: raybezconvhtest1d.c $(INCLUDES)
 raybezconvhtest2d.o: raybezconvhtest2d.c $(INCLUDES)
+raybezctreed.o: raybezctreed.c $(INCLUDES)
 raybezd.o: raybezd.c $(INCLUDES)
-rayrbezd.o: rayrbezd.c $(INCLUDES)
-raybeztreed.o: raybeztreed.c $(INCLUDES)
-raybezcoffsetd.o: raybezcoffsetd.c $(INCLUDES)
+raybezphpointsd.o: raybezphpointsd.c $(INCLUDES)
+raybezptreed.o: raybezptreed.c $(INCLUDES)
+rayboxd.o: rayboxd.c $(INCLUDES)
+rayboxtestd.o: rayboxtestd.c $(INCLUDES)
+rayrbezchpointsd.o: rayrbezchpointsd.c $(INCLUDES)
 rayrbezcoffsetd.o: rayrbezcoffsetd.c $(INCLUDES)
-rayrbeztreed.o: rayrbeztreed.c $(INCLUDES)
+rayrbezctreed.o: rayrbezctreed.c $(INCLUDES)
+rayrbezd.o: rayrbezd.c $(INCLUDES)
+rayrbezphpointsd.o: rayrbezphpointsd.c $(INCLUDES)
+rayrbezptreed.o: rayrbezptreed.c $(INCLUDES)
+rayrboxd.o: rayrboxd.c $(INCLUDES)
 rbezintersd.o: rbezintersd.c $(INCLUDES)
 rbshomotopyd.o: rbshomotopyd.c $(INCLUDES)
-raybezphpointsd.o: raybezphpointsd.c $(INCLUDES)
-raybezchpointsd.o: raybezchpointsd.c $(INCLUDES)
-rayrbezchpointsd.o: rayrbezchpointsd.c $(INCLUDES)
-rayrbezphpointsd.o: rayrbezphpointsd.c $(INCLUDES)
 
 clean:
 	rm -f $(OBJECTS)

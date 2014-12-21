@@ -43,7 +43,6 @@ static BezCurveTreeVertexdp
     vertex->t1 = t1;
     vertex->left = vertex->right = NULL;
     vertex->up = up;
-    vertex->leaf = true;
     if ( up )
       vertex->level = (short)(up->level + 1);
     else
@@ -173,13 +172,12 @@ static void DivideCVertexd ( BezCurveTreedp tree, BezCurveTreeVertexdp vertex )
   FindCBoundingBoxd ( tree, vertex->left );
   FindCBoundingBoxd ( tree, vertex->right );
   UpdateCBoundingBoxesd ( vertex );
-  vertex->leaf = false;
 } /*DivideCVertexd*/
 
 BezCurveTreeVertexdp rbez_GetBezCurveLeftVertexd ( BezCurveTreedp tree,
                                                    BezCurveTreeVertexdp vertex )
 {
-  if ( vertex->leaf ) {
+  if ( !vertex->left ) {
     if ( raybez_use_mutex )
       pthread_mutex_lock ( &raybez_mutex );
     if ( !vertex->left )
@@ -193,7 +191,7 @@ BezCurveTreeVertexdp rbez_GetBezCurveLeftVertexd ( BezCurveTreedp tree,
 BezCurveTreeVertexdp rbez_GetBezCurveRightVertexd ( BezCurveTreedp tree,
                                                     BezCurveTreeVertexdp vertex )
 {
-  if ( vertex->leaf ) {
+  if ( !vertex->right ) {
     if ( raybez_use_mutex )
       pthread_mutex_lock ( &raybez_mutex );
     if ( !vertex->right )

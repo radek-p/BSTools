@@ -3987,3 +3987,15 @@ Wersja 0.35.
     zostalo wtedy zrobione.
 
 
+21.12.2014.
+929. Duze zmiany w libraybez: drzewa binarnego podzialu plata Beziera
+    obecnie moga byc zbudowane dla plata B-sklejanego (takze w wersji
+    wymiernej). Zostaly tez ospowiednio zmienione procedury wyznaczania
+    przeciecia promienia z platem i krzywej wspolnej dwoch platow.
+
+    Analogiczne zmiany trzeba wprowadzic dla drzew podzialu krzywych
+    Beziera, takze w procedurach sledzenia promieni dla rurek offsetowych.
+
+
+
+

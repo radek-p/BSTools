@@ -25,11 +25,11 @@ include ../options.mak
 
 TARGET = nvtest knotrem bspdegel bscfe bscfede oslo4 bspbez degel \
   skiplr intbsc raster patchder patchpdir lsq transp bsder \
-  addspl raytest trimpatch bsder123f choleskyf clipf rclipf \
+  addspl testraybsf testrayrbsf trimpatch bsder123f choleskyf clipf rclipf \
   testg2f chknots degredf bscoonsf clcuintf clcuintd \
   nvtestd knotremd bspdegeld bscfed bscfeded oslo4d bspbezd degeld \
   skiplrd intbscd rasterd patchderd patchpdird lsqd transpd bsderd \
-  addspld raytestd trimpatchd bsder123d choleskyd clipd rclipd \
+  addspld testraybsd testrayrbsd trimpatchd bsder123d choleskyd clipd rclipd \
   testg2d chknotsd degredd bscoonsd \
   qsort pksort intersf intersd bcoffsetf bcoffsetd \
   lmttestf lmttestd sdtestf sdtestd
@@ -68,13 +68,21 @@ chknotsd: chknotsd.c $(INCDIR)/pkvaria.h $(INCDIR)/pkgeom.h $(INCDIR)/camera.h \
 	$(CC) $(CFLAGS) -I$(INCDIR) -L$(LIBDIR) chknotsd.c $(LIBS) -o chknotsd
 	./chknotsd
 
-raytest: raytest.c $(LIBSFN)
-	$(CC) $(CFLAGS) -I$(INCDIR) -L$(LIBDIR) raytest.c $(LIBS) -o raytest
-	./raytest
+testraybsf: testraybsf.c $(LIBSFN)
+	$(CC) $(CFLAGS) -I$(INCDIR) -L$(LIBDIR) testraybsf.c $(LIBS) -o testraybsf
+	./testraybsf
 
-raytestd: raytestd.c $(LIBSFN)
-	$(CC) $(CFLAGS) -I$(INCDIR) -L$(LIBDIR) raytestd.c $(LIBS) -o raytestd
-	./raytestd
+testraybsd: testraybsd.c $(LIBSFN)
+	$(CC) $(CFLAGS) -I$(INCDIR) -L$(LIBDIR) testraybsd.c $(LIBS) -o testraybsd
+	./testraybsd
+
+testrayrbsf: testrayrbsf.c $(LIBSFN)
+	$(CC) $(CFLAGS) -I$(INCDIR) -L$(LIBDIR) testrayrbsf.c $(LIBS) -o testrayrbsf
+	./testrayrbsf
+
+testrayrbsd: testrayrbsd.c $(LIBSFN)
+	$(CC) $(CFLAGS) -I$(INCDIR) -L$(LIBDIR) testrayrbsd.c $(LIBS) -o testrayrbsd
+	./testrayrbsd
 
 nvtest: nvtest.c $(LIBSFN)
 	$(CC) $(CFLAGS) -I$(INCDIR) -L$(LIBDIR) nvtest.c $(LIBS) -o nvtest

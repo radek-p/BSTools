@@ -36,7 +36,6 @@ static RBezCurveTreeVertexfp
     vertex->t1 = t1;
     vertex->left = vertex->right = NULL;
     vertex->up = up;
-    vertex->leaf = true;
     if ( up )
       vertex->level = (short)(up->level + 1);
     else
@@ -167,13 +166,12 @@ static void DivideRCVertexf ( RBezCurveTreefp tree, RBezCurveTreeVertexfp vertex
   FindRCBoundingBoxf ( tree, vertex->left );
   FindRCBoundingBoxf ( tree, vertex->right );
   UpdateRCBoundingBoxesf ( vertex );
-  vertex->leaf = false;
 } /*DivideRCVertexf*/
 
 RBezCurveTreeVertexfp rbez_GetRBezCurveLeftVertexf ( RBezCurveTreefp tree,
                                                      RBezCurveTreeVertexfp vertex )
 {
-  if ( vertex->leaf ) {
+  if ( !vertex->left ) {
     if ( raybez_use_mutex )
       pthread_mutex_lock ( &raybez_mutex );
     if ( !vertex->left )
@@ -187,7 +185,7 @@ RBezCurveTreeVertexfp rbez_GetRBezCurveLeftVertexf ( RBezCurveTreefp tree,
 RBezCurveTreeVertexfp rbez_GetRBezCurveRightVertexf ( RBezCurveTreefp tree,
                                                       RBezCurveTreeVertexfp vertex )
 {
-  if ( vertex->leaf ) {
+  if ( !vertex->right ) {
     if ( raybez_use_mutex )
       pthread_mutex_lock ( &raybez_mutex );
     if ( !vertex->right )
