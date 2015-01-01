@@ -114,7 +114,7 @@ int main ( void )
   pkv_InitScratchMem ( 655360 );
   SetupCamera ();
   NormalizeVector3d ( &ld );
-  tree = rbez_NewBezCurveTreed ( 0, DEGREE, 0.0, 1.0, 0.1, cp );
+  tree = rbez_NewBezCurveTreed ( 0, DEGREE, 0.0, 1.0, cp, 0.1 );
   ps_WriteBBox ( 0, 0, 154, 117 );
   ps_OpenFile ( fn, 300 );
   RayTrace ();

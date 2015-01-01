@@ -824,7 +824,7 @@ int _rbi_FindPCIntersRd ( pci_key *pcii, int cdeg, point4d *ccp,
   pcdstack = pkv_GetScratchMem ( (MAX_LEVEL+2)*sizeof(pc_domain) );
   if ( !pcdstack )
     goto failure;
-  ctree = rbez_NewRBezCurveTreed ( 0, cdeg, pcii->s0, pcii->s1, 0.0, ccp );
+  ctree = rbez_NewRBezCurveTreed ( 0, cdeg, pcii->s0, pcii->s1, ccp, 0.0 );
   if ( !ctree )
     goto failure;
   _rbi_FindRBezCurvePCentd ( ctree, ctree->root );

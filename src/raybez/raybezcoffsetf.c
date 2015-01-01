@@ -27,7 +27,7 @@
 /* ////////////////////////////////////////////////////////////////////////// */
 static boolean EnterSolution ( int degree, point3f *cp, int object_id, ray3f *ray,
                                float t0, float t1, float u0, float u1,
-                               point2f *z,
+                               point2f *z, BezCurveTreeVertexfp vertex,
                                RayObjectIntersf *inters )
 {
   point3f p;
@@ -42,18 +42,20 @@ static boolean EnterSolution ( int degree, point3f *cp, int object_id, ray3f *ra
     SubtractPoints3f ( &inters->p, &p, &inters->nv );
     NormalizeVector3f ( &inters->nv );
     inters->object_id = object_id;
-    inters->u = t;
+    inters->u = vertex->t0 +(vertex->t1-vertex->t0)*t;
     inters->v = 0.0;
     inters->t = u;
+    inters->extra_info = vertex;
     return true;
   }
   else
     return false;
 } /*EnterSolution*/
 
-int rbez_FindRayBezcOffsetIntersf ( BezCurveTreefp tree, ray3f *ray,
-                                    int maxlevel, int maxinters,
-                                    int *ninters, RayObjectIntersf *inters )
+static int FindRayBezcOffsetIntersf ( BezCurveTreefp tree,
+                 BezCurveTreeVertexfp vertex, ray3f *ray,
+                 int maxlevel, int maxinters,
+                 int *ninters, RayObjectIntersf *inters )
 {
   typedef  struct {
       float    u0, u1, t0, t1;
@@ -79,14 +81,12 @@ int rbez_FindRayBezcOffsetIntersf ( BezCurveTreefp tree, ray3f *ray,
   float   u0, u1, t0, t1;
 
   sp = pkv_GetScratchMemTop ();
-  _ninters = 0;
-  if ( !rbez_TestRayBBoxf ( ray, &tree->root->bbox ) )
-    goto way_out;
+  _ninters = *ninters;
         /* allocate workspace */
   degree = tree->degree;
   deg = 2*degree;
   degreem1 = degree-1;
-  cp = tree->root->ctlpoints;
+  cp = vertex->ctlpoints;
   mapcpsize = 3*(deg+1);
   tcp = pkv_GetScratchMem ( (4*degree+2)*sizeof(point3f) );
   if ( !tcp )
@@ -221,7 +221,7 @@ int rbez_FindRayBezcOffsetIntersf ( BezCurveTreefp tree, ray3f *ray,
       case RBEZ_NEWTON_YES:
           /* regular solution found */
           if ( EnterSolution ( degree, cp, tree->object_id, ray,
-                               t0, t1, u0, u1, &z, &inters[_ninters] ) )
+                               t0, t1, u0, u1, &z, vertex, &inters[_ninters] ) )
             _ninters ++;
           else if ( _rbez_SecondTest2f ( &z, deg, 2, K1, K2 ) )
             goto subdivide;
@@ -252,8 +252,9 @@ subdivide:
         }
         else {
           /* solution at singularity found */
+          z.x = z.y = 0.5;
           if ( EnterSolution ( degree, cp, tree->object_id, ray,
-                               t0, t1, u0, u1, &z, &inters[_ninters] ) )
+                               t0, t1, u0, u1, &z, vertex, &inters[_ninters] ) )
             _ninters ++;
         }
       }
@@ -268,5 +269,42 @@ way_out:
 failure:
   pkv_SetScratchMemTop ( sp );
   return -1;
+} /*FindRayBezcOffsetIntersf*/
+
+static int r_FindRayBezcOffsetIntersf ( BezCurveTreefp tree,
+                 BezCurveTreeVertexfp vertex, ray3f *ray,
+                 int maxlevel, int maxinters,
+                 int *ninters, RayObjectIntersf *inters )
+{
+  int result;
+
+  if ( rbez_TestRayBBoxf ( ray, &vertex->bbox ) ) {
+    if ( vertex->ctlpoints )  /* offset to a polynomial arc */
+      result = FindRayBezcOffsetIntersf ( tree, vertex, ray,
+                   maxlevel, maxinters, ninters, inters );
+    else {  /* a spline - need to deal with pieces separately */
+      if ( vertex->left )
+        result = r_FindRayBezcOffsetIntersf ( tree, vertex->left, ray,
+                       maxlevel, maxinters, ninters, inters );
+      else
+        result = 0;
+      if ( vertex->right && result >= 0 )
+        result += r_FindRayBezcOffsetIntersf ( tree, vertex->right, ray,
+                       maxlevel, maxinters, ninters, inters );
+
+    }
+  }
+  else
+    result = 0;
+  return result;
+} /*r_FindRayBezcOffsetIntersf*/
+
+int rbez_FindRayBezcOffsetIntersf ( BezCurveTreefp tree, ray3f *ray,
+                                    int maxlevel, int maxinters,
+                                    int *ninters, RayObjectIntersf *inters )
+{
+  *ninters = 0;
+  return r_FindRayBezcOffsetIntersf ( tree, tree->root, ray, maxlevel,
+                                      maxinters, ninters, inters );
 } /*rbez_FindRayBezcOffsetIntersf*/
 

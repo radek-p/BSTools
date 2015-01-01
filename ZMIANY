@@ -3996,6 +3996,14 @@ Wersja 0.35.
     Analogiczne zmiany trzeba wprowadzic dla drzew podzialu krzywych
     Beziera, takze w procedurach sledzenia promieni dla rurek offsetowych.
 
+1.01.2015.
+930. Zmiany w bibliotece libraybez - drzewa binarnego podzialu krzywych
+    Beziera obecnie moga byc drzewami binarnego podzialu krzywych
+    B-sklejanych. Do tego stosowne zmiany w procedurze sledzenia promieni
+    dla rurek offsetowych.
 
+931. Poprawki w programie pozwalaj, w pliku render.c - uwzgledniaja
+    sledzenie promieni dla krzywych B-sklejanych (juz ich nie trzeba dzielic
+    na luki wielomianowe). Przy okazji poprawione pare bledow.
 
 

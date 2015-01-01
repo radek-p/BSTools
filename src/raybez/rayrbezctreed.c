@@ -26,11 +26,16 @@
 static RBezCurveTreeVertexdp
     AllocRCTreeVertexd ( RBezCurveTreedp tree,
                          RBezCurveTreeVertexdp up,
-                         double t0, double t1 )
+                         double t0, double t1, boolean spline )
 {
+  int                   size;
   RBezCurveTreeVertexdp vertex;
 
-  PKV_MALLOC ( vertex, sizeof(RBezCurveTreeVertexd) + tree->cpsize );
+  if ( spline )
+    size = sizeof(RBezCurveTreeVertexd);
+  else
+    size = sizeof(RBezCurveTreeVertexd) + tree->cpsize;
+  PKV_MALLOC ( vertex, size );
   if ( vertex ) {
     vertex->t0 = t0;
     vertex->t1 = t1;
@@ -40,7 +45,10 @@ static RBezCurveTreeVertexdp
       vertex->level = (short)(up->level + 1);
     else
       vertex->level = 0;
-    vertex->ctlpoints = (point4d*)((char*)vertex+sizeof(RBezCurveTreeVertexd));
+    if ( !spline )
+      vertex->ctlpoints = (point4d*)((char*)vertex+sizeof(RBezCurveTreeVertexd));
+    else
+      vertex->ctlpoints = NULL;
   }
   return vertex;
 } /*AllocRCTreeVertexd*/
@@ -111,9 +119,85 @@ static void UpdateRCBoundingBoxesd ( RBezCurveTreeVertexdp vertex )
   }
 } /*UpdateRCBoundingBoxesd*/
 
+static void RBezCurveInitialDivision ( RBezCurveTreedp tree,
+                                       RBezCurveTreeVertexdp vertex,
+                                       int degree, int lastknot, double *knots,
+                                       point4d *cp )
+{
+  int                   ku, kk;
+  RBezCurveTreeVertexdp left, right;
+  double                uu;
+
+  left = right = NULL;
+  ku = (lastknot-degree)/(degree+1);
+  if ( ku == 1 ) {
+    memcpy ( vertex->ctlpoints, cp, tree->cpsize );
+    FindRCBoundingBoxd ( tree, vertex );
+  }
+  else {
+    kk = ku / 2;
+    uu = knots[kk*(degree+1)];
+    left = AllocRCTreeVertexd ( tree, vertex, vertex->t0, uu, kk > 1 );
+    right = AllocRCTreeVertexd ( tree, vertex, uu, vertex->t1, ku-kk > 1 );
+    if ( !left || !right )
+      goto failure;
+    RBezCurveInitialDivision ( tree, left, degree,
+                               (kk+1)*(degree+1)-1, knots, cp );
+    RBezCurveInitialDivision ( tree, right, degree,
+                               (ku-kk+1)*(degree+1)-1, &knots[kk*(degree+1)],
+                               &cp[kk*(degree+1)]);
+  }
+
+failure:
+  if ( left )  PKV_FREE ( left );
+  if ( right ) PKV_FREE ( right );
+} /*RBezCurveInitialDivision*/
+
+RBezCurveTreedp rbez_NewRBSCurveTreed ( int object_id,
+                                        short degree, int lastknot, double *knots,
+                                        point4d *ctlpoints, double ext )
+{
+  void                  *sp;
+  RBezCurveTreedp       tree;
+  RBezCurveTreeVertexdp root;
+  int                   _lkn, ku;
+  double                *knu;
+  point4d               *bcp;
+
+  sp = pkv_GetScratchMemTop ();
+  tree = NULL;  root = NULL;
+  ku = mbs_NumKnotIntervalsd ( degree, lastknot, knots );
+  bcp = pkv_GetScratchMem ( ku*(degree+1)*sizeof(point4d) );
+  knu = pkv_GetScratchMemd ( (ku+1)*(degree+1) );
+  if ( !bcp || !knu )
+    goto failure;
+  mbs_BSToBezC4d ( degree, lastknot, knots, ctlpoints, &ku, &_lkn, knu, bcp );
+  PKV_MALLOC ( tree, sizeof(BezCurveTreed) );
+  if ( !tree )
+    goto failure;
+  tree->object_id = object_id;
+  tree->degree = degree;
+  tree->cpsize = (degree+1)*sizeof(point4d);
+  tree->ext = ext;
+  tree->root = root = AllocRCTreeVertexd ( tree, NULL, knu[degree], knu[_lkn-degree],
+                                           ku > 1 );
+  if ( !root )
+    goto failure;
+  RBezCurveInitialDivision ( tree, root, degree, _lkn, knu, bcp );
+
+  pkv_SetScratchMemTop ( sp );
+  return tree;
+
+failure:
+  if ( root ) PKV_FREE ( root );
+  if ( tree ) PKV_FREE ( tree );
+  pkv_SetScratchMemTop ( sp );
+  return NULL;
+} /*rbez_NewRBSCurveTreed*/
+
 RBezCurveTreedp rbez_NewRBezCurveTreed ( int object_id, short degree,
-                                        double t0, double t1, double ext,
-                                        CONST_ point4d *ctlpoints )
+                                         double t0, double t1,
+                                         CONST_ point4d *ctlpoints, double ext )
 {
   RBezCurveTreedp tree;
 
@@ -123,7 +207,7 @@ RBezCurveTreedp rbez_NewRBezCurveTreed ( int object_id, short degree,
     tree->degree = degree;
     tree->cpsize = (degree+1)*sizeof(point4d);
     tree->ext = ext;
-    tree->root = AllocRCTreeVertexd ( tree, NULL, t0, t1 );
+    tree->root = AllocRCTreeVertexd ( tree, NULL, t0, t1, false );
     if ( tree->root ) {
       memcpy ( tree->root->ctlpoints, ctlpoints, tree->cpsize );
       FindRCBoundingBoxd ( tree, tree->root );
@@ -156,8 +240,8 @@ static void DivideRCVertexd ( RBezCurveTreedp tree, RBezCurveTreeVertexdp vertex
   double h;
 
   h = 0.5*(vertex->t0 + vertex->t1);
-  vertex->left  = AllocRCTreeVertexd ( tree, vertex, vertex->t0, h );
-  vertex->right = AllocRCTreeVertexd ( tree, vertex, h, vertex->t1 );
+  vertex->left  = AllocRCTreeVertexd ( tree, vertex, vertex->t0, h, false );
+  vertex->right = AllocRCTreeVertexd ( tree, vertex, h, vertex->t1, false );
   if ( !vertex->left || !vertex->right )
     return;
   memcpy ( vertex->right->ctlpoints, vertex->ctlpoints, tree->cpsize );

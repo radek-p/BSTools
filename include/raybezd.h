@@ -139,6 +139,7 @@ typedef struct {
   point3d  p;
   vector3d nv;
   double   u, v, t;
+  void     *extra_info;
 } RayObjectIntersd, *RayObjectIntersdp;
 
 
@@ -206,8 +207,11 @@ int rbez_FindRayRBezPatchIntersd ( RBezPatchTreed *tree, ray3d *ray,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 BezCurveTreedp rbez_NewBezCurveTreed ( int object_id, short degree,
-                                       double t0, double t1, double ext,
-                                       CONST_ point3d *ctlpoints );
+                                       double t0, double t1,
+                                       CONST_ point3d *ctlpoints, double ext );
+BezCurveTreedp rbez_NewBSCurveTreed ( int object_id,
+                                      short degree, int lastknot, CONST_ double *knots,
+                                      CONST_ point3d *ctlpoints, double ext );
 
 void rbez_DestroyBezCurveTreed ( BezCurveTreedp tree );
 
@@ -220,9 +224,13 @@ int rbez_FindRayBezcOffsetIntersd ( BezCurveTreedp tree, ray3d *ray,
                                     int maxlevel, int maxinters,
                                     int *ninters, RayObjectIntersd *inters );
 
+/* ////////////////////////////////////////////////////////////////////////// */
 RBezCurveTreedp rbez_NewRBezCurveTreed ( int object_id, short degree,
-                                        double t0, double t1, double ext,
-                                        CONST_ point4d *ctlpoints );
+                                        double t0, double t1,
+                                        CONST_ point4d *ctlpoints, double ext );
+RBezCurveTreedp rbez_NewRBSCurveTreed ( int object_id,
+                                        short degree, int lastknot, CONST_ double *knots,
+                                        CONST_ point4d *ctlpoints, double ext );
 
 void rbez_DestroyRBezCurveTreed ( RBezCurveTreedp tree );
 
@@ -278,7 +286,6 @@ boolean rbez_FindRBezpHighlightPointsd ( int n, int m, point4d *cp,
                      void *usrptr );
 
 /* ////////////////////////////////////////////////////////////////////////// */
-
 #ifndef RAYBEZ_H
 boolean raybez_InitMutex ( void );
 void raybez_DestroyMutex ( void );

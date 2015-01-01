@@ -33,11 +33,16 @@
 static BezCurveTreeVertexfp
     AllocCTreeVertexf ( BezCurveTreefp tree,
                         BezCurveTreeVertexfp up,
-                        float t0, float t1 )
+                        float t0, float t1, boolean spline )
 {
+  int                  size;
   BezCurveTreeVertexfp vertex;
 
-  PKV_MALLOC ( vertex, sizeof(BezCurveTreeVertexf) + tree->cpsize );
+  if ( spline )
+    size = sizeof(BezCurveTreeVertexf);
+  else
+    size = sizeof(BezCurveTreeVertexf) + tree->cpsize;
+  PKV_MALLOC ( vertex, size );
   if ( vertex ) {
     vertex->t0 = t0;
     vertex->t1 = t1;
@@ -47,7 +52,10 @@ static BezCurveTreeVertexfp
       vertex->level = (short)(up->level + 1);
     else
       vertex->level = 0;
-    vertex->ctlpoints = (point3f*)((char*)vertex+sizeof(BezCurveTreeVertexf));
+    if ( !spline )
+      vertex->ctlpoints = (point3f*)((char*)vertex+sizeof(BezCurveTreeVertexf));
+    else
+      vertex->ctlpoints = NULL;
   }
   return vertex;
 } /*AllocCTreeVertexf*/
@@ -55,7 +63,7 @@ static BezCurveTreeVertexfp
 static void FindCBoundingBoxf ( BezCurveTreefp tree,
                                 BezCurveTreeVertexfp vertex )
 {
-#define EPS 1.0e-10
+#define EPS 1.0e-5
   int ncp;
   point3f *cp, a, b;
   int     i;
@@ -68,14 +76,14 @@ static void FindCBoundingBoxf ( BezCurveTreefp tree,
     vertex->bbox.x0 = vertex->bbox.x1 = a.x;
     vertex->bbox.y0 = vertex->bbox.y1 = a.y;
     vertex->bbox.z0 = vertex->bbox.z1 = a.z;
-    i = 2;
+    i = 1;
   }
   else {
     b = *cp;  cp++;
     pkv_Sort2f ( &a.x, &b.x );  vertex->bbox.x0 = a.x;  vertex->bbox.x1 = b.x;
     pkv_Sort2f ( &a.y, &b.y );  vertex->bbox.y0 = a.y;  vertex->bbox.y1 = b.y;
     pkv_Sort2f ( &a.z, &b.z );  vertex->bbox.z0 = a.z;  vertex->bbox.z1 = b.z;
-    i = 3;
+    i = 2;
   }
   for ( ; i < ncp; i += 2 ) {
     a = *cp;  cp ++;
@@ -117,9 +125,90 @@ static void UpdateCBoundingBoxesf ( BezCurveTreeVertexfp vertex )
   }
 } /*UpdateCBoundingBoxesf*/
 
+static void BezCurveInitialDivision ( BezCurveTreefp tree,
+                                      BezCurveTreeVertexfp vertex,
+                                      int degree, int lastknot, float *knots,
+                                      point3f *cp )
+{
+  int                  ku, kk;
+  BezCurveTreeVertexfp left, right;
+  float                uu;
+
+  left = right = NULL;
+  ku = (lastknot-degree)/(degree+1);
+  if ( ku == 1 ) {
+    memcpy ( vertex->ctlpoints, cp, tree->cpsize );
+    FindCBoundingBoxf ( tree, vertex );
+    mbs_BCHornerC3f ( degree, cp, 0.5, &vertex->ccent );
+  }
+  else {
+    kk = ku / 2;
+    uu = knots[kk*(degree+1)];
+    left = AllocCTreeVertexf ( tree, vertex, vertex->t0, uu, kk > 1 );
+    right = AllocCTreeVertexf ( tree, vertex, uu, vertex->t1, ku-kk > 1 );
+    if ( !left || !right )
+      goto failure;
+    vertex->left = left;
+    vertex->right = right;
+    BezCurveInitialDivision ( tree, left, degree,
+                              (kk+1)*(degree+1)-1, knots, cp );
+    BezCurveInitialDivision ( tree, right, degree,
+                              (ku-kk+1)*(degree+1)-1, &knots[kk*(degree+1)],
+                              &cp[kk*(degree+1)]);
+    rbez_FindSumBBoxf ( &left->bbox, &right->bbox, &vertex->bbox );
+  }
+  return;
+
+failure:
+  if ( left )  PKV_FREE ( left );
+  if ( right ) PKV_FREE ( right );
+} /*BezCurveInitialDivision*/
+
+BezCurveTreefp rbez_NewBSCurveTreef ( int object_id,
+                                      short degree, int lastknot, float *knots,
+                                      point3f *ctlpoints, float ext )
+{
+  void                 *sp;
+  BezCurveTreefp       tree;
+  BezCurveTreeVertexfp root;
+  int                  _lkn, ku;
+  float                *knu;
+  point3f              *bcp;
+
+  sp = pkv_GetScratchMemTop ();
+  tree = NULL;  root = NULL;
+  ku = mbs_NumKnotIntervalsf ( degree, lastknot, knots );
+  bcp = pkv_GetScratchMem ( ku*(degree+1)*sizeof(point3f) );
+  knu = pkv_GetScratchMemf ( (ku+1)*(degree+1) );
+  if ( !bcp || !knu )
+    goto failure;
+  mbs_BSToBezC3f ( degree, lastknot, knots, ctlpoints, &ku, &_lkn, knu, bcp );
+  PKV_MALLOC ( tree, sizeof(BezCurveTreef) );
+  if ( !tree )
+    goto failure;
+  tree->object_id = object_id;
+  tree->degree = degree;
+  tree->cpsize = (degree+1)*sizeof(point3f);
+  tree->ext = ext;
+  tree->root = root = AllocCTreeVertexf ( tree, NULL, knu[degree], knu[_lkn-degree],
+                                          ku > 1 );
+  if ( !root )
+    goto failure;
+  BezCurveInitialDivision ( tree, root, degree, _lkn, knu, bcp );
+
+  pkv_SetScratchMemTop ( sp );
+  return tree;
+
+failure:
+  if ( root ) PKV_FREE ( root );
+  if ( tree ) PKV_FREE ( tree );
+  pkv_SetScratchMemTop ( sp );
+  return NULL;
+} /*rbez_NewBSCurveTreef*/
+
 BezCurveTreefp rbez_NewBezCurveTreef ( int object_id, short degree,
-                                       float t0, float t1, float ext,
-                                       CONST_ point3f *ctlpoints )
+                                       float t0, float t1,
+                                       CONST_ point3f *ctlpoints, float ext )
 {
   BezCurveTreefp tree;
 
@@ -129,7 +218,7 @@ BezCurveTreefp rbez_NewBezCurveTreef ( int object_id, short degree,
     tree->degree = degree;
     tree->cpsize = (degree+1)*sizeof(point3f);
     tree->ext = ext;
-    tree->root = AllocCTreeVertexf ( tree, NULL, t0, t1 );
+    tree->root = AllocCTreeVertexf ( tree, NULL, t0, t1, false );
     if ( tree->root ) {
       memcpy ( tree->root->ctlpoints, ctlpoints, tree->cpsize );
       FindCBoundingBoxf ( tree, tree->root );
@@ -162,8 +251,8 @@ static void DivideCVertexf ( BezCurveTreefp tree, BezCurveTreeVertexfp vertex )
   float h;
 
   h = 0.5*(vertex->t0 + vertex->t1);
-  vertex->left  = AllocCTreeVertexf ( tree, vertex, vertex->t0, h );
-  vertex->right = AllocCTreeVertexf ( tree, vertex, h, vertex->t1 );
+  vertex->left  = AllocCTreeVertexf ( tree, vertex, vertex->t0, h, false );
+  vertex->right = AllocCTreeVertexf ( tree, vertex, h, vertex->t1, false );
   if ( !vertex->left || !vertex->right )
     return;
   memcpy ( vertex->right->ctlpoints, vertex->ctlpoints, tree->cpsize );

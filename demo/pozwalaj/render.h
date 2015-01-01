@@ -6,7 +6,7 @@
 
 #define MAXPLEVEL      15
 #define MAXCLEVEL      24
-#define MAXINTERS      20
+#define MAXINTERS      32
 
 #define R_NLIGHTS       4
 
@@ -39,18 +39,18 @@ boolean RendEnterTriangle3d ( point3d *p0, point3d *p1, point3d *p2,
                               double *colour );
 boolean RendEnterBezPatch3d ( int n, int m, const point3d *cp, double *colour );
 boolean RendEnterBSPatch3d ( int n, int lknu, const double *knu,
-                              int m, int lknv, const double *knv,
-                              const point3d *cp, double *colour );
+                             int m, int lknv, const double *knv,
+                             const point3d *cp, double *colour );
 boolean RendEnterBezPatch3Rd ( int n, int m, const point4d *cp, double *colour );
 boolean RendEnterBSPatch3Rd ( int n, int lknu, const double *knu,
                               int m, int lknv, const double *knv,
                               const point4d *cp, double *colour );
-boolean RendEnterBezCurve3d ( int n, point3d *cp, double r, double *colour );
+boolean RendEnterBezCurve3d ( int n, const point3d *cp, double r, double *colour );
 boolean RendEnterBSCurve3d ( int n, int lkn, const double *kn,
-                             point3d *cp, double r, double *colour );
-boolean RendEnterBezCurve3Rd ( int n, point4d *cp, double r, double *colour );
+                             const point3d *cp, double r, double *colour );
+boolean RendEnterBezCurve3Rd ( int n, const point4d *cp, double r, double *colour );
 boolean RendEnterBSCurve3Rd ( int n, int lkn, const double *kn,
-                             point4d *cp, double r, double *colour );
+                              const point4d *cp, double r, double *colour );
 
 boolean RendEnterCamerad ( CameraRecd *CPos, xge_widget *er );
 void RendEnterLightsd ( int nlights, const vector3d *light_dir,
@@ -66,14 +66,4 @@ void InitRenderingAA ( void );
 int RenderLineA ( void );
 int RenderLineAA ( void );
 int RenderLine ( void );
-
-/* auxiliary procedures */
-void GetTexColourSF ( char type, double *colour,
-                      int n, int m, const point4d *cp, double u, double v,
-                      point3d *p, vector3d *nv, vector3d *vv,
-                      vector3d *texcolour );
-void GetTexColourNoSF ( char type, double *colour,
-                        int n, int m, const point4d *cp, double u, double v,
-                        point3d *p, vector3d *nv, vector3d *vv,
-                        vector3d *texcolour );
 

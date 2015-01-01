@@ -139,6 +139,7 @@ typedef struct {
   point3f  p;
   vector3f nv;
   float    u, v, t;
+  void     *extra_info;
 } RayObjectIntersf, *RayObjectIntersfp;
 
 
@@ -206,8 +207,11 @@ int rbez_FindRayRBezPatchIntersf ( RBezPatchTreef *tree, ray3f *ray,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 BezCurveTreefp rbez_NewBezCurveTreef ( int object_id, short degree,
-                                       float t0, float t1, float ext,
-                                       CONST_ point3f *ctlpoints );
+                                       float t0, float t1,
+                                       CONST_ point3f *ctlpoints, float ext );
+BezCurveTreefp rbez_NewBSCurveTreef ( int object_id,
+                                      short degree, int lastknot, CONST_ float *knots,
+                                      CONST_ point3f *ctlpoints, float ext );
 
 void rbez_DestroyBezCurveTreef ( BezCurveTreefp tree );
 
@@ -220,9 +224,13 @@ int rbez_FindRayBezcOffsetIntersf ( BezCurveTreefp tree, ray3f *ray,
                                     int maxlevel, int maxinters,
                                     int *ninters, RayObjectIntersf *inters );
 
+/* ////////////////////////////////////////////////////////////////////////// */
 RBezCurveTreefp rbez_NewRBezCurveTreef ( int object_id, short degree,
                                         float t0, float t1, float ext,
                                         CONST_ point4f *ctlpoints );
+RBezCurveTreefp rbez_NewRBSCurveTreef ( int object_id,
+                                        short degree, int lastknot, CONST_ float *knots,
+                                        CONST_ point4f *ctlpoints, float ext );
 
 void rbez_DestroyRBezCurveTreef ( RBezCurveTreefp tree );
 

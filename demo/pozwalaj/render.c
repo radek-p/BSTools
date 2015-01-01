@@ -30,10 +30,19 @@
 
 #define MIN_T 1.0e-5
 
+/* shape function type */
+#define shapefunc_NONE         0
+#define shapefunc_GAUSSIAN     1
+#define shapefunc_MEAN         2
+#define shapefunc_REFLECTION   3
+#define shapefunc_HIGHLIGHT    4
+#define shapefunc_LAMBERTIAN   5
+#define shapefunc_CROSSECTIONS 6
+
 /* object types, more to be added */
 #define obj_TRIANGLE  1
-#define obj_BEZPATCH  2
-#define obj_RBEZPATCH 3
+#define obj_BSPATCH   2
+#define obj_RBSPATCH  3
 #define obj_BEZCURVE  4
 #define obj_RBEZCURVE 5
 
@@ -50,16 +59,16 @@ typedef struct {
   } renderobj_triangle;
 
 typedef struct {
-    char            type;  /* == obj_BEZPATCH */
+    char            type;  /* == obj_BSPATCH */
     double          colour[3];
     BezPatchTreedp  ptree;
-  } renderobj_bezpatch;
+  } renderobj_bspatch;
 
 typedef struct {
-    char            type;  /* == obj_RBEZPATCH */
+    char            type;  /* == obj_RBSPATCH */
     double          colour[3];
     RBezPatchTreedp ptree;
-  } renderobj_rbezpatch;
+  } renderobj_rbspatch;
 
 typedef struct {
     char            type;  /* == obj_BEZCURVE */
@@ -75,11 +84,11 @@ typedef struct {
 
 typedef union {
     char type;
-    renderobj_triangle   triang;
-    renderobj_bezpatch   bezp;
-    renderobj_rbezpatch  rbezp;
-    renderobj_bezcurve   bezc;
-    renderobj_rbezcurve  rbezc;
+    renderobj_triangle  triang;
+    renderobj_bspatch   bsp;
+    renderobj_rbspatch  rbsp;
+    renderobj_bezcurve  bezc;
+    renderobj_rbezcurve rbezc;
   } renderobj;
 
 /* binary tree of object hierarchy */
@@ -131,318 +140,120 @@ double          render_cfrange[2] = {0.0,1.0};
 
 static double minsf, maxsf; /* extremal values of the shape function */
 
-static boolean (*dShapeFunc)( int n, int m, const point3d *cp, double u, double v,
-                       point3d *p, vector3d *nv, vector3d *vv );
-static double (*cShapeFunc)( int n, int m, const point3d *cp, double u, double v,
-                       point3d *p, vector3d *nv, vector3d *vv );
-static boolean (*dRShapeFunc)( int n, int m, const point4d *cp, double u, double v,
-                       point3d *p, vector3d *nv, vector3d *vv );
-static double (*cRShapeFunc)( int n, int m, const point4d *cp, double u, double v,
-                     point3d *p, vector3d *nv, vector3d *vv );
-static void (*GetTexColour) ( char type, double *colour,
-                     int n, int m, const point4d *cp, double u, double v,
-                     point3d *p, vector3d *nv, vector3d *vv,
-                     vector3d *texcolour );
+static int c_shape_func, d_shape_func;
 
 static int y;
 static byte *aabuf, *aaline[7];
 
 
 /* ///////////////////////////////////////////////////////////////////////// */
-/* discontinuous shape functions */
-boolean dShapeFunc0 ( int n, int m, const point3d *cp, double u, double v,
-                      point3d *p, vector3d *nv, vector3d *vv )
+double ShapeFunc ( int func, ray3d *ray, renderobj *obj, RayObjectIntersd *roint )
 {
-  return true;
-} /*dShapeFunc0*/
+  int                  n, m;
+  point3d              *cp;
+  point4d              *rcp;
+  vector3d             r, dp;
+  BezPatchTreeVertexd  *vertex;
+  RBezPatchTreeVertexd *rvertex;
+  double               u, v, s;
+  double               gaussian, mean;
 
-boolean dHighlightLines ( int n, int m, const point3d *cp, double u, double v,
-                           point3d *p, vector3d *nv, vector3d *vv )
+  if ( func == shapefunc_NONE )
+    return 0.0;
+  switch ( obj->type ) {
+case obj_BSPATCH:
+    switch ( func ) {
+  case shapefunc_GAUSSIAN:
+  case shapefunc_MEAN:
+      n = obj->bsp.ptree->n;
+      m = obj->bsp.ptree->m;
+      vertex = (BezPatchTreeVertexd*)roint->extra_info;
+      while ( vertex->up ) {
+        if ( !vertex->up->ctlpoints )
+          break;
+        else
+          vertex = vertex->up;
+      }
+      cp = vertex->ctlpoints;
+      u = (roint->u-vertex->u0)/(vertex->u1-vertex->u0);
+      v = (roint->v-vertex->v0)/(vertex->v1-vertex->v0);
+      mbs_GMCurvaturesBP3d ( n, m, cp, u, v, &gaussian, &mean );
+      return func == shapefunc_GAUSSIAN ? gaussian : mean;
+  case shapefunc_REFLECTION:
+      goto reflection;
+  case shapefunc_HIGHLIGHT:
+      goto highlight;
+  case shapefunc_LAMBERTIAN:
+      goto lambertian;
+  case shapefunc_CROSSECTIONS:
+      goto crossections;
+      return DotProduct3d ( &sectiondir, &roint->p );
+  default:
+      return 0.0;
+    }
+
+case obj_RBSPATCH:
+    switch ( func ) {
+  case shapefunc_GAUSSIAN:
+  case shapefunc_MEAN:
+      n = obj->rbsp.ptree->n;
+      m = obj->rbsp.ptree->m;
+      rvertex = (RBezPatchTreeVertexd*)roint->extra_info;
+      while ( rvertex->up ) {
+        if ( !rvertex->up->ctlpoints )
+          break;
+        else
+          rvertex = rvertex->up;
+      }
+      rcp = rvertex->ctlpoints;
+      u = (roint->u-rvertex->u0)/(rvertex->u1-rvertex->u0);
+      v = (roint->v-rvertex->v0)/(rvertex->v1-rvertex->v0);
+      mbs_GMCurvaturesBP3Rd ( n, m, rcp, u, v, &gaussian, &mean );
+      return func == shapefunc_GAUSSIAN ? gaussian : mean;
+  case shapefunc_REFLECTION:
+reflection:
+      s = 2.0*DotProduct3d( &roint->nv, &ray->v )/
+              DotProduct3d ( &roint->nv, &roint->nv );
+      SetVector3d ( &r, ray->v.x - s*roint->nv.x,
+                        ray->v.y - s*roint->nv.y,
+                        ray->v.z - s*roint->nv.z );
+      SubtractPoints3d ( &roint->p, &rp0, &dp );
+      s = det3d ( &r, &dp, &rv2 ) / det3d ( &r, &rv1, &rv2 );
+      return s;
+  case shapefunc_HIGHLIGHT:
+highlight:
+      SubtractPoints3d ( &roint->p, &rp0, &dp );
+      s = det3d ( &roint->nv, &dp, &rv2 ) / det3d ( &roint->nv, &rv1, &rv2 );
+      return s;
+  case shapefunc_LAMBERTIAN:
+lambertian:
+      return DotProduct3d ( &lightdir[0], &roint->p );
+  case shapefunc_CROSSECTIONS:
+crossections:
+      return DotProduct3d ( &sectiondir, &roint->p );
+  default:
+      return 0.0;
+    }
+
+default:
+    return 0.0;
+  }
+} /*ShapeFunc*/
+
+double cShapeFunc ( ray3d *ray, renderobj *obj, RayObjectIntersd *roint )
 {
-  vector3d dp;
-  double   s;
+  return ShapeFunc ( c_shape_func, ray, obj, roint );
+} /*cShapeFunc*/
 
-  SubtractPoints3d ( p, &hp0, &dp );
-  s = dfsf*det3d ( nv, &dp, &hv2 ) / det3d ( nv, &hv1, &hv2 );
-  if ( s < 0.0 )
-    s = 1.0-s;
-  return ((int)s) & 0x01;
-} /*dHighlightLines*/
-
-boolean dReflectionLines ( int n, int m, const point3d *cp, double u, double v,
-                           point3d *p, vector3d *nv, vector3d *vv )
+boolean dShapeFunc ( ray3d *ray, renderobj *obj, RayObjectIntersd *roint )
 {
-  vector3d r, dp;
-  double   s;
+  double f;
 
-  s = 2.0*DotProduct3d( nv, vv )/DotProduct3d ( nv, nv );
-  SetVector3d ( &r, vv->x - s*nv->x, vv->y - s*nv->y, vv->z - s*nv->z );
-  SubtractPoints3d ( p, &rp0, &dp );
-  s = dfsf*det3d ( &r, &dp, &rv2 ) / det3d ( &r, &rv1, &rv2 );
-  if ( s < 0.0 )
-    s = 1.0-s;
-  return !(((int)s) & 0x01);
-} /*dReflectionLines*/
-
-boolean dCrossSections ( int n, int m, const point3d *cp, double u, double v,
-                         point3d *p, vector3d *nv, vector3d *vv )
-{
-  double s;
-
-  s = dfsf*DotProduct3d ( p, &sectiondir );
-  if ( s < 0.0 )
-    s = 1.0-s;
-  return !(((int)s) & 0x01);
-} /*dCrossSections*/
-
-boolean dLambertLight ( int n, int m, const point3d *cp, double u, double v,
-                        point3d *p, vector3d *nv, vector3d *vv )
-{
-  double s;
-
-  s = dfsf*DotProduct3d ( nv, &lightdir[0] );
-  if ( s < 0.0 )
-    s = 1.0-s;
-  return !(((int)s) & 0x01);
-} /*dLambertLight*/
-
-boolean dMeanCurvature ( int n, int m, const point3d *cp, double u, double v,
-                          point3d *p, vector3d *nv, vector3d *vv )
-{
-  double gauss, mean, s;
-
-  mbs_GMCurvaturesBP3d ( n, m, cp, u, v, &gauss, &mean );
-  s = dfsf*mean;
-  if ( s < 0.0 )
-    s = 1.0-s;
-  return !(((int)s) & 0x01);
-} /*dMeanCurvature*/
-
-boolean dGaussianCurvature ( int n, int m, const point3d *cp, double u, double v,
-                             point3d *p, vector3d *nv, vector3d *vv )
-{
-  double gauss, mean, s;
-
-  mbs_GMCurvaturesBP3d ( n, m, cp, u, v, &gauss, &mean );
-  s = dfsf*gauss;
-  if ( s < 0.0 )
-    s = 1.0-s;
-  return !(((int)s) & 0x01);
-} /*dMeanCurvature*/
-
-boolean dRShapeFunc0 ( int n, int m, const point4d *cp, double u, double v,
-                       point3d *p, vector3d *nv, vector3d *vv )
-{
-  return true;
-} /*dRShapeFunc0*/
-
-boolean dRHighlightLines ( int n, int m, const point4d *cp, double u, double v,
-                            point3d *p, vector3d *nv, vector3d *vv )
-{
-  vector3d dp;
-  double   s;
-
-  SubtractPoints3d ( p, &hp0, &dp );
-  s = dfsf*det3d ( nv, &dp, &hv2 ) / det3d ( nv, &hv1, &hv2 );
-  if ( s < 0.0 )
-    s = 1.0-s;
-  return ((int)s) & 0x01;
-} /*dRHighlightLines*/
-
-boolean dRReflectionLines ( int n, int m, const point4d *cp, double u, double v,
-                            point3d *p, vector3d *nv, vector3d *vv )
-{
-  vector3d r, dp;
-  double   s;
-
-  s = 2.0*DotProduct3d( nv, vv )/DotProduct3d ( nv, nv );
-  SetVector3d ( &r, vv->x - s*nv->x, vv->y - s*nv->y, vv->z - s*nv->z );
-  SubtractPoints3d ( p, &rp0, &dp );
-  s = dfsf*det3d ( &r, &dp, &rv2 ) / det3d ( &r, &rv1, &rv2 );
-  if ( s < 0.0 )
-    s = 1.0-s;
-  return !(((int)s) & 0x01);
-} /*dRReflectionLines*/
-
-boolean dRCrossSections ( int n, int m, const point4d *cp, double u, double v,
-                          point3d *p, vector3d *nv, vector3d *vv )
-{
-  double s;
-
-  s = dfsf*DotProduct3d ( p, &sectiondir );
-  if ( s < 0.0 )
-    s = 1.0-s;
-  return !(((int)s) & 0x01);
-} /*dRCrossSections*/
-
-boolean dRLambertLight ( int n, int m, const point4d *cp, double u, double v,
-                         point3d *p, vector3d *nv, vector3d *vv )
-{
-  double s;
-
-  s = dfsf*DotProduct3d ( nv, &lightdir[0] );
-  if ( s < 0.0 )
-    s = 1.0-s;
-  return !(((int)s) & 0x01);
-} /*dRLambertLight*/
-
-boolean dRMeanCurvature ( int n, int m, const point4d *cp, double u, double v,
-                          point3d *p, vector3d *nv, vector3d *vv )
-{
-  double gauss, mean, s;
-
-  mbs_GMCurvaturesBP3Rd ( n, m, cp, u, v, &gauss, &mean );
-  s = dfsf*mean;
-  if ( s < 0.0 )
-    s = 1.0-s;
-  return !(((int)s) & 0x01);
-} /*dRMeanCurvature*/
-
-boolean dRGaussianCurvature ( int n, int m, const point4d *cp, double u, double v,
-                              point3d *p, vector3d *nv, vector3d *vv )
-{
-  double gauss, mean, s;
-
-  mbs_GMCurvaturesBP3Rd ( n, m, cp, u, v, &gauss, &mean );
-  s = dfsf*gauss;
-  if ( s < 0.0 )
-    s = 1.0-s;
-  return !(((int)s) & 0x01);
-} /*dRMeanCurvature*/
-
-/* ////////////////////////////////////////////////////////////////////////// */
-/* continuous shape functions */
-double cShapeFunc0 ( int n, int m, const point3d *cp, double u, double v,
-                    point3d *p, vector3d *nv, vector3d *vv )
-{
-  return 0.0;
-} /*cShapeFunc0*/
-
-double cHighlightLines ( int n, int m, const point3d *cp, double u, double v,
-                         point3d *p, vector3d *nv, vector3d *vv )
-{
-  vector3d dp;
-  double   s;
-
-  SubtractPoints3d ( p, &rp0, &dp );
-  s = det3d ( nv, &dp, &rv2 ) / det3d ( nv, &rv1, &rv2 );
-  return s;
-} /*cHighlightLines*/
-
-double cReflectionLines ( int n, int m, const point3d *cp, double u, double v,
-                          point3d *p, vector3d *nv, vector3d *vv )
-{
-  vector3d r, dp;
-  double   s;
-
-  s = 2.0*DotProduct3d( nv, vv )/DotProduct3d ( nv, nv );
-  SetVector3d ( &r, vv->x - s*nv->x, vv->y - s*nv->y, vv->z - s*nv->z );
-  SubtractPoints3d ( p, &rp0, &dp );
-  s = det3d ( &r, &dp, &rv2 ) / det3d ( &r, &rv1, &rv2 );
-  return s;
-} /*cReflectionLines*/
-
-double cCrossSections ( int n, int m, const point3d *cp, double u, double v,
-                       point3d *p, vector3d *nv, vector3d *vv )
-{
-  double s;
-
-  s = DotProduct3d ( p, &sectiondir );
-  return s;
-} /*cCrossSections*/
-
-double cLambertLight ( int n, int m, const point3d *cp, double u, double v,
-                      point3d *p, vector3d *nv, vector3d *vv )
-{
-  double s;
-
-  s = DotProduct3d ( nv, &lightdir[0] );
-  return s;
-} /*cLambertLight*/
-
-double cMeanCurvature ( int n, int m, const point3d *cp, double u, double v,
-                       point3d *p, vector3d *nv, vector3d *vv )
-{
-  double gauss, mean;
-
-  mbs_GMCurvaturesBP3d ( n, m, cp, u, v, &gauss, &mean );
-  return mean;
-} /*cMeanCurvature*/
-
-double cGaussianCurvature ( int n, int m, const point3d *cp, double u, double v,
-                           point3d *p, vector3d *nv, vector3d *vv )
-{
-  double gauss, mean;
-
-  mbs_GMCurvaturesBP3d ( n, m, cp, u, v, &gauss, &mean );
-  return gauss;
-} /*cMeanCurvature*/
-
-double cRShapeFunc0 ( int n, int m, const point4d *cp, double u, double v,
-                     point3d *p, vector3d *nv, vector3d *vv )
-{
-  return 0.0;
-} /*cRShapeFunc0*/
-
-double cRHighlightLines ( int n, int m, const point4d *cp, double u, double v,
-                          point3d *p, vector3d *nv, vector3d *vv )
-{
-  vector3d dp;
-  double   s;
-
-  SubtractPoints3d ( p, &rp0, &dp );
-  s = det3d ( nv, &dp, &rv2 ) / det3d ( nv, &rv1, &rv2 );
-  return s;
-} /*cRHighlightLines*/
-
-double cRReflectionLines ( int n, int m, const point4d *cp, double u, double v,
-                           point3d *p, vector3d *nv, vector3d *vv )
-{
-  vector3d r, dp;
-  double   s;
-
-  s = 2.0*DotProduct3d( nv, vv )/DotProduct3d ( nv, nv );
-  SetVector3d ( &r, vv->x - s*nv->x, vv->y - s*nv->y, vv->z - s*nv->z );
-  SubtractPoints3d ( p, &rp0, &dp );
-  s = det3d ( &r, &dp, &rv2 ) / det3d ( &r, &rv1, &rv2 );
-  return s;
-} /*cRReflectionLines*/
-
-double cRCrossSections ( int n, int m, const point4d *cp, double u, double v,
-                        point3d *p, vector3d *nv, vector3d *vv )
-{
-  double s;
-
-  s = DotProduct3d ( p, &sectiondir );
-  return s;
-} /*cRCrossSections*/
-
-double cRLambertLight ( int n, int m, const point4d *cp, double u, double v,
-                       point3d *p, vector3d *nv, vector3d *vv )
-{
-  double s;
-
-  s = DotProduct3d ( nv, &lightdir[0] );
-  return s;
-} /*cRLambertLight*/
-
-double cRMeanCurvature ( int n, int m, const point4d *cp, double u, double v,
-                        point3d *p, vector3d *nv, vector3d *vv )
-{
-  double gauss, mean;
-
-  mbs_GMCurvaturesBP3Rd ( n, m, cp, u, v, &gauss, &mean );
-  return mean;
-} /*cRMeanCurvature*/
-
-double cRGaussianCurvature ( int n, int m, const point4d *cp, double u, double v,
-                            point3d *p, vector3d *nv, vector3d *vv )
-{
-  double gauss, mean;
-
-  mbs_GMCurvaturesBP3Rd ( n, m, cp, u, v, &gauss, &mean );
-  return gauss;
-} /*cRMeanCurvature*/
+  f = dfsf*ShapeFunc ( d_shape_func, ray, obj, roint );
+  if ( f < 0.0 )
+    f = 1.0-f;
+  return !(((int)f) & 0x01);
+} /*dShapeFunc*/
 
 /* ///////////////////////////////////////////////////////////////////////// */
 void OutputMinMaxShapeFunc ( double minsf, double maxsf )
@@ -462,103 +273,155 @@ typedef struct {
     float   fmin, fmax;
   } minmax_struct;
 
+static void _BSPatchMinMaxShapeFunc ( int dens, int id, renderobj *obj,
+                                      BezPatchTreeVertexd *vertex,
+                                      double *fmin, double *fmax )
+{
+  BezPatchTreed    *tree;
+  point3d          *cp;
+  RayObjectIntersd roint;
+  ray3d            ray;
+  int              m, n, j, k;
+  double           f;
+
+  if ( vertex->ctlpoints ) {
+    tree = obj->bsp.ptree;
+    n = tree->n;
+    m = tree->m;
+    cp = vertex->ctlpoints;
+
+    ray.p = _CPos.position;
+    roint.object_id = id;
+    roint.extra_info = (void*)vertex;
+    if ( *fmin > *fmax ) {
+      roint.u = roint.v = 0.0;
+      mbs_BCHornerNvP3d  ( m, n, cp, 0.0, 0.0, &roint.p, &roint.nv );
+      SubtractPoints3d ( &roint.p, &ray.p, &ray.v );
+      roint.t = sqrt ( DotProduct3d ( &ray.v, &ray.v ) );
+      MultVector3d ( 1.0/roint.t, &ray.v, &ray.v );
+      *fmin = *fmax = cShapeFunc ( &ray, obj, &roint );
+    }
+    for ( j = 0; j <= dens; j++ ) {
+      roint.u = (double)j/(double)dens;
+      for ( k = 0; k <= dens; k++ ) {
+        roint.v = (double)k/(double)dens;
+        mbs_BCHornerNvP3d  ( m, n, cp, roint.u, roint.v, &roint.p, &roint.nv );
+        SubtractPoints3d ( &roint.p, &ray.p, &ray.v );
+        roint.t = sqrt ( DotProduct3d ( &ray.v, &ray.v ) );
+        MultVector3d ( 1.0/roint.t, &ray.v, &ray.v );
+        f = cShapeFunc ( &ray, obj, &roint );
+        if ( f < *fmin )      *fmin = f;
+        else if ( f > *fmax ) *fmax = f;
+      }
+    }
+  }
+  else {
+    if ( vertex->left )
+      _BSPatchMinMaxShapeFunc ( dens, id, obj, vertex->left, fmin, fmax );
+    if (vertex->right )
+      _BSPatchMinMaxShapeFunc ( dens, id, obj, vertex->right, fmin, fmax );
+  }
+} /*_BSPatchMinMaxShapeFunc*/
+
+static void _RBSPatchMinMaxShapeFunc ( int dens, int id, renderobj *obj,
+                                       RBezPatchTreeVertexd *vertex,
+                                       double *fmin, double *fmax )
+{
+  RBezPatchTreed   *tree;
+  point4d          *cp;
+  RayObjectIntersd roint;
+  ray3d            ray;
+  int              m, n, j, k;
+  double           f;
+
+  if ( vertex->ctlpoints ) {
+    tree = obj->rbsp.ptree;
+    n = tree->n;
+    m = tree->m;
+    cp = vertex->ctlpoints;
+
+    ray.p = _CPos.position;
+    roint.object_id = id;
+    roint.extra_info = (void*)vertex;
+    if ( *fmin > *fmax ) {
+      roint.u = roint.v = 0.0;
+      mbs_BCHornerNvP3Rd  ( m, n, cp, 0.0, 0.0, &roint.p, &roint.nv );
+      SubtractPoints3d ( &roint.p, &ray.p, &ray.v );
+      roint.t = sqrt ( DotProduct3d ( &ray.v, &ray.v ) );
+      MultVector3d ( 1.0/roint.t, &ray.v, &ray.v );
+      *fmin = *fmax = cShapeFunc ( &ray, obj, &roint );
+    }
+    for ( j = 0; j <= dens; j++ ) {
+      roint.u = (double)j/(double)dens;
+      for ( k = 0; k <= dens; k++ ) {
+        roint.v = (double)k/(double)dens;
+        mbs_BCHornerNvP3Rd  ( m, n, cp, roint.u, roint.v, &roint.p, &roint.nv );
+        SubtractPoints3d ( &roint.p, &ray.p, &ray.v );
+        roint.t = sqrt ( DotProduct3d ( &ray.v, &ray.v ) );
+        MultVector3d ( 1.0/roint.t, &ray.v, &ray.v );
+        f = cShapeFunc ( &ray, obj, &roint );
+        if ( f < *fmin )      *fmin = f;
+        else if ( f > *fmax ) *fmax = f;
+      }
+    }
+  }
+  else {
+    if ( vertex->left )
+      _RBSPatchMinMaxShapeFunc ( dens, id, obj, vertex->left, fmin, fmax );
+    if (vertex->right )
+      _RBSPatchMinMaxShapeFunc ( dens, id, obj, vertex->right, fmin, fmax );
+  }
+} /*_RBSPatchMinMaxShapeFunc*/
+
 static boolean _FindMinMaxShapeFunc ( void *usrdata, int3 *jobnum )
 {
   minmax_struct *mms;
-  int           i, i0, i1, j, k, n, m, dens;
-  double        u, v, f, fmin, fmax;
-  point3d       p, *cp3;
-  point4d       *cp4;
-  vector3d      nv, vv;
-  boolean       ok;
+  int           i, i0, i1;
+  double        fmin, fmax;
 
   mms = (minmax_struct*)usrdata;
-  dens = mms->dens;
   i = jobnum->x;
   i0 = mms->jobs[i];  i1 = mms->jobs[i+1];
-  ok = false;
-  fmin = -1.0;  fmax = 1.0;
+  fmin = 1.0;  fmax = -1.0;
   for ( i = i0; i < i1; i++ ) {
     switch ( obj_tab[i].type ) {
-  case obj_BEZPATCH:
-      n = obj_tab[i].bezp.ptree->n;
-      m = obj_tab[i].bezp.ptree->m;
-      cp3 = obj_tab[i].bezp.ptree->root->ctlpoints;
-      if ( !ok ) {
-        mbs_BCHornerNvP3d ( n, m, cp3, 0.0, 0.0, &p, &nv );
-        SubtractPoints3d ( &p, &_CPos.position, &vv );
-        NormalizeVector3d ( &vv );
-        fmin = fmax = cShapeFunc ( n, m, cp3, 0.0, 0.0, &p, &nv, &vv );
-        ok = true;
-      }
-      for ( j = 0; j <= dens; j++ ) {
-        u = (double)j/(double)dens;
-        for ( k = 0; k <= dens; k++ ) {
-          v = (double)k/(double)dens;
-          mbs_BCHornerNvP3d ( n, m, cp3, u, v, &p, &nv );
-          SubtractPoints3d ( &p, &_CPos.position, &vv ); 
-          NormalizeVector3d ( &vv );
-          f = cShapeFunc ( n, m, cp3, u, v, &p, &nv, &vv );
-          if ( f < fmin )
-            fmin = f;
-          else if ( f > fmax )
-            fmax = f;
-        }
-      }
+  case obj_BSPATCH:
+      _BSPatchMinMaxShapeFunc ( mms->dens, i, &obj_tab[i],
+                                obj_tab[i].bsp.ptree->root, &fmin, &fmax );
       break;
-  case obj_RBEZPATCH:
-      n = obj_tab[i].rbezp.ptree->n;
-      m = obj_tab[i].rbezp.ptree->m;
-      cp4 = obj_tab[i].rbezp.ptree->root->ctlpoints;
-      if ( !ok ) {
-        mbs_BCHornerNvP3Rd ( n, m, cp4, 0.0, 0.0, &p, &nv );
-        SubtractPoints3d ( &p, &_CPos.position, &vv );
-        NormalizeVector3d ( &vv );
-        fmin = fmax = cRShapeFunc ( n, m, cp4, 0.0, 0.0, &p, &nv, &vv );
-        ok = true;
-      }
-      for ( j = 0; j <= dens; j++ ) {
-        u = (double)j/(double)dens;
-        for ( k = 0; k <= dens; k++ ) {
-          v = (double)k/(double)dens;
-          mbs_BCHornerNvP3Rd ( n, m, cp4, u, v, &p, &nv );
-          SubtractPoints3d ( &p, &_CPos.position, &vv ); 
-          NormalizeVector3d ( &vv );
-          f = cRShapeFunc ( n, m, cp4, u, v, &p, &nv, &vv );
-          if ( f < fmin )
-            fmin = f;
-          else if ( f > fmax )
-            fmax = f;
-        }
-      }
+  case obj_RBSPATCH:
+      _RBSPatchMinMaxShapeFunc ( mms->dens, i, &obj_tab[i],
+                                 obj_tab[i].rbsp.ptree->root, &fmin, &fmax );
       break;
   default:
       break;
     }
   }
         /* store the minimal and maximal values found so far */
-  if ( ncpu > 1 && rendering_npthreads > 1 ) {
-    pthread_mutex_lock ( &raybez_mutex );
-    if ( mms->ok ) {
-      if ( fmin < mms->fmin ) mms->fmin = fmin;
-      if ( fmax > mms->fmax ) mms->fmax = fmax;
+  if ( fmin < fmax ) {
+    if ( ncpu > 1 && rendering_npthreads > 1 ) {
+      pthread_mutex_lock ( &raybez_mutex );
+      if ( mms->ok ) {
+        if ( fmin < mms->fmin ) mms->fmin = fmin;
+        if ( fmax > mms->fmax ) mms->fmax = fmax;
+      }
+      else {
+        mms->fmin = fmin;
+        mms->fmax = fmax;
+        mms->ok = true;
+      }
+      pthread_mutex_unlock ( &raybez_mutex );
     }
     else {
-      mms->fmin = fmin;
-      mms->fmax = fmax;
-      mms->ok = true;
-    }
-    pthread_mutex_unlock ( &raybez_mutex );
-  }
-  else {
-    if ( mms->ok ) {
-      if ( fmin < mms->fmin ) mms->fmin = fmin;
-      if ( fmax > mms->fmax ) mms->fmax = fmax;
-    }
-    else {
-      mms->fmin = fmin;
-      mms->fmax = fmax;
-      mms->ok = true;
+      if ( mms->ok ) {
+        if ( fmin < mms->fmin ) mms->fmin = fmin;
+        if ( fmax > mms->fmax ) mms->fmax = fmax;
+      }
+      else {
+        mms->fmin = fmin;
+        mms->fmax = fmax;
+        mms->ok = true;
+      }
     }
   }
   return true;
@@ -644,10 +507,7 @@ boolean RendInit ( void )
   if ( !obj_tab )
     return false;
   nobjects = 0;
-  cShapeFunc = cShapeFunc0;
-  dShapeFunc = dShapeFunc0;
-  cRShapeFunc = cRShapeFunc0;
-  dRShapeFunc = dRShapeFunc0;
+  c_shape_func = d_shape_func = shapefunc_NONE;
   if ( !(aabuf = malloc ( 7*3*(3*xge_MAX_WIDTH+4) )) )
     return false;
   RendererIsOk = true;
@@ -777,11 +637,11 @@ boolean RendEnterBezPatch3d ( int n, int m, const point3d *cp, double *colour )
       goto failure;
   }
   if ( nobjects < obj_tab_length ) {
-    obj_tab[nobjects].type = obj_BEZPATCH;
-    obj_tab[nobjects].bezp.ptree =
+    obj_tab[nobjects].type = obj_BSPATCH;
+    obj_tab[nobjects].bsp.ptree =
           rbez_NewBezPatchTreed ( nobjects, n, m, 0.0, 1.0, 0.0, 1.0, cp );
-    if ( obj_tab[nobjects].bezp.ptree ) {
-      memcpy ( &obj_tab[nobjects].bezp.colour[0], colour, 3*sizeof(double) );
+    if ( obj_tab[nobjects].bsp.ptree ) {
+      memcpy ( &obj_tab[nobjects].bsp.colour[0], colour, 3*sizeof(double) );
       nobjects ++;
       return true;
     }
@@ -796,35 +656,27 @@ boolean RendEnterBSPatch3d ( int n, int lknu, const double *knu,
                              int m, int lknv, const double *knv,  
                              const point3d *cp, double *colour )
 {
-  void   *sp;
-  int    ku, kv, pitch1, pitch2, pitch3, i, j, start;
-  double *b, *c;
+  int pitch;
 
-  sp = pkv_GetScratchMemTop ();
-  if ( obj_tab ) {
-    ku = mbs_NumKnotIntervalsd ( n, lknu, knu );
-    kv = mbs_NumKnotIntervalsd ( m, lknv, knv );
-    pitch1 = (lknv-m)*3;
-    pitch2 = (m+1)*3*kv;
-    pitch3 = (m+1)*3;
-    b = pkv_GetScratchMemd ( pitch2*ku*(n+1)*3 );
-    c = pkv_GetScratchMemd ( (n+1)*pitch3 );
-    if ( b && c ) {
-      mbs_BSPatchToBezd ( 3, n, lknu, knu, m, lknv, knv, pitch1, (double*)cp,
-                          &ku, NULL, NULL, &kv, NULL, NULL, pitch2, b );
-      for ( i = 0; i < ku; i++ )
-        for ( j = 0; j < kv; j++ ) {
-          start = i*(n+1)*pitch2+pitch3*j;
-          pkv_Selectd ( n+1, pitch3, pitch2, pitch3, &b[start], c );
-          if ( !RendEnterBezPatch3d ( n, m, (point3d*)c, colour ) )
-            goto failure;
-        }
-      pkv_SetScratchMemTop ( sp );
+  if ( nobjects >= obj_tab_length ) {
+    if ( !ReallocObjTab () )
+      goto failure;
+  }
+  if ( nobjects < obj_tab_length ) {
+    pitch = lknv-m;
+    obj_tab[nobjects].type = obj_BSPATCH;
+    obj_tab[nobjects].bsp.ptree =
+          rbez_NewBSPatchTreed ( nobjects, n, lknu, knu, m, lknv, knv,
+                                 pitch, cp );
+    if ( obj_tab[nobjects].bsp.ptree ) {
+      memcpy ( &obj_tab[nobjects].bsp.colour[0], colour, 3*sizeof(double) );
+      nobjects ++;
       return true;
     }
+    else
+      goto failure;
   }
 failure:
-  pkv_SetScratchMemTop ( sp );
   return false;
 } /*RendEnterBSPatch3d*/
 
@@ -835,11 +687,11 @@ boolean RendEnterBezPatch3Rd ( int n, int m, const point4d *cp, double *colour )
       goto failure;
   }
   if ( nobjects < obj_tab_length ) {
-    obj_tab[nobjects].type = obj_RBEZPATCH;
-    obj_tab[nobjects].rbezp.ptree =
+    obj_tab[nobjects].type = obj_RBSPATCH;
+    obj_tab[nobjects].rbsp.ptree =
           rbez_NewRBezPatchTreed ( nobjects, n, m, 0.0, 1.0, 0.0, 1.0, cp );
-    if ( obj_tab[nobjects].rbezp.ptree ) {
-      memcpy ( &obj_tab[nobjects].rbezp.colour[0], colour, 3*sizeof(double) );
+    if ( obj_tab[nobjects].rbsp.ptree ) {
+      memcpy ( &obj_tab[nobjects].rbsp.colour[0], colour, 3*sizeof(double) );
       nobjects ++;
       return true;
     }
@@ -854,39 +706,31 @@ boolean RendEnterBSPatch3Rd ( int n, int lknu, const double *knu,
                               int m, int lknv, const double *knv,  
                               const point4d *cp, double *colour )
 {
-  void   *sp;
-  int    ku, kv, pitch1, pitch2, pitch3, i, j, start;
-  double *b, *c;
+  int pitch;
 
-  sp = pkv_GetScratchMemTop ();
-  if ( obj_tab ) {
-    ku = mbs_NumKnotIntervalsd ( n, lknu, knu );
-    kv = mbs_NumKnotIntervalsd ( m, lknv, knv );
-    pitch1 = (lknv-m)*4;
-    pitch2 = (m+1)*4*kv;
-    pitch3 = (m+1)*4;
-    b = pkv_GetScratchMemd ( pitch2*ku*(n+1)*4 );
-    c = pkv_GetScratchMemd ( (n+1)*pitch3 );
-    if ( b && c ) {
-      mbs_BSPatchToBezd ( 4, n, lknu, knu, m, lknv, knv, pitch1, (double*)cp,
-                          &ku, NULL, NULL, &kv, NULL, NULL, pitch2, b );
-      for ( i = 0; i < ku; i++ )
-        for ( j = 0; j < kv; j++ ) {
-          start = i*(n+1)*pitch2+pitch3*j;
-          pkv_Selectd ( n+1, pitch3, pitch2, pitch3, &b[start], c );
-          if ( !RendEnterBezPatch3Rd ( n, m, (point4d*)c, colour ) )
-            goto failure;
-        }
-      pkv_SetScratchMemTop ( sp );
+  if ( nobjects >= obj_tab_length ) {
+    if ( !ReallocObjTab () )
+      goto failure;
+  }
+  if ( nobjects < obj_tab_length ) {
+    pitch = lknv-m;
+    obj_tab[nobjects].type = obj_RBSPATCH;
+    obj_tab[nobjects].rbsp.ptree =
+          rbez_NewRBSPatchTreed ( nobjects, n, lknu, knu, m, lknv, knv,
+                                  pitch, cp );
+    if ( obj_tab[nobjects].rbsp.ptree ) {
+      memcpy ( &obj_tab[nobjects].rbsp.colour[0], colour, 3*sizeof(double) );
+      nobjects ++;
       return true;
     }
+    else
+      goto failure;
   }
 failure:
-  pkv_SetScratchMemTop ( sp );
   return false;
 } /*RendEnterBSPatch3Rd*/
 
-boolean RendEnterBezCurve3d ( int n, point3d *cp, double r, double *colour )
+boolean RendEnterBezCurve3d ( int n, const point3d *cp, double r, double *colour )
 {
   if ( nobjects >= obj_tab_length ) {
     if ( !ReallocObjTab () )
@@ -895,7 +739,7 @@ boolean RendEnterBezCurve3d ( int n, point3d *cp, double r, double *colour )
   if ( nobjects < obj_tab_length ) {
     obj_tab[nobjects].type = obj_BEZCURVE;
     obj_tab[nobjects].bezc.ctree =
-          rbez_NewBezCurveTreed ( nobjects, n, 0.0, 1.0, r, cp );
+          rbez_NewBezCurveTreed ( nobjects, n, 0.0, 1.0, cp, r );
     if ( obj_tab[nobjects].bezc.ctree ) {
       memcpy ( &obj_tab[nobjects].bezc.colour[0], colour, 3*sizeof(double) );
       nobjects ++;
@@ -909,40 +753,29 @@ failure:
 } /*RendEnterBezCurve3d*/
 
 boolean RendEnterBSCurve3d ( int n, int lkn, const double *kn,
-                             point3d *cp, double r, double *colour )
+                             const point3d *cp, double r, double *colour )
 {
-  void   *sp;
-  int    i, k;
-  double *b;
-
-  sp = pkv_GetScratchMemTop ();
-  if ( obj_tab ) {
-    k = mbs_NumKnotIntervalsd ( n, lkn, kn );
-    if ( k < 1 )
+  if ( nobjects >= obj_tab_length ) {
+    if ( !ReallocObjTab () )
       goto failure;
-    b = pkv_GetScratchMemd ( (n+1)*k*3 );
-    if ( b ) {
-      mbs_BSToBezC3d ( n, lkn, kn, cp, &k, NULL, NULL, b );
-      for ( i = 0; i < k; i++ )
-        if ( !RendEnterBezCurve3d ( n, (point3d*)&b[3*i*(n+1)], r, colour ) )
-          goto failure;
-/*
-bsf_OpenOutputFile ( "mbc.bs" );
-for ( i = 0; i < k; i++ )
-  bsf_WriteBezierCurved ( 3, 3, false, n, &b[3*i*(n+1)], NULL, NULL );
-bsf_CloseOutputFile ();
-*/
-    }
   }
-  pkv_SetScratchMemTop ( sp );
-  return true;
-
+  if ( nobjects < obj_tab_length ) {
+    obj_tab[nobjects].type = obj_BEZCURVE;
+    obj_tab[nobjects].bezc.ctree =
+          rbez_NewBSCurveTreed ( nobjects, n, lkn, kn, cp, r );
+    if ( obj_tab[nobjects].bezc.ctree ) {
+      memcpy ( &obj_tab[nobjects].bezc.colour[0], colour, 3*sizeof(double) );
+      nobjects ++;
+      return true;
+    }
+    else
+      goto failure;
+  }
 failure:
-  pkv_SetScratchMemTop ( sp );
   return false;
 } /*RendEnterBSCurve3d*/
 
-boolean RendEnterBezCurve3Rd ( int n, point4d *cp, double r, double *colour )
+boolean RendEnterBezCurve3Rd ( int n, const point4d *cp, double r, double *colour )
 {
   if ( nobjects >= obj_tab_length ) {
     if ( !ReallocObjTab () )
@@ -951,7 +784,7 @@ boolean RendEnterBezCurve3Rd ( int n, point4d *cp, double r, double *colour )
   if ( nobjects < obj_tab_length ) {
     obj_tab[nobjects].type = obj_RBEZCURVE;
     obj_tab[nobjects].rbezc.ctree =
-          rbez_NewRBezCurveTreed ( nobjects, n, 0.0, 1.0, r, cp );
+          rbez_NewRBezCurveTreed ( nobjects, n, 0.0, 1.0, cp, r );
     if ( obj_tab[nobjects].rbezc.ctree ) {
       memcpy ( &obj_tab[nobjects].rbezc.colour[0], colour, 3*sizeof(double) );
       nobjects ++;
@@ -965,30 +798,25 @@ failure:
 } /*RendEnterBezCurve3Rd*/
 
 boolean RendEnterBSCurve3Rd ( int n, int lkn, const double *kn,
-                              point4d *cp, double r, double *colour )
+                              const point4d *cp, double r, double *colour )
 {
-  void   *sp;
-  int    i, k;
-  double *b;
-
-  sp = pkv_GetScratchMemTop ();
-  if ( obj_tab ) {
-    k = mbs_NumKnotIntervalsd ( n, lkn, kn );
-    if ( k < 1 )
+  if ( nobjects >= obj_tab_length ) {
+    if ( !ReallocObjTab () )
       goto failure;
-    b = pkv_GetScratchMemd ( (n+1)*k*4 );
-    if ( b ) {
-      mbs_BSToBezC4d ( n, lkn, kn, cp, &k, NULL, NULL, b );
-      for ( i = 0; i < k; i++ )
-        if ( !RendEnterBezCurve3Rd ( n, (point4d*)&b[4*i*(n+1)], r, colour ) )
-          goto failure;
-    }
   }
-  pkv_SetScratchMemTop ( sp );
-  return true;
-
+  if ( nobjects < obj_tab_length ) {
+    obj_tab[nobjects].type = obj_RBEZCURVE;
+    obj_tab[nobjects].rbezc.ctree =
+          rbez_NewRBSCurveTreed ( nobjects, n, lkn, kn, cp, r );
+    if ( obj_tab[nobjects].rbezc.ctree ) {
+      memcpy ( &obj_tab[nobjects].rbezc.colour[0], colour, 3*sizeof(double) );
+      nobjects ++;
+      return true;
+    }
+    else
+      goto failure;
+  }
 failure:
-  pkv_SetScratchMemTop ( sp );
   return false;
 } /*RendEnterBSCurve3Rd*/
 
@@ -1005,11 +833,11 @@ tnode* NewPatchNode ( int k )
 case obj_TRIANGLE:
     memcpy ( &node->bbox, &obj_tab[k].triang.trdata->bbox, sizeof(Box3d) );
     break;
-case obj_BEZPATCH:
-    memcpy ( &node->bbox, &obj_tab[k].bezp.ptree->root->bbox, sizeof(Box3d) );
+case obj_BSPATCH:
+    memcpy ( &node->bbox, &obj_tab[k].bsp.ptree->root->bbox, sizeof(Box3d) );
     break;
-case obj_RBEZPATCH:
-    memcpy ( &node->bbox, &obj_tab[k].rbezp.ptree->root->bbox, sizeof(Box3d) );
+case obj_RBSPATCH:
+    memcpy ( &node->bbox, &obj_tab[k].rbsp.ptree->root->bbox, sizeof(Box3d) );
     break;
 case obj_BEZCURVE:
     memcpy ( &node->bbox, &obj_tab[k].bezc.ctree->root->bbox, sizeof(Box3d) );
@@ -1149,11 +977,11 @@ boolean RendReset ( void )
     case obj_TRIANGLE:
         PKV_FREE ( obj_tab[i].triang.trdata );
         break;
-    case obj_BEZPATCH:
-        rbez_DestroyBezPatchTreed ( obj_tab[i].bezp.ptree );
+    case obj_BSPATCH:
+        rbez_DestroyBezPatchTreed ( obj_tab[i].bsp.ptree );
         break;
-    case obj_RBEZPATCH:
-        rbez_DestroyRBezPatchTreed ( obj_tab[i].rbezp.ptree );
+    case obj_RBSPATCH:
+        rbez_DestroyRBezPatchTreed ( obj_tab[i].rbsp.ptree );
         break;
     case obj_BEZCURVE:
         rbez_DestroyBezCurveTreed ( obj_tab[i].bezc.ctree );
@@ -1223,98 +1051,6 @@ void RendEnterSectionPlanesNormald ( vector3d *spn )
   SetVector3d ( &sectiondir, (double)spn->x, (double)spn->y, (double)spn->z  );
 } /*RendEnterSectionPlanesNormald*/
 
-boolean RendBegin ( void )
-{
-  y = _xgw->y;
-
-  dfsf = xge_LogSlidebarValued ( R_MINDFSF, R_MAXDFSF, render_dfsf );
-        /* build the scene hierarchy binary tree */
-  root = BuildObjectTree ( nobjects );
-        /* setup the shape function texturing procedures */
-  GetTexColour = GetTexColourSF;
-  if ( swGaussian_c ) {
-    cShapeFunc = cGaussianCurvature;
-    cRShapeFunc = cRGaussianCurvature;
-  }
-  else if ( swMean_c ) {
-    cShapeFunc = cMeanCurvature;
-    cRShapeFunc = cRMeanCurvature;
-  }
-  else if ( swLambert_c ) {
-    cShapeFunc = cLambertLight;
-    cRShapeFunc = cRLambertLight;
-  }
-  else if ( swReflection_c ) {
-    cShapeFunc = cReflectionLines;
-    cRShapeFunc = cRReflectionLines;
-  }
-  else if ( swHighlight_c ) {
-    cShapeFunc = cHighlightLines;
-    cRShapeFunc = cRHighlightLines;
-  }
-  else if ( swSections_c ) {
-    cShapeFunc = cCrossSections;
-    cRShapeFunc = cRCrossSections;
-  }
-  else {
-    GetTexColour = GetTexColourNoSF;
-    cShapeFunc = cShapeFunc0;
-    cRShapeFunc = cRShapeFunc0;
-  }
-  if ( swGaussian_d ) {
-    dShapeFunc = dGaussianCurvature;
-    dRShapeFunc = dRGaussianCurvature;
-  }
-  else if ( swMean_d ) {
-    dShapeFunc = dMeanCurvature;
-    dRShapeFunc = dRMeanCurvature;
-  }
-  else if ( swLambert_d ) {
-    dShapeFunc = dLambertLight;
-    dRShapeFunc = dRLambertLight;
-  }
-  else if ( swReflection_d ) {
-    dShapeFunc = dReflectionLines;
-    dRShapeFunc = dRReflectionLines;
-  }
-  else if ( swHighlight_d ) {
-    dShapeFunc = dHighlightLines;
-    dRShapeFunc = dRHighlightLines;
-  }
-  else if ( swSections_d ) {
-    dShapeFunc = dCrossSections;
-    dRShapeFunc = dRCrossSections;
-  }
-  else {
-    dShapeFunc = dShapeFunc0;
-    dRShapeFunc = dRShapeFunc0;
-  }
-  FindMinMaxShapeFunc ( 10 );
-
-pkv_Tic ( &tic );
-
-  renderer_npthreads = rendering_npthreads = ncpu > 1 ? rendering_npthreads : 1;
-  RenderingIsOn = true;
-  if ( swAntialias )
-    InitRenderingAA ();
-  return true;
-} /*RendBegin*/
-
-boolean RendRestart ( void )
-{
-  if ( RenderingIsOn ) {
-
-pkv_Tic ( &tic );
-
-    y = _xgw->y;
-    if ( swAntialias )
-      InitRenderingAA ();
-    return true;
-  }
-  else
-    return false;
-} /*RendRestart*/
-
 /* ///////////////////////////////////////////////////////////////////////// */
 static void _rend_FindRayTriangleIntersd ( triangle_data *trd, ray3d *ray,
                                            int *nint, RayObjectIntersd *inters )
@@ -1366,19 +1102,21 @@ boolean rFindRayTrInters ( ray3d *ray, tnode *node,
            /* intersection procedures have their own tests */
 
     _inters = pkv_GetScratchMem ( MAXINTERS*sizeof(RayObjectIntersd) );
-    if ( !_inters )
+    if ( !_inters ) {
+      pkv_SetScratchMemTop ( sp );
       return false;
+    }
     switch ( obj_tab[_k].type ) {
   case obj_TRIANGLE:
       _rend_FindRayTriangleIntersd ( obj_tab[_k].triang.trdata, ray,
                                      &nint, _inters );
       break;
-  case obj_BEZPATCH:
-      rbez_FindRayBezPatchIntersd ( obj_tab[_k].bezp.ptree, ray,
+  case obj_BSPATCH:
+      rbez_FindRayBezPatchIntersd ( obj_tab[_k].bsp.ptree, ray,
                     MAXPLEVEL, MAXINTERS, &nint, _inters );
       break;
-  case obj_RBEZPATCH:
-      rbez_FindRayRBezPatchIntersd ( obj_tab[_k].rbezp.ptree, ray,
+  case obj_RBSPATCH:
+      rbez_FindRayRBezPatchIntersd ( obj_tab[_k].rbsp.ptree, ray,
                     MAXPLEVEL, MAXINTERS, &nint, _inters );
       break;
   case obj_BEZCURVE:
@@ -1404,7 +1142,7 @@ boolean rFindRayTrInters ( ray3d *ray, tnode *node,
            /* something was left */
         _intp = _inters;
         for ( i = 1; i < nint; i++ )
-          if ( _inters[i].t < _inters[0].t )
+          if ( _inters[i].t < _intp->t )
             _intp = &_inters[i];
         *inters = *_intp;
         *k = _k;
@@ -1462,12 +1200,12 @@ boolean rFindShadowRayInters ( ray3d *ray, tnode *node )
       _rend_FindRayTriangleIntersd ( obj_tab[_k].triang.trdata, ray,
                                      &nint, &inters );
       break;
-  case obj_BEZPATCH:
-      rbez_FindRayBezPatchIntersd ( obj_tab[_k].bezp.ptree, ray,
+  case obj_BSPATCH:
+      rbez_FindRayBezPatchIntersd ( obj_tab[_k].bsp.ptree, ray,
                     MAXPLEVEL, 1, &nint, &inters );
       break;
-  case obj_RBEZPATCH:
-      rbez_FindRayRBezPatchIntersd ( obj_tab[_k].rbezp.ptree, ray,
+  case obj_RBSPATCH:
+      rbez_FindRayRBezPatchIntersd ( obj_tab[_k].rbsp.ptree, ray,
                     MAXPLEVEL, 1, &nint, &inters );
       break;
   case obj_BEZCURVE:
@@ -1504,27 +1242,12 @@ boolean IsInShadow ( point3d *p, vector3d *light )
   return rFindShadowRayInters ( &ray, root );
 } /*IsInShadow*/
 
-void GetTexColourSF ( char type, double *colour,
-                      int n, int m, const point4d *cp, double u, double v,
-                      point3d *p, vector3d *nv, vector3d *vv,
-                      vector3d *texcolour )
+void GetTexColour ( ray3d *ray, renderobj *obj, RayObjectIntersd *roint,
+                    vector3d *texcolour )
 {
   double t;
 
-  switch ( type ) {
-case obj_BEZPATCH:
-    t = cShapeFunc ( n, m, (point3d*)cp, u, v, p, nv, vv );
-    break;
-case obj_RBEZPATCH:
-    t = cRShapeFunc ( n, m, cp, u, v, p, nv, vv );
-    break;
-case obj_TRIANGLE:
-case obj_BEZCURVE:
-case obj_RBEZCURVE:
-default:
-    memcpy ( texcolour, colour, sizeof(vector3d) );
-    return;
-  }
+  t = cShapeFunc ( ray, obj, roint );
   t = (t-minsf)/(maxsf-minsf);
   t = max ( 0.0, t );
   t = min ( 1.0, t );
@@ -1534,45 +1257,9 @@ default:
   else if ( t < 0.6 ) SetPoint3d ( texcolour, 1.0-5.0*(t-0.4), 1.0, 0.0 );
   else if ( t < 0.8 ) SetPoint3d ( texcolour, 0.0, 1.0, 5.0*(t-0.6) );
   else                SetPoint3d ( texcolour, 0.0, 1.0-5.0*(t-0.8), 1.0 );
-  switch ( type ) {
-case obj_BEZPATCH:
-    if ( !dShapeFunc ( n, m, (point3d*)cp, u, v, p, nv, vv ) )
-      MultVector3d ( 0.85, texcolour, texcolour );
-    break;
-case obj_RBEZPATCH:
-    if ( !dRShapeFunc ( n, m, cp, u, v, p, nv, vv ) )
-      MultVector3d ( 0.85, texcolour, texcolour );
-    break;
-default:
-    break;
-  }
-} /*GetTexColourSF*/
-
-void GetTexColourNoSF ( char type, double *colour,
-                        int n, int m, const point4d *cp, double u, double v,
-                        point3d *p, vector3d *nv, vector3d *vv,
-                        vector3d *texcolour )
-{
-  memcpy ( texcolour, colour, 3*sizeof(double) );
-  switch ( type ) {
-case obj_TRIANGLE:
-    break;
-case obj_BEZPATCH:
-    if ( !dShapeFunc ( n, m, (point3d*)cp, u, v, p, nv, vv ) )
-      MultVector3d ( 0.85, texcolour, texcolour );
-    break;
-case obj_RBEZPATCH:
-    if ( !dRShapeFunc ( n, m, cp, u, v, p, nv, vv ) )
-      MultVector3d ( 0.85, texcolour, texcolour );
-    break;
-case obj_BEZCURVE:
-    break;
-case obj_RBEZCURVE:
-    break;
-default:
-    break;
-  }
-} /*GetTexColourNoSF*/
+  if ( !dShapeFunc ( ray, obj, roint ) )
+    MultVector3d ( 0.85, texcolour, texcolour );
+} /*GetTexColour*/
 
 void AmbientLight ( vector3d *tex, double amb_intens, vector3d *rgb )
 {
@@ -1616,39 +1303,7 @@ void GetPixelColour ( ray3d *ray, unsigned int *r, unsigned int *g,
 
   *r = *g = *b = 220;
   if ( FindRayTrInters ( ray, &iint, &k ) ) {
-    switch ( obj_tab[k].type ) {
-  case obj_TRIANGLE:
-      GetTexColour ( obj_TRIANGLE, obj_tab[k].triang.colour, 0, 0,
-                     (point4d*)&obj_tab[k].triang.trdata->p0,
-                     iint.u, iint.v, &iint.p, &iint.nv, &ray->v, &texcolour );
-      break;
-  case obj_BEZPATCH:
-      GetTexColour ( obj_BEZPATCH, obj_tab[k].bezp.colour,
-                     obj_tab[k].bezp.ptree->n, obj_tab[k].bezp.ptree->m,
-                     (point4d*)obj_tab[k].bezp.ptree->root->ctlpoints,
-                     iint.u, iint.v, &iint.p, &iint.nv, &ray->v, &texcolour );
-      break;
-  case obj_RBEZPATCH:
-      GetTexColour ( obj_RBEZPATCH, obj_tab[k].rbezp.colour,
-                     obj_tab[k].rbezp.ptree->n, obj_tab[k].rbezp.ptree->m,
-                     obj_tab[k].rbezp.ptree->root->ctlpoints,
-                     iint.u, iint.v, &iint.p, &iint.nv, &ray->v, &texcolour );
-      break;
-  case obj_BEZCURVE:
-      GetTexColour ( obj_BEZCURVE, obj_tab[k].bezc.colour,
-                     obj_tab[k].bezc.ctree->degree, 0,
-                     (point4d*)obj_tab[k].bezc.ctree->root->ctlpoints,
-                     iint.u, iint.v, &iint.p, &iint.nv, &ray->v, &texcolour );
-      break;
-  case obj_RBEZCURVE:
-      GetTexColour ( obj_RBEZCURVE, obj_tab[k].rbezc.colour,
-                     obj_tab[k].rbezc.ctree->degree, 0,
-                     (point4d*)obj_tab[k].rbezc.ctree->root->ctlpoints,
-                     iint.u, iint.v, &iint.p, &iint.nv, &ray->v, &texcolour );
-      break;
-  default:
-      break;
-    }
+    GetTexColour ( ray, &obj_tab[k], &iint, &texcolour );
     AmbientLight ( &texcolour, lightint[R_NLIGHTS], &rgb );
     for ( k = 0; k < R_NLIGHTS; k++ )
       if ( lightint[k] > 0.001 )
@@ -1661,76 +1316,71 @@ void GetPixelColour ( ray3d *ray, unsigned int *r, unsigned int *g,
 } /*GetPixelColour*/
 
 /* ////////////////////////////////////////////////////////////////////////// */
-#ifdef OLD_ATTEMPT
-typedef struct {
-    unsigned int *buf;
-  } pixeldata;
-
-static boolean RenderPixelA ( void *usrdata, int3 *jobnum )
+boolean RendBegin ( void )
 {
-  ray3d        ray;
-  int          x, xx;
-  unsigned int *buf;
+  y = _xgw->y;
 
-  buf = ((pixeldata*)usrdata)->buf;
-        /* get the ray */
-  x = _xgw->x+jobnum->x;
-  xx = 3*jobnum->x;
-  CameraRayOfPixeld ( &_CPos, (double)x, (double)y, &ray );
-        /* compute the pixel colour */
-  GetPixelColour ( &ray, &buf[xx], &buf[xx+1], &buf[xx+2] );
+  dfsf = xge_LogSlidebarValued ( R_MINDFSF, R_MAXDFSF, render_dfsf );
+        /* build the scene hierarchy binary tree */
+  root = BuildObjectTree ( nobjects );
+        /* setup the shape function texturing procedures */
+  if ( swGaussian_c )
+    c_shape_func = shapefunc_GAUSSIAN;
+  else if ( swMean_c )
+    c_shape_func = shapefunc_MEAN;
+  else if ( swLambert_c )
+    c_shape_func = shapefunc_LAMBERTIAN;
+  else if ( swReflection_c )
+    c_shape_func = shapefunc_REFLECTION;
+  else if ( swHighlight_c )
+    c_shape_func = shapefunc_HIGHLIGHT;
+  else if ( swSections_c )
+    c_shape_func = shapefunc_CROSSECTIONS;
+  else
+    c_shape_func = shapefunc_NONE;
+
+  if ( swGaussian_d )
+    d_shape_func = shapefunc_GAUSSIAN;
+  else if ( swMean_d )
+    d_shape_func = shapefunc_MEAN;
+  else if ( swLambert_d )
+    d_shape_func = shapefunc_LAMBERTIAN;
+  else if ( swReflection_d )
+    d_shape_func = shapefunc_REFLECTION;
+  else if ( swHighlight_d )
+    d_shape_func = shapefunc_HIGHLIGHT;
+  else if ( swSections_d )
+    d_shape_func = shapefunc_CROSSECTIONS;
+  else
+    d_shape_func = shapefunc_NONE;
+
+  FindMinMaxShapeFunc ( 10 );
+
+pkv_Tic ( &tic );
+
+  renderer_npthreads = rendering_npthreads = ncpu > 1 ? rendering_npthreads : 1;
+  RenderingIsOn = true;
+  if ( swAntialias )
+    InitRenderingAA ();
   return true;
-} /*RenderPixelA*/
+} /*RendBegin*/
 
-int RenderLineA ( void )
+boolean RendRestart ( void )
 {
-  void         *sp;
-  int          x, xx;
-  ray3d        ray;
-  unsigned int r, g, b;
-  pixeldata    pd;
-  int3         jobsize;
-  boolean      success;
+  if ( RenderingIsOn ) {
 
-  if ( !RenderingIsOn )
-    return y;
+pkv_Tic ( &tic );
 
-  sp = pkv_GetScratchMemTop ();
-  if ( renderer_threads > 1 ) {
-    pd.buf = (unsigned int*)pkv_GetScratchMemi ( 3*_xgw->w );
-    if ( !pd.buf )
-      goto sequential;
-    jobsize.x = _xgw->w;  jobsize.y = jobsize.z = 1;
-    if ( !pkv_SetPThreadsToWork ( &jobsize, renderer_threads, 4*1048576, 4*1048576,
-                                  (void*)&pd, RenderPixelA, NULL, NULL,
-                                  &success ) )
-      goto sequential;
-    for ( x = _xgw->x, xx = 0;  x < _xgw->x+_xgw->w;  x++, xx+=3 )
-      XPutPixel ( rendimage, x, y,
-                  xge_PixelColour ( pd.buf[xx], pd.buf[xx+1], pd.buf[xx+2] ) );
+    y = _xgw->y;
+    if ( swAntialias )
+      InitRenderingAA ();
+    return true;
   }
-  else {
-sequential:
-    for ( x = _xgw->x; x < _xgw->x+_xgw->w; x++ ) {
-        /* get the ray */
-      CameraRayOfPixeld ( &_CPos, (double)x, (double)y, &ray );
-        /* compute the pixel colour */
-      GetPixelColour ( &ray, &r, &g, &b );
-      XPutPixel ( rendimage, x, y, xge_PixelColour ( r, g, b ) );
-    }
-  }
-  y++;
-  if ( y >= _xgw->y+_xgw->h ) {
+  else
+    return false;
+} /*RendRestart*/
 
-printf ( "rendering time = %6.2f\n", pkv_Seconds ( pkv_Toc ( &tic ) ) );
-
-    RenderingIsOn = false;
-  }
-  pkv_SetScratchMemTop ( sp );
-  return y;
-} /*RenderLineA*/
-
-#else
+/* ////////////////////////////////////////////////////////////////////////// */
 typedef struct {
     int         *jobs;
     unsigned int *buf;
@@ -1818,7 +1468,6 @@ printf ( "rendering time = %6.2f\n", pkv_Seconds ( pkv_Toc ( &tic ) ) );
   return y;
 } /*RenderLineA*/
 
-#endif
 /* ////////////////////////////////////////////////////////////////////////// */
 boolean OverThreshold1 ( byte *a, byte *b )
 {

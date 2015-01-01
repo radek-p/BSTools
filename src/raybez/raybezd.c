@@ -39,7 +39,7 @@ void _rbez_ReflectCPointsd ( int ncp, const point3d *ctlpoints,
 
 boolean _rbez_BezPSolutionOKd ( int object_id, ray3d *ray, point2d *z,
                                 int n, int m, point3d *cpoints,
-                                double u0, double u1, double v0, double v1,
+                                BezPatchTreeVertexd *vertex,
                                 int *ninters, RayObjectIntersd *inters )
 {
   vector3d pv;
@@ -53,9 +53,10 @@ boolean _rbez_BezPSolutionOKd ( int object_id, ray3d *ray, point2d *z,
     t = DotProduct3d ( &pv, &ray->v );
     if ( t > 0.0 ) {
       inters->t = t;
-      inters->u = u0 + z->x*(u1 - u0);
-      inters->v = v0 + z->y*(v1 - v0);
+      inters->u = vertex->u0 + z->x*(vertex->u1 - vertex->u0);
+      inters->v = vertex->v0 + z->y*(vertex->v1 -vertex-> v0);
       inters->object_id = object_id;
+      inters->extra_info = vertex;
       (*ninters)++;
     }
     return true;
@@ -66,7 +67,7 @@ boolean _rbez_BezPSolutionOKd ( int object_id, ray3d *ray, point2d *z,
 
 void _rbez_OutputSingularSolutiond ( int object_id, ray3d *ray,
                                      int n, int m, point3d *cpoints,
-                                     double u0, double u1, double v0, double v1,
+                                     BezPatchTreeVertexd *vertex,
                                      int *ninters, RayObjectIntersd *inters )
 {
   vector3d pv;
@@ -78,9 +79,10 @@ void _rbez_OutputSingularSolutiond ( int object_id, ray3d *ray,
   t = DotProduct3d ( &pv, &ray->v );
   if ( t > 0.0 ) {
     inters->t = t;
-    inters->u = 0.5*(u0 + u1);
-    inters->v = 0.5*(v0 + v1);
+    inters->u = 0.5*(vertex->u0 + vertex->u1);
+    inters->v = 0.5*(vertex->v0 + vertex->v1);
     inters->object_id = object_id;
+    inters->extra_info = vertex;
     (*ninters)++;
   }
 } /*OutputSingularSolutiond*/
@@ -127,8 +129,7 @@ int rbez_FindRayBezPatchIntersd ( BezPatchTreed *tree, ray3d *ray,
           switch ( _rbez_NewtonMethod2d ( n, m, auxcp, &p, &du, &dv, &z ) ) {
         case RBEZ_NEWTON_YES:
             if ( !_rbez_BezPSolutionOKd ( tree->object_id, ray, &z,
-                      n, m, vertex->ctlpoints,
-                      vertex->u0, vertex->u1, vertex->v0, vertex->v1,
+                      n, m, vertex->ctlpoints, vertex,
                       ninters, inters ) ) {
               if ( _rbez_SecondTest2d ( &z, n, m, K1, K2 ) )
                 goto DIVIDE;
@@ -151,9 +152,7 @@ DIVIDE:
           }
           else
             _rbez_OutputSingularSolutiond ( tree->object_id, ray,
-                          n, m, vertex->ctlpoints,
-                          vertex->u0, vertex->u1, vertex->v0, vertex->v1,
-                          ninters, inters );
+                          n, m, vertex->ctlpoints, vertex, ninters, inters );
         }
       }
     }
