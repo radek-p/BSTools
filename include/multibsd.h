@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2014                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -579,6 +579,22 @@ boolean mbs_BCHornerC2Rd ( int degree, const point3d *ctlpoints, double t,
 boolean mbs_BCHornerC3Rd ( int degree, const point4d *ctlpoints, double t,
                            point3d *cpoint );
 
+boolean _mbs_BCHornerPd ( int degreeu, int degreev, int spdimen,
+                          const double *ctlpoints,
+                          double u, double v, double *ppoint,
+                          double *workspace );
+
+#define _mbs_BCHornerP1d(degreeu,degreev,coeff,u,v,ppoint,ws) \
+  _mbs_BCHornerPd ( degreeu, degreev, 1, coeff, u, v, ppoint, ws )
+#define _mbs_BCHornerP2d(degreeu,degreev,ctlpoints,u,v,ppoint,ws) \
+  _mbs_BCHornerPd ( degreeu, degreev, 2, (double*)ctlpoints, \
+    u, v, (double*)ppoint, ws )
+#define _mbs_BCHornerP3d(degreeu,degreev,ctlpoints,u,v,ppoint,ws) \
+  _mbs_BCHornerPd ( degreeu, degreev, 3, (double*)ctlpoints, \
+    u, v, (double*)ppoint, ws )
+#define _mbs_BCHornerP4d(degreeu,degreev,ctlpoints,u,v,ppoint,ws) \
+  _mbs_BCHornerPd ( degreeu, degreev, 4, (double*)ctlpoints, \
+    u, v, (double*)ppoint, ws)
 
 boolean mbs_BCHornerPd ( int degreeu, int degreev, int spdimen,
                          const double *ctlpoints,
@@ -596,9 +612,29 @@ boolean mbs_BCHornerPd ( int degreeu, int degreev, int spdimen,
   mbs_BCHornerPd ( degreeu, degreev, 4, (double*)ctlpoints, \
     u, v, (double*)ppoint )
 
+boolean _mbs_BCHornerP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
+                            double u, double v, point3d *p, double *workspace );
+
 boolean mbs_BCHornerP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
                            double u, double v, point3d *p );
 
+
+boolean _mbs_multiBCHornerDerd ( int degree, int ncurves, int spdimen, int pitch,
+                                 const double *ctlpoints,
+                                 double t, double *p, double *d,
+                                 double *workspace );
+
+#define _mbs_BCHornerDerC1d(degree,coeff,t,p,d,workspace) \
+  _mbs_multiBCHornerDerd ( degree, 1, 1, 0, coeff, t, p, d, workspace )
+#define _mbs_BCHornerDerC2d(degree,ctlpoints,t,p,d,workspace) \
+  _mbs_multiBCHornerDerd ( degree, 1, 2, 0, (double*)ctlpoints, t, \
+    (double*)p, (double*)d, workspace )
+#define _mbs_BCHornerDerC3d(degree,ctlpoints,t,p,d,workspace) \
+  _mbs_multiBCHornerDerd ( degree, 1, 3, 0, (double*)ctlpoints, t, \
+    (double*)p, (double*)d, workspace )
+#define _mbs_BCHornerDerC4d(degree,ctlpoints,t,p,d,workspace) \
+  _mbs_multiBCHornerDerd ( degree, 1, 4, 0, (double*)ctlpoints, t, \
+    (double*)p, (double*)d, workspace )
 
 boolean mbs_multiBCHornerDerd ( int degree, int ncurves, int spdimen, int pitch,
                                 const double *ctlpoints,
@@ -622,6 +658,24 @@ boolean mbs_BCHornerDerC3Rd ( int degree, const point4d *ctlpoints, double t,
                               point3d *p, vector3d *d );
 
 
+boolean _mbs_BCHornerDerPd ( int degreeu, int degreev, int spdimen,
+                             const double *ctlpoints,
+                             double u, double v,  
+                             double *p, double *du, double *dv,
+                             double *workspace );
+
+#define _mbs_BCHornerDerP1d(degreeu,degreev,coeff,u,v,p,du,dv,workspace) \
+  _mbs_BCHornerDerPd ( degreeu, degreev, 1, coeff, u, v, p, du, dv, workspace )
+#define _mbs_BCHornerDerP2d(degreeu,degreev,ctlpoints,u,v,p,du,dv,workspace) \
+  _mbs_BCHornerDerPd ( degreeu, degreev, 2, (double*)ctlpoints, u, v, \
+    (double*)p, (double*)du, (double*)dv, workspace )
+#define _mbs_BCHornerDerP3d(degreeu,degreev,ctlpoints,u,v,p,du,dv,workspace) \
+  _mbs_BCHornerDerPd ( degreeu, degreev, 3, (double*)ctlpoints, u, v, \
+    (double*)p, (double*)du, (double*)dv, workspace )
+#define _mbs_BCHornerDerP4d(degreeu,degreev,ctlpoints,u,v,p,du,dv,workspace) \
+  _mbs_BCHornerDerPd ( degreeu, degreev, 4, (double*)ctlpoints, u, v, \
+    (double*)p, (double*)du, (double*)dv, workspace )
+
 boolean mbs_BCHornerDerPd ( int degreeu, int degreev, int spdimen,
                             const double *ctlpoints,
                             double u, double v,  
@@ -639,19 +693,48 @@ boolean mbs_BCHornerDerPd ( int degreeu, int degreev, int spdimen,
   mbs_BCHornerDerPd ( degreeu, degreev, 4, (double*)ctlpoints, u, v, \
     (double*)p, (double*)du, (double*)dv )
 
+boolean _mbs_BCHornerDerP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
+                               double u, double v,
+                               point3d *p, vector3d *du, vector3d *dv,
+                               double *workspace );
+
 boolean mbs_BCHornerDerP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
                               double u, double v,
                               point3d *p, vector3d *du, vector3d *dv );
 
+boolean _mbs_BCHornerNvP3d ( int degreeu, int degreev, const point3d *ctlpoints,
+                             double u, double v,
+                             point3d *p, vector3d *nv, double *workspace );
 
 boolean mbs_BCHornerNvP3d ( int degreeu, int degreev, const point3d *ctlpoints,
                             double u, double v,
                             point3d *p, vector3d *nv );
 
+boolean _mbs_BCHornerNvP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
+                              double u, double v,
+                              point3d *p, vector3d *nv, double *workspace );
+
 boolean mbs_BCHornerNvP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
                              double u, double v,
                              point3d *p, vector3d *nv );
 
+
+boolean _mbs_multiBCHornerDer2d ( int degree, int ncurves, int spdimen, int pitch,
+                               const double *ctlpoints, 
+                               double t, double *p, double *d1, double *d2,
+                               double *workspace );
+
+#define _mbs_BCHornerDer2C1d(degree,coeff,t,p,d1,d2,workspace) \
+  _mbs_multiBCHornerDer2d ( degree, 1, 1, 0, coeff, t, p, d1, d2, workspace )
+#define _mbs_BCHornerDer2C2d(degree,ctlpoints,t,p,d1,d2,workspace) \
+  _mbs_multiBCHornerDer2d ( degree, 1, 2, 0, (double*)ctlpoints, t, \
+    (double*)p, (double*)d1, (double*)d2, workspace )
+#define _mbs_BCHornerDer2C3d(degree,ctlpoints,t,p,d1,d2,workspace) \
+  _mbs_multiBCHornerDer2d ( degree, 1, 3, 0, (double*)ctlpoints, t, \
+    (double*)p, (double*)d1, (double*)d2, workspace )
+#define _mbs_BCHornerDer2C4d(degree,ctlpoints,t,p,d1,d2,workspace) \
+  _mbs_multiBCHornerDer2d ( degree, 1, 4, 0, (double*)ctlpoints, t, \
+    (double*)p, (double*)d1, (double*)d2, workspace )
 
 boolean mbs_multiBCHornerDer2d ( int degree, int ncurves, int spdimen, int pitch,
                               const double *ctlpoints, 
@@ -669,10 +752,36 @@ boolean mbs_multiBCHornerDer2d ( int degree, int ncurves, int spdimen, int pitch
   mbs_multiBCHornerDer2d ( degree, 1, 4, 0, (double*)ctlpoints, t, \
     (double*)p, (double*)d1, (double*)d2 )
 
+boolean _mbs_BCHornerDer2C2Rd ( int degree, const point3d *ctlpoints, double t,
+                                point2d *p, vector2d *d1, vector2d *d2,
+                                double *workspace );
 boolean mbs_BCHornerDer2C2Rd ( int degree, const point3d *ctlpoints, double t,
                                point2d *p, vector2d *d1, vector2d *d2 );
+boolean _mbs_BCHornerDer2C3Rd ( int degree, const point4d *ctlpoints, double t,
+                                point3d *p, vector3d *d1, vector3d *d2,
+                                double *workspace );
 boolean mbs_BCHornerDer2C3Rd ( int degree, const point4d *ctlpoints, double t,
                                point3d *p, vector3d *d1, vector3d *d2 );
+
+boolean _mbs_BCHornerDer2Pd ( int degreeu, int degreev, int spdimen,
+                             const double *ctlpoints,
+                             double u, double v,
+                             double *p, double *du, double *dv,
+                             double *duu, double *duv, double *dvv,
+                             double *workspace );
+
+#define _mbs_BCHornerDer2P1d(degreeu,degreev,coeff,u,v,p,du,dv,duu,duv,dvv,workspace) \
+  _mbs_BCHornerDer2Pd ( degreeu, degreev, 1, coeff, u, v, \
+    p, du, dv, duu, duv, dvv, workspace )
+#define _mbs_BCHornerDer2P2d(degreeu,degreev,ctlpoints,u,v,p,du,dv,duu,duv,dvv,workspace) \
+  _mbs_BCHornerDer2Pd ( degreeu, degreev, 2, (double*)ctlpoints, u, v, \
+    (double*)p, (double*)du, (double*)dv, (double*)duu, (double*)duv, (double*)dvv, workspace )
+#define _mbs_BCHornerDer2P3d(degreeu,degreev,ctlpoints,u,v,p,du,dv,duu,duv,dvv,workspace) \
+  _mbs_BCHornerDer2Pd ( degreeu, degreev, 3, (double*)ctlpoints, u, v, \
+    (double*)p, (double*)du, (double*)dv, (double*)duu, (double*)duv, (double*)dvv, workspace )
+#define _mbs_BCHornerDer2P4d(degreeu,degreev,ctlpoints,u,v,p,du,dv,duu,duv,dvv,workspace) \
+  _mbs_BCHornerDer2Pd ( degreeu, degreev, 4, (double*)ctlpoints, u, v, \
+    (double*)p, (double*)du, (double*)dv, (double*)duu, (double*)duv, (double*)dvv, workspace )
 
 boolean mbs_BCHornerDer2Pd ( int degreeu, int degreev, int spdimen,
                              const double *ctlpoints,
@@ -693,11 +802,33 @@ boolean mbs_BCHornerDer2Pd ( int degreeu, int degreev, int spdimen,
   mbs_BCHornerDer2Pd ( degreeu, degreev, 4, (double*)ctlpoints, u, v, \
     (double*)p, (double*)du, (double*)dv, (double*)duu, (double*)duv, (double*)dvv )
 
+boolean _mbs_BCHornerDer2P3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
+                                double u, double v,
+                                point3d *p, vector3d *du, vector3d *dv,
+                                vector3d *duu, vector3d *duv, vector3d *dvv,
+                                double *workspace );
 boolean mbs_BCHornerDer2P3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
                                double u, double v,
                                point3d *p, vector3d *du, vector3d *dv,
                                vector3d *duu, vector3d *duv, vector3d *dvv );
 
+
+boolean _mbs_multiBCHornerDer3d ( int degree, int ncurves, int spdimen, int pitch,
+                                  const double *ctlpoints, double t,
+                                  double *p, double *d1, double *d2, double *d3,
+                                  double *workspace );
+
+#define _mbs_BCHornerDer3C1d(degree,coeff,t,p,d1,d2,d3,workspace) \
+  _mbs_multiBCHornerDer3d ( degree, 1, 1, 0, coeff, t, p, d1, d2, d3, workspace )
+#define _mbs_BCHornerDer3C2d(degree,ctlpoints,t,p,d1,d2,d3,workspace) \
+  _mbs_multiBCHornerDer3d ( degree, 1, 2, 0, (double*)ctlpoints, t, \
+    (double*)p, (double*)d1, (double*)d2, (double*)d3, workspace )
+#define _mbs_BCHornerDer3C3d(degree,ctlpoints,t,p,d1,d2,d3,workspace) \
+  _mbs_multiBCHornerDer3d ( degree, 1, 3, 0, (double*)ctlpoints, t, \
+    (double*)p, (double*)d1, (double*)d2, (double*)d3, workspace )
+#define _mbs_BCHornerDer3C4d(degree,ctlpoints,t,p,d1,d2,d3,workspace) \
+  _mbs_multiBCHornerDer3d ( degree, 1, 4, 0, (double*)ctlpoints, t, \
+    (double*)p, (double*)d1, (double*)d2, (double*)d3, workspace )
 
 boolean mbs_multiBCHornerDer3d ( int degree, int ncurves, int spdimen, int pitch,
                                  const double *ctlpoints, double t,
@@ -716,10 +847,23 @@ boolean mbs_multiBCHornerDer3d ( int degree, int ncurves, int spdimen, int pitch
     (double*)p, (double*)d1, (double*)d2, (double*)d3 )
 
 
+boolean _mbs_FindBezPatchDiagFormd ( int degreeu, int degreev, int spdimen,
+                                     CONST_ double *cpoints,
+                                     int k, int l, double u, double v,
+                                     double *dfcp, double *workspace );
+
 boolean mbs_FindBezPatchDiagFormd ( int degreeu, int degreev, int spdimen,
                                     CONST_ double *cpoints,
                                     int k, int l, double u, double v,
                                     double *dfcp );
+
+boolean _mbs_BCHornerDer3Pd ( int degreeu, int degreev, int spdimen,
+                              CONST_ double *ctlpoints,
+                              double u, double v,
+                              double *p, double *pu, double *pv,
+                              double *puu, double *puv, double *pvv,
+                              double *puuu, double *puuv, double *puvv, double *pvvv,
+                              double *workspace );
 
 boolean mbs_BCHornerDer3Pd ( int degreeu, int degreev, int spdimen,
                              CONST_ double *ctlpoints,

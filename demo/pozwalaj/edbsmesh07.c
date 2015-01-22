@@ -81,6 +81,7 @@ void GeomObjectReadBSplineMesh ( void *usrdata,
   }
   if ( obj ) {
     strncpy ( obj->me.name, name, MAX_NAME_LENGTH+1 );
+    obj->rational = rational;
     obj->me.spdimen = spdimen;
     obj->me.cpdimen = rational ? spdimen+1 : spdimen;
     obj->me.ident = ident;

@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2009, 2014                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2009, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -54,6 +54,7 @@ extern "C" {
 
 /* ////////////////////////////////////////////////////////////////////////// */
 /* object types */
+#define BSF_NONE            0
 #define BSF_POLYLINE        1
 #define BSF_BEZIER_CURVE    2
 #define BSF_BEZIER_PATCH    3

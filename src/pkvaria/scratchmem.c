@@ -78,7 +78,7 @@ static void *_pkv_GetScratchMemTop ( void )
 
 static void _pkv_SetScratchMemTop ( void *p )
 {
-  int fsm;
+  long int fsm;
 
   fsm = (char*)p - FreeScratch;
   FreeScratch = (char*)p;

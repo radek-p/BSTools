@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2012, 2014                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2012, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -21,6 +21,8 @@
 #include "pkgeom.h"
 #include "multibs.h"
 #include "raybez.h"
+
+#include "raybezprivate.h"
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static RBezCurveTreeVertexdp
@@ -49,6 +51,7 @@ static RBezCurveTreeVertexdp
       vertex->ctlpoints = (point4d*)((char*)vertex+sizeof(RBezCurveTreeVertexd));
     else
       vertex->ctlpoints = NULL;
+    vertex->tag = 0;
   }
   return vertex;
 } /*AllocRCTreeVertexd*/
@@ -141,6 +144,9 @@ static void RBezCurveInitialDivision ( RBezCurveTreedp tree,
     right = AllocRCTreeVertexd ( tree, vertex, uu, vertex->t1, ku-kk > 1 );
     if ( !left || !right )
       goto failure;
+    vertex->left = left;
+    vertex->right = right;
+    vertex->tag = 2;
     RBezCurveInitialDivision ( tree, left, degree,
                                (kk+1)*(degree+1)-1, knots, cp );
     RBezCurveInitialDivision ( tree, right, degree,
@@ -255,28 +261,18 @@ static void DivideRCVertexd ( RBezCurveTreedp tree, RBezCurveTreeVertexdp vertex
 RBezCurveTreeVertexdp rbez_GetRBezCurveLeftVertexd ( RBezCurveTreedp tree,
                                                      RBezCurveTreeVertexdp vertex )
 {
-  if ( !vertex->left ) {
-    if ( raybez_use_mutex )
-      pthread_mutex_lock ( &raybez_mutex );
-    if ( !vertex->left )
-      DivideRCVertexd ( tree, vertex );
-    if ( raybez_use_mutex )
-      pthread_mutex_unlock ( &raybez_mutex );
-  }
+  if ( vertex->tag < 2 )
+    raybez_DivideTreeVertex ( tree, vertex, &vertex->tag,
+                              (divide_vertex_proc)&DivideRCVertexd );
   return vertex->left;
 } /*rbez_GetRBezCurveLeftVertexd*/
 
 RBezCurveTreeVertexdp rbez_GetRBezCurveRightVertexd ( RBezCurveTreedp tree,
                                                       RBezCurveTreeVertexdp vertex )
 {
-  if ( !vertex->right ) {
-    if ( raybez_use_mutex )
-      pthread_mutex_lock ( &raybez_mutex );
-    if ( !vertex->right )
-      DivideRCVertexd ( tree, vertex );
-    if ( raybez_use_mutex )
-      pthread_mutex_unlock ( &raybez_mutex );
-  }
+  if ( vertex->tag < 2 )
+    raybez_DivideTreeVertex ( tree, vertex, &vertex->tag,
+                              (divide_vertex_proc)&DivideRCVertexd );
   return vertex->right;
 } /*rbez_GetRBezCurveRightVertexd*/
 

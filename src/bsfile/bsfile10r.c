@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2010, 2014                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2010, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -407,6 +407,7 @@ boolean bsf_ReadBSFiled ( const char *filename, bsf_UserReaders *readers )
   if ( !bsf_OpenInputFile ( filename ) )
     return false;
   readers->done = false;
+  obj_type = BSF_NONE;
   for (;;) {
     signal_end = false;
     if ( readers ) {

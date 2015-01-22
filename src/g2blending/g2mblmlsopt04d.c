@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2011, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2011, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -255,7 +255,7 @@ typedef struct {
     pthread_mutex_t mutex;
   } g2mbl_multqixdata;
 
-static boolean _g2mbl_MLSmultQIxd4 ( void *usrdata, int3 *jobnum )
+static boolean _g2mbl_MLSmultQIxd4 ( void *usrdata, int4 *jobnum )
 {
   boolean           *sp;
   g2mbl_multqixdata *qdata;
@@ -314,7 +314,7 @@ failure:
   return false;
 } /*_g2mbl_MLSmultQIxd4*/
 
-static boolean _g2mbl_MLSmultQIxd5 ( void *usrdata, int3 *jobnum )
+static boolean _g2mbl_MLSmultQIxd5 ( void *usrdata, int4 *jobnum )
 {
   boolean           *sp;
   g2mbl_multqixdata *qdata;
@@ -378,7 +378,7 @@ boolean _g2mbl_MLSmultQIxd ( int nvars, void *usrdata, double *x, double *Qix )
   g2mbl_multqixdata   qdata;
   mlblock_desc        *bd;
   mesh_ml_optdata     *d;
-  int3                jobsize;
+  int4                jobsize;
   boolean             result;
   short int           bl, nsmbl;
   int                 i, nvcp, *nncpi, *vncpi;
@@ -401,7 +401,6 @@ boolean _g2mbl_MLSmultQIxd ( int nvars, void *usrdata, double *x, double *Qix )
     bd = &d->bd[qdata.bl0];
   }
   qdata.bl1 = qdata.bl0 + nsmbl - 1;
-  jobsize.y = jobsize.z = 1;
         /* setup the array of numbers of vertices in the current block; */
         /* this will be used to select the right variables for the subblocks */
   nncpi = pkv_GetScratchMemi ( d->nv );
@@ -423,11 +422,11 @@ boolean _g2mbl_MLSmultQIxd ( int nvars, void *usrdata, double *x, double *Qix )
       goto failure;
     pthread_mutexattr_destroy ( &attr );
     jobsize.x = nsmbl;
-    result = pkv_SetPThreadsToWork ( &jobsize, _g2mbl_npthreads,
-                                  4*1048576, 16*1048576,
-                                  (void*)&qdata, _g2mbl_MLSmultQIxd4,
-                                  (void*)&qdata, _g2mbl_MLSmultQIxd5,
-                                  &result );
+    result = pkv_SetPThreadsToWork ( 1, &jobsize, _g2mbl_npthreads,
+                                     4*1048576, 16*1048576,
+                                     (void*)&qdata, _g2mbl_MLSmultQIxd4,
+                                     (void*)&qdata, _g2mbl_MLSmultQIxd5,
+                                     &result );
     pthread_mutex_destroy ( &qdata.mutex );
     if ( !result )
       goto failure;
@@ -462,7 +461,7 @@ typedef struct {
     boolean         positive, abort;
   } g2mbl_blockdecompdata;
 
-static boolean _g2mbl_MLSDecompSmallBlockd ( void *usrdata, int3 *jobnum )
+static boolean _g2mbl_MLSDecompSmallBlockd ( void *usrdata, int4 *jobnum )
 {
   g2mbl_blockdecompdata *qdata;
   mesh_ml_optdata       *d;
@@ -520,7 +519,7 @@ failure:
   return false;
 } /*_g2mbl_MLSDecompSmallBlockd*/
 
-static boolean _g2mbl_MLSDecompCoarseBlockd ( void *usrdata, int3 *jobnum )
+static boolean _g2mbl_MLSDecompCoarseBlockd ( void *usrdata, int4 *jobnum )
 {
   g2mbl_blockdecompdata *qdata;
   mesh_ml_optdata       *d;
@@ -582,7 +581,7 @@ boolean _g2mbl_MLSDecomposeBlockPrecond ( mesh_ml_optdata *d, short int bl,
   int                   nsmbl;  /* number of small blocks */
   int                   i;
   mlblock_desc          *bd;
-  int3                  jobnum;
+  int4                  jobnum;
   boolean               success;
 
   sp = pkv_GetScratchMemTop ();
@@ -601,13 +600,12 @@ boolean _g2mbl_MLSDecomposeBlockPrecond ( mesh_ml_optdata *d, short int bl,
   qdata.bl1 = qdata.bl0 + nsmbl - 1;
   bd = &d->bd[bl];
   *positive = qdata.positive = true;
-  jobnum.y = jobnum.z = 1;
 
   qdata.abort = false;
   if ( _g2mbl_npthreads > 1 ) {
         /* parallel computations */
     jobnum.x = nsmbl;
-    if ( !pkv_SetPThreadsToWork ( &jobnum, _g2mbl_npthreads,
+    if ( !pkv_SetPThreadsToWork ( 1, &jobnum, _g2mbl_npthreads,
                                   4*1048576, 32*1048576,
                                   (void*)&qdata, _g2mbl_MLSDecompSmallBlockd,
                                   (void*)&qdata, _g2mbl_MLSDecompCoarseBlockd,

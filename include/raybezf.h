@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2014                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -46,10 +46,11 @@ typedef struct _BezPatchTreeVertexf {
   point3f                     pcent;          /* patch central point */
   vector3f                    nvcent;         /* normal vector */
   float                       maxder;         /* maximal derivative length */
-  unsigned short              level;
+  unsigned char               level;          /* subdivision level */
   unsigned char               divdir;         /* 0 - divide u */
                                               /* 1 - divide v */
-  unsigned char               vertex_colour;
+  unsigned char               vertex_colour;  /* for trimmed patches */
+  unsigned char               tag;            /* for pthreads */
 } BezPatchTreeVertexf, *BezPatchTreeVertexfp;
 
 typedef struct {
@@ -75,10 +76,11 @@ typedef struct _RBezPatchTreeVertexf {
   point3f                      pcent;          /* patch central point */
   vector3f                     nvcent;         /* normal vector */
   float                        maxder;         /* maximal derivative length */
-  unsigned short               level;
+  unsigned char                level;          /* subdivision level */
   unsigned char                divdir;         /* 0 - divide u */
                                                /* 1 - divide v */
-  unsigned char                vertex_colour;
+  unsigned char                vertex_colour;  /* for trimmed patches */
+  unsigned char                tag;            /* for pthreads */
 } RBezPatchTreeVertexf, *RBezPatchTreeVertexfp;
 
 typedef struct {
@@ -94,14 +96,15 @@ typedef struct {
 
 typedef struct _BezCurveTreeVertexf {
     struct _BezCurveTreeVertexf *left, *right,
-                                *up;    /* pointers to subtrees and up */
-    point3f *ctlpoints;                 /* pointer to array of control points */
-    float   t0, t1;                     /* parameter range */
-    Box3f   bbox;                       /* bounding box */
-    point3f ccent;                      /* curve central point */
-    float   maxder;
-    short   level;                      /* subdivision level */
-    short   pad;
+                                *up;        /* pointers to subtrees and up */
+    point3f                     *ctlpoints; /* pointer to array of control points */
+    float                       t0, t1;     /* parameter range */
+    Box3f                       bbox;       /* bounding box */
+    point3f                     ccent;      /* curve central point */
+    double                      maxder;
+    unsigned char               level;      /* subdivision level */
+    unsigned char               tag;        /* for pthreads */
+    unsigned short              pad;
   } BezCurveTreeVertexf, *BezCurveTreeVertexfp;
 
 typedef struct {
@@ -115,14 +118,15 @@ typedef struct {
 
 typedef struct _RBezCurveTreeVertexf {
     struct _RBezCurveTreeVertexf *left, *right,
-                                 *up;   /* pointers to subtrees and up */
-    point4f *ctlpoints;                 /* pointer to array of control points */
-    float   t0, t1;                     /* parameter range */
-    Box3f   bbox;                       /* bounding box */
-    point3f ccent;                      /* curve central point */
-    float   maxder;
-    short   level;                      /* subdivision level */
-    short   pad;
+                                 *up;        /* pointers to subtrees and up */
+    point4f                      *ctlpoints; /* pointer to array of control points */
+    float                        t0, t1;     /* parameter range */
+    Box3f                        bbox;       /* bounding box */
+    point3f                      ccent;      /* curve central point */
+    float                        maxder;
+    unsigned char                level;      /* subdivision level */
+    unsigned char                tag;        /* for pthreads */
+    unsigned short               pad;
   } RBezCurveTreeVertexf, *RBezCurveTreeVertexfp;
 
 typedef struct {

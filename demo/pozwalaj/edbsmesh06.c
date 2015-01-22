@@ -1434,3 +1434,8 @@ failure:
   return false;
 } /*GeomObjectBSplineMeshSimplify*/
 
+boolean GeomObjectBSplineMeshDecimate ( GO_BSplineMesh *obj )
+{
+  return false;
+} /*GeomObjectBSplineMeshDecimate*/
+

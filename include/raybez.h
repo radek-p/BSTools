@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2012, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2015                                  */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -29,15 +29,15 @@
 #include "raybezf.h"
 #include "raybezd.h"
 
-extern pthread_mutex_t raybez_mutex;
-extern boolean         raybez_use_mutex;
 
 #ifdef __cplusplus   
 extern "C" {
 #endif
 
-boolean raybez_InitMutex ( void );
-void raybez_DestroyMutex ( void );
+boolean raybez_EnablePThreads ( int npthr );
+void raybez_DisablePThreads ( void );
+
+void raybez_GetPThreadCounts ( int *cnt );
 
 #ifdef __cplusplus
 }

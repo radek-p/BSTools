@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2014                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2014, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -19,6 +19,7 @@
 #include "multibs.h"
 #include "raybez.h"
 
+#include "raybezprivate.h"
 #include "raybezprivatef.h"
 
 #define BOX_EPS 1.0e-5
@@ -44,6 +45,7 @@ static BezPatchTreeVertexfp
     vertex->v0 = v0;  vertex->v1 = v1;
     vertex->left = vertex->right = NULL;
     vertex->vertex_colour = RAYBEZ_WHITE;
+    vertex->tag = 0;
     if ( (vertex->up = up) != NULL )
       vertex->level = (short)(up->level + 1);
     else
@@ -150,6 +152,8 @@ case 0:  /* divide the "u" variable interval */
       pkv_Selectc ( n+1, (m+1)*sizeof(point3f),
                     pitch*sizeof(point3f), (m+1)*sizeof(point3f),
                     (char*)cp, (char*)left->ctlpoints );
+      BezPatchGetDivDirf ( n, 2*n+1, m, 2*m+1, pitch, cp,
+                           &left->divdir, &left->maxder );
       mbs_BCHornerNvP3f ( n, m, left->ctlpoints, 0.5, 0.5,
                           &left->pcent, &left->nvcent );
       rbez_FindCPBoundingBox3f ( 1, (n+1)*(m+1), 0, left->ctlpoints, BOX_EPS,
@@ -163,6 +167,8 @@ case 0:  /* divide the "u" variable interval */
       pkv_Selectc ( n+1, (m+1)*sizeof(point3f),
                     pitch*sizeof(point3f), (m+1)*sizeof(point3f),
                     (char*)&cp[kk*(n+1)*pitch], (char*)right->ctlpoints );
+      BezPatchGetDivDirf ( n, 2*n+1, m, 2*m+1, pitch, &cp[kk*(n+1)*pitch],
+                           &right->divdir, &right->maxder );
       mbs_BCHornerNvP3f ( n, m, right->ctlpoints, 0.5, 0.5,
                           &right->pcent, &right->nvcent );
       rbez_FindCPBoundingBox3f ( 1, (n+1)*(m+1), 0, right->ctlpoints, BOX_EPS,
@@ -187,6 +193,8 @@ case 1:  /* divide the "v" variable interval */
       pkv_Selectc ( n+1, (m+1)*sizeof(point3f),
                     pitch*sizeof(point3f), (m+1)*sizeof(point3f),
                     (char*)cp, (char*)left->ctlpoints );
+      BezPatchGetDivDirf ( n, 2*n+1, m, 2*m+1, pitch, cp,
+                           &left->divdir, &left->maxder );
       mbs_BCHornerNvP3f ( n, m, left->ctlpoints, 0.5, 0.5,
                           &left->pcent, &left->nvcent );
       rbez_FindCPBoundingBox3f ( 1, (n+1)*(m+1), 0, left->ctlpoints, BOX_EPS,
@@ -200,6 +208,8 @@ case 1:  /* divide the "v" variable interval */
       pkv_Selectc ( n+1, (m+1)*sizeof(point3f),
                     pitch*sizeof(point3f), (m+1)*sizeof(point3f),
                     (char*)&cp[kk*(m+1)], (char*)right->ctlpoints );
+      BezPatchGetDivDirf ( n, 2*n+1, m, 2*m+1, pitch, &cp[kk*(m+1)],
+                           &right->divdir, &right->maxder );
       mbs_BCHornerNvP3f ( n, m, right->ctlpoints, 0.5, 0.5,
                           &right->pcent, &right->nvcent );
       rbez_FindCPBoundingBox3f ( 1, (n+1)*(m+1), 0, right->ctlpoints, BOX_EPS,
@@ -211,9 +221,13 @@ case 1:  /* divide the "v" variable interval */
                                 pitch, &cp[kk*(m+1)] );
     }
     break;
+
+default:
+    goto failure;
   }
   vertex->left = left;
   vertex->right = right;
+  vertex->tag = 2;
   rbez_FindSumBBoxf ( &left->bbox, &right->bbox, &vertex->bbox );
   return;
 
@@ -401,8 +415,9 @@ BezPatchTreeVertexfp
     rbez_GetBezLeftVertexf ( BezPatchTreefp tree,  
                              BezPatchTreeVertexfp vertex )
 {
-  if ( !vertex->left )
-    BezPDivideVertexf ( tree, vertex );
+  if ( vertex->tag < 2 )
+    raybez_DivideTreeVertex ( tree, vertex, &vertex->tag,
+                              (divide_vertex_proc)&BezPDivideVertexf );
   return vertex->left;
 } /*rbez_GetBezLeftVertexf*/
 
@@ -410,8 +425,9 @@ BezPatchTreeVertexfp
     rbez_GetBezRightVertexf ( BezPatchTreefp tree, 
                               BezPatchTreeVertexfp vertex )
 {
-  if ( !vertex->left )
-    BezPDivideVertexf ( tree, vertex );
+  if ( vertex->tag < 2 )
+    raybez_DivideTreeVertex ( tree, vertex, &vertex->tag,
+                              (divide_vertex_proc)&BezPDivideVertexf );
   return vertex->right;
 } /*rbez_GetBezRightVertexf*/
 

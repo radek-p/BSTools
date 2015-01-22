@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2012                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2012, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -18,25 +18,164 @@
 
 #include "pkvprivate.h"
 
+/*#define DEBUG*/
+
 /* ////////////////////////////////////////////////////////////////////////// */
-boolean          pkv_threads_in_use = false;
-pthread_mutex_t  thread_mutex;
-pthread_t        main_thread;
+/* I do not know about processors, whose stacks grow up (to higher addresses) */
+/* but if such a thing exists, then before compilation for it, delete or */
+/* comment out the line below */
+#define CPU_STACK_GROWS_DOWN
 
-short int        max_threads = 0;
-pkv_thread       *pkvthread = NULL;
+typedef struct {
+    short int pos;
+    size_t    stack_var;
+  } thrstack_desc;
 
-static short int pkvt_busylist = -1,
-                 pkvt_freelist = -1,
-                 pkvt_firstfree = 0;
+/* ////////////////////////////////////////////////////////////////////////// */
+boolean                pkv_threads_in_use = false;
+pthread_mutex_t        thread_mutex;
+pthread_t              main_thread;
+
+short int              max_threads = 0;
+pkv_thread             *pkvthread = NULL;
+
+static short int       pkvt_busylist = -1,
+                       pkvt_freelist = -1,
+                       pkvt_firstfree = 0;
+
+static short int       current_thrstacks = 0;
+static pthread_mutex_t cpustack_mutex;
+static thrstack_desc   *thrstacks = NULL;
+
+/* ////////////////////////////////////////////////////////////////////////// */
+/* as the thread identifiers (pthread_t) are opaque objects, linear search is */
+/* used in the procedures. */
+short int pkv_PThreadIPos ( pthread_t thr )
+{
+  int pos;
+
+  pthread_mutex_lock ( &thread_mutex );
+  for ( pos = pkvt_busylist; pos >= 0; pos = pkvthread[pos].next )
+    if ( pkvthread[pos].valid &&
+         pthread_equal ( thr, pkvthread[pos].thread )  )
+      break;
+  pthread_mutex_unlock ( &thread_mutex );
+  return pos;
+} /*pkv_PThreadIPos*/
+
+short int _pkv_PThreadMyPos ( pthread_t *thr )
+{
+  pthread_t myself;
+
+  myself = pthread_self ();
+  if ( thr )
+    *thr = myself;
+  return pkv_PThreadIPos ( myself );
+} /*_pkv_PThreadMyPos*/
+
+/* ////////////////////////////////////////////////////////////////////////// */
+static void RegisterThreadStack ( int pos, char *stack_var )
+{
+  int           i;
+  thrstack_desc s;
+
+  s.pos = pos;
+  s.stack_var = (size_t)stack_var;
+  pthread_mutex_lock ( &cpustack_mutex );
+#ifdef DEBUG
+printf ( "r: %d, ", pos );
+#endif
+        /* insertion sort */
+#ifdef CPU_STACK_GROWS_DOWN
+  for ( i = current_thrstacks; i > 0; i-- ) {
+    if ( s.stack_var > thrstacks[i-1].stack_var )
+      thrstacks[i] = thrstacks[i-1];
+    else
+      break;
+  }
+#else
+  for ( i = current_thrstacks; i > 0; i-- ) {
+    if ( s.stack_var < thrstacks[i-1].stack_var )
+      thrstacks[i] = thrstacks[i-1];
+    else
+      break;
+  }
+#endif
+  thrstacks[i] = s;
+  current_thrstacks ++;
+  pthread_mutex_unlock ( &cpustack_mutex );
+} /*RegisterThreadStack*/
+
+static void WithdrawThreadStack ( short int pos )
+{
+  int i;
+
+  pthread_mutex_lock ( &cpustack_mutex );
+#ifdef DEBUG
+printf ( "w: %d, ", pos );
+#endif
+  for ( i = 0; i < current_thrstacks; i++ )
+    if ( thrstacks[i].pos == pos ) {
+      current_thrstacks --;
+      if ( i < current_thrstacks )
+        memmove ( &thrstacks[i], &thrstacks[i+1],
+                  (current_thrstacks-i)*sizeof(thrstack_desc) );
+      break;
+    }
+  pthread_mutex_unlock ( &cpustack_mutex );
+} /*WithdrawThreadStack*/
+
+short int pkv_PThreadMyPos ( void )
+{
+  size_t    qqaddr;
+  short int a, b, c, pos;
+
+  qqaddr = (size_t)&qqaddr;
+  pthread_mutex_lock ( &cpustack_mutex );
+      /* binary search */
+  a = 0;  b = current_thrstacks;
+#ifdef CPU_STACK_GROWS_DOWN
+  while ( b-a > 1 ) {
+    c = (a+b)/2;
+    if ( thrstacks[c].stack_var > qqaddr )
+      a = c;
+    else
+      b = c;
+  }
+#else
+  while ( b-a > 1 ) {
+    c = (a+b)/2;
+    if ( thrstacks[c].stack_var < qqaddr )
+      a = c;
+    else
+      b = c;
+  }
+#endif
+  pos = thrstacks[a].pos;
+        /* just in case */
+  pthread_mutex_unlock ( &cpustack_mutex );
+#ifdef DEBUG
+{
+  pthread_t myself;
+
+  myself = pthread_self ();
+  if ( (pos >= 0 && !pthread_equal ( myself, pkvthread[pos].thread )) ||
+       (pos < 0 && !pthread_equal ( myself, main_thread )) ) {
+    pos = _pkv_PThreadMyPos ( NULL );
+    printf ( "Q: %d %d, ", thrstacks[a].pos, pos );
+  }
+}
+#endif
+  return pos;
+} /*pkv_PThreadMyPos*/
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static void *_pkv_PTHRGetScratchMem ( size_t size )
 {
-  int  my_pos;
-  char *p;
+  short int my_pos;
+  char      *p;
 
-  my_pos = pkv_PThreadMyPos ( NULL );
+  my_pos = pkv_PThreadMyPos ();
   if ( my_pos >= 0 ) {
     if ( !pkvthread[my_pos].ScratchPtr ) {
       PKV_SIGNALERROR ( LIB_PKVARIA, ERRCODE_0, ERRMSG_0 );
@@ -72,9 +211,9 @@ static void *_pkv_PTHRGetScratchMem ( size_t size )
 
 static void _pkv_PTHRFreeScratchMem ( size_t size )
 {
-  int my_pos;
+  short int my_pos;
 
-  my_pos = pkv_PThreadMyPos ( NULL );
+  my_pos = pkv_PThreadMyPos ();
   if ( my_pos >= 0 ) {
     pkvthread[my_pos].FreeScratchPtr -= size;
     pkvthread[my_pos].FreeScratchSize += size;
@@ -87,10 +226,10 @@ static void _pkv_PTHRFreeScratchMem ( size_t size )
 
 static void *_pkv_PTHRGetScratchMemTop ( void )
 {
-  int  my_pos;
-  void *p;
+  short int my_pos;
+  void      *p;
 
-  my_pos = pkv_PThreadMyPos ( NULL );
+  my_pos = pkv_PThreadMyPos ();
   if ( my_pos >= 0 )
     p = pkvthread[my_pos].FreeScratchPtr;
   else
@@ -100,10 +239,10 @@ static void *_pkv_PTHRGetScratchMemTop ( void )
 
 static void _pkv_PTHRSetScratchMemTop ( void *p )
 {
-  int my_pos;
-  int fsm;
+  short int my_pos;
+  long int  fsm;
 
-  my_pos = pkv_PThreadMyPos ( NULL );
+  my_pos = pkv_PThreadMyPos ();
   if ( my_pos >= 0 ) {
     fsm = (char*)p - pkvthread[my_pos].FreeScratchPtr;
     pkvthread[my_pos].FreeScratchPtr = (char*)p;
@@ -118,10 +257,10 @@ static void _pkv_PTHRSetScratchMemTop ( void *p )
 
 static size_t _pkv_PTHRScratchMemAvail ( void )
 {
-  int    my_pos;
-  size_t s;
+  short int my_pos;
+  size_t    s;
 
-  my_pos = pkv_PThreadMyPos ( NULL );
+  my_pos = pkv_PThreadMyPos ();
   if ( my_pos >= 0 )
     s = pkvthread[my_pos].FreeScratchSize;
   else
@@ -131,10 +270,10 @@ static size_t _pkv_PTHRScratchMemAvail ( void )
 
 static size_t _pkv_PTHRMaxScratchTaken ( void )
 {
-  int    my_pos;
-  size_t s;
+  short int my_pos;
+  size_t    s;
 
-  my_pos = pkv_PThreadMyPos ( NULL );
+  my_pos = pkv_PThreadMyPos ();
   if ( my_pos >= 0 ) {
     s = pkvthread[my_pos].ScratchSize - pkvthread[my_pos].MinFreeScratch;
     pkvthread[my_pos].MinFreeScratch = pkvthread[my_pos].FreeScratchSize;
@@ -147,19 +286,29 @@ static size_t _pkv_PTHRMaxScratchTaken ( void )
 } /*_pkv_PTHRMaxScratchTaken*/
 
 /* ////////////////////////////////////////////////////////////////////////// */
-/* to be called from the main thread */
 boolean pkv_InitPThreads ( short int maxthreads )
 {
+  int rc;
+
+  main_thread = pthread_self ();
+  PKV_MALLOC ( thrstacks, (maxthreads+1)*sizeof(thrstack_desc) );
   PKV_MALLOC ( pkvthread, maxthreads*sizeof(pkv_thread) );
-  if ( !pkvthread )
-    return false;
+  if ( !thrstacks || !pkvthread )
+    goto failure;
   max_threads = maxthreads;
+  current_thrstacks = 0;
+  RegisterThreadStack ( -1, (char*)&rc );
   pkvt_busylist = pkvt_freelist = -1;
   pkvt_firstfree = 0;
 
-  pthread_mutex_init ( &thread_mutex, NULL );
-  pkv_threads_in_use = true;
-  main_thread = pthread_self ();
+  rc = pthread_mutex_init ( &cpustack_mutex, NULL );
+  if ( rc )
+    goto failure;
+  rc = pthread_mutex_init ( &thread_mutex, NULL );
+  if ( rc ) {
+    pthread_mutex_destroy ( &cpustack_mutex );
+    goto failure;
+  }
         /* substitite the scratch memory procedures */
   pkv_GetScratchMem    = _pkv_PTHRGetScratchMem;
   pkv_FreeScratchMem   = _pkv_PTHRFreeScratchMem;
@@ -167,7 +316,14 @@ boolean pkv_InitPThreads ( short int maxthreads )
   pkv_SetScratchMemTop = _pkv_PTHRSetScratchMemTop;
   pkv_ScratchMemAvail  = _pkv_PTHRScratchMemAvail;
   pkv_MaxScratchTaken  = _pkv_PTHRMaxScratchTaken;
+  pkv_threads_in_use = true;
   return true;
+
+failure:
+  if ( thrstacks ) PKV_FREE ( thrstacks );
+  if ( pkvthread ) PKV_FREE ( pkvthread );
+  pkv_threads_in_use = false;
+  return false;
 } /*pkv_InitPThreads*/
 
 /* to be called from the main thread */
@@ -176,8 +332,10 @@ void pkv_DestroyPThreads ( void )
   pkv_CancelPThreads ();
   pkv_threads_in_use = false;
   PKV_FREE ( pkvthread );
+  PKV_FREE ( thrstacks );
   max_threads = 0;
   pthread_mutex_destroy ( &thread_mutex );
+  pthread_mutex_destroy ( &cpustack_mutex );
         /* restore default scratch memory procedures */
   _pkv_AssignDefaultScratchMemProc ();
 } /*pkv_DestroyPThreads*/
@@ -229,43 +387,10 @@ static void _free_thr ( short pos )
 } /*_free_thr*/
 
 /* ////////////////////////////////////////////////////////////////////////// */
-/* as the thread identifiers (pthread_t) are opaque objects, linear search is */
-/* used in the two procedures below. */
-short int pkv_PThreadMyPos ( pthread_t *thr )
-{
-  pthread_t myself;
-  int       pos;
-
-  pthread_mutex_lock ( &thread_mutex );
-  myself = pthread_self ();
-  if ( thr )
-    *thr = myself;
-  for ( pos = pkvt_busylist; pos >= 0; pos = pkvthread[pos].next )
-    if ( pkvthread[pos].valid &&
-         pthread_equal ( myself, pkvthread[pos].thread ) )
-      break;
-  pthread_mutex_unlock ( &thread_mutex );
-  return pos;
-} /*pkv_PThreadMyPos*/
-
-short int pkv_PThreadIPos ( pthread_t thr )
-{
-  int pos;
-
-  pthread_mutex_lock ( &thread_mutex );
-  for ( pos = pkvt_busylist; pos >= 0; pos = pkvthread[pos].next )
-    if ( pkvthread[pos].valid &&
-         pthread_equal ( thr, pkvthread[pos].thread )  )
-      break;
-  pthread_mutex_unlock ( &thread_mutex );
-  return pos;
-} /*pkv_PThreadIPos*/
-
-/* ////////////////////////////////////////////////////////////////////////// */
 static short int _pkv_NewThread ( int detachstate, PKVThreadProc startproc,
                                   size_t stacksize, size_t scratchmemsize,
                                   PKVThreadWorkToDo jobproc, void *jobdata,
-                                  int3 *jobnum, void *auxdata,
+                                  int4 *jobnum, void *auxdata,
                                   pthread_t *thread )
 {
   pthread_attr_t attr;
@@ -279,7 +404,6 @@ static short int _pkv_NewThread ( int detachstate, PKVThreadProc startproc,
     if ( scratchmemsize ) {
       PKV_MALLOC ( pkvthread[pos].ScratchPtr, scratchmemsize );
       if ( !pkvthread[pos].ScratchPtr ) {
-printf ( "NewThread a\n" );
         _free_thr ( pos );
         return -1;
       }
@@ -295,21 +419,16 @@ printf ( "NewThread a\n" );
     if ( jobnum )
       pkvthread[pos].jobnum = *jobnum;
     else
-      memset ( &pkvthread[pos].jobnum, 0, sizeof(int3) );
+      memset ( &pkvthread[pos].jobnum, 0, sizeof(int4) );
     pkvthread[pos].auxdata = auxdata;
     pkvthread[pos].waiting = false;
     pkvthread[pos].success = true;  /* to be changed in case of failure */
     rc = pthread_cond_init ( &pkvthread[pos].cond, NULL );
-    if ( rc ) {
-printf ( "NewThread b, rc = %d\n", rc );
+    if ( rc )
       goto failure1;
-    }
     rc = pthread_mutex_init ( &pkvthread[pos].mutex, NULL );
     if ( rc )  /* cannot create the necessary mutex */
-{
-printf ( "NewThread c, rc = %d\n", rc );
       goto failure2;
-}
         /* create the thread */
     pthread_attr_init ( &attr );
     pthread_attr_setdetachstate ( &attr, detachstate );
@@ -319,7 +438,6 @@ printf ( "NewThread c, rc = %d\n", rc );
     rc = pthread_create ( &pkvthread[pos].thread, &attr,
                           startproc, (void*)&pkvthread[pos] );
     if ( rc ) {  /* thread creation process failed */
-printf ( "NewThread d, rc = %d\n", rc );
       pthread_mutex_destroy ( &pkvthread[pos].mutex );
       pthread_attr_destroy ( &attr );
 failure2:
@@ -336,10 +454,8 @@ failure1:
     pthread_attr_destroy ( &attr );
     return pos;
   }
-  else {
-printf ( "NewThread e\n" );
+  else
     return -1;
-  }
 } /*_pkv_NewThread*/
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -405,12 +521,13 @@ static void* _pkv_DetachedSR ( void *usrdata )
   int               pos;
   PKVThreadWorkToDo jobproc;
   void              *jobdata;
-  int3              jobnum;
+  int4              jobnum;
   PThreadsQueue     *q;
 
   thr = (pkv_thread*)usrdata;
   thr->valid = true;
-  pos = pkv_PThreadMyPos ( &myself );
+  pos = _pkv_PThreadMyPos ( &myself );
+  RegisterThreadStack ( pos, (char*)&thr );
   q = (PThreadsQueue*)thr->auxdata;
   thr->jobproc = NULL;
 
@@ -444,13 +561,14 @@ static void* _pkv_DetachedSR ( void *usrdata )
   return NULL;
 } /*_pkv_DetachedSR*/
 
-boolean _pkv_BlackPill ( void *data, int3 *jobnum )
+boolean _pkv_BlackPill ( void *data, int4 *jobnum )
 {
   PThreadsQueue *q;
   short int     pos;
 
   q = (PThreadsQueue*)data;
-  pos = pkv_PThreadMyPos ( NULL );
+  pos = _pkv_PThreadMyPos ( NULL );
+  WithdrawThreadStack ( pos );
   pthread_mutex_destroy ( &pkvthread[pos].mutex );
   pthread_cond_destroy ( &pkvthread[pos].cond );
   if ( pkvthread[pos].ScratchPtr )
@@ -466,7 +584,7 @@ boolean _pkv_BlackPill ( void *data, int3 *jobnum )
   pthread_exit ( NULL );
 } /*_pkv_BlackPill*/
 
-boolean pkv_SetPThreadsToWork ( int3 *jobsize, int npthreads,
+boolean pkv_SetPThreadsToWork ( int jobdim, int4 *jobsize, int npthreads,
                                 size_t stacksize, size_t scratchmemsize,
                                 void *usrdata,
                                 PKVThreadWorkToDo jobproc,
@@ -478,13 +596,17 @@ boolean pkv_SetPThreadsToWork ( int3 *jobsize, int npthreads,
   short int     *tpos;
   pthread_t     thread;
   int           rc, i, pos, njobs;
-  int3          jobnum;
+  int4          jobnum;
   boolean       _success;
 
-        /* create and initialise the queue */
-  njobs = jobsize->x*jobsize->y*jobsize->z;
+  if ( jobdim < 1 || jobdim > 4 )
+    exit ( 1 );
+  njobs = jobsize->x;
+  for ( i = 1; i < jobdim; i++ )
+    njobs *= ((int*)jobsize)[i];
   if ( njobs < npthreads )
     npthreads = njobs;
+        /* create and initialise the queue */
   PKV_MALLOC ( q, sizeof(PThreadsQueue)+(2*npthreads+1)*sizeof(short int) );
   if ( !q )
     return false;
@@ -519,37 +641,36 @@ boolean pkv_SetPThreadsToWork ( int3 *jobsize, int npthreads,
   }
         /* assign and supervise the work */
   _success = true;
-  for ( jobnum.z = 0;  jobnum.z < jobsize->z;  jobnum.z ++ )
-    for ( jobnum.y = 0;  jobnum.y < jobsize->y;  jobnum.y ++ )
-      for ( jobnum.x = 0;  jobnum.x < jobsize->x;  jobnum.x ++ ) {
-          /* wait until there is a thread in the queue */
-        pos = _pkv_DequeuePThread ( q );
-          /* find out, if so far the work went o.k. */
-        if ( !pkvthread[pos].success ) {
-            /* if not, make the thread terminate and go out */
-          pthread_mutex_lock ( &pkvthread[pos].mutex );
-          pkvthread[pos].jobproc = _pkv_BlackPill;
-          pkvthread[pos].jobdata = (void*)q;
-          if ( pkvthread[pos].waiting ) {
-            pthread_cond_signal ( &pkvthread[pos].cond );
-            pkvthread[pos].waiting = false;
-          }
-          pthread_mutex_unlock ( &pkvthread[pos].mutex );
-          npthreads --;
-          _success = false;
-          goto dismiss;
-        }
-          /* send the thread to work */
-        pthread_mutex_lock ( &pkvthread[pos].mutex );
-        pkvthread[pos].jobdata = usrdata;
-        pkvthread[pos].jobnum = jobnum;
-        pkvthread[pos].jobproc = jobproc;
-        if ( pkvthread[pos].waiting ) {
-          pthread_cond_signal ( &pkvthread[pos].cond );
-          pkvthread[pos].waiting = false;
-        }
-        pthread_mutex_unlock ( &pkvthread[pos].mutex );
+  memset ( &jobnum, 0, jobdim*sizeof(int) );
+  do {
+      /* wait until there is a thread in the queue */
+    pos = _pkv_DequeuePThread ( q );
+      /* find out, if so far the work went o.k. */
+    if ( !pkvthread[pos].success ) {
+        /* if not, make the thread terminate and go out */
+      pthread_mutex_lock ( &pkvthread[pos].mutex );
+      pkvthread[pos].jobproc = _pkv_BlackPill;
+      pkvthread[pos].jobdata = (void*)q;
+      if ( pkvthread[pos].waiting ) {
+        pthread_cond_signal ( &pkvthread[pos].cond );
+        pkvthread[pos].waiting = false;
       }
+      pthread_mutex_unlock ( &pkvthread[pos].mutex );
+      npthreads --;
+      _success = false;
+      goto dismiss;
+    }
+      /* set the thread to work */
+    pthread_mutex_lock ( &pkvthread[pos].mutex );
+    pkvthread[pos].jobdata = usrdata;
+    pkvthread[pos].jobnum = jobnum;
+    pkvthread[pos].jobproc = jobproc;
+    if ( pkvthread[pos].waiting ) {
+      pthread_cond_signal ( &pkvthread[pos].cond );
+      pkvthread[pos].waiting = false;
+    }
+    pthread_mutex_unlock ( &pkvthread[pos].mutex );
+  } while ( pkv_IncMultiCounter ( jobdim, (int*)jobsize, (int*)&jobnum ) );
         /* do the extra job, if present */
   if ( extrajob )
     _success = extrajob ( extradata, NULL );
@@ -601,6 +722,9 @@ dismiss:
   PKV_FREE ( q );
   if ( success )
     *success = _success;
+#ifdef DEBUG
+printf ( "\n" );
+#endif
   return true;
 
 failure4:
@@ -624,17 +748,19 @@ static void* _pkv_JoinableSR ( void *usrdata )
   short int         pos;
   PKVThreadWorkToDo jobproc;
   void              *jobdata;
-  int3              jobnum;
+  int4              jobnum;
 
   thr = (pkv_thread*)usrdata;
   thr->valid = true;
-  pos = pkv_PThreadMyPos ( &myself );
+  pos = _pkv_PThreadMyPos ( &myself );
+  RegisterThreadStack ( pos, (char*)&thr );
   jobproc = thr->jobproc;
   jobdata = thr->jobdata;
   jobnum = thr->jobnum;
         /* do the job */
   jobproc ( jobdata, &jobnum );
         /* cleanup after the job is done and terminate */
+  WithdrawThreadStack ( pos );
   pthread_mutex_destroy ( &pkvthread[pos].mutex );
   pthread_cond_destroy ( &pkvthread[pos].cond );
   if ( thr->ScratchPtr )
@@ -645,7 +771,7 @@ static void* _pkv_JoinableSR ( void *usrdata )
 
 short int pkv_NewJoinablePThread ( size_t stacksize, size_t scratchmemsize,
                                    PKVThreadWorkToDo jobproc, void *jobdata,
-                                   int3 *jobnum, void *auxdata,
+                                   int4 *jobnum, void *auxdata,
                                    pthread_t *thread )
 {
   return _pkv_NewThread ( PTHREAD_CREATE_JOINABLE, _pkv_JoinableSR,
@@ -662,6 +788,7 @@ void pkv_CancelPThread ( short int pos )
     pthread_cond_destroy ( &pkvthread[pos].cond );
     if ( pkvthread[pos].ScratchPtr )
       PKV_FREE ( pkvthread[pos].ScratchPtr );
+    WithdrawThreadStack ( pos );
     _free_thr ( pos );
   }
 } /*pkv_CancelPThread*/

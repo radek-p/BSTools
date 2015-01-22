@@ -19,7 +19,8 @@ INCLUDES = $(INCDIR)/pkvaria.h $(INCDIR)/pkvthreads.h \
   $(INCDIR)/pkgeom.h $(INCDIR)/pkgeomf.h $(INCDIR)/pkgeomd.h \
   $(INCDIR)/multibs.h $(INCDIR)/multibsf.h $(INCDIR)/multibsd.h \
   $(INCDIR)/raybez.h $(INCDIR)/raybezf.h $(INCDIR)/raybezd.h \
-  $(SRCDIR)/raybezprivatef.h $(SRCDIR)/raybezprivated.h
+  $(SRCDIR)/raybezprivatef.h $(SRCDIR)/raybezprivated.h \
+  $(SRCDIR)/raybezprivate.h
 
 OBJECTS = rayboxf.o rayrboxf.o raybezptreef.o raybezf.o \
   rayrbezptreef.o rayrbezf.o raybezctreef.o \

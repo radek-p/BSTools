@@ -294,7 +294,8 @@ static void _BSPatchMinMaxShapeFunc ( int dens, int id, renderobj *obj,
     roint.object_id = id;
     roint.extra_info = (void*)vertex;
     if ( *fmin > *fmax ) {
-      roint.u = roint.v = 0.0;
+      roint.u = vertex->u0;
+      roint.v = vertex->v0;
       mbs_BCHornerNvP3d  ( m, n, cp, 0.0, 0.0, &roint.p, &roint.nv );
       SubtractPoints3d ( &roint.p, &ray.p, &ray.v );
       roint.t = sqrt ( DotProduct3d ( &ray.v, &ray.v ) );
@@ -302,9 +303,9 @@ static void _BSPatchMinMaxShapeFunc ( int dens, int id, renderobj *obj,
       *fmin = *fmax = cShapeFunc ( &ray, obj, &roint );
     }
     for ( j = 0; j <= dens; j++ ) {
-      roint.u = (double)j/(double)dens;
+      roint.u = vertex->u0 + (double)j/(double)dens*(vertex->u1-vertex->u0);
       for ( k = 0; k <= dens; k++ ) {
-        roint.v = (double)k/(double)dens;
+        roint.v = vertex->v0 + (double)k/(double)dens*(vertex->v1-vertex->v0);
         mbs_BCHornerNvP3d  ( m, n, cp, roint.u, roint.v, &roint.p, &roint.nv );
         SubtractPoints3d ( &roint.p, &ray.p, &ray.v );
         roint.t = sqrt ( DotProduct3d ( &ray.v, &ray.v ) );
@@ -344,7 +345,8 @@ static void _RBSPatchMinMaxShapeFunc ( int dens, int id, renderobj *obj,
     roint.object_id = id;
     roint.extra_info = (void*)vertex;
     if ( *fmin > *fmax ) {
-      roint.u = roint.v = 0.0;
+      roint.u = vertex->u0;
+      roint.v = vertex->v0;
       mbs_BCHornerNvP3Rd  ( m, n, cp, 0.0, 0.0, &roint.p, &roint.nv );
       SubtractPoints3d ( &roint.p, &ray.p, &ray.v );
       roint.t = sqrt ( DotProduct3d ( &ray.v, &ray.v ) );
@@ -352,9 +354,9 @@ static void _RBSPatchMinMaxShapeFunc ( int dens, int id, renderobj *obj,
       *fmin = *fmax = cShapeFunc ( &ray, obj, &roint );
     }
     for ( j = 0; j <= dens; j++ ) {
-      roint.u = (double)j/(double)dens;
+      roint.u = vertex->u0 + (double)j/(double)dens*(vertex->u1-vertex->u0);
       for ( k = 0; k <= dens; k++ ) {
-        roint.v = (double)k/(double)dens;
+        roint.v = vertex->v0 + (double)k/(double)dens*(vertex->v1-vertex->v0);
         mbs_BCHornerNvP3Rd  ( m, n, cp, roint.u, roint.v, &roint.p, &roint.nv );
         SubtractPoints3d ( &roint.p, &ray.p, &ray.v );
         roint.t = sqrt ( DotProduct3d ( &ray.v, &ray.v ) );
@@ -373,7 +375,7 @@ static void _RBSPatchMinMaxShapeFunc ( int dens, int id, renderobj *obj,
   }
 } /*_RBSPatchMinMaxShapeFunc*/
 
-static boolean _FindMinMaxShapeFunc ( void *usrdata, int3 *jobnum )
+static boolean _FindMinMaxShapeFunc ( void *usrdata, int4 *jobnum )
 {
   minmax_struct *mms;
   int           i, i0, i1;
@@ -399,29 +401,14 @@ static boolean _FindMinMaxShapeFunc ( void *usrdata, int3 *jobnum )
   }
         /* store the minimal and maximal values found so far */
   if ( fmin < fmax ) {
-    if ( ncpu > 1 && rendering_npthreads > 1 ) {
-      pthread_mutex_lock ( &raybez_mutex );
-      if ( mms->ok ) {
-        if ( fmin < mms->fmin ) mms->fmin = fmin;
-        if ( fmax > mms->fmax ) mms->fmax = fmax;
-      }
-      else {
-        mms->fmin = fmin;
-        mms->fmax = fmax;
-        mms->ok = true;
-      }
-      pthread_mutex_unlock ( &raybez_mutex );
+    if ( mms->ok ) {
+      if ( fmin < mms->fmin ) mms->fmin = fmin;
+      if ( fmax > mms->fmax ) mms->fmax = fmax;
     }
     else {
-      if ( mms->ok ) {
-        if ( fmin < mms->fmin ) mms->fmin = fmin;
-        if ( fmax > mms->fmax ) mms->fmax = fmax;
-      }
-      else {
-        mms->fmin = fmin;
-        mms->fmax = fmax;
-        mms->ok = true;
-      }
+      mms->fmin = fmin;
+      mms->fmax = fmax;
+      mms->ok = true;
     }
   }
   return true;
@@ -432,7 +419,7 @@ void FindMinMaxShapeFunc ( int dens )
   void          *sp;
   minmax_struct mms;
   int           i, d, nthr;
-  int3          jobsize;
+  int4          jobsize;
   boolean       success;
 
   sp = pkv_GetScratchMemTop ();
@@ -456,8 +443,8 @@ printf ( "A: ncpu = %d, nthr = %d, nobjects = %d\n", ncpu, nthr, nobjects );
     d = (nobjects+nthr-1)/nthr;
     for ( i = 1; i < nthr; i++ )
       mms.jobs[i] = mms.jobs[i-1]+d;
-    jobsize.x = nthr;  jobsize.y = jobsize.z = 1;
-    pkv_SetPThreadsToWork ( &jobsize, nthr, 4*1048576, 4*1048576,
+    jobsize.x = nthr;
+    pkv_SetPThreadsToWork ( 1, &jobsize, nthr, 4*1048576, 4*1048576,
                             (void*)&mms, _FindMinMaxShapeFunc, NULL, NULL,
                             &success );
   }
@@ -490,10 +477,14 @@ boolean RendInit ( void )
 
   RendererIsOk = false;
 
+/*
   if ( ncpu > 1 ) {
-    if ( !raybez_InitMutex () )
+    if ( !raybez_EnablePThreads ( ncpu ) )
       ncpu = 1;
   }
+*/
+  ncpu = 1;
+
   nplanes = XDisplayPlanes ( xgedisplay, xgescreen );
   rendimage = XCreateImage ( xgedisplay, xgevisual, nplanes, ZPixmap, 0,
                              NULL, xge_MAX_WIDTH, xge_MAX_HEIGHT, 8, 0 );
@@ -517,7 +508,7 @@ boolean RendInit ( void )
 void RendDestroy ( void )
 {
   if ( ncpu > 1 )
-    raybez_DestroyMutex ();
+    raybez_DisablePThreads ();
   RendReset ();
   XDestroyImage ( rendimage );
   free ( obj_tab );
@@ -1358,7 +1349,8 @@ boolean RendBegin ( void )
 
 pkv_Tic ( &tic );
 
-  renderer_npthreads = rendering_npthreads = ncpu > 1 ? rendering_npthreads : 1;
+/*  renderer_npthreads = rendering_npthreads = ncpu > 1 ? rendering_npthreads : 1;*/
+  renderer_npthreads = 1;
   RenderingIsOn = true;
   if ( swAntialias )
     InitRenderingAA ();
@@ -1386,7 +1378,7 @@ typedef struct {
     unsigned int *buf;
   } render_struct;
 
-static boolean RenderSublineA ( void *usrdata, int3 *jobnum )
+static boolean RenderSublineA ( void *usrdata, int4 *jobnum )
 {
   render_struct *rs;
   ray3d        ray;
@@ -1415,7 +1407,7 @@ int RenderLineA ( void )
   int           x, xx;
   ray3d         ray;
   unsigned int  r, g, b;
-  int3          jobsize;
+  int4          jobsize;
   boolean       success;
 
   if ( !RenderingIsOn )
@@ -1438,8 +1430,8 @@ int RenderLineA ( void )
     xx = (_xgw->w+nthr-1)/nthr;
     for ( x = 1; x < nthr; x++ )
       rs.jobs[x] = rs.jobs[x-1]+xx;
-    jobsize.x = nthr;  jobsize.y = jobsize.z = 1;
-    if ( !pkv_SetPThreadsToWork ( &jobsize, nthr, 4*1048576, 4*1048576,
+    jobsize.x = nthr;
+    if ( !pkv_SetPThreadsToWork ( 1, &jobsize, nthr, 4*1048576, 4*1048576,
                                   (void*)&rs, RenderSublineA, NULL, NULL,
                                   &success ) )
       goto sequential;

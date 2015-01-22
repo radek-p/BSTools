@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2012                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2012, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -24,7 +24,7 @@ extern "C" {
 #endif
 
 typedef void*(*PKVThreadProc)(void*);
-typedef boolean (*PKVThreadWorkToDo)(void*,int3*);
+typedef boolean (*PKVThreadWorkToDo)(void*,int4*);
 
 typedef struct {
     short int         next;        /* list link */
@@ -34,7 +34,7 @@ typedef struct {
     PKVThreadWorkToDo jobproc;
     void              *jobdata;
     void              *auxdata;
-    int3              jobnum;
+    int4              jobnum;
     boolean           valid, waiting, success, pad;
     char              *ScratchPtr, *FreeScratchPtr;
     size_t            ScratchSize, FreeScratchSize, MinFreeScratch;
@@ -50,13 +50,13 @@ extern pkv_thread      *pkvthread;
 boolean pkv_InitPThreads ( short int maxthreads );
 void pkv_DestroyPThreads ( void );
 
-short int pkv_PThreadMyPos ( pthread_t *thr );
+short int pkv_PThreadMyPos ( void );
 short int pkv_PThreadIPos ( pthread_t thr );
 
 void pkv_CancelPThread ( short int pos );
 void pkv_CancelPThreads ( void );
 
-boolean pkv_SetPThreadsToWork ( int3 *jobsize, int npthreads,
+boolean pkv_SetPThreadsToWork ( int jobdim, int4 *jobsize, int npthreads,
                                 size_t stacksize, size_t scratchmemsize,
                                 void *usrdata,
                                 PKVThreadWorkToDo jobproc,
@@ -66,7 +66,7 @@ boolean pkv_SetPThreadsToWork ( int3 *jobsize, int npthreads,
 
 short int pkv_NewJoinablePThread ( size_t stacksize, size_t scratchmemsize,
                                    PKVThreadWorkToDo jobproc, void *jobdata,
-                                   int3 *jobnum, void *auxdata,
+                                   int4 *jobnum, void *auxdata,
                                    pthread_t *thread );
 
 int pkv_FindNCPU ( void );

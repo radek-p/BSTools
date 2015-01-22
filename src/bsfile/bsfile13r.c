@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2013, 2014                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2013, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -44,6 +44,8 @@ boolean bsf_ReadCamera ( CameraRecd *Camera, int *ident )
         /* nothing has been read yet */
   frame = pos = orient = depth = projdata = _id = false;
   parallel = false;
+  xmin = ymin = 0;    /* default value if absent in the file */
+  width = height = 1;
   for (;;) {
     switch ( bsf_nextsymbol ) {
 case BSF_SYMB_IDENT:
@@ -62,7 +64,6 @@ case BSF_SYMB_FRAME: /* pixel dimensions of the camera frame */
       if ( bsf_nextsymbol != BSF_SYMB_LBRACE )
         goto failure;
       bsf_GetNextSymbol ();
-      xmin = ymin = 0;  /* default value if absent in the file */
       if ( bsf_nextsymbol != BSF_SYMB_INTEGER )
         goto failure;
       width = bsf_nextint;

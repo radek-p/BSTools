@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2014                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -55,17 +55,19 @@ typedef unsigned char boolean;
 typedef unsigned char byte;
 
 /* point and vector types, for general use */
-typedef struct { signed char x, y; }     char2,   point2c, vector2c;
-typedef struct { signed short x, y; }    short2,  point2s, vector2s;
-typedef struct { signed short x, y, z; } short3,  point3s, vector3s;
-typedef struct { signed int x, y; }      int2,    point2i, vector2i;
-typedef struct { signed int x, y, z; }   int3,    point3i, vector3i;
-typedef struct { float x, y; }           float2,  point2f, vector2f;
-typedef struct { double x, y; }          double2, point2d, vector2d;
-typedef struct { float x, y, z; }        float3,  point3f, vector3f;
-typedef struct { double x, y, z; }       double3, point3d, vector3d;
-typedef struct { float x, y, z, w; }     float4,  point4f, vector4f;
-typedef struct { double x, y, z, w; }    double4, point4d, vector4d;
+typedef struct { signed char x, y; }        char2,   point2c, vector2c;
+typedef struct { signed short x, y; }       short2,  point2s, vector2s;
+typedef struct { signed short x, y, z; }    short3,  point3s, vector3s;
+typedef struct { signed short x, y, z, w; } short4,  point4s, vector4s;
+typedef struct { signed int x, y; }         int2,    point2i, vector2i;
+typedef struct { signed int x, y, z; }      int3,    point3i, vector3i;
+typedef struct { signed int x, y, z, w; }   int4,    point4i, vector4i;
+typedef struct { float x, y; }              float2,  point2f, vector2f;
+typedef struct { float x, y, z; }           float3,  point3f, vector3f;
+typedef struct { float x, y, z, w; }        float4,  point4f, vector4f;
+typedef struct { double x, y; }             double2, point2d, vector2d;
+typedef struct { double x, y, z; }          double3, point3d, vector3d;
+typedef struct { double x, y, z, w; }       double4, point4d, vector4d;
 
 
 /* 2d boxes, for various purposes */

@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2014                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -25,8 +25,8 @@
 
 /* ///////////////////////////////////////////////////////////////////////// */
 void _rbez_ReflectCPointsRf ( int ncp, const point4f *ctlpoints,
-                             const point3f *rayp, const vector3f *nh, float sh,
-                             point2f *auxcp )
+                              const point3f *rayp, const vector3f *nh, float sh,
+                              point2f *auxcp )
 {
   int     i;
   vector3f v;
@@ -44,8 +44,8 @@ void _rbez_ReflectCPointsRf ( int ncp, const point4f *ctlpoints,
 } /*_rbez_ReflectCPointsRf*/
 
 boolean _rbez_RBezPSolutionOKf ( int object_id, ray3f *ray, point2f *z,
-                                 int n, int m, point4f *cpoints,
-                                 float u0, float u1, float v0, float v1,
+                                 int n, int m,
+                                 RBezPatchTreeVertexf *vertex,
                                  int *ninters, RayObjectIntersf *inters )
 {
   vector3f pv;
@@ -53,15 +53,16 @@ boolean _rbez_RBezPSolutionOKf ( int object_id, ray3f *ray, point2f *z,
 
   if ( z->x >= 0.0 && z->x <= 1.0 && z->y >= 0.0 && z->y <= 1.0 ) {
     inters += *ninters;
-    mbs_BCHornerNvP3Rf ( n, m, cpoints,
+    mbs_BCHornerNvP3Rf ( n, m, vertex->ctlpoints,
                          z->x, z->y, &inters->p, &inters->nv );
     SubtractPoints3f ( &inters->p, &ray->p, &pv );
     t = DotProduct3f ( &pv, &ray->v );
     if ( t > 0.0 ) {
       inters->t = t;
-      inters->u = u0 + z->x*(u1 - u0);
-      inters->v = v0 + z->y*(v1 - v0);
+      inters->u = vertex->u0 + z->x*(vertex->u1 - vertex->u0);
+      inters->v = vertex->v0 + z->y*(vertex->v1 -vertex-> v0);
       inters->object_id = object_id;
+      inters->extra_info = vertex;
       (*ninters)++;
     }
     return true;
@@ -71,21 +72,21 @@ boolean _rbez_RBezPSolutionOKf ( int object_id, ray3f *ray, point2f *z,
 } /*_rbez_RBezPSolutionOKf*/
 
 void _rbez_ROutputSingularSolutionf ( int object_id, ray3f *ray,
-                                      int n, int m, point4f *cpoints,
-                                      float u0, float u1, float v0, float v1,
+                                      int n, int m,
+                                      RBezPatchTreeVertexf *vertex,
                                       int *ninters, RayObjectIntersf *inters )
 {
   vector3f pv;
   float    t;
 
   inters += *ninters;
-  mbs_BCHornerNvP3Rf ( n, m, cpoints, 0.5, 0.5, &inters->p, &inters->nv );
+  mbs_BCHornerNvP3Rf ( n, m, vertex->ctlpoints, 0.5, 0.5, &inters->p, &inters->nv );
   SubtractPoints3f ( &inters->p, &ray->p, &pv );
   t = DotProduct3f ( &pv, &ray->v );
   if ( t > 0.0 ) {
     inters->t = t;
-    inters->u = 0.5*(u0 + u1);
-    inters->v = 0.5*(v0 + v1);
+    inters->u = vertex->u0 + 0.5*(vertex->u1 - vertex->u0);
+    inters->v = vertex->v0 + 0.5*(vertex->v1 -vertex-> v0);
     inters->object_id = object_id;
     (*ninters)++;
   }
@@ -133,9 +134,7 @@ int rbez_FindRayRBezPatchIntersf ( RBezPatchTreef *tree, ray3f *ray,
           switch ( _rbez_NewtonMethod2f ( n, m, auxcp, &p, &du, &dv, &z ) ) {
         case RBEZ_NEWTON_YES:
             if ( !_rbez_RBezPSolutionOKf ( tree->object_id, ray, &z,
-                      n, m, vertex->ctlpoints,
-                      vertex->u0, vertex->u1, vertex->v0, vertex->v1,
-                      ninters, inters ) ) {
+                      n, m, vertex, ninters, inters ) ) {
               if ( _rbez_SecondTest2f ( &z, n, m, K1, K2 ) )
                 goto DIVIDE;
             }
@@ -157,9 +156,7 @@ DIVIDE:
           }
           else
             _rbez_ROutputSingularSolutionf ( tree->object_id, ray,
-                          n, m, vertex->ctlpoints,
-                          vertex->u0, vertex->u1, vertex->v0, vertex->v1,
-                          ninters, inters );
+                          n, m, vertex, ninters, inters );
         }
       }
     }

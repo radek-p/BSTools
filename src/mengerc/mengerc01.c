@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2014                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2014, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */ 
@@ -32,7 +32,7 @@ typedef struct {
   } intKM_job_desc;
 
 /* ///////////////////////////////////////////////////////////////////////// */
-static boolean _intKM_F ( void *usrdata, int3 *jobnum )
+static boolean _intKM_F ( void *usrdata, int4 *jobnum )
 {
   intKM_job_desc *data;
   mengerc_data   *md;
@@ -243,7 +243,7 @@ boolean _mengerc_intF ( mengerc_data *md, double *func )
   double         *ldpt;
   double         *_f, ff1, ff2, ff3;
   int            i, j, k, l, q1;
-  int3           jobsize;
+  int4           jobsize;
   boolean        success;
 
   sp = pkv_GetScratchMemTop ();
@@ -276,7 +276,7 @@ boolean _mengerc_intF ( mengerc_data *md, double *func )
         /* oblicz calki */
   if ( md->npthr > 1 ) {
     jobsize.x = jobsize.y = jobsize.z = nqkn;
-    pkv_SetPThreadsToWork ( &jobsize, md->npthr, 1048576, 1048576,
+    pkv_SetPThreadsToWork ( 3, &jobsize, md->npthr, 1048576, 1048576,
                             (void*)&data, _intKM_F, NULL, NULL, &success );
     if ( !success )
       goto failure;
@@ -496,7 +496,7 @@ static void _imc_dSpecialK2den ( int n, int N, double *bsf1, int i, int j,
   _imc_dProduct ( nia, a1, fv12*fv12, K2den, daux1, daux2, dK2den );
 } /*_imc_dSpecialK2den*/
 
-static boolean _intKM_FG ( void *usrdata, int3 *jobnum )
+static boolean _intKM_FG ( void *usrdata, int4 *jobnum )
 {
   void           *sp;
   intKM_job_desc *data;
@@ -1030,7 +1030,7 @@ boolean _mengerc_gradIntF ( mengerc_data *md, double *func, double *grad )
   double         *ldpt, *dldpt, Nl, Nm, a, b;
   double         *_f, *_g, ff1, ff2, ff3, *gf2, *gf3;
   int            i, j, k, l, ll, m, im, q1;
-  int3           jobsize;
+  int4           jobsize;
   boolean        success;
 
   sp = pkv_GetScratchMemTop ();
@@ -1096,7 +1096,7 @@ boolean _mengerc_gradIntF ( mengerc_data *md, double *func, double *grad )
         /* oblicz calki */
   if ( md->npthr > 1 ) {
     jobsize.x = jobsize.y = jobsize.z = nqkn;
-    pkv_SetPThreadsToWork ( &jobsize, md->npthr, 1048576, 1048576,
+    pkv_SetPThreadsToWork ( 3, &jobsize, md->npthr, 1048576, 1048576,
                             (void*)&data, _intKM_FG, NULL, NULL, &success );
     if ( !success )
       goto failure;
@@ -1603,7 +1603,7 @@ static void _imc_ddSpecialK2den ( int n, int N, int nvcp, double *dbsf, double *
                    ddaux1, ddaux2, ddK2den );
 } /*_imc_ddSpecialK2den*/
 
-static boolean _intKM_FGH ( void *usrdata, int3 *jobnum )
+static boolean _intKM_FGH ( void *usrdata, int4 *jobnum )
 {
   void           *sp;
   intKM_job_desc *data;
@@ -2517,7 +2517,7 @@ boolean _mengerc_hessIntF ( mengerc_data *md,
   double         Nl, Nm, a, b;
   double         *ddM;
   double         *_f, *_g, *_h, ff1, ff2, ff3, *gf2, *gf3, *hf2, *hf3;
-  int3           jobsize;
+  int4           jobsize;
   boolean        success;
 
   sp = pkv_GetScratchMemTop ();
@@ -2645,7 +2645,7 @@ boolean _mengerc_hessIntF ( mengerc_data *md,
         /* oblicz calki */
   if ( md->npthr > 1 ) {
     jobsize.x = jobsize.y = jobsize.z = nqkn;
-    pkv_SetPThreadsToWork ( &jobsize, md->npthr, 1048576, 16*1048576,
+    pkv_SetPThreadsToWork ( 3, &jobsize, md->npthr, 1048576, 16*1048576,
                             (void*)&data, _intKM_FGH, NULL, NULL, &success );
     if ( !success )
       goto failure;

@@ -3,7 +3,7 @@
 # This file is a part of the BSTools package
 # written by Przemyslaw Kiciak
 # /////////////////////////////////////////////////////////////////////
-# (C) Copyright by Przemyslaw Kiciak, 2005, 2014
+# (C) Copyright by Przemyslaw Kiciak, 2005, 2015
 # this package is distributed under the terms of the
 # Lesser GNU Public License, see the file COPYING.LIB
 # /////////////////////////////////////////////////////////////////////
@@ -60,11 +60,11 @@ reverse.o: reverse.c $(INCDIR)/msgpool.h $(INCDIR)/pkvaria.h
 errmsg.o: errmsg.c $(INCDIR)/msgpool.h $(INCDIR)/pkvaria.h
 tictoc.o: tictoc.c $(INCDIR)/msgpool.h $(INCDIR)/pkvaria.h
 multicounter.o: multicounter.c $(INCDIR)/pkvaria.h
-pkvthreads.o: pkvthreads.c pkvprivate.h \
-  $(INCDIR)/msgpool.h $(INCDIR)/pkvaria.h $(INCDIR)/pkvthreads.h
 findncpu.o: findncpu.c $(INCDIR)/msgpool.h $(INCDIR)/pkvaria.h \
   $(INCDIR)/pkvthreads.h
 pkvscanner.o: pkvscanner.c $(INCDIR)/pkvaria.h $(INCDIR)/pkvscanner.h
+pkvthreads.o: pkvthreads.c pkvprivate.h \
+  $(INCDIR)/msgpool.h $(INCDIR)/pkvaria.h $(INCDIR)/pkvthreads.h
 
 clean:
 	rm -f $(OBJECTS)

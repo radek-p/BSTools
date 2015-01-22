@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */   
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2011, 2012                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2011, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -44,7 +44,7 @@ typedef struct {
   } g2mbl_sjob_desc;
 
 /* ///////////////////////////////////////////////////////////////////////// */
-static boolean _g2mbl_TMLSFuncGradd ( void *usrdata, int3 *jobnum )
+static boolean _g2mbl_TMLSFuncGradd ( void *usrdata, int4 *jobnum )
 {
   void            *sp;
   g2mbl_sjob_desc *data;
@@ -88,7 +88,7 @@ boolean g2mbl_MLSFuncGradd ( int nkn, double *qcoeff,
 {
   void            *sp;
   g2mbl_sjob_desc data;
-  int3            size;
+  int4            size;
   int             *nncpi;
   double          f;
   int             i, j, k, n, el, fp, ncp;
@@ -119,12 +119,11 @@ boolean g2mbl_MLSFuncGradd ( int nkn, double *qcoeff,
     data.domelcpind = domelcpind;
     data.ftab       = ftab;
     data.gtab       = gtab;
-    size.y = size.z = 1;
     if ( _g2mbl_npthreads > 1 ) {
           /* setup the number of jobs */
       size.x = ndomel;
           /* set threads to work */
-      pkv_SetPThreadsToWork ( &size, _g2mbl_npthreads, 1048576, 16*1048576,
+      pkv_SetPThreadsToWork ( 1, &size, _g2mbl_npthreads, 1048576, 16*1048576,
                              (void*)&data, _g2mbl_TMLSFuncGradd,
                              NULL, NULL, &success );
     }
@@ -160,7 +159,7 @@ failure:
 } /*g2mbl_MLSFuncGradd*/
 
 /* ///////////////////////////////////////////////////////////////////////// */
-static boolean _g2mbl_TMLSFuncGradHessiand ( void *usrdata, int3 *jobnum )
+static boolean _g2mbl_TMLSFuncGradHessiand ( void *usrdata, int4 *jobnum )
 {
   void            *sp;
   g2mbl_sjob_desc *data;
@@ -207,7 +206,7 @@ boolean g2mbl_MLSFuncGradHessianAd ( int nkn, double *qcoeff,
 {
   void            *sp;
   g2mbl_sjob_desc data;
-  int3            size;
+  int4            size;
   int             i, j, k, l, m, n, p, b, s, t, hi, el, fp, ncp, hti, *nncpi;
   double          f;
   boolean         success;
@@ -240,12 +239,11 @@ boolean g2mbl_MLSFuncGradHessianAd ( int nkn, double *qcoeff,
     data.ftab       = ftab;
     data.gtab       = gtab;
     data.htab       = htab;
-    size.y = size.z = 1;
     if ( _g2mbl_npthreads > 1 ) {
           /* setup the number of jobs */
       size.x = ndomel;
           /* set threads to work */
-      pkv_SetPThreadsToWork ( &size, _g2mbl_npthreads, 1048576, 16*1048576,
+      pkv_SetPThreadsToWork ( 1, &size, _g2mbl_npthreads, 1048576, 16*1048576,
                               (void*)&data, _g2mbl_TMLSFuncGradHessiand,
                               NULL, NULL, &success );
     }
@@ -331,7 +329,7 @@ boolean g2mbl_MLSFuncGradHessianBd ( int nkn, double *qcoeff,
 {
   void            *sp;
   g2mbl_sjob_desc data;
-  int3            size;
+  int4            size;
   int             i, j, k, l, m, n, p, hi, el, fp, ncp, hti, *nncpi;
   double          f;
   boolean         success;
@@ -364,12 +362,11 @@ boolean g2mbl_MLSFuncGradHessianBd ( int nkn, double *qcoeff,
     data.ftab       = ftab;
     data.gtab       = gtab;
     data.htab       = htab;
-    size.y = size.z = 1;
     if ( _g2mbl_npthreads > 1 ) {
           /* setup the number of jobs */
       size.x = ndomel;
           /* set threads to work */
-      pkv_SetPThreadsToWork ( &size, _g2mbl_npthreads, 1048576, 16*1048576,
+      pkv_SetPThreadsToWork ( 1, &size, _g2mbl_npthreads, 1048576, 16*1048576,
                               (void*)&data, _g2mbl_TMLSFuncGradHessiand,
                               NULL, NULL, &success );
     }

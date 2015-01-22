@@ -3996,6 +3996,7 @@ Wersja 0.35.
     Analogiczne zmiany trzeba wprowadzic dla drzew podzialu krzywych
     Beziera, takze w procedurach sledzenia promieni dla rurek offsetowych.
 
+
 1.01.2015.
 930. Zmiany w bibliotece libraybez - drzewa binarnego podzialu krzywych
     Beziera obecnie moga byc drzewami binarnego podzialu krzywych
@@ -4005,5 +4006,74 @@ Wersja 0.35.
 931. Poprawki w programie pozwalaj, w pliku render.c - uwzgledniaja
     sledzenie promieni dla krzywych B-sklejanych (juz ich nie trzeba dzielic
     na luki wielomianowe). Przy okazji poprawione pare bledow.
+
+
+8.01.2015.
+932. Zmiany w bibliotece libpkvaria w procedurach obslugujacych watki
+    wspolbiezne; jest nowa procedura pkv_PThreadMyPos, ktora dostarcza
+    informacji o numerze watku, ktory ja wywolal. Procedura ta dziala
+    znacznie szybciej, bo po pierwsze nie korzysta z pthread_self
+    i pthread_equal, tylko identyfikuje stos maszynowy watku i uzywa
+    wyszukiwania binarnego.
+
+933. Zmiany w bibliotece libraybez, w procedurach wyznaczania przeciec
+    promienia z platem lub rurka offsetowa. Mozliwe jest wykorzystanie tych
+    procedur w programie wielowatkowym (semafory i zmienne warunkowe blokuja
+    dostep do lisci drzew podzialu, ktore wlasnie sa przez jakis watek
+    dzielone).
+
+    Calosc wymaga dalszej pracy, bo jednak watki przeszkadzaja sobie
+    i program jednowatkowy wykonuje obliczenie szybciej niz dwa lub
+    wiecej watkow wspolbieznych. Prawdopodobnia przyczyna to czekanie na
+    dostep do tablicy stosow maszynowych (w celu samoidentyfikacji watku)
+    w procedurach przydzialu pamieci pkv_GetScratchMemTop, pkv_GetScratchMem
+    i pkv_SetScratchMemTop. To prawdopodobnie wymaga przepisania calego
+    pakietu - do procedur, ktore korzystaja z pamieci thzeba dac dodatkowy
+    parametr, wskaznik do "alokatora" pamieci, ktory nie bedzie potrzebowal
+    wywolywac pkv_PThreadMyPos.
+
+
+10.01.2015.
+934. Poprawiony blad w programie pozwalaj - w procedurze znajdujacej zakres
+    wartosci funkcji ksztaltu dla platow B-sklejanych. Ponadto wylaczona (do
+    czasu porzadnego uruchomienia) wielowatkowosc procedury sledzenia
+    promieni.
+
+
+11.01.2015.
+935. Poprawiony blad w programie pozwalaj - nie byl zaznaczany atrybut
+    rational krzywych i powierzchni po przeczytaniu pliku, zawsze bylo
+    false, co objawilo sie podczas sledzenia promieni.
+
+936. Poprawiony blad w procedurach wyznaczania przeciecia promienia z
+    platem wymiernym - w strukturze opisujacej przeciecie nie byl zapisywany
+    adres wierzcholka drzewa podzialu plata.
+
+12.01.2015.
+937. Poczatek prac w bibliotece libmultibs, majacych na celu uporzadkowanie
+    kodu - kazda procedura ma byc w osobnym pliku, jesli to mozliwe.
+    Procedury korzystajace ze schematu Hornera w celu obliczenia punktu
+    krzywej lub plata i ich pochodnych maja teraz wersje z prefiksem
+    _mbs_ i dodaatkowym parametrem workspace, ktory jest wskaznikiem tablicy
+    na posrednie wyniki obliczen, alokowanym przez aplikacje. Chodzi o
+    zmniejszenie lub wyeliminowanie liczby wywolan procedur dynamicznej
+    alokacji pamieci, ktore okazuja sie zbyt czasochlonne np. podczas
+    sledzenia promieni.
+
+    Nowe pliki zrodlowe w libmultibs maja nazwy mbs????f.c i mbs????d.c,
+    gdzie ? ozbacza cyfre. Docelowo wszystkie procedury maja byc
+    przeniesione do plikow o takich nazwach.
+
+21.01.2015.
+938. Poprawiony blad w pkvthreads.c - identyfikacja watku przez sprawdzenie,
+    w stosie ktorego watku jest lokalna zmienna procedury wywolanej przez
+    watek. Do gruntownego przetestowania.
+
+22.01.2015
+939. Poprawki w libpkvaria, w pkvthreads.c - usuniecie znalezionych bledow,
+    zmiana parametrow procedury pkv_SetPThreadsToWork (zadania moga miec
+    wymiar od 1 do 4). To pociagnelo zmiany w bibliotekach libg2blending
+    i libmengerc, w ktorych pewne procedury korzystaja z wielowatkowosci.
+
 
 

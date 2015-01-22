@@ -39,6 +39,7 @@ void GeomObjectAssignBSplineMesh ( GO_BSplineMesh *obj,
                       byte *mkcp, byte *mkhe, byte *mkfac )
 {
   int nnv;
+
   if ( obj->meshv ) { free ( obj->meshv );  nnv = obj->nv; }
     else nnv = -1;
   if ( obj->meshvhei ) free ( obj->meshvhei );
@@ -187,6 +188,7 @@ boolean GeomObjectInitBSplineMesh ( GO_BSplineMesh *obj,
   obj->me.name[0] = 0;
   if ( !GeomObjectBSplineMeshInitKGon ( obj, 4, false ) )
     return false;
+  obj->integrity_ok = true;
   obj->degree = 3;
   obj->density = 6;
   obj->subdivl = 4;
@@ -305,6 +307,7 @@ geom_object *GeomObjectCopyBSplineMesh ( GO_BSplineMesh *obj )
     memcpy ( mkcp, obj->mkcp, obj->nv*sizeof(byte) );
     memcpy ( mkhe, obj->mkhe, obj->nhe*sizeof(byte) );
     memcpy ( mkfac, obj->mkfac, obj->nfac*sizeof(byte) );
+    copy->integrity_ok = obj->integrity_ok;  /* should always be true */
     copy->blending = obj->blending;
     GeomObjectAssignBSplineMesh ( copy,
                       obj->me.spdimen, obj->rational,

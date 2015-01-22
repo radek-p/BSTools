@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2014                            */ 
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2015                            */ 
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -38,7 +38,7 @@ void _rbez_ReflectCPointsf ( int ncp, const point3f *ctlpoints,
 } /*_rbez_ReflectCPointsf*/
 
 boolean _rbez_BezPSolutionOKf ( int object_id, ray3f *ray, point2f *z,
-                                int n, int m, point3f *cpoints,
+                                int n, int m,
                                 BezPatchTreeVertexf *vertex,
                                 int *ninters, RayObjectIntersf *inters )
 {
@@ -47,7 +47,7 @@ boolean _rbez_BezPSolutionOKf ( int object_id, ray3f *ray, point2f *z,
 
   if ( z->x >= 0.0 && z->x <= 1.0 && z->y >= 0.0 && z->y <= 1.0 ) {
     inters += *ninters;
-    mbs_BCHornerNvP3f ( n, m, cpoints,
+    mbs_BCHornerNvP3f ( n, m, vertex->ctlpoints,
                         z->x, z->y, &inters->p, &inters->nv );
     SubtractPoints3f ( &inters->p, &ray->p, &pv );
     t = DotProduct3f ( &pv, &ray->v );
@@ -66,7 +66,7 @@ boolean _rbez_BezPSolutionOKf ( int object_id, ray3f *ray, point2f *z,
 } /*_rbez_BezPSolutionOKf*/
 
 void _rbez_OutputSingularSolutionf ( int object_id, ray3f *ray,
-                                     int n, int m, point3f *cpoints,
+                                     int n, int m,
                                      BezPatchTreeVertexf *vertex,
                                      int *ninters, RayObjectIntersf *inters )
 {
@@ -74,7 +74,7 @@ void _rbez_OutputSingularSolutionf ( int object_id, ray3f *ray,
   float    t;
 
   inters += *ninters;
-  mbs_BCHornerNvP3f ( n, m, cpoints, 0.5, 0.5, &inters->p, &inters->nv );
+  mbs_BCHornerNvP3f ( n, m, vertex->ctlpoints, 0.5, 0.5, &inters->p, &inters->nv );
   SubtractPoints3f ( &inters->p, &ray->p, &pv );
   t = DotProduct3f ( &pv, &ray->v );
   if ( t > 0.0 ) {
@@ -129,8 +129,7 @@ int rbez_FindRayBezPatchIntersf ( BezPatchTreef *tree, ray3f *ray,
           switch ( _rbez_NewtonMethod2f ( n, m, auxcp, &p, &du, &dv, &z ) ) {
         case RBEZ_NEWTON_YES:
             if ( !_rbez_BezPSolutionOKf ( tree->object_id, ray, &z,
-                      n, m, vertex->ctlpoints, vertex,
-                      ninters, inters ) ) {
+                      n, m, vertex, ninters, inters ) ) {
               if ( _rbez_SecondTest2f ( &z, n, m, K1, K2 ) )
                 goto DIVIDE;
             }
@@ -152,7 +151,7 @@ DIVIDE:
           }
           else
             _rbez_OutputSingularSolutionf ( tree->object_id, ray,
-                          n, m, vertex->ctlpoints, vertex, ninters, inters );
+                                            n, m, vertex, ninters, inters );
         }
       }
     }

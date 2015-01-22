@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -75,70 +75,4 @@ boolean mbs_multiBCHornerd ( int degree, int ncurves, int spdimen, int pitch,
     return false;
   }
 } /*mbs_multiBCHornerd*/
-
-boolean mbs_BCHornerC2Rd ( int degree, const point3d *ctlpoints, double t,
-                           point2d *cpoint )
-{
-  point3d hcpoint;
-
-  if ( mbs_multiBCHornerd ( degree, 1, 3, 0, (double*)ctlpoints, t,
-                           (double*)&hcpoint ) ) {
-    Point3to2d ( &hcpoint, cpoint );
-    return true;
-  }
-  else
-    return false;
-} /*mbs_BCHornerC2Rd*/
-
-boolean mbs_BCHornerC3Rd ( int degree, const point4d *ctlpoints, double t,
-                           point3d *cpoint )
-{
-  point4d hcpoint;
-
-  if ( mbs_multiBCHornerd ( degree, 1, 4, 0, (double*)ctlpoints, t,
-                            (double*)&hcpoint ) ) {
-    Point4to3d ( &hcpoint, cpoint );
-    return true;
-  }
-  else
-    return false;
-} /*mbs_BCHornerC3Rd*/
-
-boolean mbs_BCHornerPd ( int degreeu, int degreev, int spdimen,
-                         const double *ctlpoints,
-                         double u, double v, double *ppoint )
-{
-  void   *sp;
-  double *auxc;
-  int    auxc_size;
-
-  sp = pkv_GetScratchMemTop ();
-  auxc_size = (degreev+1)*spdimen*sizeof(double);
-  if ( (auxc = pkv_GetScratchMem ( auxc_size )) ) {
-    if ( !mbs_multiBCHornerd ( degreeu, 1, spdimen*(degreev+1), 0, ctlpoints,
-                               u, auxc ) )
-      goto failure;
-    if ( !mbs_multiBCHornerd ( degreev, 1, spdimen, 0, auxc, v, ppoint ) )
-      goto failure;
-  }
-  pkv_SetScratchMemTop ( sp );
-  return true;
-
-failure:
-  pkv_SetScratchMemTop ( sp );
-  return false;
-} /*mbs_BCHornerPd*/
-
-boolean mbs_BCHornerP3Rd ( int degreeu, int degreev, const point4d *ctlpoints,
-                            double u, double v, point3d *ppoint )
-{
-  point4d auxp;
-
-  if ( mbs_BCHornerP4d ( degreeu, degreev, ctlpoints, u, v, &auxp ) ) {
-    Point4to3d ( &auxp, ppoint );
-    return true;
-  }
-  else
-    return false;
-} /*mbs_BCHornerP3Rd*/
 

@@ -100,6 +100,7 @@ char txtShrink[]            = "shrink";
 char txtContract[]          = "contract";
 char txtTriangulate[]       = "triangulate";
 char txtSimplify[]          = "simplify";
+char txtDecimate[]          = "decimate";
 char txtDensity[]           = "density";
 char txtDensityU[]          = "density u";
 char txtDensityV[]          = "density v";
@@ -202,7 +203,7 @@ char *InfoMsg[5] =
   { "pozwalaj - a simple curve and surface modeller",
     "     *** a program under development ***",
     "This program is a part of the BSTools package.",
-    "(C) Copyright by Przemyslaw Kiciak, 2010, 2014.",
+    "(C) Copyright by Przemyslaw Kiciak, 2010, 2015.",
     NULL };
 
 
@@ -242,4 +243,5 @@ char ErrorMsgCurveMustBeNonRationalAnd3D[] =
 char ErrorMsgCannotDoubleLoop[]       = "Error: Cannot double the edge loop.";
 char ErrorMsgCannotTriangulateFacets[] ="Error: Cannot triangulate the facets.";
 char ErrorMsgCannotSimplifyMesh[]     = "Error: Cannot simplify this mesh.";
+char ErrorMsgCannotDecimateMesh[]     = "Error: Cannot decimate this mesh.";
 

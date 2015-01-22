@@ -3,17 +3,10 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2012, 2014                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2012, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
-
-/* Changes: */
-/*  8.07.2012, P. Kiciak - added locking/unlocking a mutex for pthreads */
-/* 31.08.2012, P. Kiciak - added the leaf attribute, to avoid */
-/*                         unnecessary mutex locking */
-/* 16.01.2013, P. Kiciak - separated the tree processing code from */
-/*                         computing intersections of a ray with the tube */
 
 #include <stdlib.h>
 #include <string.h>
@@ -28,6 +21,8 @@
 #include "pkgeom.h"
 #include "multibs.h"
 #include "raybez.h"
+
+#include "raybezprivate.h"
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static BezCurveTreeVertexfp
@@ -150,6 +145,7 @@ static void BezCurveInitialDivision ( BezCurveTreefp tree,
       goto failure;
     vertex->left = left;
     vertex->right = right;
+    vertex->tag = 2;
     BezCurveInitialDivision ( tree, left, degree,
                               (kk+1)*(degree+1)-1, knots, cp );
     BezCurveInitialDivision ( tree, right, degree,
@@ -266,28 +262,18 @@ static void DivideCVertexf ( BezCurveTreefp tree, BezCurveTreeVertexfp vertex )
 BezCurveTreeVertexfp rbez_GetBezCurveLeftVertexf ( BezCurveTreefp tree,
                                                    BezCurveTreeVertexfp vertex )
 {
-  if ( !vertex->left ) {
-    if ( raybez_use_mutex )
-      pthread_mutex_lock ( &raybez_mutex );
-    if ( !vertex->left )
-      DivideCVertexf ( tree, vertex );
-    if ( raybez_use_mutex )
-      pthread_mutex_unlock ( &raybez_mutex );
-  }
+  if ( vertex->tag < 2 )
+    raybez_DivideTreeVertex ( tree, vertex, &vertex->tag,
+                              (divide_vertex_proc)&DivideCVertexf );
   return vertex->left;
 } /*rbez_GetBezCurveLeftVertexf*/
 
 BezCurveTreeVertexfp rbez_GetBezCurveRightVertexf ( BezCurveTreefp tree,
                                                     BezCurveTreeVertexfp vertex )
 {
-  if ( !vertex->right ) {
-    if ( raybez_use_mutex )
-      pthread_mutex_lock ( &raybez_mutex );
-    if ( !vertex->right )
-      DivideCVertexf ( tree, vertex );
-    if ( raybez_use_mutex )
-      pthread_mutex_unlock ( &raybez_mutex );
-  }
+  if ( vertex->tag < 2 )
+    raybez_DivideTreeVertex ( tree, vertex, &vertex->tag,
+                              (divide_vertex_proc)&DivideCVertexf );
   return vertex->right;
 } /*rbez_GetBezCurveRightVertexf*/
 

@@ -125,8 +125,7 @@ boolean bsm_ExtractSubmeshVd ( int spdimen,
   int         *isVertexInResultingNet;
   int         *V0, *V1;
   boolean     isSecondOrNext;
-  BSMhalfedge heIn;
-  BSMhalfedge heOut;
+  BSMhalfedge heIn, heOut;
   int         zDrugiejStrony, a, pom;
 
     /*przypisanie pamieci na tablice*/
@@ -239,6 +238,7 @@ for ( i = 0; i < inv; i++ ) {
           heOut = imhe[imvhei[f+j]];
           V0[imvhei[f+j]] = currentVertex;
           face = heOut.facetnum;
+          heIn.otherhalf = -1;
           for ( heIter = 0; heIter < imfac[face].degree; heIter++ ) {
             if ( imhe[imfhei[imfac[face].firsthalfedge+heIter]].v1 == i ) {
               heIn = imhe[imfhei[imfac[face].firsthalfedge+heIter]];

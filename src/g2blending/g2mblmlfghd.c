@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2011, 2012                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2011, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -45,7 +45,7 @@ typedef struct {
 int _g2mbl_npthreads = 1;
 
 /* ///////////////////////////////////////////////////////////////////////// */
-static boolean _g2mbl_TMLFuncd ( void *usrdata, int3 *jobnum )
+static boolean _g2mbl_TMLFuncd ( void *usrdata, int4 *jobnum )
 {
   g2mbl_job_desc *data;
   int            i, k, el, ind;
@@ -73,7 +73,7 @@ double g2mbl_MLFuncd ( int nkn, double *qcoeff, double **Nitabs, double **Jac,
                        boolean recalc, double *ftab )
 {
   g2mbl_job_desc data;
-  int3           size;
+  int4           size;
   double         f;
   int            i;
   boolean        success;
@@ -92,12 +92,11 @@ double g2mbl_MLFuncd ( int nkn, double *qcoeff, double **Nitabs, double **Jac,
     data.domelem    = domelem;
     data.domelcpind = domelcpind;
     data.ftab       = ftab;
-    size.y = size.z = 1;
     if ( _g2mbl_npthreads > 1 ) {
         /* setup the number of jobs */
       size.x = ndomel;
         /* set threads to work */
-      pkv_SetPThreadsToWork ( &size, _g2mbl_npthreads, 1048576, 16*1048576,
+      pkv_SetPThreadsToWork ( 1, &size, _g2mbl_npthreads, 1048576, 16*1048576,
                               (void*)&data, _g2mbl_TMLFuncd,
                               NULL, NULL, &success );
     }
@@ -115,7 +114,7 @@ double g2mbl_MLFuncd ( int nkn, double *qcoeff, double **Nitabs, double **Jac,
 } /*g2mbl_MLFuncd*/
 
 /* ///////////////////////////////////////////////////////////////////////// */
-static boolean _g2mbl_TMLFuncGradd ( void *usrdata, int3 *jobnum )
+static boolean _g2mbl_TMLFuncGradd ( void *usrdata, int4 *jobnum )
 {
   void           *sp;
   g2mbl_job_desc *data;
@@ -158,7 +157,7 @@ boolean g2mbl_MLFuncGradd ( int nkn, double *qcoeff, double **Nitabs, double **J
 {
   void           *sp;
   g2mbl_job_desc data;
-  int3           size;
+  int4           size;
   int            *nncpi;
   double         f;
   int            i, j, k, el, fp, ncp;
@@ -188,12 +187,11 @@ boolean g2mbl_MLFuncGradd ( int nkn, double *qcoeff, double **Nitabs, double **J
     data.domelcpind = domelcpind;
     data.ftab       = ftab;
     data.gtab       = gtab;
-    size.y = size.z = 1;
     if ( _g2mbl_npthreads > 1 ) {
           /* setup the number of jobs */
       size.x = ndomel;
           /* set threads to work */
-      pkv_SetPThreadsToWork ( &size, _g2mbl_npthreads, 1048576, 16*1048576,
+      pkv_SetPThreadsToWork ( 1, &size, _g2mbl_npthreads, 1048576, 16*1048576,
                              (void*)&data, _g2mbl_TMLFuncGradd,
                              NULL, NULL, &success );
     }
@@ -229,7 +227,7 @@ failure:
 } /*g2mbl_MLFuncGradd*/
 
 /* ///////////////////////////////////////////////////////////////////////// */
-static boolean _g2mbl_TMLFuncGradHessiand ( void *usrdata, int3 *jobnum )
+static boolean _g2mbl_TMLFuncGradHessiand ( void *usrdata, int4 *jobnum )
 {
   void           *sp;
   g2mbl_job_desc *data;
@@ -277,7 +275,7 @@ boolean g2mbl_MLFuncGradHessianAd ( int nkn, double *qcoeff,
 {
   void           *sp;
   g2mbl_job_desc data;
-  int3           size;
+  int4           size;
   int            i, j, k, l, m, b, s, t, hi, el, fp, ncp, hti, *nncpi;
   double         f;
   boolean        success;
@@ -309,12 +307,11 @@ boolean g2mbl_MLFuncGradHessianAd ( int nkn, double *qcoeff,
     data.ftab       = ftab;
     data.gtab       = gtab;
     data.htab       = htab;
-    size.y = size.z = 1;
     if ( _g2mbl_npthreads > 1 ) {
           /* setup the number of jobs */
       size.x = ndomel;
           /* set threads to work */
-      pkv_SetPThreadsToWork ( &size, _g2mbl_npthreads, 1048576, 16*1048576,
+      pkv_SetPThreadsToWork ( 1, &size, _g2mbl_npthreads, 1048576, 16*1048576,
                              (void*)&data, _g2mbl_TMLFuncGradHessiand,
                              NULL, NULL, &success );
     }
@@ -398,7 +395,7 @@ boolean g2mbl_MLFuncGradHessianBd ( int nkn, double *qcoeff,
 {
   void   *sp;
   g2mbl_job_desc data;
-  int3           size;
+  int4           size;
   int            i, j, k, l, m, b, s, t, el, fp, ncp, hti, *nncpi;
   double         f;
   boolean        success;
@@ -430,12 +427,11 @@ boolean g2mbl_MLFuncGradHessianBd ( int nkn, double *qcoeff,
     data.ftab       = ftab;
     data.gtab       = gtab;
     data.htab       = htab;
-    size.y = size.z = 1;
     if ( _g2mbl_npthreads > 1 ) {
           /* setup the number of jobs */
       size.x = ndomel;
           /* set threads to work */
-      pkv_SetPThreadsToWork ( &size, _g2mbl_npthreads, 1048576, 16*1048576,
+      pkv_SetPThreadsToWork ( 1, &size, _g2mbl_npthreads, 1048576, 16*1048576,
                              (void*)&data, _g2mbl_TMLFuncGradHessiand,
                              NULL, NULL, &success );
     }
