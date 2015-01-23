@@ -40,15 +40,16 @@ void _rbez_ReflectCPointsf ( int ncp, const point3f *ctlpoints,
 boolean _rbez_BezPSolutionOKf ( int object_id, ray3f *ray, point2f *z,
                                 int n, int m,
                                 BezPatchTreeVertexf *vertex,
-                                int *ninters, RayObjectIntersf *inters )
+                                int *ninters, RayObjectIntersf *inters,
+                                float *workspace )
 {
   vector3f pv;
   float    t;
 
   if ( z->x >= 0.0 && z->x <= 1.0 && z->y >= 0.0 && z->y <= 1.0 ) {
     inters += *ninters;
-    mbs_BCHornerNvP3f ( n, m, vertex->ctlpoints,
-                        z->x, z->y, &inters->p, &inters->nv );
+    _mbs_BCHornerNvP3f ( n, m, vertex->ctlpoints,
+                         z->x, z->y, &inters->p, &inters->nv, workspace );
     SubtractPoints3f ( &inters->p, &ray->p, &pv );
     t = DotProduct3f ( &pv, &ray->v );
     if ( t > 0.0 ) {
@@ -68,13 +69,15 @@ boolean _rbez_BezPSolutionOKf ( int object_id, ray3f *ray, point2f *z,
 void _rbez_OutputSingularSolutionf ( int object_id, ray3f *ray,
                                      int n, int m,
                                      BezPatchTreeVertexf *vertex,
-                                     int *ninters, RayObjectIntersf *inters )
+                                     int *ninters, RayObjectIntersf *inters,
+                                     float *workspace )
 {
   vector3f pv;
   float    t;
 
   inters += *ninters;
-  mbs_BCHornerNvP3f ( n, m, vertex->ctlpoints, 0.5, 0.5, &inters->p, &inters->nv );
+  _mbs_BCHornerNvP3f ( n, m, vertex->ctlpoints, 0.5, 0.5,
+                       &inters->p, &inters->nv, workspace );
   SubtractPoints3f ( &inters->p, &ray->p, &pv );
   t = DotProduct3f ( &pv, &ray->v );
   if ( t > 0.0 ) {
@@ -88,13 +91,21 @@ void _rbez_OutputSingularSolutionf ( int object_id, ray3f *ray,
 } /*OutputSingularSolutionf*/
 
 /* ///////////////////////////////////////////////////////////////////////// */
-int rbez_FindRayBezPatchIntersf ( BezPatchTreef *tree, ray3f *ray,
-                                  int maxlevel, int maxinters,
-                                  int *ninters, RayObjectIntersf *inters )
+int rbez_RayBezpWspSizef ( int n, int m, int maxlevel )
 {
-  void                 *sp;
+  return 2*(n+1)*(m+1)*sizeof(point2f) +
+         (maxlevel+1)*sizeof(BezPatchTreeVertexfp) +
+         (6+2*(m+1))*4*sizeof(float);
+} /*rbez_RayBezpWspSizef*/
+
+int _rbez_FindRayBezPatchIntersf ( BezPatchTreef *tree, ray3f *ray,
+                                   int maxlevel, int maxinters,
+                                   int *ninters, RayObjectIntersf *inters,
+                                   void *workspace )
+{
   int                  n, m, ncp;
   point2f              *auxcp;
+  float                *wsp;
   int                  stp;
   BezPatchTreeVertexfp *stk, vertex, left, right;
   vector3f             nh;
@@ -102,13 +113,11 @@ int rbez_FindRayBezPatchIntersf ( BezPatchTreef *tree, ray3f *ray,
   point2f              p, z;
   vector2f             du, dv;
 
-  sp = pkv_GetScratchMemTop ();
   n = tree->n;  m = tree->m;
   ncp = (n+1)*(m+1);
-  auxcp = pkv_GetScratchMem ( 2*ncp*sizeof(point2f) );
-  stk = pkv_GetScratchMem ( (maxlevel+1)*sizeof(BezPatchTreeVertexfp) );
-  if ( !auxcp || !stk )
-    goto failure;
+  auxcp = (point2f*)workspace;
+  stk = (BezPatchTreeVertexfp*)&auxcp[2*ncp];
+  wsp = (float*)&stk[maxlevel+1];
         /* construct the Householder reflection */
   nh = ray->v;
   if ( nh.z > 0.0 ) nh.z += 1.0;
@@ -125,11 +134,13 @@ int rbez_FindRayBezPatchIntersf ( BezPatchTreef *tree, ray3f *ray,
         goto DIVIDE;
       _rbez_ReflectCPointsf ( ncp, vertex->ctlpoints, &ray->p, &nh, sh, auxcp );
       if ( _rbez_ConvexHullTest2f ( ncp, auxcp ) ) {
-        if ( _rbez_UniquenessTest2f ( n, m, ncp, auxcp, &p, &du, &dv, &K1, &K2 ) ) {
-          switch ( _rbez_NewtonMethod2f ( n, m, auxcp, &p, &du, &dv, &z ) ) {
+        if ( _rbez_UniquenessTest2f ( n, m, ncp, auxcp,
+                                      &p, &du, &dv, &K1, &K2, wsp ) ) {
+          switch ( _rbez_NewtonMethod2f ( n, m, auxcp,
+                                          &p, &du, &dv, &z, wsp ) ) {
         case RBEZ_NEWTON_YES:
             if ( !_rbez_BezPSolutionOKf ( tree->object_id, ray, &z,
-                      n, m, vertex, ninters, inters ) ) {
+                      n, m, vertex, ninters, inters, wsp ) ) {
               if ( _rbez_SecondTest2f ( &z, n, m, K1, K2 ) )
                 goto DIVIDE;
             }
@@ -151,17 +162,30 @@ DIVIDE:
           }
           else
             _rbez_OutputSingularSolutionf ( tree->object_id, ray,
-                                            n, m, vertex, ninters, inters );
+                         n, m, vertex, ninters, inters, wsp );
         }
       }
     }
   } while ( stp && *ninters < maxinters );
-
-  pkv_SetScratchMemTop ( sp );
   return *ninters;
 
 failure:
-  pkv_SetScratchMemTop ( sp );
   return -1;
+} /*_rbez_FindRayBezPatchIntersf*/
+
+int rbez_FindRayBezPatchIntersf ( BezPatchTreef *tree, ray3f *ray,
+                                  int maxlevel, int maxinters,
+                                  int *ninters, RayObjectIntersf *inters )
+{
+  void *sp;
+  int  result;
+
+  sp = pkv_GetScratchMem ( rbez_RayBezpWspSizef ( tree->n, tree->m, maxlevel ) );
+  if ( !sp )
+    return -1;
+  result = _rbez_FindRayBezPatchIntersf ( tree, ray, maxlevel, maxinters,
+                                          ninters, inters, sp );
+  pkv_SetScratchMemTop ( sp );
+  return result;
 } /*rbez_FindRayBezPatchIntersf*/
 

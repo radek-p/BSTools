@@ -20,9 +20,10 @@ boolean _rbez_SubdividePatch2f ( int n, int m, point2f *p, point2f *q );
 boolean _rbez_ConvexHullTest2f ( int ncp, point2f *mcp );
 boolean _rbez_UniquenessTest2f ( int n, int m, int ncp, point2f *mcp,
                                  point2f *p, vector2f *du, vector2f *dv,
-                                 float *K1, float *K2 );
+                                 float *K1, float *K2,
+                                 float *workspace );
 char _rbez_NewtonMethod2f ( int n, int m, point2f *mcp,
                             point2f *p, vector2f *pu, vector2f *pv,
-                            point2f *z );
+                            point2f *z, float *workspace );
 boolean _rbez_SecondTest2f ( point2f *z, int n, int m, float K1, float K2 );
 

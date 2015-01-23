@@ -4075,5 +4075,13 @@ Wersja 0.35.
     wymiar od 1 do 4). To pociagnelo zmiany w bibliotekach libg2blending
     i libmengerc, w ktorych pewne procedury korzystaja z wielowatkowosci.
 
+23.01.2015.
+940. Zmiany w bibliotece libraybez, majace na celu umozliwienie
+    zrownoleglania obliczen przy uzyciu watkow (pthreads, pkvthreads.c)
+    oraz ich przyspieszenie, przez wyeliminowanie licznych wywolan procedury
+    pkv_GetScratchMemTop, pkv_GetScratchMem i pkv_SetScratchMemTop;
+    procedury te w programie wielowatkowym wywoluja pkv_PThreadMyPos, co
+    okazalo sie zbyt czasochlonne w obliczeniach, w ktorych samych obliczen
+    jest niewiele.
 
 

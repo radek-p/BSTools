@@ -223,6 +223,7 @@ case 1:  /* divide the "v" variable interval */
     break;
 
 default:
+    left = right = NULL;
     goto failure;
   }
   vertex->left = left;

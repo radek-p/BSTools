@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2014                                  */
+/* (C) Copyright by Przemyslaw Kiciak, 2014, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -60,8 +60,8 @@ boolean rbez_FindBezpHighlightPointsd ( int n, int m, point3d *cp,
       int      level;
     } stack_el;
 
-  void     *sp, *sp1;
-  int      ncp, ncpp;
+  void     *sp;
+  int      ncp, ncpp, size;
   int      nn, mm;
   int      i, j, k, l;
   int      stp;
@@ -69,20 +69,26 @@ boolean rbez_FindBezpHighlightPointsd ( int n, int m, point3d *cp,
   vector3d *pa, *du, *dv;
   vector2d *cpp, *mapcp, p, pu, pv, z;
   double   *acc, K1, K2;
+  double   *workspace;
 
-  sp = pkv_GetScratchMemTop ();
+  ncp = (n+1)*(m+1);
         /* degree of algebraic equations */
   nn = n+n;  mm = m+m;
   ncpp = (nn+1)*(mm+1);
-  cpp = pkv_GetScratchMem ( ncpp*sizeof(vector2d) );
-  sp1 = pkv_GetScratchMemTop ();
-  ncp = (n+1)*(m+1);
-  pa = pkv_GetScratchMem ( ncp*sizeof(vector3d) );
-  du = pkv_GetScratchMem ( n*(m+1)*sizeof(vector3d) );
-  dv = pkv_GetScratchMem ( (n+1)*m*sizeof(vector3d) );
-  acc = pkv_GetScratchMemd ( 2*ncpp );
-  if ( !cpp || !pa || !du || !dv || !acc )
+
+  size = ncpp*sizeof(vector2d) +
+         max ( ncp*sizeof(vector3d) + n*(m+1)*sizeof(vector3d) + 
+               (n+1)*m*sizeof(vector3d) + 2*ncpp*sizeof(double),
+               (maxlevel+1)*(ncpp*sizeof(vector2d)+
+                             sizeof(stack_el)) +
+               (6+2*(mm+1))*2*sizeof(double) );
+  sp = cpp = pkv_GetScratchMem ( size );
+  if ( !cpp )
     goto failure;
+  pa = (vector3d*)&cpp[ncp];
+  du = &pa[ncp];
+  dv = &du[n*(m+1)];
+  acc = (double*)&dv[(n+1)*m];
         /* construct cpp - control points of algebraic equations to solve */
           /* translate the patch and find its (scaled) derivatives */
   for ( i = 0; i <= ncp; i++ )
@@ -123,11 +129,9 @@ boolean rbez_FindBezpHighlightPointsd ( int n, int m, point3d *cp,
   mbs_multiBezUnscaled ( nn, 1, 1, 2*(mm+1), 0, &cpp[0].x );
   mbs_multiBezUnscaled ( mm, nn+1, 1, 2, 0, &cpp[0].x );
         /* prepare the stack */
-  pkv_SetScratchMemTop ( sp1 );
-  mapcp = pkv_GetScratchMem ( maxlevel*ncpp*sizeof(vector2d) );
-  stack = pkv_GetScratchMem ( (maxlevel+1)*sizeof(stack_el) );
-  if ( !mapcp || !stack )
-    goto failure;
+  mapcp = &cpp[ncp];
+  stack = (stack_el*)&mapcp[(maxlevel+1)*ncpp];
+  workspace = (double*)&stack[maxlevel+1];
   stack[0].u0 = u0;  stack[0].u1 = u1;
   stack[0].v0 = v0;  stack[0].v1 = v1;
   stack[0].mcp = cpp;
@@ -141,8 +145,9 @@ boolean rbez_FindBezpHighlightPointsd ( int n, int m, point3d *cp,
     mapcp = stack[stp].mcp;
     if ( _rbez_ConvexHullTest2d ( ncpp, mapcp ) ) {
       if ( _rbez_UniquenessTest2d ( nn, mm, ncpp, mapcp,
-                                    &p, &pu, &pv, &K1, &K2 ) ) {
-        switch ( _rbez_NewtonMethod2d ( nn, mm, mapcp, &p, &pu, &pv, &z ) ) {
+                                    &p, &pu, &pv, &K1, &K2, workspace ) ) {
+        switch ( _rbez_NewtonMethod2d ( nn, mm, mapcp,
+                                        &p, &pu, &pv, &z, workspace ) ) {
       case RBEZ_NEWTON_YES:
           /* regular solution found */
           switch ( EnterSolution ( u0, u1, v0, v1, &z, out, usrptr, false ) ) {

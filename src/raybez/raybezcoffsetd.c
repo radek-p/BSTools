@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2013, 2014                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2013, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -52,18 +52,18 @@ static boolean EnterSolution ( int degree, point3d *cp, int object_id, ray3d *ra
     return false;
 } /*EnterSolution*/
 
+typedef  struct {
+    double   u0, u1, t0, t1;
+    vector2d *mcp;
+    int      level;
+  } stack_el;
+
 static int FindRayBezcOffsetIntersd ( BezCurveTreedp tree,
                  BezCurveTreeVertexdp vertex, ray3d *ray,
                  int maxlevel, int maxinters,
-                 int *ninters, RayObjectIntersd *inters )
+                 int *ninters, RayObjectIntersd *inters,
+                 void *workspace )
 {
-  typedef  struct {
-      double   u0, u1, t0, t1;
-      vector2d *mcp;
-      int      level;
-    } stack_el;
-
-  void     *sp;
   int      _ninters;
   point3d  *cp, *tcp;
   vector3d *dtcp, *stcp, *sdtcp;
@@ -79,31 +79,27 @@ static int FindRayBezcOffsetIntersd ( BezCurveTreedp tree,
   int      stp;
   stack_el *stack;
   double   u0, u1, t0, t1;
+  double   *wsp;
 
-  sp = pkv_GetScratchMemTop ();
   _ninters = *ninters;
         /* allocate workspace */
   degree = tree->degree;
   deg = 2*degree;
   degreem1 = degree-1;
-  cp = vertex->ctlpoints;
   mapcpsize = 3*(deg+1);
-  tcp = pkv_GetScratchMem ( (4*degree+2)*sizeof(point3d) );
-  if ( !tcp )
-    goto failure;
+  tcp = workspace;
   dtcp = &tcp[degree+1];
   stcp = &dtcp[degree];
   sdtcp = &stcp[degree+1];
-  pp = pkv_GetScratchMemd ( 4*(deg+1) );
-  if ( !pp )
-    goto failure;
+  pp = (double*)&sdtcp[degree];
   pdp = &pp[deg+1];
   ez = &pdp[deg+1];
   edz = &ez[deg+1];
-  mapcp = pkv_GetScratchMem ( (maxlevel+1)*mapcpsize*sizeof(vector2d) );
-  stack = pkv_GetScratchMem ( (maxlevel+1)*sizeof(stack_el) );
-  if ( !mapcp || !stack )
-    goto failure;
+  mapcp = (vector2d*)&edz[deg+1];
+  stack = (stack_el*)&mapcp[(maxlevel+1)*mapcpsize];
+  wsp = (double*)&stack[maxlevel+1];
+
+  cp = vertex->ctlpoints;
   rad = tree->ext;
   rad2 = rad*rad;
         /* construct the Householder reflection */
@@ -216,8 +212,10 @@ static int FindRayBezcOffsetIntersd ( BezCurveTreedp tree,
     t0 = stack[stp].t0;  t1 = stack[stp].t1;
     mcp = stack[stp].mcp;
     if ( _rbez_ConvexHullTest2d ( ncp, mcp ) ) {
-      if ( _rbez_UniquenessTest2d ( deg, 2, ncp, mcp, &p, &pu, &pv, &K1, &K2 ) ) {
-        switch ( _rbez_NewtonMethod2d ( deg, 2, mcp, &p, &pu, &pv, &z ) ) {
+      if ( _rbez_UniquenessTest2d ( deg, 2, ncp, mcp,
+                                    &p, &pu, &pv, &K1, &K2, wsp ) ) {
+        switch ( _rbez_NewtonMethod2d ( deg, 2, mcp,
+                                        &p, &pu, &pv, &z, wsp ) ) {
       case RBEZ_NEWTON_YES:
           /* regular solution found */
           if ( EnterSolution ( degree, cp, tree->object_id, ray,
@@ -262,35 +260,34 @@ subdivide:
   } while ( stp > 0 && _ninters < maxinters );
 
 way_out:
-  pkv_SetScratchMemTop ( sp );
   *ninters = _ninters;
   return _ninters;
 
 failure:
-  pkv_SetScratchMemTop ( sp );
   return -1;
 } /*FindRayBezcOffsetIntersd*/
 
 static int r_FindRayBezcOffsetIntersd ( BezCurveTreedp tree,
                  BezCurveTreeVertexdp vertex, ray3d *ray,
                  int maxlevel, int maxinters,
-                 int *ninters, RayObjectIntersd *inters )
+                 int *ninters, RayObjectIntersd *inters,
+                 void *workspace )
 {
   int result;
 
   if ( rbez_TestRayBBoxd ( ray, &vertex->bbox ) ) {
     if ( vertex->ctlpoints )  /* offset to a polynomial arc */
       result = FindRayBezcOffsetIntersd ( tree, vertex, ray,
-                   maxlevel, maxinters, ninters, inters );
+                   maxlevel, maxinters, ninters, inters, workspace );
     else {  /* a spline - need to deal with pieces separately */
       if ( vertex->left )
         result = r_FindRayBezcOffsetIntersd ( tree, vertex->left, ray,
-                       maxlevel, maxinters, ninters, inters );
+                       maxlevel, maxinters, ninters, inters, workspace );
       else
         result = 0;
       if ( vertex->right && result >= 0 )
         result += r_FindRayBezcOffsetIntersd ( tree, vertex->right, ray,
-                       maxlevel, maxinters, ninters, inters );
+                       maxlevel, maxinters, ninters, inters, workspace );
 
     }
   }
@@ -299,12 +296,41 @@ static int r_FindRayBezcOffsetIntersd ( BezCurveTreedp tree,
   return result;
 } /*r_FindRayBezcOffsetIntersd*/
 
+int rbez_RayBezcOffsetWspSized ( int degree, int maxlevel )
+{
+  int mapcpsize;
+
+  mapcpsize = 3*(2*degree+1);
+  return (4*degree+2)*sizeof(point3d) + 4*(2*degree+1)*sizeof(double) +
+         (maxlevel+1)*mapcpsize*sizeof(vector2d) +
+         (maxlevel+1)*sizeof(stack_el) + 24*sizeof(double);
+} /*rbez_RayBezcOffsetWspSized*/
+
+int _rbez_FindRayBezcOffsetIntersd ( BezCurveTreedp tree, ray3d *ray,
+                                     int maxlevel, int maxinters,
+                                     int *ninters, RayObjectIntersd *inters,
+                                     void *workspace )
+{
+  *ninters = 0;
+  return r_FindRayBezcOffsetIntersd ( tree, tree->root, ray, maxlevel,
+                                      maxinters, ninters, inters, workspace );
+} /*_rbez_FindRayBezcOffsetIntersd*/
+
 int rbez_FindRayBezcOffsetIntersd ( BezCurveTreedp tree, ray3d *ray,
                                     int maxlevel, int maxinters,
                                     int *ninters, RayObjectIntersd *inters )
 {
+  void *workspace;
+  int  result;
+
+  workspace = pkv_GetScratchMem (
+                  rbez_RayBezcOffsetWspSized ( tree->degree, maxlevel ) );
+  if ( !workspace )
+    return -1;
   *ninters = 0;
-  return r_FindRayBezcOffsetIntersd ( tree, tree->root, ray, maxlevel,
-                                      maxinters, ninters, inters );
+  result = r_FindRayBezcOffsetIntersd ( tree, tree->root, ray, maxlevel,
+                                        maxinters, ninters, inters, workspace );
+  pkv_SetScratchMemTop ( workspace );
+  return result;
 } /*rbez_FindRayBezcOffsetIntersd*/
 

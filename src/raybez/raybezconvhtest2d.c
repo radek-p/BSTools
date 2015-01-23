@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2014                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -71,7 +71,8 @@ boolean _rbez_ConvexHullTest2d ( int ncp, point2d *mcp )
 
 boolean _rbez_UniquenessTest2d ( int n, int m, int ncp, point2d *mcp,
                                  point2d *p, vector2d *du, vector2d *dv,
-                                 double *K1, double *K2 )
+                                 double *K1, double *K2,
+                                 double *workspace )
 {
 #define eps 1.0e-10
   vector2d v;
@@ -81,7 +82,7 @@ boolean _rbez_UniquenessTest2d ( int n, int m, int ncp, point2d *mcp,
   int      i, j;
   double    k1, k2, k;
 
-  mbs_BCHornerDerP2d ( n, m, mcp, 0.5, 0.5, p, du, dv );
+  _mbs_BCHornerDerP2d ( n, m, mcp, 0.5, 0.5, p, du, dv, workspace );
                               /* compute inversion of differential matrix */
   d = du->x*dv->y - du->y*dv->x;
   e = fabs(du->x);
@@ -103,7 +104,8 @@ boolean _rbez_UniquenessTest2d ( int n, int m, int ncp, point2d *mcp,
   for ( i = 0, gp = g, gq = gp+(m+1);
         i < n*(m+1);
         i++, gp++, gq++ ) {
-    v.x = (double)n*(gq->x - gp->x) - 1.0;  v.y = (double)n*(gq->y - gp->y);
+    v.x = (double)n*(gq->x - gp->x) - 1.0;
+    v.y = (double)n*(gq->y - gp->y);
     k = v.x*v.x+v.y*v.y;
     if ( k > k1 ) {
       if ( k >= 1.0 ) return false;
@@ -115,7 +117,8 @@ boolean _rbez_UniquenessTest2d ( int n, int m, int ncp, point2d *mcp,
         i <= n;
         i++, gp++ )
     for ( j = 0; j < m; j++, gp++ ) {
-      v.x = (double)m*(gp[1].x - gp->x);  v.y = (double)m*(gp[1].y - gp->y) - 1.0;
+      v.x = (double)m*(gp[1].x - gp->x);
+      v.y = (double)m*(gp[1].y - gp->y) - 1.0;
       k = v.x*v.x+v.y*v.y;
       if ( k > k2 ) {
         if ( k+k1 >= 1.0 ) return false;
@@ -129,25 +132,27 @@ boolean _rbez_UniquenessTest2d ( int n, int m, int ncp, point2d *mcp,
 
 char _rbez_NewtonMethod2d ( int n, int m, point2d *mcp,
                             point2d *p, vector2d *pu, vector2d *pv,
-                            point2d *z )
+                            point2d *z, double *workspace )
 {
 #define MAXITER 7
 #define EPS     1.0e-8
 #define DELTA   1.0e-8
   double   s, a[4];
-  int      i;
+  int      i, P[2], Q[2];
 
   z->x = z->y = 0.5;
   for ( i = 0; i < MAXITER; i++ ) {
     if ( i ) {
-      if ( !mbs_BCHornerDerP2d ( n, m, mcp, z->x, z->y, p, pu, pv ) )
+      if ( !_mbs_BCHornerDerP2d ( n, m, mcp, z->x, z->y,
+                                  p, pu, pv, workspace ) )
         return RBEZ_NEWTON_ERROR;
     }
     if ( p->x*p->x+p->y*p->y < EPS*EPS )
       return RBEZ_NEWTON_YES;
     a[0] = pu->x;  a[1] = pv->x;  a[2] = pu->y;  a[3] = pv->y;
-    if ( !pkn_multiGaussSolveLinEqd ( 2, a, 1, 1, &p->x ) )
+    if ( !pkn_GaussDecomposePLUQd ( 2, a, P, Q ) )
       return RBEZ_NEWTON_NO;
+    pkn_multiSolvePLUQd ( 2, a, P, Q, 1, 1, &p->x );
     s = p->x*p->x+p->y*p->y;
     if ( s > 1.0 )
       return RBEZ_NEWTON_NO;

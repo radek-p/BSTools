@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2014                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -71,7 +71,8 @@ boolean _rbez_ConvexHullTest2f ( int ncp, point2f *mcp )
 
 boolean _rbez_UniquenessTest2f ( int n, int m, int ncp, point2f *mcp,
                                  point2f *p, vector2f *du, vector2f *dv,
-                                 float *K1, float *K2 )
+                                 float *K1, float *K2,
+                                 float *workspace )
 {
 #define eps 1.0e-10
   vector2f v;
@@ -81,7 +82,7 @@ boolean _rbez_UniquenessTest2f ( int n, int m, int ncp, point2f *mcp,
   int      i, j;
   float    k1, k2, k;
 
-  mbs_BCHornerDerP2f ( n, m, mcp, 0.5, 0.5, p, du, dv );
+  _mbs_BCHornerDerP2f ( n, m, mcp, 0.5, 0.5, p, du, dv, workspace );
                               /* compute inversion of differential matrix */
   d = du->x*dv->y - du->y*dv->x;
   e = fabs(du->x);
@@ -129,25 +130,27 @@ boolean _rbez_UniquenessTest2f ( int n, int m, int ncp, point2f *mcp,
 
 char _rbez_NewtonMethod2f ( int n, int m, point2f *mcp,
                             point2f *p, vector2f *pu, vector2f *pv,
-                            point2f *z )
+                            point2f *z, float *workspace )
 {
 #define MAXITER 7
 #define EPS     1.0e-6
 #define DELTA   1.0e-6
   float    s, a[4];
-  int      i;
+  int      i, P[2], Q[2];
 
   z->x = z->y = 0.5;
   for ( i = 0; i < MAXITER; i++ ) {
     if ( i ) {
-      if ( !mbs_BCHornerDerP2f ( n, m, mcp, z->x, z->y, p, pu, pv ) )
+      if ( !_mbs_BCHornerDerP2f ( n, m, mcp, z->x, z->y,
+                                  p, pu, pv, workspace ) )
         return RBEZ_NEWTON_ERROR;
     }
     if ( p->x*p->x+p->y*p->y < EPS*EPS )
       return RBEZ_NEWTON_YES;
     a[0] = pu->x;  a[1] = pv->x;  a[2] = pu->y;  a[3] = pv->y;
-    if ( !pkn_multiGaussSolveLinEqf ( 2, a, 1, 1, &p->x ) )
+    if ( !pkn_GaussDecomposePLUQf ( 2, a, P, Q ) )
       return RBEZ_NEWTON_NO;
+    pkn_multiSolvePLUQf ( 2, a, P, Q, 1, 1, &p->x );
     s = p->x*p->x+p->y*p->y;
     if ( s > 1.0 )
       return RBEZ_NEWTON_NO;

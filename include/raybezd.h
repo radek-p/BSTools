@@ -179,6 +179,11 @@ BezPatchTreeVertexdp
   rbez_GetBezRightVertexd ( BezPatchTreedp tree,
                             BezPatchTreeVertexdp vertex );
 
+int rbez_RayBezpWspSized ( int n, int m, int maxlevel );
+int _rbez_FindRayBezPatchIntersd ( BezPatchTreed *tree, ray3d *ray,
+                                   int maxlevel, int maxinters,
+                                   int *ninters, RayObjectIntersd *inters,
+                                   void *workspace );
 int rbez_FindRayBezPatchIntersd ( BezPatchTreed *tree, ray3d *ray,
                                   int maxlevel, int maxinters,
                                   int *ninters, RayObjectIntersd *inters );
@@ -205,6 +210,11 @@ RBezPatchTreeVertexdp
   rbez_GetRBezRightVertexd ( RBezPatchTreedp tree,
                              RBezPatchTreeVertexdp vertex );
 
+int rbez_RayRBezpWspSized ( int n, int m, int maxlevel );
+int _rbez_FindRayRBezPatchIntersd ( RBezPatchTreed *tree, ray3d *ray,
+                                    int maxlevel, int maxinters,
+                                    int *ninters, RayObjectIntersd *inters,
+                                    void *workspace );
 int rbez_FindRayRBezPatchIntersd ( RBezPatchTreed *tree, ray3d *ray,
                                    int maxlevel, int maxinters,
                                    int *ninters, RayObjectIntersd *inters );
@@ -224,6 +234,11 @@ BezCurveTreeVertexdp rbez_GetBezCurveLeftVertexd ( BezCurveTreedp tree,
 BezCurveTreeVertexdp rbez_GetBezCurveRightVertexd ( BezCurveTreedp tree,
                                                     BezCurveTreeVertexdp vertex );
 
+int rbez_RayBezcOffsetWspSized ( int degree, int maxlevel );
+int _rbez_FindRayBezcOffsetIntersd ( BezCurveTreedp tree, ray3d *ray,
+                                     int maxlevel, int maxinters,
+                                     int *ninters, RayObjectIntersd *inters,
+                                     void *workspace );
 int rbez_FindRayBezcOffsetIntersd ( BezCurveTreedp tree, ray3d *ray,
                                     int maxlevel, int maxinters,
                                     int *ninters, RayObjectIntersd *inters );
@@ -243,6 +258,11 @@ RBezCurveTreeVertexdp rbez_GetRBezCurveLeftVertexd ( RBezCurveTreedp tree,
 RBezCurveTreeVertexdp rbez_GetRBezCurveRightVertexd ( RBezCurveTreedp tree,
                                                       RBezCurveTreeVertexdp vertex );
 
+int rbez_RayRBezcOffsetWspSized ( int degree, int maxlevel );
+int _rbez_FindRayRBezcOffsetIntersd ( RBezCurveTreedp tree, ray3d *ray,
+                                      int maxlevel, int maxinters,
+                                      int *ninters, RayObjectIntersd *inters,
+                                      void *workspace );
 int rbez_FindRayRBezcOffsetIntersd ( RBezCurveTreedp tree, ray3d *ray,
                                      int maxlevel, int maxinters,
                                      int *ninters, RayObjectIntersd *inters );
