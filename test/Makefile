@@ -368,15 +368,19 @@ sdtestd: sdtestd.c
 	$(CC) $(CFLAGS) -I$(INCDIR) sdtestd.c -L$(LIBDIR) $(LIBS) -o sdtestd
 	./sdtestd
 
+# this may take some time
 alltests:
 	(cd testg1;make)
 	(cd testg2;make)
+	(cd mengerc;make)
+
 
 clean:
 	rm -f $(TARGET)
 	rm -f *.o
 	(cd testg1;make clean)
 	(cd testg2;make clean)
+	(cd mengerc;make clean)
 
 mrproper:
 	rm -f $(TARGET)
@@ -384,4 +388,5 @@ mrproper:
 	rm -f *.ps
 	(cd testg1;make mrproper)
 	(cd testg2;make mrproper)
+	(cd mengerc;make mrproper)
 

@@ -1,0 +1,42 @@
+
+%/* //////////////////////////////////////////////////// */
+%/* This file is a part of the BSTools procedure package */
+%/* written by Przemyslaw Kiciak.                        */
+%/* //////////////////////////////////////////////////// */
+
+\chapter{The \texttt{libmengerc} library}
+
+This library consists of procedures, whose purpose is to find minimal curves
+of the integral Menger curvature, a~functional defined with the formula
+\begin{align*}
+  K_p({\cal C}) = \int\int\limits_{{\cal C}^3}\int
+ K(\bm{p}_1,\bm{p}_2,\bm{p}_3)^p\,\mathrm{d}\mu({\cal C})\,\mathrm{d}\mu({\cal
+ C})\,\mathrm{d}\mu({\cal C})
+\end{align*}
+where $K(\bm{p}_1,\bm{p}_2,\bm{p}_3)$ is the Menger curvature of the triple
+of points of the curve~$\cal C$ (in $\R^3$), $p$ is an exponent, which should be
+greater than~$3$ (in practice: from $4$ to $20$) and the integral is taken
+over all triples of points of the curve (with respect to the arc length
+measure).
+
+The curve $\cal C$ is a closed B-spline curve of degree at least~$3$ with
+uniorm knots. Such a~curve is a~knot in $\R^3$. Given an initial curve, the
+procedures search local minima of the integral Menger curvature in the set
+of curves, whose length is that of the initial curve. The local minimum is
+a~knot topologocally equivalent to the initial curve.
+
+The optimization method is described in the paper \emph{Shape optimization of
+closed B-spline curves by minimization of the integral Menger curvature},
+in preparation.
+
+A~batch-mode program reading the curve and searching for a~minimum may be
+found in the directory \texttt{bstools/test/mengerc}.
+
+The procedures are also built in the demonstration program \texttt{pozwalaj}.
+To experiment, create or read in a~closed cubic B-spline curve with uniform
+knots, click the \fbox{\texttt{Options}} button and the \fbox{\texttt{Menger
+curv.}} switch, set the parameters and click the \fbox{\texttt{optimize}}
+button.
+
+\cprog{}
+

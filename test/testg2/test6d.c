@@ -294,7 +294,7 @@ int main ()
     gh_DestroyDomaind ( domain );
   }
 
-  printf ( "Scratch memory used: %d bytes\n", pkv_MaxScratchTaken() );
+  printf ( "Scratch memory used: %d bytes\n", (int)pkv_MaxScratchTaken() );
   pkv_DestroyScratchMem ();
   exit ( 0 );
 

@@ -727,7 +727,7 @@ printf ( "*" );
                                               &func, grad, hii ) )
       goto failure;
 
-    if ( pkn_ComputeQTSQd ( nfunc_a, hkk, nconstr, cT, aa, M ) )
+    if ( !pkn_ComputeQTSQd ( nfunc_a, hkk, nconstr, cT, aa, M ) )
       goto failure;
     for ( i = 0; i < nfunc_a-nconstr; i++ )
       for ( j = i; j < nfunc_a-nconstr; j++ )
