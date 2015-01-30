@@ -16,18 +16,42 @@ of the integral Menger curvature, a~functional defined with the formula
 where $K(\bm{p}_1,\bm{p}_2,\bm{p}_3)$ is the Menger curvature of the triple
 of points of the curve~$\cal C$ (in $\R^3$), $p$ is an exponent, which should be
 greater than~$3$ (in practice: from $4$ to $20$) and the integral is taken
-over all triples of points of the curve (with respect to the arc length
-measure).
+over all triples of points of the curve, with respect to the arc length
+measure.
 
 The curve $\cal C$ is a closed B-spline curve of degree at least~$3$ with
 uniorm knots. Such a~curve is a~knot in $\R^3$. Given an initial curve, the
 procedures search local minima of the integral Menger curvature in the set
 of curves, whose length is that of the initial curve. The local minimum is
-a~knot topologocally equivalent to the initial curve.
+a~knot topologically equivalent to the initial curve. The problem is
+discretized by defining a~function, whose arguments are Cartesian
+coordinates of the control points of the curve, and whose value is the
+value of the functional to minimize.
 
 The optimization method is described in the paper \emph{Shape optimization of
 closed B-spline curves by minimization of the integral Menger curvature},
 in preparation.
+
+Actually, minima of the following functionals are searched:
+\begin{align*}
+  \tilde{K}_p({\cal C})&{}= L({\cal C})^{p-3}K_p({\cal C}),\quad\mbox{or} \\
+  \hat{K}_p({\cal C})&{}= L({\cal C})K_p({\cal C})^{1/(p-3)},
+\end{align*}
+where $L({\cal C})$ is the length of the curve~$\cal C$. These functionals
+are an invariants of geometric similarities, i.e.\ homotetiae and isometries.
+In any set of curves of a~fixed length the functionals $K_p$,
+$\tilde{K}_p$ and~$\hat{K}_p$ differ by constant factors.
+Their minimization problems are still ill-posed; to obtain a~well
+posed minimization problem, five penalty terms, described in detail in the
+paper, are added.
+
+The functional $\hat{K}_p$ is more convenient in the numerical computations,
+as $\tilde{K}_p$ grows fast with the growth of the exponent~$p$. Both were
+used in experiments and $\hat{K}_p$ is chosen by default, though the code
+using $\tilde{K}_p$ is still present in the library.
+
+
+\section{Demo programs in the package}
 
 A~batch-mode program reading the curve and searching for a~minimum may be
 found in the directory \texttt{bstools/test/mengerc}.
@@ -38,5 +62,347 @@ knots, click the \fbox{\texttt{Options}} button and the \fbox{\texttt{Menger
 curv.}} switch, set the parameters and click the \fbox{\texttt{optimize}}
 button.
 
-\cprog{}
+
+\section{Library contents}
+\subsection{Symbolic constants}
+
+\cprog{%
+\#define MENGERC\_MIN\_NQKN  2 \\
+\#define MENGERC\_MAX\_NQKN 10}
+
+The integral is approximated by the composite Gauss-Legendre quadrature; as
+the curves processed by procedures in this library are B-splines, the domain
+of the curve is divided into intervals between curve knots (as the curve knots
+are consecutive integers, these are unit length intervals). The restriction
+of the curve to each of those is a~polynomial curve (of class~$C^{\infty}$).
+The Gauss-Legendre quadrature of order~$2k$ in each unit interval is used.
+The symbolic constants above specify the range for the number of quadrature
+knots, $k$.
+
+\vspace{\medskipamount}
+\cprog{%
+\#define MENGERC\_NPPARAM 5 \\
+\#define MENGERC\_OPT\_NONE  0 \\
+\#define MENGERC\_OPT\_FULL1 1 \\
+\#define MENGERC\_OPT\_FULL2 2 \\
+\#define MENGERC\_OPT\_PART  3}
+
+To make the optimization problem regular, five penalty terms are added to
+the integral Menger curvature, as described in the paper \emph{Shape
+optimization \ldots}. These terms are multiplied by positive constants,
+which are nontrivial to choose so as to achieve the convergence of the
+optimization method.
+
+The constants (penalty parameters) are given in an
+array passed to the procedure \texttt{mengerc\_InitMCOptimization} or
+\texttt{mengerc\_OptimizeMengerCurvature} as the parameter
+\texttt{penalty\_param}.
+
+The last four symbolic constant are used to specify the method of choosing
+the parameters; they are supposed to be passed as the value of the parameter
+\texttt{opt}.
+
+\texttt{MENGERC\_OPT\_NONE} selects no automatic choice of the penalty
+parameters---the responsibility for choosing them is left to the caller.
+
+\texttt{MENGERC\_OPT\_FULL1}, \texttt{MENGERC\_OPT\_FULL2}
+and~\texttt{MENGERC\_OPT\_PART} let the optimization procedure choose the
+penalty parameters by minimization of a~function, which depends on the
+greatest and the smallest eigenvalue of the Hessian matrix of the function
+to minimize---the sum of the Hessian of the discretized integral Menger
+curvature and the Hessians of the five penalty terms. The goal is to obtain
+a~function (chosen heuristically based on numerical experiments), whose
+Hessian (for the B-spline curve being the current approximation of the
+minimal curve) is positive-definite, with a moderate condition number.
+The minimization is done using the same numerical procedure, which is
+used to find minimal curves of the integral Menger curvature---minimization
+along the Levenberg--Marquardt trajectories. In many cases the optimization
+gives good results, though more experiments and theoretical research are
+needed.
+
+
+\subsection{Data structure}
+
+\cprog{%
+typedef struct \{ \\
+\mbox{} \ \ \ \ldots \\
+\mbox{} \ \} mengerc\_data;}
+
+This structure has a~number of fields to store the information necessary for
+the optimization, like the pointer to the array of curve control points,
+arrays of quadrature knots and coefficients, values of the B-spline
+functions and their derivatives at the quadrature knots etc. In fact these
+are private data of hardly any interest to applications (but potentially
+meaningful for debugging purposes and experiments involving the algorithm
+modifications). The structure is filled with information by the procedure
+\texttt{mengerc\_InitMCOptimization} and then passed as the parameter to the
+procedure \texttt{mengerc\_IterMCOptimization} making the optimization step,
+which should be executed in a~loop.
+
+
+\subsection{Main optimization procedures}
+
+\cprog{%
+boolean mengerc\_InitMCOptimization ( int deg, int lkn, \\
+\hspace*{15em}double *knots, point3d *cpoints, \\
+\hspace*{15em}double w, \\
+\hspace*{15em}double penalty\_param[MENGERC\_NPPARAM], \\
+\hspace*{15em}int nqkn, int npthr, int opt, \\
+\hspace*{15em}mengerc\_data *md );}
+
+This procedure prepares the data necessary for the numerical optimization,
+ahoch involves the alloation of necessary arrays, generating the quadrature
+knots and coefficients, evaluating the necessary B-spline functions and
+their derivatives at the quadrature knots etc. It ought to be called once
+before the optimization.
+
+Parameters: \texttt{deg}, \texttt{lkn}, \texttt{knots}, \texttt{cpoints}
+specify the curve which is the starting point for he optimization. The
+degree (\texttt{deg}) must be at least~$3$. The parameter \texttt{lkn} must
+be greater than $3$~times the degree. The curve knots in the array \texttt{knots}
+must be consecutive integers from~$0$ to \texttt{lkn}.
+
+The parameter~\texttt{w} is the exponent~$p$, which must be greater
+than~$3$.
+
+The array \texttt{penalty\_param} contains the penalty parameters---five
+positive constants. Depending on the value of the parameter \texttt{opt}
+these are used without modificaton, or changed between some optimization
+steps.
+
+The parameter \texttt{nqkn} is the number~$k$ of quadrature knots in each unit
+length interval between the spline curve knots. The Gauss-Legendre
+quadrature of order $2k$ is used to approximate the integrals.
+
+The parameter \texttt{npthr} specifies the number of threads. If greater
+than~$1$, some computations (e.g.\ the evaluation of quadratures) are done
+in parallel, which shortens the computation time on multiprocessor (or
+multicore) computers.
+
+The parameter \texttt{md} points to the structure in which the data are
+stored. This structure must then be passed to the procedure
+\texttt{mengerc\_IterMCOptimization}.
+
+The value returned is \texttt{true} in case of success and \texttt{false}
+after failure, which may be caused by incorrect input data or insufficient
+memory.
+
+
+\vspace{\medskipamount}
+\cprog{%
+boolean mengerc\_IterMCOptimization ( mengerc\_data *md, \\
+\hspace*{18em}boolean *finished );}
+
+This procedure makes one step of the numerical minimization. The first
+parameter points to the data structure prepared by
+\texttt{mengerc\_InitMCOptimization}. The second parameter points to a
+variable, which is set to \texttt{true} after the termination condition is
+satisfied.
+
+The optimization step is either a~Newton method step (a~zero of the function
+gradient is searched) or a~minimization along one Levenberg-Marquardt
+trajectory.
+
+The return value \texttt{true} indicates a~success, and \texttt{false}
+a~failure.
+
+\vspace{\medskipamount}
+\cprog{%
+boolean mengerc\_OptimizeMengerCurvature ( \\
+\hspace*{6em}int deg, int lkn, double *knots, point3d *cpoints, \\
+\hspace*{6em}double w, double penalty\_param[MENGERC\_NPPARAM], \\
+\hspace*{6em}int nqkn, int npthr, int opt, int maxit, \\
+\hspace*{6em}void (*outiter)(void *usrdata, \\
+\hspace*{14em}boolean ppopt, int mdi, \\
+\hspace*{14em}int it, int itres, double f, double g), \\
+\hspace*{6em}void *usrdata );}
+
+This procedure calls \texttt{mengerc\_InitMCOptimization} and then in a~loop
+the procedure \texttt{mengerc\_IterMCOptimization}, until a~stop criterion is
+satisfied or an error occurs. The first nine parameters are the same as the
+parameters of the procedure
+\texttt{mengerc\_InitMCOptimization}.
+
+The parameter \texttt{maxit} is the limit of the number of iterations.
+
+The procedure pointed by \texttt{outiter} is called after each iteration
+and it may output the result of this iteration, so that the application may
+visualise it. The parameter \texttt{usrdata} is a~pointer passed to the
+\texttt{output} procedure, allowing for a~communication with the application
+without global variables.
+
+
+\subsection{Auxiliary and private procedures}
+
+The procedures described below are of less interest to applications, though
+some of them might be called to obtain a~detailed information about a~curve
+(like the value of the functional). Most of them should be private to the
+library, i.e.\ have headers moved to a~private header file
+(\texttt{mengercprivate.h} in the \texttt{src} directory), and not the one
+intended to be included in application source files. In future some of the
+headers will be moved to the private header file, after I~decide that the
+library is beyond the experimental stage.
+
+\vspace{\medskipamount}
+\cprog{%
+boolean mengerc\_TabBasisFunctions ( int deg, int nqkn, \\
+\hspace*{18em}mengerc\_data *md );}
+
+This procedure evaluates B-spline functions of degree specified by the
+parameter \texttt{deg}, with uniform (integer) knots at the knots of the
+Gauss-Legendre quadrature with \texttt{nqkn}~knots in the interval $[0,1]$.
+The result is stored in the data structure pointed by \texttt{md}.
+
+\vspace{\medskipamount}
+\cprog{%
+boolean mengerc\_BindACurve ( mengerc\_data *md, \\
+\hspace*{10em}int deg, int lkn, double *knots, \\
+\hspace*{10em}point3d *cpoints, \\
+\hspace*{10em}int nqkn, double w, double *penalty\_param, \\
+\hspace*{10em}boolean alt\_scale );}
+
+This procedure binds the curve specified by the parameters \texttt{deg},
+\texttt{lkn}, \texttt{knots} and \texttt{cpoints} to the data structure
+pointed by \texttt{md}, and also calls the procedure
+\texttt{mengerc\_TabBasisFunctions} to prepare the numerical integration.
+
+The parameter \texttt{alt\_scale} choses between the minimization of the
+functional $\tilde{K}_p$ and~$\hat{K}_p$; mathematically they are
+equivalent, but with large exponent~$p$ (given as the parameter~\texttt{w})
+the former one takes very big values, which is troublesome in numerical
+computations. Therefore \texttt{alt\_scale} should be \texttt{true}.
+
+\vspace{\medskipamount}
+\cprog{%
+void mengerc\_UntieTheCurve ( mengerc\_data *md );}
+This procedure disposes of the arrays allocated by
+\texttt{mengerc\_BindACurve}. It is called after the minimization is done
+successfully or with a~failure; it ought to be called by an application, if
+the application has the loop, in which it calls
+\texttt{mengerc\_IterMCOptimization}, after breaking the loop.
+
+
+\vspace{\medskipamount}
+\cprog{%
+boolean mengerc\_intF ( mengerc\_data *md, \\
+\hspace*{8em}int lkn, double *knots, point3d *cpoints, \\
+\hspace*{8em}double *func ); \\
+boolean mengerc\_gradIntF ( mengerc\_data *md, \\
+\hspace*{8em}int lkn, double *knots, point3d *cpoints, \\
+\hspace*{8em}double *intf, double *grad ); \\
+boolean mengerc\_hessIntF ( mengerc\_data *md, \\
+\hspace*{8em}int lkn, double *knots, point3d *cpoints, \\
+\hspace*{8em}double *intf, double *grad, double *hess );}
+
+\vspace{\medskipamount}
+\cprog{%
+boolean \_mengerc\_intF ( mengerc\_data *md, double *func ); \\
+boolean \_mengerc\_gradIntF ( mengerc\_data *md, double *func, \\
+\hspace*{14em}double *grad ); \\
+boolean \_mengerc\_hessIntF ( mengerc\_data *md, double *func, \\
+\hspace*{14em}double *grad, double *hess );}
+
+The six procedures above evaluate the function obtained by discretization
+of~$\tilde{K}_p$ or $\hat{K}_p$ and its gradient and Hessian. The last three
+functions are wrappers for the first three. The function arguments are the
+Cartesian coordinates of the control points of the B-spline curve; the curve
+of degree $n$ with $N+1$~knots has $N-n$~control points, and the last~$n$
+of them are the same that the first~$n$. Thus the number of function
+arguments is $N-2n$.
+
+
+\vspace{\medskipamount}
+\cprog{%
+boolean mengerc\_intD ( mengerc\_data *md, \\
+\hspace*{8em}int lkn, double *knots, point3d *cpoints, \\
+\hspace*{8em}double *dl, double *acp ); \\
+boolean mengerc\_gradIntD ( mengerc\_data *md, \\
+\hspace*{8em}int lkn, double *knots, point3d *cpoints, \\
+\hspace*{8em}double *dl, double *grdl, double *acp, \\
+\hspace*{8em}double *gracp ); \\
+boolean mengerc\_hessIntD ( mengerc\_data *md, \\
+\hspace*{8em}int lkn, double *knots, point3d *cpoints, \\
+\hspace*{8em}double *dl, double *grdl, double *hesdl, \\
+\hspace*{8em}double *acp, double *gracp, double *hesacp );}
+
+The three functions above evaluate the functional $L({\cal C})$, which is the
+length of the curve~$\cal C$, and its gradient and Hessian. These are used
+to evaluate the penalty terms, making the minimization problem regular.
+
+
+\vspace{\medskipamount}
+\cprog{%
+boolean mengerc\_IntegralMengerf ( int n, void *usrdata, double *x, \\
+\hspace*{10em}double *f ); \\
+boolean mengerc\_IntegralMengerfg ( int n, void *usrdata, double *x, \\
+\hspace*{10em}double *f, double *g ); \\
+boolean mengerc\_IntegralMengerfgh ( int n, void *usrdata, \\
+\hspace*{10em}double *x, double *f, double *g, double *h );}
+
+These procedures evaluate the functional, which is actually minimized,
+i.e.\ the sum of $\tilde{K}_p$ or $\hat{K}_p$ and the five penalty terms,
+and its gradient and Hessian. These procedures are passed as parameters to
+the numerical optimization procedure \texttt{pkn\_NLMIterd}, which makes one
+minimization step; either the Newton method step, or minimization along one
+Levenberg--Marquardt trajectory. Therefore their headers have the form
+required by the optimization procedure.
+
+\pagebreak
+%\vspace{\medskipamount}
+\cprog{%
+boolean mengerc\_IntegralMengerTransC ( int n, void *usrdata, \\
+\hspace*{19.5em}double *x );}
+
+This procedure transforms the curve so as to minimize (annihilate) the
+penalty terms, for which this is trivial. The transformation involves
+scaling of the curve to obtain the curve of desired length, translating it
+so as to obtain the gravity centre of the control points at the origin of
+the coordinate system and rotating it.
+
+\vspace{\medskipamount}
+\cprog{%
+boolean mengerc\_HomotopyTest ( int n, void *usrdata, \\
+\hspace*{10em}double *x0, double *x1, boolean *went\_out );}
+
+If a~curve has a~self-intersection, then the integral Menger curvature with
+the exponent greater than~$3$ is infinite. However, its approximation using
+a~quadrature may be finite. The test done by this procedure indicates,
+whether there exists a~self-intersection of a~curve being the linear
+interpolant between two curves, whose control points are given in the arrays
+\texttt{x0} and~\texttt{x1}. In that case \texttt{x1} must not be taken as
+the next approximation of the minimal point, because it indicates
+``untying'' the knot. The failure of the test is signalled by assigning
+\texttt{true} to the variable pointed by \texttt{went\_out}.
+The return value \texttt{false} signalls an error, i.e.\ lack of memory.
+
+\vspace{\medskipamount}
+\cprog{%
+int mengerc\_FindRemotestPoint ( int np, point3d *cpoints, \\
+\hspace*{16em}point3d *sc ); \\
+int mengerc\_ModifyRemotestPoint ( int np, point3d *cpoints, \\
+\hspace*{17em}point3d *sc, int mdi );}
+One of the penalty terms introduced to obtain a~regular
+problem (i.e.\ with locally unique minimal points) is a~parameter value
+corresponding to the point of the curve most distant from the gravity centre
+of the curve. Instead of the gravity centre of the curve, the gravity centre
+of the set of control points is used, and to determine the necessary parameter
+value, the control point most distant from the gravity centre is searched.
+
+The two procedures with the headers above take care of finding the most
+distant point and taking decisione, whether the parameter corresponding to
+the most distant point is to be changed.
+
+
+\vspace{\medskipamount}
+\cprog{%
+boolean mengerc\_OptPenaltyParams1 ( mengerc\_data *md, \\
+\hspace*{18em}boolean wide ); \\
+boolean mengerc\_OptPenaltyParams2 ( mengerc\_data *md ); \\
+boolean mengerc\_OptPenaltyParams3 ( mengerc\_data *md );}
+
+The procedures with headers above use different methods of choosing the five
+penalty parameters. I~guess that plenty of effort (theoretical research and
+experiments) are needed to replace these by something more reliable.
+
+
 

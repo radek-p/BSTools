@@ -1237,17 +1237,24 @@ void GetTexColour ( ray3d *ray, renderobj *obj, RayObjectIntersd *roint,
                     vector3d *texcolour )
 {
   double t;
+  int    id;
 
-  t = cShapeFunc ( ray, obj, roint );
-  t = (t-minsf)/(maxsf-minsf);
-  t = max ( 0.0, t );
-  t = min ( 1.0, t );
+  if ( c_shape_func == shapefunc_NONE ) {
+    id = roint->object_id;
+    memcpy ( texcolour, obj_tab[id].triang.colour, sizeof(vector3d) );
+  }
+  else {
+    t = cShapeFunc ( ray, obj, roint );
+    t = (t-minsf)/(maxsf-minsf);
+    t = max ( 0.0, t );
+    t = min ( 1.0, t );
   /* "rainbow" texture */
-  if      ( t < 0.2 ) SetPoint3d ( texcolour, 1.0, 0.0, 1.0-5.0*t );  
-  else if ( t < 0.4 ) SetPoint3d ( texcolour, 1.0, 5.0*(t-0.2), 0.0 );
-  else if ( t < 0.6 ) SetPoint3d ( texcolour, 1.0-5.0*(t-0.4), 1.0, 0.0 );
-  else if ( t < 0.8 ) SetPoint3d ( texcolour, 0.0, 1.0, 5.0*(t-0.6) );
-  else                SetPoint3d ( texcolour, 0.0, 1.0-5.0*(t-0.8), 1.0 );
+    if      ( t < 0.2 ) SetPoint3d ( texcolour, 1.0, 0.0, 1.0-5.0*t );  
+    else if ( t < 0.4 ) SetPoint3d ( texcolour, 1.0, 5.0*(t-0.2), 0.0 );
+    else if ( t < 0.6 ) SetPoint3d ( texcolour, 1.0-5.0*(t-0.4), 1.0, 0.0 );
+    else if ( t < 0.8 ) SetPoint3d ( texcolour, 0.0, 1.0, 5.0*(t-0.6) );
+    else                SetPoint3d ( texcolour, 0.0, 1.0-5.0*(t-0.8), 1.0 );
+  }
   if ( !dShapeFunc ( ray, obj, roint ) )
     MultVector3d ( 0.85, texcolour, texcolour );
 } /*GetTexColour*/

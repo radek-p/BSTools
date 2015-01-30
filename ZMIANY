@@ -4084,4 +4084,11 @@ Wersja 0.35.
     okazalo sie zbyt czasochlonne w obliczeniach, w ktorych samych obliczen
     jest niewiele.
 
+30.01.2015.
+941. Do angielskiej dokumentacji dodany opis biblioteki libmengerc.
+
+942. Poprawka w programie pozwalaj, w pliku render.c - po ostatnich zmianach
+    powierzchnie byly wizualizowane w domyslnym kolorze, kolor przypisany
+    powierzchni byl ignorowany.
+
 
