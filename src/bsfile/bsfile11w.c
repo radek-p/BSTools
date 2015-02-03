@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2010, 2014                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2010, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -49,7 +49,7 @@ boolean bsf_WriteBSMeshd ( int spdimen, int cpdimen, boolean rational, int degre
   }
   BSFwci
   bsf_WriteSpaceDim ( spdimen, rational );
-  if ( degree > 0 )
+  if ( degree >= -1 )
     bsf_WriteCurveDegree ( degree );
         /* write out the mesh vertices */
   BSFwci

@@ -119,6 +119,7 @@ void GeomObjectReadBSplineMesh ( void *usrdata,
     memcpy ( halfe, mhe, nhe*sizeof(BSMhalfedge) );
     memcpy ( fac, mfac, nfac*sizeof(BSMfacet) );
     memcpy ( fhei, mfhei, nhe*sizeof(int) );
+    obj->degree = degree;
   }
 } /*GeomObjectReadBSplineMesh*/
 

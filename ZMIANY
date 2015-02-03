@@ -4091,4 +4091,13 @@ Wersja 0.35.
     powierzchnie byly wizualizowane w domyslnym kolorze, kolor przypisany
     powierzchni byl ignorowany.
 
+943. Dopuszczone zapisywanie i czytanie stopnia -1 powierzchni siatkowych
+    w plikach *.bs.
+
+3.02.2015.
+944. Dalsze prace pielegnacyjne w bibliotece libmultibs - kolejna porcja
+    procedur przeniesiona do plikow o nazwach z czterema cyframi, kazda
+    procedura w osobnym pliku zrodlowym, procedury maja warianty
+    z parametrem workspace - tablica na wyniki posrednie, ktora moze byc
+    zaalokowana przez aplikacje dla oszczednosci czasu.
 

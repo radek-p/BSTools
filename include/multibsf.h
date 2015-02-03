@@ -865,6 +865,26 @@ boolean _mbs_BCHornerDer3Pf ( int degreeu, int degreev, int spdimen,
                               float *puuu, float *puuv, float *puvv, float *pvvv,
                               float *workspace );
 
+#define _mbs_BCHornerDer3P1f(degreeu,degreev,coeff,u,v, \
+    p,pu,pv,puu,puv,pvv,puuu,puuv,puvv,pvvv,workspace) \
+  _mbs_BCHornerDer3Pf ( degreeu, degreev, 1, coeff, u, v, \
+    p, pu, pv, puu, puv, pvv, puuu, puuv, puvv, pvvv, workspace )
+#define _mbs_BCHornerDer3P2f(degreeu,degreev,ctlpoints,u,v, \
+    p,pu,pv,puu,puv,pvv,puuu,puuv,puvv,pvvv,workspace) \
+  _mbs_BCHornerDer3Pf ( degreeu, degreev, 2, (float*)ctlpoints, u, v, \
+    (float*)p, (float*)pu, (float*)pv, (float*)puu, (float*)puv, \
+    (float*)pvv, (float*)puuu, (float*)puuv, (float*)puvv, (float*)pvvv, workspace )
+#define _mbs_BCHornerDer3P3f(degreeu,degreev,ctlpoints,u,v, \
+    p,pu,pv,puu,puv,pvv,puuu,puuv,puvv,pvvv,workspace) \
+  _mbs_BCHornerDer3Pf ( degreeu, degreev, 3, (float*)ctlpoints, u, v, \
+    (float*)p, (float*)pu, (float*)pv, (float*)puu, (float*)puv, \
+    (float*)pvv, (float*)puuu, (float*)puuv, (float*)puvv, (float*)pvvv, workspace )
+#define _mbs_BCHornerDer3P4f(degreeu,degreev,ctlpoints,u,v, \
+    p,pu,pv,puu,puv,pvv,puuu,puuv,puvv,pvvv,workspace) \
+  _mbs_BCHornerDer3Pf ( degreeu, degreev, 4, (float*)ctlpoints, u, v, \
+    (float*)p, (float*)pu, (float*)pv, (float*)puu, (float*)puv, \
+    (float*)pvv, (float*)puuu, (float*)puuv, (float*)puvv, (float*)pvvv, workspace )
+
 boolean mbs_BCHornerDer3Pf ( int degreeu, int degreev, int spdimen,
                              CONST_ float *ctlpoints,
                              float u, float v,
@@ -926,28 +946,54 @@ boolean mbs_BCFrenetC3Rf ( int degree, const point4f *ctlpoints, float t,
                            point3f *cpoint, vector3f *fframe, float *curvatures );
 
 
+boolean _mbs_FundFormsBP3f ( int degreeu, int degreev, const point3f *ctlpoints,
+                             float u, float v,
+                             float *firstform, float *secondform,
+                             float *workspace );
 boolean mbs_FundFormsBP3f ( int degreeu, int degreev, const point3f *ctlpoints,
                             float u, float v,
                             float *firstform, float *secondform );
 
+boolean _mbs_GMCurvaturesBP3f ( int degreeu, int degreev, const point3f *ctlpoints,
+                                float u, float v,
+                                float *gaussian, float *mean, float *workspace );
 boolean mbs_GMCurvaturesBP3f ( int degreeu, int degreev, const point3f *ctlpoints,
                                float u, float v,
                                float *gaussian, float *mean );
 
+boolean _mbs_PrincipalDirectionsBP3f ( int degreeu, int degreev,
+                                       const point3f *ctlpoints,
+                                       float u, float v,
+                                       float *k1, vector2f *v1,
+                                       float *k2, vector2f *v2,
+                                       float *workspace );
 boolean mbs_PrincipalDirectionsBP3f ( int degreeu, int degreev,
                                       const point3f *ctlpoints,
                                       float u, float v,
                                       float *k1, vector2f *v1,
                                       float *k2, vector2f *v2 );
 
+boolean _mbs_FundFormsBP3Rf ( int degreeu, int degreev, const point4f *ctlpoints,
+                              float u, float v,
+                              float *firstform, float *secondform,
+                              float *workspace );
 boolean mbs_FundFormsBP3Rf ( int degreeu, int degreev, const point4f *ctlpoints,
                              float u, float v,
                              float *firstform, float *secondform );
 
+boolean _mbs_GMCurvaturesBP3Rf ( int degreeu, int degreev, const point4f *ctlpoints,
+                                 float u, float v,
+                                 float *gaussian, float *mean, float *workspace );
 boolean mbs_GMCurvaturesBP3Rf ( int degreeu, int degreev, const point4f *ctlpoints,
                                 float u, float v,
                                 float *gaussian, float *mean );
 
+boolean _mbs_PrincipalDirectionsBP3Rf ( int degreeu, int degreev,
+                                        const point4f *ctlpoints,
+                                        float u, float v,
+                                        float *k1, vector2f *v1,
+                                        float *k2, vector2f *v2,
+                                        float *workspace );
 boolean mbs_PrincipalDirectionsBP3Rf ( int degreeu, int degreev,
                                        const point4f *ctlpoints,
                                        float u, float v,

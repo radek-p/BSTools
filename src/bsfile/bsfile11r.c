@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2010, 2014                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2010, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -34,7 +34,7 @@ boolean bsf_ReadBSMesh4d ( int maxnv, int maxnhe, int maxnfac,
                            char *name, int *ident,
                            bsf_UserReaders *readers )
 {
-  boolean _name, deg, vertices, halfedges, facets, dimen, _id;
+  boolean _name, deg, vertices, halfedges, facets, dimen, _id, minus;
   int     nitems;
   int     i, k, d;
 
@@ -86,8 +86,16 @@ case BSF_SYMB_DEGREE:
       if ( deg )
         goto failure;
       bsf_GetNextSymbol ();
+      if ( bsf_nextsymbol == BSF_SYMB_MINUS ) {
+        minus = true;
+        bsf_GetNextSymbol ();
+      }
+      else
+        minus = false;
       if ( !bsf_ReadCurveDegree ( 255, degree ) )
         goto failure;
+      if ( minus )
+        *degree = -1;
       deg = true;
       break;
 
