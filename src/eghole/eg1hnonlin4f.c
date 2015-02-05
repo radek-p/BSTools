@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2008, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2008, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -189,6 +189,7 @@ static boolean _g1h_TabSplNLBasisFunctionsf ( GHoleDomainf *domain,
   float    p, pu, puu, q, qv, qvv, pq[5], bvz;
   float    p0, p0u, p0uu, p1, p1u, p1uu;
   unsigned char *bfcpn;
+  float    wsp[3];
 
   sp = pkv_GetScratchMemTop ();
   hole_k = domain->hole_k;
@@ -345,11 +346,11 @@ bvz = 0.0;
                 jk++, sn++, dn++ ) {
             q = cb[k*nkn+jk];  qv = cbt[k*nkn+jk];  qvv = cbtt[k*nkn+jk];
             _g1h_TensDer2f ( p, pu, puu, q, qv, qvv, pq );
-            if ( !pkn_Comp2iDerivatives2f ( diu[dn].x, diu[dn].y, div[dn].x, div[dn].y,
+            if ( !_pkn_Comp2iDerivatives2f ( diu[dn].x, diu[dn].y, div[dn].x, div[dn].y,
                         diuu[dn].x, diuu[dn].y, diuv[dn].x, diuv[dn].y,
                         divv[dn].x, divv[dn].y,
                         1, &pq[0], &pq[1], &pq[2], &pq[3], &pq[4],
-                        &psiu[sn], &psiv[sn], &psiuu[sn], &psiuv[sn], &psivv[sn] ) )
+                        &psiu[sn], &psiv[sn], &psiuu[sn], &psiuv[sn], &psivv[sn], wsp ) )
               goto failure;
           }
         }
@@ -407,11 +408,11 @@ bvz = 0.0;
             pq[3] = p1u*dhfunc[jj+2];
             pq[4] = p1*ddhfunc[jj+2];
           }
-          if ( !pkn_Comp2iDerivatives2f ( diu[dn].x, diu[dn].y, div[dn].x, div[dn].y,
+          if ( !_pkn_Comp2iDerivatives2f ( diu[dn].x, diu[dn].y, div[dn].x, div[dn].y,
                      diuu[dn].x, diuu[dn].y, diuv[dn].x, diuv[dn].y,
                      divv[dn].x, divv[dn].y,
                      1, &pq[0], &pq[1], &pq[2], &pq[3], &pq[4],
-                     &psiu[sn], &psiv[sn], &psiuu[sn], &psiuv[sn], &psivv[sn] ) )
+                     &psiu[sn], &psiv[sn], &psiuu[sn], &psiuv[sn], &psivv[sn], wsp ) )
             goto failure;
         }
       }
@@ -456,11 +457,11 @@ bvz = 0.0;
             pq[3] = p1u*dhfunc[jj+2];
             pq[4] = p1uu*hfunc[jj+2];
           }
-          if ( !pkn_Comp2iDerivatives2f ( diu[dn].x, diu[dn].y, div[dn].x, div[dn].y,
+          if ( !_pkn_Comp2iDerivatives2f ( diu[dn].x, diu[dn].y, div[dn].x, div[dn].y,
                      diuu[dn].x, diuu[dn].y, diuv[dn].x, diuv[dn].y,
                      divv[dn].x, divv[dn].y,
                      1, &pq[0], &pq[1], &pq[2], &pq[3], &pq[4],
-                     &psiu[sn], &psiv[sn], &psiuu[sn], &psiuv[sn], &psivv[sn] ) )
+                     &psiu[sn], &psiv[sn], &psiuu[sn], &psiuv[sn], &psivv[sn], wsp ) )
             goto failure;
         }
       }

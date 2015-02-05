@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2014                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -396,9 +396,22 @@ boolean pkn_Comp2Derivatives4d ( double xu, double yu, double xv, double yv,
                                  double *huuuu, double *huuuv, double *huuvv,
                                  double *huvvv, double *hvvvv );
 
+boolean _pkn_Comp2iDerivatives1d ( double xu, double yu, double xv, double yv,
+                                   int spdimen, const double *hu, const double *hv,
+                                   double *gx, double *gy, double *workspace );
 boolean pkn_Comp2iDerivatives1d ( double xu, double yu, double xv, double yv,
                                   int spdimen, const double *hu, const double *hv,
                                   double *gx, double *gy );
+boolean _pkn_Comp2iDerivatives2d ( double xu, double yu, double xv, double yv,
+                                   double xuu, double yuu, double xuv,
+                                   double yuv, double xvv, double yvv,
+                                   int spdimen,
+                                   const double *hu, const double *hv,
+                                   const double *huu, const double *huv,
+                                   const double *hvv,
+                                   double *gx, double *gy,
+                                   double *gxx, double *gxy, double *gyy,
+                                   double *workspace );
 boolean pkn_Comp2iDerivatives2d ( double xu, double yu, double xv, double yv,
                                   double xuu, double yuu, double xuv,
                                   double yuv, double xvv, double yvv,
@@ -408,6 +421,22 @@ boolean pkn_Comp2iDerivatives2d ( double xu, double yu, double xv, double yv,
                                   const double *hvv,
                                   double *gx, double *gy,
                                   double *gxx, double *gxy, double *gyy );
+boolean _pkn_Comp2iDerivatives3d ( double xu, double yu, double xv, double yv,
+                                   double xuu, double yuu, double xuv,
+                                   double yuv, double xvv, double yvv,
+                                   double xuuu, double yuuu, double xuuv, double yuuv,
+                                   double xuvv, double yuvv, double xvvv, double yvvv,
+                                   int spdimen,
+                                   const double *hu, const double *hv,
+                                   const double *huu, const double *huv,
+                                   const double *hvv,
+                                   const double *huuu, const double *huuv,
+                                   const double *huvv, const double *hvvv,
+                                   double *gx, double *gy,
+                                   double *gxx, double *gxy, double *gyy,
+                                   double *gxxx, double *gxxy,
+                                   double *gxyy, double *gyyy,
+                                   double *workspace );
 boolean pkn_Comp2iDerivatives3d ( double xu, double yu, double xv, double yv,
                                   double xuu, double yuu, double xuv,
                                   double yuv, double xvv, double yvv,
@@ -423,6 +452,31 @@ boolean pkn_Comp2iDerivatives3d ( double xu, double yu, double xv, double yv,
                                   double *gxx, double *gxy, double *gyy,
                                   double *gxxx, double *gxxy,
                                   double *gxyy, double *gyyy );
+boolean _pkn_Comp2iDerivatives4d ( double xu, double yu, double xv, double yv,
+                                   double xuu, double yuu, double xuv,
+                                   double yuv, double xvv, double yvv,
+                                   double xuuu, double yuuu, double xuuv, double yuuv,
+                                   double xuvv, double yuvv, double xvvv, double yvvv,
+                                   double xuuuu, double yuuuu, double xuuuv,
+                                   double yuuuv, double xuuvv, double yuuvv,
+                                   double xuvvv, double yuvvv,
+                                   double xvvvv, double yvvvv,
+                                   int spdimen,
+                                   const double *hu, const double *hv,
+                                   const double *huu, const double *huv,
+                                   const double *hvv,
+                                   const double *huuu, const double *huuv,
+                                   const double *huvv, const double *hvvv,
+                                   const double *huuuu, const double *huuuv,
+                                   const double *huuvv, const double *huvvv,
+                                   const double *hvvvv,
+                                   double *gx, double *gy,
+                                   double *gxx, double *gxy, double *gyy,
+                                   double *gxxx, double *gxxy,
+                                   double *gxyy, double *gyyy,
+                                   double *gxxxx, double *gxxxy, double *gxxyy,
+                                   double *gxyyy, double *gyyyy,
+                                   double *workspace );
 boolean pkn_Comp2iDerivatives4d ( double xu, double yu, double xv, double yv,
                                   double xuu, double yuu, double xuv,
                                   double yuv, double xvv, double yvv,

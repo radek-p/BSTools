@@ -4101,3 +4101,11 @@ Wersja 0.35.
     z parametrem workspace - tablica na wyniki posrednie, ktora moze byc
     zaalokowana przez aplikacje dla oszczednosci czasu.
 
+5.02.2015.
+945. Zmiany w libpknum i ligeghole - procedury obliczajace pochodne
+    (rzedu 1..4) funkcji 2 zmiennych maja warianty z parametrem workspace,
+    wskazujacym tablice alokowana przez aplikacje. Sluzy to do oszczedzania
+    czasu.
+
+
+

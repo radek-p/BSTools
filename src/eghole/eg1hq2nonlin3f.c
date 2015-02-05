@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2008, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2008, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -49,6 +49,7 @@ static boolean ComputePDer ( GHoleDomainf *domain, G1HNLPrivatef *nlpr,
            qu, qv, puu, puv, pvv, bvz;
   int      hole_k, i, j, n, m, fn, nfunc_a, nfunc_b, nfunc_c, nfunc;
   unsigned char *bfcpn;
+  float    wsp[3];
 
   sp = pkv_GetScratchMemTop ();
   privateG = domain->privateG;
@@ -113,10 +114,10 @@ case 0:
     if ( !mbs_BCHornerDer2Pf ( n, m, 1, pcp, knot, 0.0,
                                &f, &fu, &fv, &fuu, &fuv, &fvv ) )
       goto failure;
-    if ( !pkn_Comp2iDerivatives2f ( diu.x, diu.y, div.x, div.y, diuu.x, diuu.y,
-                                    diuv.x, diuv.y, divv.x, divv.y,
-                                    1, &fu, &fv, &fuu, &fuv, &fvv,
-                                    pu, pv, jpuu, jpuv, jpvv ) )
+    if ( !_pkn_Comp2iDerivatives2f ( diu.x, diu.y, div.x, div.y, diuu.x, diuu.y,
+                                     diuv.x, diuv.y, divv.x, divv.y,
+                                     1, &fu, &fv, &fuu, &fuv, &fvv,
+                                     pu, pv, jpuu, jpuv, jpvv, wsp ) )
       goto failure;
     k = (k+hole_k-1) % hole_k;
     pkv_Selectf ( N, 2, 3, 2, &nlpr->nldi[k*N], dicp );
@@ -158,10 +159,10 @@ case 0:
     if ( !mbs_BCHornerDer2Pf ( n, m, 1, pcp, 0.0, knot,
                                &e, &eu, &ev, &euu, &euv, &evv ) )
       goto failure;
-    if ( !pkn_Comp2iDerivatives2f ( eiu.x, eiu.y, eiv.x, eiv.y, eiuu.x, eiuu.y,
-                                    eiuv.x, eiuv.y, eivv.x, eivv.y,
-                                    1, &eu, &ev, &euu, &euv, &evv,
-                                    &qu, &qv, &puu, &puv, &pvv ) )
+    if ( !_pkn_Comp2iDerivatives2f ( eiu.x, eiu.y, eiv.x, eiv.y, eiuu.x, eiuu.y,
+                                     eiuv.x, eiuv.y, eivv.x, eivv.y,
+                                     1, &eu, &ev, &euu, &euv, &evv,
+                                     &qu, &qv, &puu, &puv, &pvv, wsp ) )
       goto failure;
     *jpuu -= puu;
     *jpuv -= puv;
@@ -176,10 +177,10 @@ case 1:
     if ( !mbs_BCHornerDer2Pf ( n, m, 1, pcp, knot, 1.0,
                                &f, &fu, &fv, &fuu, &fuv, &fvv ) )
       goto failure;
-    if ( !pkn_Comp2iDerivatives2f ( diu.x, diu.y, div.x, div.y, diuu.x, diuu.y,
-                                    diuv.x, diuv.y, divv.x, divv.y,
-                                    1, &fu, &fv, &fuu, &fuv, &fvv,
-                                    pu, pv, &puu, &puv, &pvv ) )
+    if ( !_pkn_Comp2iDerivatives2f ( diu.x, diu.y, div.x, div.y, diuu.x, diuu.y,
+                                     diuv.x, diuv.y, divv.x, divv.y,
+                                     1, &fu, &fv, &fuu, &fuv, &fvv,
+                                     pu, pv, &puu, &puv, &pvv, wsp ) )
       goto failure;
     *jpuu = -puu;
     *jpuv = -puv;
@@ -198,10 +199,10 @@ case 1:
     if ( !mbs_BCHornerDer2Pf ( 3, 3, 1, pcp, 0.0, knot,
                                &e, &eu, &ev, &euu, &euv, &evv ) )
       goto failure;
-    if ( !pkn_Comp2iDerivatives2f ( eiu.x, eiu.y, eiv.x, eiv.y, eiuu.x, eiuu.y,
-                                    eiuv.x, eiuv.y, eivv.x, eivv.y,
-                                    1, &eu, &ev, &euu, &euv, &evv,
-                                    &qu, &qv, &puu, &puv, &pvv ) )
+    if ( !_pkn_Comp2iDerivatives2f ( eiu.x, eiu.y, eiv.x, eiv.y, eiuu.x, eiuu.y,
+                                     eiuv.x, eiuv.y, eivv.x, eivv.y,
+                                     1, &eu, &ev, &euu, &euv, &evv,
+                                     &qu, &qv, &puu, &puv, &pvv, wsp ) )
       goto failure;
     *jpuu += puu;
     *jpuv += puv;
@@ -216,10 +217,10 @@ case 2:
     if ( !mbs_BCHornerDer2Pf ( n, m, 1, pcp, 1.0, knot,
                                &f, &fu, &fv, &fuu, &fuv, &fvv ) )
       goto failure;
-    if ( !pkn_Comp2iDerivatives2f ( diu.x, diu.y, div.x, div.y, diuu.x, diuu.y,
-                                    diuv.x, diuv.y, divv.x, divv.y,
-                                    1, &fu, &fv, &fuu, &fuv, &fvv,
-                                    pu, pv, &puu, &puv, &pvv ) )
+    if ( !_pkn_Comp2iDerivatives2f ( diu.x, diu.y, div.x, div.y, diuu.x, diuu.y,
+                                     diuv.x, diuv.y, divv.x, divv.y,
+                                     1, &fu, &fv, &fuu, &fuv, &fvv,
+                                     pu, pv, &puu, &puv, &pvv, wsp ) )
       goto failure;
     *jpuu = -puu;
     *jpuv = -puv;
@@ -238,10 +239,10 @@ case 2:
     if ( !mbs_BCHornerDer2Pf ( 3, 3, 1, pcp, 0.0, knot,
                                &e, &eu, &ev, &euu, &euv, &evv ) )
       goto failure;
-    if ( !pkn_Comp2iDerivatives2f ( eiu.x, eiu.y, eiv.x, eiv.y, eiuu.x, eiuu.y,
-                                    eiuv.x, eiuv.y, eivv.x, eivv.y,
-                                    1, &eu, &ev, &euu, &euv, &evv,
-                                    &qu, &qv, &puu, &puv, &pvv ) )
+    if ( !_pkn_Comp2iDerivatives2f ( eiu.x, eiu.y, eiv.x, eiv.y, eiuu.x, eiuu.y,
+                                     eiuv.x, eiuv.y, eivv.x, eivv.y,
+                                     1, &eu, &ev, &euu, &euv, &evv,
+                                     &qu, &qv, &puu, &puv, &pvv, wsp ) )
       goto failure;
     *jpuu += puu;
     *jpuv += puv;
@@ -345,6 +346,7 @@ static boolean _g1hq2_TabExtNLBasisFunctionsf ( GHoleDomainf *domain,
            *psiuuu, *psiuuv, *psiuvv, *psivvv;
   float    *b, *ctr, *ctrd, *ctrdd, *A11, *A21, *A22, *bc00;
   vector2f *diu, *div, *diuu, *diuv, *divv, *diuuu, *diuuv, *diuvv, *divvv;
+  float    wsp[4];
 
   sp = pkv_GetScratchMemTop ();
   hole_k = domain->hole_k;
@@ -392,7 +394,7 @@ static boolean _g1hq2_TabExtNLBasisFunctionsf ( GHoleDomainf *domain,
         psiuuu = &nlpr->psiuuu[fN];  psiuuv = &nlpr->psiuuv[fN];
         psiuvv = &nlpr->psiuvv[fN];  psivvv = &nlpr->psivvv[fN];
         for ( l = 0; l < G1_NQUADSQ; l++ )
-          if ( !pkn_Comp2iDerivatives3f ( diu[l].x, diu[l].y, div[l].x, div[l].y,
+          if ( !_pkn_Comp2iDerivatives3f ( diu[l].x, diu[l].y, div[l].x, div[l].y,
                   diuu[l].x, diuu[l].y, diuv[l].x, diuv[l].y,
                   divv[l].x, divv[l].y, diuuu[l].x, diuuu[l].y,
                   diuuv[l].x, diuuv[l].y, diuvv[l].x, diuvv[l].y,
@@ -400,7 +402,7 @@ static boolean _g1hq2_TabExtNLBasisFunctionsf ( GHoleDomainf *domain,
                   &tbezuu[bN+l], &tbezuv[bN+l], &tbezvv[bN+l],
                   &tbezuuu[bN+l], &tbezuuv[bN+l], &tbezuvv[bN+l], &tbezvvv[bN+l],
                   &psiu[l], &psiv[l], &psiuu[l], &psiuv[l], &psivv[l],
-                  &psiuuu[l], &psiuuv[l], &psiuvv[l], &psivvv[l] ) )
+                  &psiuuu[l], &psiuuv[l], &psiuvv[l], &psivvv[l], wsp ) )
           goto failure;
       }
   }

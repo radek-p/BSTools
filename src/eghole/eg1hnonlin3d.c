@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -66,6 +66,7 @@ static boolean _g1h_TabExtNLBasisFunctionsd ( GHoleDomaind *domain,
   double   *tkn, *tbez, *tbezu, *tbezv, *tbezuu, *tbezuv, *tbezvv,
            *psiu, *psiv, *psiuu, *psiuv, *psivv;
   vector2d *diu, *div, *diuu, *diuv, *divv;
+  double   wsp[3];
 
   sp      = pkv_GetScratchMemTop ();
   if ( !_g1h_TabNLBasisFunctionsd ( domain, G1_NQUAD, nlpr ) )
@@ -96,11 +97,11 @@ static boolean _g1h_TabExtNLBasisFunctionsd ( GHoleDomaind *domain,
         psiuu = &nlpr->psiuu[fN];  psiuv = &nlpr->psiuv[fN];
         psivv = &nlpr->psivv[fN];
         for ( l = 0; l < G1_NQUADSQ; l++ )
-          if ( !pkn_Comp2iDerivatives2d ( diu[l].x, diu[l].y, div[l].x, div[l].y,
+          if ( !_pkn_Comp2iDerivatives2d ( diu[l].x, diu[l].y, div[l].x, div[l].y,
                      diuu[l].x, diuu[l].y, diuv[l].x, diuv[l].y,
                      divv[l].x, divv[l].y, 1, &tbezu[bN+l], &tbezv[bN+l],
                      &tbezuu[bN+l], &tbezuv[bN+l], &tbezvv[bN+l],
-                     &psiu[l], &psiv[l], &psiuu[l], &psiuv[l], &psivv[l] ) )
+                     &psiu[l], &psiv[l], &psiuu[l], &psiuv[l], &psivv[l], wsp ) )
             goto failure;
       }
   }

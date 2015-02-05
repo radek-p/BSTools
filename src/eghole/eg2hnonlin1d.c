@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -206,6 +206,7 @@ boolean _g2h_TabNLDer0d ( GHoleDomaind *domain,
   void   *sp;
   int    i;
   double *hu, *hv, *huu, *huv, *hvv, *huuu, *huuv, *huvv, *hvvv;
+  double wsp[4];
 
   sp = pkv_GetScratchMemTop ();
   hu = pkv_GetScratchMemd ( 9*nkn*nkn );
@@ -226,14 +227,14 @@ boolean _g2h_TabNLDer0d ( GHoleDomaind *domain,
     goto failure;
 
   for ( i = 0; i < nkn*nkn; i++ )
-    if ( !pkn_Comp2iDerivatives3d ( diu[i].x, diu[i].y, div[i].x, div[i].y,
+    if ( !_pkn_Comp2iDerivatives3d ( diu[i].x, diu[i].y, div[i].x, div[i].y,
               diuu[i].x, diuu[i].y, diuv[i].x, diuv[i].y, divv[i].x, divv[i].y,
               diuuu[i].x, diuuu[i].y, diuuv[i].x, diuuv[i].y,
               diuvv[i].x, diuvv[i].y, divvv[i].x, divvv[i].y,
               1, &hu[i], &hv[i], &huu[i], &huv[i], &hvv[i],
               &huuu[i], &huuv[i], &huvv[i], &hvvv[i],
               &psiu[i], &psiv[i], &psiuu[i], &psiuv[i], &psivv[i],
-              &psiuuu[i], &psiuuv[i], &psiuvv[i], &psivvv[i] ) )
+              &psiuuu[i], &psiuuv[i], &psiuvv[i], &psivvv[i], wsp ) )
       goto failure;
 
   pkv_SetScratchMemTop ( sp );
@@ -262,6 +263,7 @@ boolean _g2h_TabNLDerd ( GHoleDomaind *domain,
   void   *sp;
   int    i;
   double *hu, *hv, *huu, *huv, *hvv, *huuu, *huuv, *huvv, *hvvv;
+  double wsp[4];
 
   sp = pkv_GetScratchMemTop ();
   hu = pkv_GetScratchMemd ( 9*nkn*nkn );
@@ -284,14 +286,14 @@ boolean _g2h_TabNLDerd ( GHoleDomaind *domain,
     goto failure;
 
   for ( i = 0; i < nkn*nkn; i++ )
-    if ( !pkn_Comp2iDerivatives3d ( diu[i].x, diu[i].y, div[i].x, div[i].y,
+    if ( !_pkn_Comp2iDerivatives3d ( diu[i].x, diu[i].y, div[i].x, div[i].y,
               diuu[i].x, diuu[i].y, diuv[i].x, diuv[i].y, divv[i].x, divv[i].y,
               diuuu[i].x, diuuu[i].y, diuuv[i].x, diuuv[i].y,
               diuvv[i].x, diuvv[i].y, divvv[i].x, divvv[i].y,
               1, &hu[i], &hv[i], &huu[i], &huv[i], &hvv[i],
               &huuu[i], &huuv[i], &huvv[i], &hvvv[i],
               &psiu[i], &psiv[i], &psiuu[i], &psiuv[i], &psivv[i],
-              &psiuuu[i], &psiuuv[i], &psiuvv[i], &psivvv[i] ) )
+              &psiuuu[i], &psiuuv[i], &psiuvv[i], &psivvv[i], wsp ) )
       goto failure;
 
   pkv_SetScratchMemTop ( sp );

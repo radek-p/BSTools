@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2014                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -396,9 +396,22 @@ boolean pkn_Comp2Derivatives4f ( float xu, float yu, float xv, float yv,
                                  float *huuuu, float *huuuv, float *huuvv,
                                  float *huvvv, float *hvvvv );
 
+boolean _pkn_Comp2iDerivatives1f ( float xu, float yu, float xv, float yv,
+                                   int spdimen, const float *hu, const float *hv,
+                                   float *gx, float *gy, float *workspace );
 boolean pkn_Comp2iDerivatives1f ( float xu, float yu, float xv, float yv,
                                   int spdimen, const float *hu, const float *hv,
                                   float *gx, float *gy );
+boolean _pkn_Comp2iDerivatives2f ( float xu, float yu, float xv, float yv,
+                                   float xuu, float yuu, float xuv,
+                                   float yuv, float xvv, float yvv,
+                                   int spdimen,
+                                   const float *hu, const float *hv,
+                                   const float *huu, const float *huv,
+                                   const float *hvv,
+                                   float *gx, float *gy,
+                                   float *gxx, float *gxy, float *gyy,
+                                   float *workspace );
 boolean pkn_Comp2iDerivatives2f ( float xu, float yu, float xv, float yv,
                                   float xuu, float yuu, float xuv,
                                   float yuv, float xvv, float yvv,
@@ -408,6 +421,22 @@ boolean pkn_Comp2iDerivatives2f ( float xu, float yu, float xv, float yv,
                                   const float *hvv,
                                   float *gx, float *gy,
                                   float *gxx, float *gxy, float *gyy );
+boolean _pkn_Comp2iDerivatives3f ( float xu, float yu, float xv, float yv,
+                                   float xuu, float yuu, float xuv,
+                                   float yuv, float xvv, float yvv,
+                                   float xuuu, float yuuu, float xuuv, float yuuv,
+                                   float xuvv, float yuvv, float xvvv, float yvvv,
+                                   int spdimen,
+                                   const float *hu, const float *hv,
+                                   const float *huu, const float *huv,
+                                   const float *hvv,
+                                   const float *huuu, const float *huuv,
+                                   const float *huvv, const float *hvvv,
+                                   float *gx, float *gy,
+                                   float *gxx, float *gxy, float *gyy,
+                                   float *gxxx, float *gxxy,
+                                   float *gxyy, float *gyyy,
+                                   float *workspace );
 boolean pkn_Comp2iDerivatives3f ( float xu, float yu, float xv, float yv,
                                   float xuu, float yuu, float xuv,
                                   float yuv, float xvv, float yvv,
@@ -423,6 +452,31 @@ boolean pkn_Comp2iDerivatives3f ( float xu, float yu, float xv, float yv,
                                   float *gxx, float *gxy, float *gyy,
                                   float *gxxx, float *gxxy,
                                   float *gxyy, float *gyyy );
+boolean _pkn_Comp2iDerivatives4f ( float xu, float yu, float xv, float yv,
+                                   float xuu, float yuu, float xuv,
+                                   float yuv, float xvv, float yvv,
+                                   float xuuu, float yuuu, float xuuv, float yuuv,
+                                   float xuvv, float yuvv, float xvvv, float yvvv,
+                                   float xuuuu, float yuuuu, float xuuuv,
+                                   float yuuuv, float xuuvv, float yuuvv,
+                                   float xuvvv, float yuvvv,
+                                   float xvvvv, float yvvvv,
+                                   int spdimen,
+                                   const float *hu, const float *hv,
+                                   const float *huu, const float *huv,
+                                   const float *hvv,
+                                   const float *huuu, const float *huuv,
+                                   const float *huvv, const float *hvvv,
+                                   const float *huuuu, const float *huuuv,
+                                   const float *huuvv, const float *huvvv,
+                                   const float *hvvvv,
+                                   float *gx, float *gy,
+                                   float *gxx, float *gxy, float *gyy,
+                                   float *gxxx, float *gxxy,
+                                   float *gxyy, float *gyyy,
+                                   float *gxxxx, float *gxxxy, float *gxxyy,
+                                   float *gxyyy, float *gyyyy,
+                                   float *workspace );
 boolean pkn_Comp2iDerivatives4f ( float xu, float yu, float xv, float yv,
                                   float xuu, float yuu, float xuv,
                                   float yuv, float xvv, float yvv,

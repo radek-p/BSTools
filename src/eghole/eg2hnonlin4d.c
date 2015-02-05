@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2008, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2008, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -201,6 +201,7 @@ static boolean _g2h_TabSplNLBasisFunctionsd ( GHoleDomaind *domain,
   double   *hfunc, *dhfunc, *ddhfunc, *dddhfunc, *di;
   double   p, pu, puu, puuu, q, qv, qvv, qvvv, pq[9], bvz;
   double   p0, p0u, p0uu, p0uuu, p1, p1u, p1uu, p1uuu, p2, p2u, p2uu, p2uuu;
+  double   wsp[4];
   unsigned char *bfcpn;
 
   sp = pkv_GetScratchMemTop ();
@@ -401,7 +402,7 @@ bvz = 0.0;
             q = cb[k*nkn+jk];      qv = cbt[k*nkn+jk];
             qvv = cbtt[k*nkn+jk];  qvvv = cbttt[k*nkn+jk];
             _g2h_TensDer3d ( p, pu, puu, puuu, q, qv, qvv, qvvv, pq );
-            if ( !pkn_Comp2iDerivatives3d ( diu[dn].x, diu[dn].y, div[dn].x, div[dn].y,
+            if ( !_pkn_Comp2iDerivatives3d ( diu[dn].x, diu[dn].y, div[dn].x, div[dn].y,
                         diuu[dn].x, diuu[dn].y, diuv[dn].x, diuv[dn].y,
                         divv[dn].x, divv[dn].y,
                         diuuu[dn].x, diuuu[dn].y, diuuv[dn].x, diuuv[dn].y,
@@ -409,7 +410,7 @@ bvz = 0.0;
                         1, &pq[0], &pq[1], &pq[2], &pq[3], &pq[4],
                         &pq[5], &pq[6], &pq[7], &pq[8],
                         &psiu[sn], &psiv[sn], &psiuu[sn], &psiuv[sn], &psivv[sn],
-                        &psiuuu[sn], &psiuuv[sn], &psiuvv[sn], &psivvv[sn] ) )
+                        &psiuuu[sn], &psiuuv[sn], &psiuvv[sn], &psivvv[sn], wsp ) )
               goto failure;
           }
         }
@@ -506,7 +507,7 @@ bvz = 0.0;
             pq[8] = p2*dddhfunc[jj+4];
             break;
           }
-          if ( !pkn_Comp2iDerivatives3d ( diu[dn].x, diu[dn].y, div[dn].x, div[dn].y,
+          if ( !_pkn_Comp2iDerivatives3d ( diu[dn].x, diu[dn].y, div[dn].x, div[dn].y,
                      diuu[dn].x, diuu[dn].y, diuv[dn].x, diuv[dn].y,
                      divv[dn].x, divv[dn].y,
                      diuuu[dn].x, diuuu[dn].y, diuuv[dn].x, diuuv[dn].y,
@@ -514,7 +515,7 @@ bvz = 0.0;
                      1, &pq[0], &pq[1], &pq[2], &pq[3], &pq[4],
                      &pq[5], &pq[6], &pq[7], &pq[8],
                      &psiu[sn], &psiv[sn], &psiuu[sn], &psiuv[sn], &psivv[sn],
-                     &psiuuu[sn], &psiuuv[sn], &psiuvv[sn], &psivvv[sn] ) )
+                     &psiuuu[sn], &psiuuv[sn], &psiuvv[sn], &psivvv[sn], wsp ) )
             goto failure;
         }
       }
@@ -592,7 +593,7 @@ bvz = 0.0;
             pq[8] = p2uuu*hfunc[jj+4];
             break;
           }
-          if ( !pkn_Comp2iDerivatives3d ( diu[dn].x, diu[dn].y, div[dn].x, div[dn].y,
+          if ( !_pkn_Comp2iDerivatives3d ( diu[dn].x, diu[dn].y, div[dn].x, div[dn].y,
                      diuu[dn].x, diuu[dn].y, diuv[dn].x, diuv[dn].y,
                      divv[dn].x, divv[dn].y,
                      diuuu[dn].x, diuuu[dn].y, diuuv[dn].x, diuuv[dn].y,
@@ -600,7 +601,7 @@ bvz = 0.0;
                      1, &pq[0], &pq[1], &pq[2], &pq[3], &pq[4],
                      &pq[5], &pq[6], &pq[7], &pq[8],
                      &psiu[sn], &psiv[sn], &psiuu[sn], &psiuv[sn], &psivv[sn],
-                     &psiuuu[sn], &psiuuv[sn], &psiuvv[sn], &psivvv[sn] ) )
+                     &psiuuu[sn], &psiuuv[sn], &psiuvv[sn], &psivvv[sn], wsp ) )
             goto failure;
         }
       }

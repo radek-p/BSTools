@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -76,6 +76,7 @@ static boolean _g2h_TabExtNLBasisFunctionsf ( GHoleDomainf *domain,
            *psiu, *psiv, *psiuu, *psiuv, *psivv,
            *psiuuu, *psiuuv, *psiuvv, *psivvv;
   vector2f *diu, *div, *diuu, *diuv, *divv, *diuuu, *diuuv, *diuvv, *divvv;
+  float    wsp[4];
 
   sp      = pkv_GetScratchMemTop ();
   if ( !_g2h_TabNLBasisFunctionsf ( domain, nlpr ) )
@@ -115,7 +116,7 @@ static boolean _g2h_TabExtNLBasisFunctionsf ( GHoleDomainf *domain,
         psiuuu = &nlpr->psiuuu[fN];  psiuuv = &nlpr->psiuuv[fN];
         psiuvv = &nlpr->psiuvv[fN];  psivvv = &nlpr->psivvv[fN];
         for ( l = 0; l < G2_NQUADSQ; l++ )
-          if ( !pkn_Comp2iDerivatives3f ( diu[l].x, diu[l].y, div[l].x, div[l].y,
+          if ( !_pkn_Comp2iDerivatives3f ( diu[l].x, diu[l].y, div[l].x, div[l].y,
                   diuu[l].x, diuu[l].y, diuv[l].x, diuv[l].y,
                   divv[l].x, divv[l].y, diuuu[l].x, diuuu[l].y,
                   diuuv[l].x, diuuv[l].y, diuvv[l].x, diuvv[l].y,
@@ -123,7 +124,7 @@ static boolean _g2h_TabExtNLBasisFunctionsf ( GHoleDomainf *domain,
                   &tbezuu[bN+l], &tbezuv[bN+l], &tbezvv[bN+l],
                   &tbezuuu[bN+l], &tbezuuv[bN+l], &tbezuvv[bN+l], &tbezvvv[bN+l],
                   &psiu[l], &psiv[l], &psiuu[l], &psiuv[l], &psivv[l],
-                  &psiuuu[l], &psiuuv[l], &psiuvv[l], &psivvv[l] ) )
+                  &psiuuu[l], &psiuuv[l], &psiuvv[l], &psivvv[l], wsp ) )
             goto failure;
       }
   }

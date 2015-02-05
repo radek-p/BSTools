@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -194,7 +194,7 @@ boolean _g1h_TabNLDer0d ( int nkn, const double *tkn,
 {
   void   *sp;
   int    i;
-  double *hu, *hv, *huu, *huv, *hvv;
+  double *hu, *hv, *huu, *huv, *hvv, wsp[3];
 
   sp = pkv_GetScratchMemTop ();
   hu = pkv_GetScratchMemd ( 5*nkn*nkn );
@@ -211,10 +211,10 @@ boolean _g1h_TabNLDer0d ( int nkn, const double *tkn,
     goto failure;
 
   for ( i = 0; i < nkn*nkn; i++ )
-    if ( !pkn_Comp2iDerivatives2d ( diu[i].x, diu[i].y, div[i].x, div[i].y,
+    if ( !_pkn_Comp2iDerivatives2d ( diu[i].x, diu[i].y, div[i].x, div[i].y,
               diuu[i].x, diuu[i].y, diuv[i].x, diuv[i].y, divv[i].x, divv[i].y,
               1, &hu[i], &hv[i], &huu[i], &huv[i], &hvv[i],
-              &psiu[i], &psiv[i], &psiuu[i], &psiuv[i], &psivv[i] ) )
+              &psiu[i], &psiv[i], &psiuu[i], &psiuv[i], &psivv[i], wsp ) )
       goto failure;
 
   pkv_SetScratchMemTop ( sp );
@@ -236,7 +236,7 @@ boolean _g1h_TabNLDerd ( int nkn, double *tkn,
 {
   void   *sp;
   int    i;
-  double *hu, *hv, *huu, *huv, *hvv;
+  double *hu, *hv, *huu, *huv, *hvv, wsp[3];
 
   sp = pkv_GetScratchMemTop ();
   hu = pkv_GetScratchMemd ( 5*nkn*nkn );
@@ -255,10 +255,10 @@ boolean _g1h_TabNLDerd ( int nkn, double *tkn,
     goto failure;
 
   for ( i = 0; i < nkn*nkn; i++ )
-    if ( !pkn_Comp2iDerivatives2d ( diu[i].x, diu[i].y, div[i].x, div[i].y,
+    if ( !_pkn_Comp2iDerivatives2d ( diu[i].x, diu[i].y, div[i].x, div[i].y,
               diuu[i].x, diuu[i].y, diuv[i].x, diuv[i].y, divv[i].x, divv[i].y,
               1, &hu[i], &hv[i], &huu[i], &huv[i], &hvv[i],
-              &psiu[i], &psiv[i], &psiuu[i], &psiuv[i], &psivv[i] ) )
+              &psiu[i], &psiv[i], &psiuu[i], &psiuv[i], &psivv[i], wsp ) )
       goto failure;
 
   pkv_SetScratchMemTop ( sp );

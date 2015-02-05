@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2013                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -403,37 +403,81 @@ failure:
 /* described with the scalar functions x, y with a function             */
 /* h: R^2 -> R^d. The parameter spdimen specifies d.                    */
 
+boolean _pkn_Comp2iDerivatives1d ( double xu, double yu, double xv, double yv,
+                                   int spdimen, const double *hu, const double *hv,
+                                   double *gx, double *gy,
+                                   double *workspace )
+{
+  double A11[4];
+  int    P[2], Q[2];
+
+  pkn_Setup2DerA11Matrixd ( xu, yu, xv, yv, A11 );
+  memcpy ( workspace, hu, spdimen*sizeof(double) );
+  memcpy ( &workspace[spdimen], hv, spdimen*sizeof(double) );
+
+  if ( !pkn_GaussDecomposePLUQd ( 2, A11, P, Q ) )
+    return false;
+  pkn_multiSolvePLUQd ( 2, A11, P, Q, spdimen, spdimen, workspace );
+  memcpy ( gx, workspace, spdimen*sizeof(double) );
+  memcpy ( gy, &workspace[spdimen], spdimen*sizeof(double) );
+  return true;
+} /*_pkn_Comp2iDerivatives1d*/
+
 boolean pkn_Comp2iDerivatives1d ( double xu, double yu, double xv, double yv,
                                   int spdimen, const double *hu, const double *hv,
                                   double *gx, double *gy )
 {
-  void   *sp;
-  double *A11, *hc;
+  void    *sp;
+  double  *workspace;
+  boolean result;
 
-  sp = pkv_GetScratchMemTop ();
-  A11 = pkv_GetScratchMemd ( 4+2*spdimen );
-  if ( !A11 ) {
+  sp = workspace = pkv_GetScratchMemd ( 2*spdimen );
+  if ( !workspace ) {
     PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
-    goto failure;
+    return false;
   }
-  hc = &A11[4];
-
-  pkn_Setup2DerA11Matrixd ( xu, yu, xv, yv, A11 );
-  memcpy ( hc, hu, spdimen*sizeof(double) );
-  memcpy ( &hc[spdimen], hv, spdimen*sizeof(double) );
-
-  if ( !pkn_multiGaussSolveLinEqd ( 2, A11, spdimen, spdimen, hc ) )
-    goto failure;
-  memcpy ( gx, hc, spdimen*sizeof(double) );
-  memcpy ( gy, &hc[spdimen], spdimen*sizeof(double) );
-
+  result = _pkn_Comp2iDerivatives1d ( xu, yu, xv, yv, spdimen, hu, hv,
+                                      gx, gy, workspace );
   pkv_SetScratchMemTop ( sp );
-  return true;
-
-failure:
-  pkv_SetScratchMemTop ( sp );
-  return false;
+  return result;
 } /*pkn_Comp2iDerivatives1d*/
+
+boolean _pkn_Comp2iDerivatives2d ( double xu, double yu, double xv, double yv,
+                                   double xuu, double yuu, double xuv,
+                                   double yuv, double xvv, double yvv,
+                                   int spdimen,
+                                   const double *hu, const double *hv,
+                                   const double *huu, const double *huv,
+                                   const double *hvv,
+                                   double *gx, double *gy,
+                                   double *gxx, double *gxy, double *gyy,
+                                   double *workspace )
+{
+  double A21[6], A22[9];
+  int    P[3], Q[3];
+  int    i;
+
+  if ( !_pkn_Comp2iDerivatives1d ( xu, yu, xv, yv, spdimen, hu, hv,
+                                   gx, gy, workspace ) )
+    return false;
+  pkn_Setup2DerA21Matrixd ( xuu, yuu, xuv, yuv, xvv, yvv, A21 );
+  pkn_Setup2DerA22Matrixd ( xu, yu, xv, yv, A22 );
+  memcpy ( workspace, huu, spdimen*sizeof(double) );
+  memcpy ( &workspace[spdimen], huv, spdimen*sizeof(double) );
+  memcpy ( &workspace[2*spdimen], hvv, spdimen*sizeof(double) );
+  for ( i = 0; i < spdimen; i++ ) {
+    workspace[i]           -= A21[0]*gx[i] + A21[1]*gy[i];
+    workspace[spdimen+i]   -= A21[2]*gx[i] + A21[3]*gy[i];
+    workspace[2*spdimen+i] -= A21[4]*gx[i] + A21[5]*gy[i];
+  }
+  if ( !pkn_GaussDecomposePLUQd ( 3, A22, P, Q ) )
+    return false;
+  pkn_multiSolvePLUQd ( 3, A22, P, Q, spdimen, spdimen, workspace );
+  memcpy ( gxx, workspace, spdimen*sizeof(double) );
+  memcpy ( gxy, &workspace[spdimen], spdimen*sizeof(double) );
+  memcpy ( gyy, &workspace[2*spdimen], spdimen*sizeof(double) );
+  return true;
+} /*_pkn_Comp2iDerivatives2d*/
 
 boolean pkn_Comp2iDerivatives2d ( double xu, double yu, double xv, double yv,
                                   double xuu, double yuu, double xuv,
@@ -445,46 +489,75 @@ boolean pkn_Comp2iDerivatives2d ( double xu, double yu, double xv, double yv,
                                   double *gx, double *gy,
                                   double *gxx, double *gxy, double *gyy )
 {
-  void   *sp;
-  double *A21, *A22, *hc;
+  void    *sp;
+  double  *workspace;
+  boolean result;
+
+  sp = workspace = pkv_GetScratchMemd ( 3*spdimen );
+  if ( !workspace ) {
+    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
+    return false;
+  }
+  result = _pkn_Comp2iDerivatives2d ( xu, yu, xv, yv, xuu, yuu, xuv, yuv, xvv, yvv,
+                                      spdimen, hu, hv, huu, huv, hvv,
+                                      gx, gy, gxx, gxy, gyy, workspace );
+  pkv_SetScratchMemTop ( sp );
+  return result;
+} /*pkn_Comp2iDerivatives2d*/
+
+boolean _pkn_Comp2iDerivatives3d ( double xu, double yu, double xv, double yv,
+                                   double xuu, double yuu, double xuv,
+                                   double yuv, double xvv, double yvv,
+                                   double xuuu, double yuuu, double xuuv, double yuuv,
+                                   double xuvv, double yuvv, double xvvv, double yvvv,
+                                   int spdimen,
+                                   const double *hu, const double *hv,
+                                   const double *huu, const double *huv,
+                                   const double *hvv,
+                                   const double *huuu, const double *huuv,
+                                   const double *huvv, const double *hvvv,
+                                   double *gx, double *gy,
+                                   double *gxx, double *gxy, double *gyy,
+                                   double *gxxx, double *gxxy,
+                                   double *gxyy, double *gyyy,
+                                   double *workspace )
+{
+  double A31[8], A32[12], A33[16];
+  int    P[4], Q[4];
   int    i;
 
-  sp = pkv_GetScratchMemTop ();
-  if ( !pkn_Comp2iDerivatives1d ( xu, yu, xv, yv, spdimen, hu, hv, gx, gy ) )
-    goto failure;
-
-  A21 = pkv_GetScratchMemd ( 15+3*spdimen );
-  if ( !A21 ) {
-    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
-    goto failure;
-  }
-  A22 = &A21[6];  hc = &A22[9];
-
-  pkn_Setup2DerA21Matrixd ( xuu, yuu, xuv, yuv, xvv, yvv, A21 );
-  pkn_Setup2DerA22Matrixd ( xu, yu, xv, yv, A22 );
-
-  memcpy ( hc, huu, spdimen*sizeof(double) );
-  memcpy ( &hc[spdimen], huv, spdimen*sizeof(double) );
-  memcpy ( &hc[2*spdimen], hvv, spdimen*sizeof(double) );
+  if ( !_pkn_Comp2iDerivatives2d ( xu, yu, xv, yv, xuu, yuu, xuv, yuv, xvv, yvv,
+                                   spdimen, hu, hv, huu, huv, hvv,
+                                   gx, gy, gxx, gxy, gyy, workspace ) )
+    return false;
+  pkn_Setup2DerA31Matrixd ( xuuu, yuuu, xuuv, yuuv,
+                            xuvv, yuvv, xvvv, yvvv, A31 );
+  pkn_Setup2DerA32Matrixd ( xu, yu, xv, yv,
+                            xuu, yuu, xuv, yuv, xvv, yvv, A32 );
+  pkn_Setup2DerA33Matrixd ( xu, yu, xv, yv, A33 );
+  memcpy ( workspace, huuu, spdimen*sizeof(double) );
+  memcpy ( &workspace[spdimen], huuv, spdimen*sizeof(double) );
+  memcpy ( &workspace[2*spdimen], huvv, spdimen*sizeof(double) );
+  memcpy ( &workspace[3*spdimen], hvvv, spdimen*sizeof(double) );
   for ( i = 0; i < spdimen; i++ ) {
-    hc[i]           -= A21[0]*gx[i] + A21[1]*gy[i];
-    hc[spdimen+i]   -= A21[2]*gx[i] + A21[3]*gy[i];
-    hc[2*spdimen+i] -= A21[4]*gx[i] + A21[5]*gy[i];
+    workspace[i]           -= A31[0]*gx[i] + A31[1]*gy[i] +
+                              A32[0]*gxx[i] + A32[1]*gxy[i] + A32[2]*gyy[i];
+    workspace[spdimen+i]   -= A31[2]*gx[i] + A31[3]*gy[i] +
+                              A32[3]*gxx[i] + A32[4]*gxy[i] + A32[5]*gyy[i];
+    workspace[2*spdimen+i] -= A31[4]*gx[i] + A31[5]*gy[i] +
+                              A32[6]*gxx[i] + A32[7]*gxy[i] + A32[8]*gyy[i];
+    workspace[3*spdimen+i] -= A31[6]*gx[i] + A31[7]*gy[i] +
+                              A32[9]*gxx[i] + A32[10]*gxy[i] + A32[11]*gyy[i];
   }
-
-  if ( !pkn_multiGaussSolveLinEqd ( 3, A22, spdimen, spdimen, hc ) )
-    goto failure;
-  memcpy ( gxx, hc, spdimen*sizeof(double) );
-  memcpy ( gxy, &hc[spdimen], spdimen*sizeof(double) );
-  memcpy ( gyy, &hc[2*spdimen], spdimen*sizeof(double) );
-
-  pkv_SetScratchMemTop ( sp );
+  if ( !pkn_GaussDecomposePLUQd ( 4, A33, P, Q ) )
+    return false;
+  pkn_multiSolvePLUQd ( 4, A33, P, Q, spdimen, spdimen, workspace );
+  memcpy ( gxxx, workspace, spdimen*sizeof(double) );
+  memcpy ( gxxy, &workspace[spdimen], spdimen*sizeof(double) );
+  memcpy ( gxyy, &workspace[2*spdimen], spdimen*sizeof(double) );
+  memcpy ( gyyy, &workspace[3*spdimen], spdimen*sizeof(double) );
   return true;
-
-failure:
-  pkv_SetScratchMemTop ( sp );
-  return false;
-} /*pkn_Comp2iDerivatives2d*/
+} /*_pkn_Comp2iDerivatives3d*/
 
 boolean pkn_Comp2iDerivatives3d ( double xu, double yu, double xv, double yv,
                                   double xuu, double yuu, double xuv,
@@ -502,58 +575,101 @@ boolean pkn_Comp2iDerivatives3d ( double xu, double yu, double xv, double yv,
                                   double *gxxx, double *gxxy,
                                   double *gxyy, double *gyyy )
 {
-  void   *sp;
-  double *A31, *A32, *A33, *hc;
+  void    *sp;
+  double  *workspace;
+  boolean result;
+
+  sp = workspace = pkv_GetScratchMemd ( 4*spdimen );
+  if ( !workspace ) {
+    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
+    return false;
+  }
+  result = _pkn_Comp2iDerivatives3d ( xu, yu, xv, yv,
+                                  xuu, yuu, xuv, yuv, xvv, yvv,
+                                  xuuu, yuuu, xuuv, yuuv, xuvv, yuvv, xvvv, yvvv,
+                                  spdimen, hu, hv, huu, huv, hvv,
+                                  huuu, huuv, huvv, hvvv,
+                                  gx, gy, gxx, gxy, gyy,
+                                  gxxx, gxxy, gxyy, gyyy, workspace );
+  pkv_SetScratchMemTop ( sp );
+  return result;
+} /*pkn_Comp2iDerivatives3d*/
+
+boolean _pkn_Comp2iDerivatives4d ( double xu, double yu, double xv, double yv,
+                                   double xuu, double yuu, double xuv,
+                                   double yuv, double xvv, double yvv,
+                                   double xuuu, double yuuu, double xuuv, double yuuv,
+                                   double xuvv, double yuvv, double xvvv, double yvvv,
+                                   double xuuuu, double yuuuu, double xuuuv,
+                                   double yuuuv, double xuuvv, double yuuvv,
+                                   double xuvvv, double yuvvv,
+                                   double xvvvv, double yvvvv,
+                                   int spdimen,
+                                   const double *hu, const double *hv,
+                                   const double *huu, const double *huv,
+                                   const double *hvv,
+                                   const double *huuu, const double *huuv,
+                                   const double *huvv, const double *hvvv,
+                                   const double *huuuu, const double *huuuv,
+                                   const double *huuvv, const double *huvvv,
+                                   const double *hvvvv,
+                                   double *gx, double *gy,
+                                   double *gxx, double *gxy, double *gyy,
+                                   double *gxxx, double *gxxy,
+                                   double *gxyy, double *gyyy,
+                                   double *gxxxx, double *gxxxy, double *gxxyy,
+                                   double *gxyyy, double *gyyyy,
+                                   double *workspace )
+{
+  double A41[10], A42[15], A43[20], A44[25];
+  int    P[5], Q[5];
   int    i;
 
-  sp = pkv_GetScratchMemTop ();
-  if ( !pkn_Comp2iDerivatives2d ( xu, yu, xv, yv, xuu, yuu, xuv, yuv, xvv, yvv,
-                                  spdimen, hu, hv, huu, huv, hvv,
-                                  gx, gy, gxx, gxy, gyy ) )
-    goto failure;
-
-  A31 = pkv_GetScratchMemd ( 36+4*spdimen );
-  if ( !A31 ) {
-    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
-    goto failure;
-  }
-  A32 = &A31[8];  A33 = &A32[12];  hc = &A33[16];
-
-  pkn_Setup2DerA31Matrixd ( xuuu, yuuu, xuuv, yuuv,
-                            xuvv, yuvv, xvvv, yvvv, A31 );
-  pkn_Setup2DerA32Matrixd ( xu, yu, xv, yv,
-                            xuu, yuu, xuv, yuv, xvv, yvv, A32 );
-  pkn_Setup2DerA33Matrixd ( xu, yu, xv, yv, A33 );
-
-  memcpy ( hc, huuu, spdimen*sizeof(double) );
-  memcpy ( &hc[spdimen], huuv, spdimen*sizeof(double) );
-  memcpy ( &hc[2*spdimen], huvv, spdimen*sizeof(double) );
-  memcpy ( &hc[3*spdimen], hvvv, spdimen*sizeof(double) );
+  if ( !_pkn_Comp2iDerivatives3d ( xu, yu, xv, yv,  xuu, yuu, xuv, yuv, xvv, yvv,
+                                   xuuu, yuuu, xuuv, yuuv, xuvv, yuvv, xvvv, yvvv,
+                                   spdimen, hu, hv, huu, huv, hvv,
+                                   huuu, huuv, huvv, hvvv,
+                                   gx, gy, gxx, gxy, gyy,
+                                   gxxx, gxxy, gxyy, gyyy, workspace ) )
+    return false;
+  pkn_Setup2DerA41Matrixd ( xuuuu, yuuuu, xuuuv, yuuuv, xuuvv, yuuvv,
+                            xuvvv, yuvvv, xvvvv, yvvvv, A41 );
+  pkn_Setup2DerA42Matrixd ( xu, yu, xv, yv, xuu, yuu, xuv, yuv, xvv, yvv,
+                            xuuu, yuuu, xuuv, yuuv, xuvv, yuvv, xvvv, yvvv, A42 );
+  pkn_Setup2DerA43Matrixd ( xu, yu, xv, yv, xuu, yuu, xuv, yuv, xvv, yvv, A43 );
+  pkn_Setup2DerA44Matrixd ( xu, yu, xv, yv, A44 );
+  memcpy ( workspace, huuuu, spdimen*sizeof(double) );
+  memcpy ( &workspace[spdimen], huuuv, spdimen*sizeof(double) );
+  memcpy ( &workspace[2*spdimen], huuvv, spdimen*sizeof(double) );
+  memcpy ( &workspace[3*spdimen], huvvv, spdimen*sizeof(double) );
+  memcpy ( &workspace[4*spdimen], hvvvv, spdimen*sizeof(double) );
   for ( i = 0; i < spdimen; i++ ) {
-    hc[i]           -= A31[0]*gx[i] + A31[1]*gy[i] +
-                       A32[0]*gxx[i] + A32[1]*gxy[i] + A32[2]*gyy[i];
-    hc[spdimen+i]   -= A31[2]*gx[i] + A31[3]*gy[i] +
-                       A32[3]*gxx[i] + A32[4]*gxy[i] + A32[5]*gyy[i];
-    hc[2*spdimen+i] -= A31[4]*gx[i] + A31[5]*gy[i] +
-                       A32[6]*gxx[i] + A32[7]*gxy[i] + A32[8]*gyy[i];
-    hc[3*spdimen+i] -= A31[6]*gx[i] + A31[7]*gy[i] +
-                       A32[9]*gxx[i] + A32[10]*gxy[i] + A32[11]*gyy[i];
+    workspace[i] -= A41[0]*gx[i] + A41[1]*gy[i] +
+               A42[0]*gxx[i] + A42[1]*gxy[i] + A42[2]*gyy[i] +
+               A43[0]*gxxx[i] + A43[1]*gxxy[i] + A43[2]*gxyy[i] + A43[3]*gyyy[i];
+    workspace[spdimen+i]   -= A41[2]*gx[i] + A41[3]*gy[i] +
+               A42[3]*gxx[i] + A42[4]*gxy[i] + A42[5]*gyy[i] +
+               A43[4]*gxxx[i] + A43[5]*gxxy[i] + A43[6]*gxyy[i] + A43[7]*gyyy[i];
+    workspace[2*spdimen+i] -= A41[4]*gx[i] + A41[5]*gy[i] +
+               A42[6]*gxx[i] + A42[7]*gxy[i] + A42[8]*gyy[i] +
+               A43[8]*gxxx[i] + A43[9]*gxxy[i] + A43[10]*gxyy[i] + A43[11]*gyyy[i];
+    workspace[3*spdimen+i] -= A41[6]*gx[i] + A41[7]*gy[i] +
+               A42[9]*gxx[i] + A42[10]*gxy[i] + A42[11]*gyy[i] +
+               A43[12]*gxxx[i] + A43[13]*gxxy[i] + A43[14]*gxyy[i] + A43[15]*gyyy[i];
+    workspace[4*spdimen+i] -= A41[8]*gx[i] + A41[9]*gy[i] +
+               A42[12]*gxx[i] + A42[13]*gxy[i] + A42[14]*gyy[i] +
+               A43[16]*gxxx[i] + A43[17]*gxxy[i] + A43[18]*gxyy[i] + A43[19]*gyyy[i];
   }
-
-  if ( !pkn_multiGaussSolveLinEqd ( 4, A33, spdimen, spdimen, hc ) )
-    goto failure;
-  memcpy ( gxxx, hc, spdimen*sizeof(double) );
-  memcpy ( gxxy, &hc[spdimen], spdimen*sizeof(double) );
-  memcpy ( gxyy, &hc[2*spdimen], spdimen*sizeof(double) );
-  memcpy ( gyyy, &hc[3*spdimen], spdimen*sizeof(double) );
-
-  pkv_SetScratchMemTop ( sp );
+  if ( !pkn_GaussDecomposePLUQd ( 5, A44, P, Q ) )
+    return false;
+  pkn_multiSolvePLUQd ( 5, A44, P, Q, spdimen, spdimen, workspace );
+  memcpy ( gxxxx, workspace, spdimen*sizeof(double) );
+  memcpy ( gxxxy, &workspace[spdimen], spdimen*sizeof(double) );
+  memcpy ( gxxyy, &workspace[2*spdimen], spdimen*sizeof(double) );
+  memcpy ( gxyyy, &workspace[3*spdimen], spdimen*sizeof(double) );
+  memcpy ( gyyyy, &workspace[4*spdimen], spdimen*sizeof(double) );
   return true;
-
-failure:
-  pkv_SetScratchMemTop ( sp );
-  return false;
-} /*pkn_Comp2iDerivatives3d*/
+} /*_pkn_Comp2iDerivatives4d*/
 
 boolean pkn_Comp2iDerivatives4d ( double xu, double yu, double xv, double yv,
                                   double xuu, double yuu, double xuv,
@@ -580,71 +696,26 @@ boolean pkn_Comp2iDerivatives4d ( double xu, double yu, double xv, double yv,
                                   double *gxxxx, double *gxxxy, double *gxxyy,
                                   double *gxyyy, double *gyyyy )
 {
-  void   *sp;
-  double *A41, *A42, *A43, *A44, *hc;
-  int    i;
+  void    *sp;
+  double  *workspace;
+  boolean result;
 
-  sp = pkv_GetScratchMemTop ();
-  if ( !pkn_Comp2iDerivatives3d ( xu, yu, xv, yv,  xuu, yuu, xuv, yuv, xvv, yvv,
-                                  xuuu, yuuu, xuuv, yuuv, xuvv, yuvv, xvvv, yvvv,
-                                  spdimen, hu, hv, huu, huv, hvv,
-                                  huuu, huuv, huvv, hvvv,
-                                  gx, gy, gxx, gxy, gyy,
-                                  gxxx, gxxy, gxyy, gyyy ) )
-    goto failure;
-
-  A41 = pkv_GetScratchMemd ( 70+5*spdimen );
-  if ( !A41 ) {
+  sp = workspace = pkv_GetScratchMemd ( 5*spdimen );
+  if ( !workspace ) {
     PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
-    goto failure;
+    return false;
   }
-  A42 = &A41[10];  A43 = &A42[15];  A44 = &A43[20];  hc = &A44[25];
-
-  pkn_Setup2DerA41Matrixd ( xuuuu, yuuuu, xuuuv, yuuuv, xuuvv, yuuvv,
-                            xuvvv, yuvvv, xvvvv, yvvvv, A41);
-  pkn_Setup2DerA42Matrixd ( xu, yu, xv, yv, xuu, yuu, xuv, yuv, xvv, yvv,
-                            xuuu, yuuu, xuuv, yuuv, xuvv, yuvv, xvvv, yvvv,
-                            A42 );
-  pkn_Setup2DerA43Matrixd ( xu, yu, xv, yv,
-                            xuu, yuu, xuv, yuv, xvv, yvv, A43 );
-  pkn_Setup2DerA44Matrixd ( xu, yu, xv, yv, A44 );
-
-  memcpy ( hc, huuuu, spdimen*sizeof(double) );
-  memcpy ( &hc[spdimen], huuuv, spdimen*sizeof(double) );
-  memcpy ( &hc[2*spdimen], huuvv, spdimen*sizeof(double) );
-  memcpy ( &hc[3*spdimen], huvvv, spdimen*sizeof(double) );
-  memcpy ( &hc[4*spdimen], hvvvv, spdimen*sizeof(double) );
-  for ( i = 0; i < spdimen; i++ ) {
-    hc[i]           -= A41[0]*gx[i] + A41[1]*gy[i] +
-               A42[0]*gxx[i] + A42[1]*gxy[i] + A42[2]*gyy[i] +
-               A43[0]*gxxx[i] + A43[1]*gxxy[i] + A43[2]*gxyy[i] + A43[3]*gyyy[i];
-    hc[spdimen+i]   -= A41[2]*gx[i] + A41[3]*gy[i] +
-               A42[3]*gxx[i] + A42[4]*gxy[i] + A42[5]*gyy[i] +
-               A43[4]*gxxx[i] + A43[5]*gxxy[i] + A43[6]*gxyy[i] + A43[7]*gyyy[i];
-    hc[2*spdimen+i] -= A41[4]*gx[i] + A41[5]*gy[i] +
-               A42[6]*gxx[i] + A42[7]*gxy[i] + A42[8]*gyy[i] +
-               A43[8]*gxxx[i] + A43[9]*gxxy[i] + A43[10]*gxyy[i] + A43[11]*gyyy[i];
-    hc[3*spdimen+i] -= A41[6]*gx[i] + A41[7]*gy[i] +
-               A42[9]*gxx[i] + A42[10]*gxy[i] + A42[11]*gyy[i] +
-               A43[12]*gxxx[i] + A43[13]*gxxy[i] + A43[14]*gxyy[i] + A43[15]*gyyy[i];
-    hc[4*spdimen+i] -= A41[8]*gx[i] + A41[9]*gy[i] +
-               A42[12]*gxx[i] + A42[13]*gxy[i] + A42[14]*gyy[i] +
-               A43[16]*gxxx[i] + A43[17]*gxxy[i] + A43[18]*gxyy[i] + A43[19]*gyyy[i];
-  }
-
-  pkn_multiGaussSolveLinEqd ( 5, A44, spdimen, spdimen, hc );
-  memcpy ( gxxxx, hc, spdimen*sizeof(double) );
-  memcpy ( gxxxy, &hc[spdimen], spdimen*sizeof(double) );
-  memcpy ( gxxyy, &hc[2*spdimen], spdimen*sizeof(double) );
-  memcpy ( gxyyy, &hc[3*spdimen], spdimen*sizeof(double) );
-  memcpy ( gyyyy, &hc[4*spdimen], spdimen*sizeof(double) );
-
+  result = _pkn_Comp2iDerivatives4d ( xu, yu, xv, yv,
+                      xuu, yuu, xuv, yuv, xvv, yvv,
+                      xuuu, yuuu, xuuv, yuuv, xuvv, yuvv, xvvv, yvvv,
+                      xuuuu, yuuuu, xuuuv, yuuuv, xuuvv, yuuvv,
+                      xuvvv, yuvvv, xvvvv, yvvvv, spdimen,
+                      hu, hv, huu, huv, hvv, huuu, huuv, huvv, hvvv,
+                      huuuu, huuuv, huuvv, huvvv, hvvvv,
+                      gx, gy, gxx, gxy, gyy, gxxx, gxxy, gxyy, gyyy,
+                      gxxxx, gxxxy, gxxyy, gxyyy, gyyyy, workspace );
   pkv_SetScratchMemTop ( sp );
-  return true;
-
-failure:
-  pkv_SetScratchMemTop ( sp );
-  return false;
+  return result;
 } /*pkn_Comp2iDerivatives4d*/
 
 /* //////////////////////////////////////////////////////////////////// */
@@ -656,29 +727,12 @@ failure:
 boolean pkn_f2iDerivatives1d ( double xu, double yu, double xv, double yv,
                                double *gx, double *gy )
 {
-  void   *sp;
-  double *e1e2;
-
-  sp = pkv_GetScratchMemTop ();
-  e1e2 = pkv_GetScratchMemd ( 4 );
-  if ( !e1e2 ) {
-    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
-    goto failure;
-  }
+  double e1e2[4], workspace[4];
 
   e1e2[0] = e1e2[3] = 1.0;
   e1e2[1] = e1e2[2] = 0.0;
-
-  if ( !pkn_Comp2iDerivatives1d ( xu, yu, xv, yv, 2, e1e2, &e1e2[2],
-                            gx, gy ) )
-    goto failure;
-
-  pkv_SetScratchMemTop ( sp );
-  return true;
-
-failure:
-  pkv_SetScratchMemTop ( sp );
-  return false;
+  return _pkn_Comp2iDerivatives1d ( xu, yu, xv, yv, 2, e1e2, &e1e2[2],
+                                    gx, gy, workspace );
 } /*pkn_f2iDerivatives1d*/
 
 boolean pkn_f2iDerivatives2d ( double xu, double yu, double xv, double yv,
@@ -687,31 +741,14 @@ boolean pkn_f2iDerivatives2d ( double xu, double yu, double xv, double yv,
                                double *gx, double *gy,
                                double *gxx, double *gxy, double *gyy )
 {
-  void   *sp;
-  double *e1e2, *zero;
+  double e1e2[4], zero[3], workspace[6];
 
-  sp = pkv_GetScratchMemTop ();
-  e1e2 = pkv_GetScratchMemd ( 7 );
-  if ( !e1e2 ) {
-    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
-    goto failure;
-  }
-  zero = &e1e2[4];
-
-  memset ( e1e2, 0, 7*sizeof(double) );
+  memset ( zero, 0, 3*sizeof(double) );
+  e1e2[1] = e1e2[2] = 0.0;
   e1e2[0] = e1e2[3] = 1.0;
-
-  if ( !pkn_Comp2iDerivatives2d ( xu, yu, xv, yv, xuu, yuu, xuv, yuv, xvv, yvv,
-                            2, e1e2, &e1e2[2], zero, zero, zero,
-                            gx, gy, gxx, gxy, gyy ) )
-    goto failure;
-
-  pkv_SetScratchMemTop ( sp );
-  return true;
-
-failure:
-  pkv_SetScratchMemTop ( sp );
-  return false;
+  return _pkn_Comp2iDerivatives2d ( xu, yu, xv, yv, xuu, yuu, xuv, yuv, xvv, yvv,
+                                    2, e1e2, &e1e2[2], zero, zero, zero,
+                                    gx, gy, gxx, gxy, gyy, workspace );
 } /*pkn_f2iDerivatives2d*/
 
 boolean pkn_f2iDerivatives3d ( double xu, double yu, double xv, double yv,
@@ -724,33 +761,17 @@ boolean pkn_f2iDerivatives3d ( double xu, double yu, double xv, double yv,
                                double *gxxx, double *gxxy,
                                double *gxyy, double *gyyy )
 {
-  void   *sp;
-  double *e1e2, *zero;
+  double e1e2[4], zero[4], workspace[8];
 
-  sp = pkv_GetScratchMemTop ();
-  e1e2 = pkv_GetScratchMemd ( 8 );
-  if ( !e1e2 ) {
-    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
-    goto failure;
-  }
-  zero = &e1e2[4];
-
-  memset ( e1e2, 0, 8*sizeof(double) );
+  memset ( zero, 0, 4*sizeof(double) );
+  e1e2[1] = e1e2[2] = 0.0;
   e1e2[0] = e1e2[3] = 1.0;
-
-  if ( !pkn_Comp2iDerivatives3d ( xu, yu, xv, yv, xuu, yuu, xuv, yuv, xvv, yvv,
+  return _pkn_Comp2iDerivatives3d ( xu, yu, xv, yv, xuu, yuu, xuv, yuv, xvv, yvv,
                             xuuu, yuuu, xuuv, yuuv, xuvv, yuvv, xvvv, yvvv,
                             2, e1e2, &e1e2[2], zero, zero, zero,
                             zero, zero, zero, zero,
-                            gx, gy, gxx, gxy, gyy, gxxx, gxxy, gxyy, gyyy ) )
-    goto failure;
-
-  pkv_SetScratchMemTop ( sp );
-  return true;
-
-failure:
-  pkv_SetScratchMemTop ( sp );
-  return false;
+                            gx, gy, gxx, gxy, gyy, gxxx, gxxy, gxyy, gyyy,
+                            workspace );
 } /*pkn_f2iDerivatives3d*/
 
 boolean pkn_f2iDerivatives4d ( double xu, double yu, double xv, double yv,
@@ -769,21 +790,12 @@ boolean pkn_f2iDerivatives4d ( double xu, double yu, double xv, double yv,
                                double *gxxxx, double *gxxxy, double *gxxyy,
                                double *gxyyy, double *gyyyy )
 {
-  void   *sp;
-  double *e1e2, *zero;
+  double e1e2[4], zero[5], workspace[10];
 
-  sp = pkv_GetScratchMemTop ();
-  e1e2 = pkv_GetScratchMemd ( 9 );
-  if ( !e1e2 ) {
-    PKV_SIGNALERROR ( LIB_PKNUM, 2, ERRMSG_2 );
-    goto failure;
-  }
-  zero = &e1e2[4];
-
-  memset ( e1e2, 0, 9*sizeof(double) );
+  memset ( zero, 0, 5*sizeof(double) );
+  e1e2[1] = e1e2[2] = 0.0;
   e1e2[0] = e1e2[3] = 1.0;
-
-  if ( !pkn_Comp2iDerivatives4d ( xu, yu, xv, yv, xuu, yuu, xuv, yuv, xvv, yvv,
+  return _pkn_Comp2iDerivatives4d ( xu, yu, xv, yv, xuu, yuu, xuv, yuv, xvv, yvv,
                             xuuu, yuuu, xuuv, yuuv, xuvv, yuvv, xvvv, yvvv,
                             xuuuu, yuuuu, xuuuv, yuuuv, xuuvv, yuuvv,
                             xuvvv, yuvvv, xvvvv, yvvvv,
@@ -791,14 +803,6 @@ boolean pkn_f2iDerivatives4d ( double xu, double yu, double xv, double yv,
                             zero, zero, zero, zero, zero, zero,
                             zero, zero, zero,
                             gx, gy, gxx, gxy, gyy, gxxx, gxxy, gxyy, gyyy,
-                            gxxxx, gxxxy, gxxyy, gxyyy, gyyyy ) )
-    goto failure;
-
-  pkv_SetScratchMemTop ( sp );
-  return true;
-
-failure:
-  pkv_SetScratchMemTop ( sp );
-  return false;
+                            gxxxx, gxxxy, gxxyy, gxyyy, gyyyy, workspace );
 } /*pkn_f2iDerivatives4d*/
 
