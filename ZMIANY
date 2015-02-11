@@ -4107,5 +4107,8 @@ Wersja 0.35.
     wskazujacym tablice alokowana przez aplikacje. Sluzy to do oszczedzania
     czasu.
 
+11.02.2015.
+946. Pielegnacja kodu w libmultibs - spore zmiany (porzadkowe) w procedurach
+    przetwarzania wielomianowych platow Coonsa. Beda dalsze zmiany.
 
 

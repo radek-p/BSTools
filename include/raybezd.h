@@ -148,6 +148,10 @@ typedef struct {
 
 
 /* ////////////////////////////////////////////////////////////////////////// */
+void rbez_InitBBox3d ( Box3d *bbox, point3d *p );
+void rbez_ExtendBBox3d ( Box3d *bbox, point3d *p );
+void rbez_Extend2BBox3d ( Box3d *bbox, point3d *p1, point3d *p2 );
+
 void rbez_FindCPBoundingBox3d ( int nrows, int ncols, int pitch,
                                 point3d *cp, double eps, Box3d *bbox );
 void rbez_FindCPBoundingBox3Rd ( int nrows, int ncols, int pitch,

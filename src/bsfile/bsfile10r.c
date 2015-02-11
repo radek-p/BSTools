@@ -407,8 +407,8 @@ boolean bsf_ReadBSFiled ( const char *filename, bsf_UserReaders *readers )
   if ( !bsf_OpenInputFile ( filename ) )
     return false;
   readers->done = false;
-  obj_type = BSF_NONE;
   for (;;) {
+    obj_type = BSF_NONE;
     signal_end = false;
     if ( readers ) {
       if ( readers->BeginReader ) {
@@ -433,6 +433,9 @@ boolean bsf_ReadBSFiled ( const char *filename, bsf_UserReaders *readers )
           goto notify;
     case BSF_SYMB_POLYLINE:
           obj_type = BSF_POLYLINE;
+          goto notify;
+    case BSF_SYMB_CAMERA:
+          obj_type = BSF_CAMERA;
 notify:
           readers->BeginReader ( readers->userData, obj_type );
           signal_end = true;

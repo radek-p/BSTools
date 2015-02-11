@@ -54,18 +54,19 @@ extern "C" {
 
 /* ////////////////////////////////////////////////////////////////////////// */
 /* object types */
-#define BSF_NONE            0
-#define BSF_POLYLINE        1
-#define BSF_BEZIER_CURVE    2
-#define BSF_BEZIER_PATCH    3
-#define BSF_BSPLINE_CURVE   4
-#define BSF_BSPLINE_PATCH   5
-#define BSF_BSPLINE_MESH    6
-#define BSF_BSPLINE_HOLE    7
-#define BSF_TRIMMED_DOMAIN  8
+#define BSF_NONE             0
+#define BSF_POLYLINE         1
+#define BSF_BEZIER_CURVE     2
+#define BSF_BEZIER_PATCH     3
+#define BSF_BSPLINE_CURVE    4
+#define BSF_BSPLINE_PATCH    5
+#define BSF_BSPLINE_MESH     6
+#define BSF_BSPLINE_HOLE     7
+#define BSF_TRIMMED_DOMAIN   8
+#define BSF_CAMERA           9
 
 /* dependency names */
-#define BSF_DEP_SPHERICAL   9
+#define BSF_DEP_SPHERICAL   10
 
 /* ////////////////////////////////////////////////////////////////////////// */
 /* high-level reading procedures, read an entire file and ignore anything */
