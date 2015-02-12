@@ -418,10 +418,15 @@ boolean mbs_BCDegElevPf ( int spdimen,
     deltadegu, deltadegv, outdegreeu, outdegreev, (float*)outctlp )
 
 
-void mbs_multiBCDegRedf ( int ncurves, int spdimen,
-                          int inpitch, int indegree, const float *inctlpoints,
-                          int deltadeg,
-                          int outpitch, int *outdegree, float *outctlpoints );
+boolean _mbs_multiBCDegRedf ( int ncurves, int spdimen,
+                              int inpitch, int indegree, const float *inctlpoints,
+                              int deltadeg,
+                              int outpitch, int *outdegree, float *outctlpoints,
+                              float *workspace );
+boolean mbs_multiBCDegRedf ( int ncurves, int spdimen,
+                             int inpitch, int indegree, const float *inctlpoints,
+                             int deltadeg,
+                             int outpitch, int *outdegree, float *outctlpoints );
 
 #define mbs_BCDegRedC1f(indegree,incoeff,deltadeg,outdegree,outcoeff) \
   mbs_multiBCDegRedf ( 1, 1, 0, indegree, incoeff, deltadeg, \
