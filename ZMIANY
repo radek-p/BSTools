@@ -4127,4 +4127,7 @@ Wersja 0.35.
 949. Poprawiony blad w libraybez, w pliku raypthreads.c - byl niepoprawny
     dostep do identyfikatorow watkow dzielacych wierzcholki drzew.
 
+950. Poprawiony blad w procedurze mbs_FindBoundLineIntersectionsf -
+    wywolanie procedury sortowania ciagu o dlugosci 0 powodowalo SIGSEGV.
+
 

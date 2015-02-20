@@ -459,13 +459,13 @@ void mbs_FindBoundLineIntersectionsf ( const void *bound,
     bufp = bp;
   }
                          /* finally, sort the intersection points */
-
-  if ( pkv_SortFast ( sizeof(float), ID_IEEE754_FLOAT, sizeof(mbs_signpoint1f),
-                      0, *ninters, inters ) != SORT_OK ) {
+  if ( *ninters > 1 ) {
+    if ( pkv_SortFast ( sizeof(float), ID_IEEE754_FLOAT, sizeof(mbs_signpoint1f),
+                        0, *ninters, inters ) != SORT_OK ) {
 out:
-    *ninters = -1;
+      *ninters = -1;
+    }
   }
-
 #undef startp
 #undef lastp
 #undef nextp
