@@ -76,6 +76,14 @@ extern xge_widget     *side00bwidgets, *side00cwidgets, *side00fwidgets;
 extern xge_widget     *renderbtn0, *renderbtn1, *renderbtn2;
 extern xge_int_widget side00bnpthreads;
 extern int            rendering_npthreads;
+extern boolean        swGaussian_c, swMean_c, swLambert_c, swReflection_c,
+                      swHighlight_c, swSections_c;
+extern boolean        swGaussian_d, swMean_d, swLambert_d, swReflection_d,
+                      swHighlight_d, swSections_d;
+extern boolean        swAntialias, swShadows;
+extern double         render_cfrange[2], render_dfsf;
+extern pkRenderer     rend;
+extern XImage         *rendimage;
 
   /* camera parameters */
 extern double         side00fpsi, side00ftheta, side00fphi;
@@ -268,6 +276,10 @@ void SetupWin0CommandLine ( void );
 void SelectGeomTool ( char tool, boolean *sw );
 void SetToolSwitches ( char tool, char coord );
 int Side00MenuCallBack ( xge_widget *er, int msg, int key, short x, short y );
+
+void InitXRenderer ( void );
+void DestroyXRenderer ( void );
+void SetRendererSwitches ( void );
 
 void InitSide00bMenu ( void );
 boolean InitRendering ( void );

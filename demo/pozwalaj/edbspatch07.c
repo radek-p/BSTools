@@ -29,7 +29,6 @@
 #include "xgedit.h"
 #include "xgledit.h"
 
-#include "render.h"
 #include "editor.h"
 #include "editor_bsp.h"
 #include "editor_bsc.h"

@@ -25,13 +25,14 @@
 #include "g2blendingd.h"
 #include "egholed.h"
 #include "bsfile.h"
+#include "pkrender.h"
 #include "xgedit.h"
 #include "xgledit.h"
 
-#include "render.h"
 #include "editor.h"
 #include "editor_bsp.h"
 
+extern pkRenderer rend;
 
 void GeomObjectBSplinePatchOutputToRenderer3D ( GO_BSplinePatch *obj )
 {
@@ -40,11 +41,11 @@ void GeomObjectBSplinePatchOutputToRenderer3D ( GO_BSplinePatch *obj )
   if ( obj->me.spdimen != 3 )
     return;
   if ( obj->rational )
-    RendEnterBSPatch3Rd ( obj->degree_u, obj->lastknot_u, obj->knots_u,
+    RendEnterBSPatch3Rd ( &rend, obj->degree_u, obj->lastknot_u, obj->knots_u,
                           obj->degree_v, obj->lastknot_v, obj->knots_v,
                           (point4d*)obj->cpoints, obj->me.colour );
   else
-    RendEnterBSPatch3d ( obj->degree_u, obj->lastknot_u, obj->knots_u,
+    RendEnterBSPatch3d ( &rend, obj->degree_u, obj->lastknot_u, obj->knots_u,
                          obj->degree_v, obj->lastknot_v, obj->knots_v,
                          (point3d*)obj->cpoints, obj->me.colour );
 } /*GeomObjectBSplinePatchOutputToRenderer3D*/

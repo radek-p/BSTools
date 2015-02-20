@@ -28,6 +28,7 @@
 #include "g2blendingd.h"
 #include "mengerc.h"
 #include "bsfile.h"
+#include "pkrender.h"
 #include "xgedit.h"
 
 #include "widgets.h"

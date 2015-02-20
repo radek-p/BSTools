@@ -28,6 +28,7 @@
 #include "egholed.h"
 #include "mengerc.h"
 #include "bsfile.h"
+#include "pkrender.h"
 #include "xgedit.h"
 #include "xgledit.h"
 
@@ -40,7 +41,6 @@
 #include "editor_bsm.h"
 #include "editor_bsh.h"
 #include "pozwalaj.h"
-#include "render.h"
 #include "edlight.h"
 
 
@@ -185,14 +185,15 @@ void InitSide00bMenu ( void )
 boolean InitRendering ( void )
 {
   xge_SetWindow ( win0 );
-  RendReset ();
-  RendEnterCamerad ( &g00win3D.CPos[3], g00win3D.fww.win[3] );
-  RendEnterLightsd ( RENDERING_NLIGHTS, render_light_dir, render_light_int );
-  RendEnterReflectionLinesFramed ( edshapef_reflection_frame );
-  RendEnterHighlightLinesFramed ( edshapef_highlight_frame );
-  RendEnterSectionPlanesNormald ( &edshapef_sectiondir );
+  RendReset ( &rend );
+  RendEnterCamerad ( &rend, &g00win3D.CPos[3] );
+  RendEnterLightsd ( &rend, RENDERING_NLIGHTS, render_light_dir, render_light_int );
+  RendEnterReflectionLinesFramed ( &rend, edshapef_reflection_frame );
+  RendEnterHighlightLinesFramed ( &rend, edshapef_highlight_frame );
+  RendEnterSectionPlanesNormald ( &rend, &edshapef_sectiondir );
   GeomObjectOutputToRenderer3D ( false );
-  if ( RendBegin () ) {
+  SetRendererSwitches ();
+  if ( RendBegin ( &rend, swAntialias, rendering_npthreads ) ) {
     if ( !rendered_picture ) {
       XGetSubImage ( xgedisplay, xgepixmap, g00win3D.cwin[3]->x, g00win3D.cwin[3]->y,
                      g00win3D.cwin[3]->w, g00win3D.cwin[3]->h, 0xFFFFFFFF, ZPixmap,
@@ -239,7 +240,7 @@ void StartRendering ( void )
 
 void StopRendering ( void )
 {
-  RenderingIsOn = false;  /* in case of interrupt */
+  rend.RenderingIsOn = false;  /* in case of interrupt */
   renderbtn0->data0 = renderbtn1->data0 = renderbtn2->data0 = txtRender;
   xge_SetWindow ( win0 );
   xge_Redraw ();  /* there may be a popup */
@@ -255,9 +256,9 @@ void ContinueRendering ( void )
     StopRendering ();
   }
   else {
-    RenderLine ();
+    RenderLine ( &rend );
     tick1 = times ( &tt );
-    if ( (tick1-tick) >= ticksps || !RenderingIsOn ) {
+    if ( (tick1-tick) >= ticksps || !rend.RenderingIsOn ) {
       er = g00win3D.fww.win[3];
       xge_SetClipping ( er );
       er->redraw ( er, false );
@@ -266,7 +267,7 @@ void ContinueRendering ( void )
       xgeCopyRectOnScreen ( er->w, er->h, er->x, er->y );
       tick = tick1;
     }
-    if ( RenderingIsOn )
+    if ( rend.RenderingIsOn )
       xge_PostIdleCommand ( IDLE_COMMAND_RENDER_CONT, 0, 0 );
     else
       StopRendering ();
@@ -325,7 +326,7 @@ int Side00bMenuCallBack ( xge_widget *er, int msg, int key, short x, short y )
 case xgemsg_BUTTON_COMMAND:
     switch ( er->id ) {
   case btnM01bRENDER_INTERRUPT:
-      if ( RenderingIsOn ) {
+      if ( rend.RenderingIsOn ) {
         StopRendering ();
         rendered_picture = false;
       }
@@ -479,7 +480,7 @@ case xgemsg_SWITCH_COMMAND:
         Geom00WinRestartRendering ();
         xge_Redraw ();
       }
-      else if ( RenderingIsOn )
+      else if ( rend.RenderingIsOn )
         StopRendering ();
       else
         xge_Redraw ();

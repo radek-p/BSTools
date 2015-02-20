@@ -34,7 +34,7 @@
 extern "C" {
 #endif
 
-boolean raybez_EnablePThreads ( int npthr );
+boolean raybez_EnablePThreads ( void );
 void raybez_DisablePThreads ( void );
 
 void raybez_GetPThreadCounts ( int *cnt );

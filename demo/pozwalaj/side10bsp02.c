@@ -27,6 +27,7 @@
 #include "egholed.h"
 #include "mengerc.h"
 #include "bsfile.h"
+#include "pkrender.h"
 #include "xgedit.h"
 #include "xgledit.h"
 
@@ -39,7 +40,6 @@
 #include "editor_bsm.h"
 #include "editor_bsh.h"
 #include "pozwalaj.h"
-#include "render.h"
 
 #define PARENT_SIDE
 #include "pozwalajipc.h"
@@ -231,7 +231,7 @@ case xgemsg_BUTTON_COMMAND:
   case btnM1BSP_UNIFORM_U:
       if ( GeomObjectBSplinePatchSetUniformKnotsU ( obj ) ) {
         xge_T2KnotWindFindMapping ( &g10t2knotwin );
-        if ( RenderingIsOn )
+        if ( rend.RenderingIsOn )
           StopRendering ();
         rendered_picture = false;
         xge_RedrawAll ();
@@ -240,7 +240,7 @@ case xgemsg_BUTTON_COMMAND:
   case btnM1BSP_UNIFORM_V:
       if ( GeomObjectBSplinePatchSetUniformKnotsV ( obj ) ) {
         xge_T2KnotWindFindMapping ( &g10t2knotwin );
-        if ( RenderingIsOn )
+        if ( rend.RenderingIsOn )
           StopRendering ();
         rendered_picture = false;
         xge_RedrawAll ();
@@ -260,7 +260,7 @@ case xgemsg_BUTTON_COMMAND:
       OpenPopup ( popup14, false );
       obj->me.display_pretrans = true;
       editing_pretrans = true;
-      if ( RenderingIsOn )
+      if ( rend.RenderingIsOn )
         StopRendering ();
       rendered_picture = false;
       xge_SetWindow ( win0 );
@@ -292,7 +292,7 @@ case xgemsg_BUTTON_COMMAND:
   case btnM1BSP_BLENDING_REFINE:
       if ( GeomObjectBSplinePatchRefine ( obj ) ) {
         SetupBSplinePatchWidgets ( obj );
-        if ( RenderingIsOn )
+        if ( rend.RenderingIsOn )
           StopRendering ();
         rendered_picture = false;
         xge_RedrawAll ();
@@ -318,7 +318,7 @@ case xgemsg_SWITCH_COMMAND:
       return 1;
   case swM1BSP_CLOSED_U:
       if ( GeomObjectBSplinePatchSetClosedU ( obj, bsp_sw_closed_u ) ) {
-        if ( RenderingIsOn )
+        if ( rend.RenderingIsOn )
           StopRendering ();
         rendered_picture = false;
         xge_RedrawAll ();
@@ -329,7 +329,7 @@ case xgemsg_SWITCH_COMMAND:
       return 1;
   case swM1BSP_CLOSED_V:
       if ( GeomObjectBSplinePatchSetClosedV ( obj, bsp_sw_closed_v ) ) {
-        if ( RenderingIsOn )
+        if ( rend.RenderingIsOn )
           StopRendering ();
         rendered_picture = false;
         xge_RedrawAll ();
@@ -365,7 +365,7 @@ case xgemsg_SWITCH_COMMAND:
   case swM1BSP_NHARMONIC:
       if ( GeomObjectBSplinePatchSetNHarmonic ( obj, bsp_bl_nharmonic ) ) {
         SetupBSplinePatchWidgets ( obj );
-        if ( RenderingIsOn )
+        if ( rend.RenderingIsOn )
           StopRendering ();
         rendered_picture = false;
         xge_RedrawAll ();
@@ -424,7 +424,7 @@ redraw_eq:
         if ( sw_bsp_sproduct_equator )
           xge_Redraw ();
         xge_SetWindow ( win0 );
-        if ( RenderingIsOn )
+        if ( rend.RenderingIsOn )
           StopRendering ();
         rendered_picture = false;
         xge_Redraw ();
@@ -457,7 +457,7 @@ redraw_mer:
         if ( sw_bsp_sproduct_meridian )
           xge_Redraw ();
         xge_SetWindow ( win0 );
-        if ( RenderingIsOn )
+        if ( rend.RenderingIsOn )
           StopRendering ();
         rendered_picture = false;
         xge_Redraw ();
@@ -510,7 +510,7 @@ proceed_deguv:
                                 obj->closed_u,
                                 obj->degree_v, obj->lastknot_v, obj->knots_v,
                                 obj->closed_v );
-          if ( RenderingIsOn )
+          if ( rend.RenderingIsOn )
             StopRendering ();
           rendered_picture = false;
           xge_RedrawAll ();
@@ -636,7 +636,7 @@ error_deguv:
         bsp_eqdegree = key;
         Geom10winKNSetKnots ( &g10knotwineqmer, equator->degree, equator->lastknot,
                               equator->knots, equator->closed );
-        if ( RenderingIsOn )
+        if ( rend.RenderingIsOn )
           StopRendering ();
         rendered_picture = false;
         xge_RedrawAll ();
@@ -648,7 +648,7 @@ error_deguv:
         bsp_merdegree = key;
         Geom10winKNSetKnots ( &g10knotwineqmer, meridian->degree, meridian->lastknot,
                               meridian->knots, meridian->closed );
-        if ( RenderingIsOn )
+        if ( rend.RenderingIsOn )
           StopRendering ();
         rendered_picture = false;
         xge_RedrawAll ();
@@ -693,7 +693,7 @@ case xgemsg_TEXT_EDIT_ENTER:
         GeomObjectSortDependencies ();
         if ( GeomObjectBSplinePatchGenSphericalProduct ( obj ) ) {
           SetupBSplinePatchWidgets ( obj );
-          if ( RenderingIsOn )
+          if ( rend.RenderingIsOn )
             StopRendering ();
           rendered_picture = false;
           xge_RedrawAll ();
@@ -720,7 +720,7 @@ restore_eq:
         GeomObjectSortDependencies ();
         if ( GeomObjectBSplinePatchGenSphericalProduct ( obj ) ) {
           SetupBSplinePatchWidgets ( obj );
-          if ( RenderingIsOn )
+          if ( rend.RenderingIsOn )
             StopRendering ();
           rendered_picture = false;
           xge_RedrawAll ();

@@ -25,13 +25,14 @@
 #include "g2blendingd.h"
 #include "egholed.h"
 #include "bsfile.h"
+#include "pkrender.h"
 #include "xgedit.h"
 #include "xgledit.h"
 
-#include "render.h"
 #include "editor.h"
 #include "editor_bsm.h"
 
+extern pkRenderer rend;
 
 void GeomObjectOutputMeshBSPatchToRenderer3D ( int d, int *vertnum, int *mtab,
                                                void *usrptr )
@@ -58,10 +59,10 @@ void GeomObjectOutputMeshBSPatchToRenderer3D ( int d, int *vertnum, int *mtab,
     for ( i = j = 0;  i < d*d;  i++, j += dim )
       memcpy ( &cp[j], &mcp[dim*vertnum[i]], dim*sizeof(double) );
     if ( dim == 3 )
-      RendEnterBSPatch3d ( degree, lkn, knu, degree, lkn, knv, (point3d*)cp,
+      RendEnterBSPatch3d ( &rend, degree, lkn, knu, degree, lkn, knv, (point3d*)cp,
                            obj->me.colour );
     else if ( dim == 4 )
-      RendEnterBSPatch3Rd ( degree, lkn, knu, degree, lkn, knv, (point4d*)cp,
+      RendEnterBSPatch3Rd ( &rend, degree, lkn, knu, degree, lkn, knv, (point4d*)cp,
                             obj->me.colour );
   }
   pkv_SetScratchMemTop ( sp );
@@ -76,9 +77,9 @@ void GeomObjectBSplineMeshOutputBezPatchToRenderer3D ( int n, int m, const doubl
   obj = (GO_BSplineMesh*)usrptr;
   dim = obj->me.cpdimen;
   if ( dim == 3 )
-    RendEnterBezPatch3d ( n, m, (point3d*)cp, obj->me.colour );
+    RendEnterBezPatch3d ( &rend, n, m, (point3d*)cp, obj->me.colour );
   else if ( dim == 4 )
-    RendEnterBezPatch3Rd ( n, m, (point4d*)cp, obj->me.colour );
+    RendEnterBezPatch3Rd ( &rend, n, m, (point4d*)cp, obj->me.colour );
 } /*GeomObjectBSplineMeshOutputBezPatchToRenderer3D*/
 
 void GeomObjectBSplineMeshOutputHoleFillingToRenderer3D ( int d, int k,
@@ -121,7 +122,7 @@ static void _OutputTriangularFacets ( GO_BSplineMesh *obj )
       }
       else
         return;
-      RendEnterTriangle3d ( &p[0], &p[1], &p[2], colour );
+      RendEnterTriangle3d ( &rend, &p[0], &p[1], &p[2], colour );
     }
 } /*_OutputTriangularFacets*/
 

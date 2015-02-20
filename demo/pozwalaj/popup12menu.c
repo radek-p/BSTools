@@ -27,6 +27,7 @@
 #include "egholed.h"
 #include "mengerc.h"
 #include "bsfile.h"
+#include "pkrender.h"
 #include "xgedit.h"
 #include "xgledit.h"
 
@@ -39,7 +40,6 @@
 #include "editor_bsm.h"
 #include "editor_bsh.h"
 #include "pozwalaj.h"
-#include "render.h"
 
 #define PARENT_SIDE
 #include "pozwalajipc.h"
@@ -130,7 +130,7 @@ void CleanupPopup12 ( void )
 {
   DeleteObjectNameList ();
   SetupObjectSpecificMenus ( current_go );
-  if ( RenderingIsOn )
+  if ( rend.RenderingIsOn )
     StopRendering ();
   rendered_picture = false;
   xge_RedrawAll ();
@@ -160,7 +160,7 @@ case xgemsg_BUTTON_COMMAND:
       GeomObjectDeleteCurrent ();
       UpdateObjectNameList ();
       SetupObjectSpecificMenus ( current_go );
-      if ( RenderingIsOn )
+      if ( rend.RenderingIsOn )
         StopRendering ();
       rendered_picture = false;
       xge_RedrawAll ();
@@ -171,7 +171,7 @@ case xgemsg_BUTTON_COMMAND:
       GeomObjectPurgeList ();
       UpdateObjectNameList ();
       SetupObjectSpecificMenus ( current_go );
-      if ( RenderingIsOn )
+      if ( rend.RenderingIsOn )
         StopRendering ();
       rendered_picture = false;
       xge_RedrawAll ();
@@ -241,7 +241,7 @@ case xgemsg_LISTBOX_ITEM_SET:
         break;
     case 3:
         SetWin003D ();
-        if ( RenderingIsOn )
+        if ( rend.RenderingIsOn )
           StopRendering ();
         rendered_picture = false;
         break;
@@ -258,7 +258,7 @@ case xgemsg_LISTBOX_ITEM_PICK:
     switch ( er->id ) {
   case lbP12OBJLIST:
       SetupObjectSpecificMenus ( current_go );
-      if ( RenderingIsOn )
+      if ( rend.RenderingIsOn )
         StopRendering ();
       rendered_picture = false;
       xge_RedrawAll ();

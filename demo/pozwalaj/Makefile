@@ -3,7 +3,7 @@
 # This file is a part of the BSTools package
 # written by Przemyslaw Kiciak
 # /////////////////////////////////////////////////////////////////////
-# (C) Copyright by Przemyslaw Kiciak, 2010, 2014
+# (C) Copyright by Przemyslaw Kiciak, 2010, 2015
 # this package is distributed under the terms of the
 # Lesser GNU Public License, see the file COPYING.LIB
 # /////////////////////////////////////////////////////////////////////
@@ -24,7 +24,7 @@ CC = gcc
 LDFLAGS =
 
 LIBS = -lxgedit -lbsfile -lg1blending -lg2blending -leghole -lbsmesh -lmengerc \
-  -lraybez -lmultibs -lcamera -lpkgeom -lpknum -lpkvaria \
+  -lpkrender -lraybez -lmultibs -lcamera -lpkgeom -lpknum -lpkvaria \
   -lGLU -lGL -lX11 -lXext -lpthread -lm
 
 OBJECTS = pozwalaj00.o pozwalaj01.o pozwalaj02.o statustext.o \
@@ -46,7 +46,7 @@ OBJECTS = pozwalaj00.o pozwalaj01.o pozwalaj02.o statustext.o \
   edbsmesh05.o edbsmesh06.o edbsmesh07.o edbsmesh08.o edbsmesh09.o \
   edbsmesh10.o edbsmesh11.o edbsmesh12.o \
   edbshole.o edrwfile.o \
-  edlight.o render.o \
+  edlight.o xrender.o \
   pozwalajipc.o
 
 INCL = $(SRCDIR)/pozwalaj.h $(SRCDIR)/pozwalaj0.h
@@ -77,7 +77,7 @@ pozwalaj00.o: $(SRCDIR)/pozwalaj00.c $(INCL) \
   $(EDINC) $(SRCDIR)/widgets.h
 
 pozwalaj01.o: $(SRCDIR)/pozwalaj01.c $(INCL) $(SRCDIR)/pozwalajipc.h \
-  $(SRCDIR)/render.h $(EDINC) $(SRCDIR)/widgets.h
+  $(EDINC) $(SRCDIR)/widgets.h
 
 pozwalaj02.o: $(SRCDIR)/pozwalaj02.c $(INCL) \
   $(EDINC) $(SRCDIR)/widgets.h
@@ -96,7 +96,7 @@ side00menu.o: side00menu.c $(INCL) \
   $(EDINC) $(SRCDIR)/widgets.h
 
 side00bmenu.o: side00bmenu.c $(INCL) $(SRCDIR)/edlight.h \
-  $(SRCDIR)/render.h $(EDINC) $(SRCDIR)/widgets.h
+  $(EDINC) $(SRCDIR)/widgets.h
 
 side00emenu.o: side00emenu.c $(INCL) \
   $(EDINC) $(SRCDIR)/widgets.h
@@ -105,7 +105,7 @@ bottom00menu.o: bottom00menu.c $(INCL) $(SRCDIR)/calc.h \
   $(EDINC) $(SRCDIR)/widgets.h
 
 geom00menu.o: geom00menu.c $(INCL) \
-  $(EDINC) $(SRCDIR)/widgets.h $(SRCDIR)/edlight.h $(SRCDIR)/render.h
+  $(EDINC) $(SRCDIR)/widgets.h $(SRCDIR)/edlight.h
 
 popup00menu.o: popup00menu.c $(INCL) \
   $(EDINC) $(SRCDIR)/widgets.h
@@ -165,13 +165,13 @@ popup11menu.o: popup11menu.c $(INCL) \
   $(EDINC) $(SRCDIR)/widgets.h
 
 popup12menu.o: popup12menu.c $(INCL) \
-  $(EDINC) $(SRCDIR)/widgets.h $(SRCDIR)/render.h
+  $(EDINC) $(SRCDIR)/widgets.h
 
 popup13menu.o: popup13menu.c $(INCL) \
-  $(EDINC) $(SRCDIR)/widgets.h $(SRCDIR)/render.h
+  $(EDINC) $(SRCDIR)/widgets.h
 
 popup14menu.o: popup14menu.c $(INCL) \
-  $(EDINC) $(SRCDIR)/widgets.h $(SRCDIR)/render.h
+  $(EDINC) $(SRCDIR)/widgets.h
 
 popup15menu.o: popup15menu.c $(INCL) \
   $(EDINC) $(SRCDIR)/widgets.h
@@ -201,13 +201,13 @@ editor08.o: $(SRCDIR)/editor08.c $(EDINC)
 editor09.o: $(SRCDIR)/editor09.c $(EDINC)
 
 edbezcurve.o: $(SRCDIR)/edbezcurve.c \
-  $(SRCDIR)/editor.h $(SRCDIR)/editor_bezc.h $(SRCDIR)/render.h
+  $(SRCDIR)/editor.h $(SRCDIR)/editor_bezc.h
 
 edbscurve.o: $(SRCDIR)/edbscurve.c \
-  $(SRCDIR)/editor.h $(SRCDIR)/editor_bsc.h $(SRCDIR)/render.h
+  $(SRCDIR)/editor.h $(SRCDIR)/editor_bsc.h
 
 edbezpatch.o: $(SRCDIR)/edbezpatch.c \
-  $(SRCDIR)/editor.h $(SRCDIR)/editor_bezp.h $(SRCDIR)/render.h
+  $(SRCDIR)/editor.h $(SRCDIR)/editor_bezp.h
 
 edbspatch00.o: $(SRCDIR)/edbspatch00.c \
   $(SRCDIR)/editor.h $(SRCDIR)/editor_bsp.h
@@ -228,19 +228,19 @@ edbspatch05.o: $(SRCDIR)/edbspatch05.c \
   $(SRCDIR)/editor.h $(SRCDIR)/editor_bsp.h
 
 edbspatch06.o: $(SRCDIR)/edbspatch06.c \
-  $(SRCDIR)/editor.h $(SRCDIR)/editor_bsp.h $(SRCDIR)/render.h
+  $(SRCDIR)/editor.h $(SRCDIR)/editor_bsp.h
 
 edbspatch07.o: $(SRCDIR)/edbspatch07.c \
-  $(SRCDIR)/editor.h $(SRCDIR)/editor_bsp.h $(SRCDIR)/render.h
+  $(SRCDIR)/editor.h $(SRCDIR)/editor_bsp.h
 
 edbspatch08.o: $(SRCDIR)/edbspatch08.c \
-  $(SRCDIR)/editor.h $(SRCDIR)/editor_bsp.h $(SRCDIR)/render.h
+  $(SRCDIR)/editor.h $(SRCDIR)/editor_bsp.h
 
 edbspatch09.o: $(SRCDIR)/edbspatch09.c \
-  $(SRCDIR)/editor.h $(SRCDIR)/editor_bsp.h $(SRCDIR)/render.h
+  $(SRCDIR)/editor.h $(SRCDIR)/editor_bsp.h
 
 edbspatch10.o: $(SRCDIR)/edbspatch10.c \
-  $(SRCDIR)/editor.h $(SRCDIR)/editor_bsp.h $(SRCDIR)/render.h
+  $(SRCDIR)/editor.h $(SRCDIR)/editor_bsp.h
 
 edbsmesh00.o: $(SRCDIR)/edbsmesh00.c \
   $(SRCDIR)/editor.h $(SRCDIR)/editor_bsm.h
@@ -267,7 +267,7 @@ edbsmesh07.o: $(SRCDIR)/edbsmesh07.c \
   $(SRCDIR)/editor.h $(SRCDIR)/editor_bsm.h
 
 edbsmesh08.o: $(SRCDIR)/edbsmesh08.c \
-  $(SRCDIR)/editor.h $(SRCDIR)/editor_bsm.h $(SRCDIR)/render.h
+  $(SRCDIR)/editor.h $(SRCDIR)/editor_bsm.h
 
 edbsmesh09.o: $(SRCDIR)/edbsmesh09.c \
   $(SRCDIR)/editor.h $(SRCDIR)/editor_bsm.h
@@ -287,9 +287,9 @@ edbshole.o: $(SRCDIR)/edbshole.c \
 edrwfile.o: $(SRCDIR)/edrwfile.c $(EDINC)
 
 edlight.o: $(SRCDIR)/edlight.c $(EDINC) $(SRCDIR)/widgets.h \
-  $(SRCDIR)/edlight.h $(SRCDIR)/render.h $(INCL)
+  $(SRCDIR)/edlight.h $(INCL)
 
-render.o: $(SRCDIR)/render.c $(SRCDIR)/render.h
+xrender.o: $(SRCDIR)/xrender.c $(SRCDIR)/pozwalaj.h
 
 pozwalaijpc.o: $(SRCDIR)/pozwalajipc.c $(SRCDIR)/widgets.h $(EDINC) \
   $(INCL) $(SRDIR)/pozwalajipc.h

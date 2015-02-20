@@ -25,14 +25,15 @@
 #include "g2blendingd.h"
 #include "egholed.h"
 #include "bsfile.h"
+#include "pkrender.h"
 #include "xgedit.h"
 #include "xgledit.h"
 
-#include "render.h"
 #include "editor.h"
 #include "edcolours.h"
 #include "editor_bezc.h"
 
+extern pkRenderer rend;
 
 boolean GeomObjectInitBezierCurve ( GO_BezierCurve *obj,
                                     char spdimen, boolean rational )
@@ -677,10 +678,10 @@ void GeomObjectBezierCurveOutputToRenderer ( GO_BezierCurve *obj )
   if ( obj->me.spdimen != 3 )
     return;
   if ( obj->rational )
-    RendEnterBezCurve3Rd ( obj->degree, (point4d*)obj->cpoints,
+    RendEnterBezCurve3Rd ( &rend, obj->degree, (point4d*)obj->cpoints,
                            0.5*obj->pipe_diameter, obj->me.colour );
   else
-    RendEnterBezCurve3d ( obj->degree, (point3d*)obj->cpoints,
+    RendEnterBezCurve3d ( &rend, obj->degree, (point3d*)obj->cpoints,
                           0.5*obj->pipe_diameter, obj->me.colour );
 } /*GeomObjectBezierCurveOutputToRenderer*/
 

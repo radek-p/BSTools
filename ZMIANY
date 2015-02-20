@@ -4111,4 +4111,20 @@ Wersja 0.35.
 946. Pielegnacja kodu w libmultibs - spore zmiany (porzadkowe) w procedurach
     przetwarzania wielomianowych platow Coonsa. Beda dalsze zmiany.
 
+17.02.1025.
+947. Nowa biblioteka, libpkrender. Zawiera procedury sledzenia promieni,
+    wyizolowane z programu pozwalaj, niezalezne od srodowiska. Docelowo ta
+    biblioteka ma sie rozbudowywac, aby zwiekszyc mozliwosci tworzenia
+    obrazow (nowe obiekty, platy obciete, bryly CSG, inne, takze
+    teksturownie i nowe modele oswietlenia). Ma tez zastapic renderer
+    wbudowany w program pozwalaj, ktory jeszcze zostal tam, gdzie byl.
+
+948. Zmiany w programie pozwalaj - zamiana plikow zrodlowych render.c
+    i render.h na biblioteke libpkrender. Do porzadnego przetestowania
+    (zwlaszcza funkcje ksztaltu dla platow Beziera i B-sklejanych).
+
+20.02.2015.
+949. Poprawiony blad w libraybez, w pliku raypthreads.c - byl niepoprawny
+    dostep do identyfikatorow watkow dzielacych wierzcholki drzew.
+
 

@@ -27,6 +27,7 @@
 #include "egholed.h"
 #include "mengerc.h"
 #include "bsfile.h"
+#include "pkrender.h"
 #include "xgedit.h"
 #include "xgledit.h"
 
@@ -39,7 +40,6 @@
 #include "editor_bsm.h"
 #include "editor_bsh.h"
 #include "pozwalaj.h"
-#include "render.h"
 
 
 xge_widget *InitGeom10Menu ( xge_widget *prev )
@@ -176,7 +176,7 @@ case xgemsg_KNOTWIN_CHANGE_KNOT:
   case GEOMWIN1_KN:
   case GEOMWIN1_KNEQMER:
       GeomObjectBSplineCurveMoveKnot ( obj, knw->current_knot );
-      if ( RenderingIsOn )
+      if ( rend.RenderingIsOn )
         StopRendering ();
       rendered_picture = false;
       xge_RedrawAll ();
@@ -207,7 +207,7 @@ case xgemsg_KNOTWIN_REMOVE_KNOT:
                                               knw->current_knot ) ) {
         Geom10winKNSetKnots ( knw, obj->degree, obj->lastknot,
                               obj->knots, obj->closed );
-        if ( RenderingIsOn )
+        if ( rend.RenderingIsOn )
           StopRendering ();
         rendered_picture = false;
         xge_RedrawAll ();
@@ -480,7 +480,7 @@ case xgemsg_T2KNOTWIN_CHANGE_KNOT_U:
     switch ( er->id ) {
   case GEOMWIN1_T2KN:
       GeomObjectBSplinePatchMoveKnotU ( obj, g10t2knotwin.current_item );
-      if ( RenderingIsOn )
+      if ( rend.RenderingIsOn )
         StopRendering ();
       rendered_picture = false;
       xge_RedrawAll ();
@@ -498,7 +498,7 @@ case xgemsg_T2KNOTWIN_INSERT_KNOT_U:
                               obj->closed_u,
                               obj->degree_v, obj->lastknot_v, obj->knots_v,
                               obj->closed_v );
-        if ( RenderingIsOn )
+        if ( rend.RenderingIsOn )
           StopRendering ();
         rendered_picture = false;
         xge_RedrawAll ();
@@ -517,7 +517,7 @@ case xgemsg_T2KNOTWIN_REMOVE_KNOT_U:
                               obj->closed_u,
                               obj->degree_v, obj->lastknot_v, obj->knots_v,
                               obj->closed_v );
-        if ( RenderingIsOn )
+        if ( rend.RenderingIsOn )
           StopRendering ();
         rendered_picture = false;
         xge_RedrawAll ();
@@ -531,7 +531,7 @@ case xgemsg_T2KNOTWIN_CHANGE_KNOT_V:
     switch ( er->id ) {
   case GEOMWIN1_T2KN:
       GeomObjectBSplinePatchMoveKnotV ( obj, g10t2knotwin.current_item );
-      if ( RenderingIsOn )
+      if ( rend.RenderingIsOn )
         StopRendering ();
       rendered_picture = false;
       xge_RedrawAll ();
@@ -549,7 +549,7 @@ case xgemsg_T2KNOTWIN_INSERT_KNOT_V:
                               obj->closed_u,
                               obj->degree_v, obj->lastknot_v, obj->knots_v,
                               obj->closed_v );
-        if ( RenderingIsOn )
+        if ( rend.RenderingIsOn )
           StopRendering ();
         rendered_picture = false;
         xge_RedrawAll ();
@@ -568,7 +568,7 @@ case xgemsg_T2KNOTWIN_REMOVE_KNOT_V:
                               obj->closed_u,
                               obj->degree_v, obj->lastknot_v, obj->knots_v,
                               obj->closed_v );
-        if ( RenderingIsOn )
+        if ( rend.RenderingIsOn )
           StopRendering ();
         rendered_picture = false;
         xge_RedrawAll ();
@@ -655,7 +655,7 @@ case xgemsg_2DWIN_MOVE_POINT:
     if ( GeomObjectGetPointCoord ( currentp_go, current_point_ind,
                                    &spdimen, &cpdimen, &pc ) )
        BottomDisplayPoint ( win0, spdimen, cpdimen, current_point_ind, pc, true );
-    if ( RenderingIsOn )
+    if ( rend.RenderingIsOn )
       StopRendering ();
     rendered_picture = false;
     xge_RedrawAll ();
@@ -694,7 +694,7 @@ case xgemsg_2DWIN_FIND_REFBBOX:
 
 case xgemsg_2DWIN_UNDO:
     GeomObjectUndoLastTransformation ( 3 );
-    if ( RenderingIsOn )
+    if ( rend.RenderingIsOn )
       StopRendering ();
     rendered_picture = false;
     xge_RedrawAll ();

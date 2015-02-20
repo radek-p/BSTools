@@ -3,7 +3,7 @@
 # This file is a part of the BSTools package
 # written by Przemyslaw Kiciak
 # /////////////////////////////////////////////////////////////////////
-# (C) Copyright by Przemyslaw Kiciak, 2005, 2014
+# (C) Copyright by Przemyslaw Kiciak, 2005, 2015
 # this package is distributed under the terms of the
 # Lesser GNU Public License, see the file COPYING.LIB
 # /////////////////////////////////////////////////////////////////////
@@ -24,6 +24,7 @@ default:
 	(cd g2blending;$(MAKE))
 	(cd psout;$(MAKE))
 	(cd raybez;$(MAKE))
+	(cd pkrender;$(MAKE))
 	(cd eghole;$(MAKE))
 	(cd xgedit;$(MAKE))
 	(cd bsfile;$(MAKE))
@@ -41,6 +42,7 @@ clean:
 	(cd g2blending;$(MAKE) clean)
 	(cd psout;$(MAKE) clean)
 	(cd raybez;$(MAKE) clean)
+	(cd pkrender;$(MAKE) clean)
 	(cd eghole;$(MAKE) clean)
 	(cd xgedit;$(MAKE) clean)
 	(cd bsfile;$(MAKE) clean)
@@ -58,6 +60,7 @@ mrproper:
 	(cd g2blending;$(MAKE) mrproper)
 	(cd psout;$(MAKE) mrproper)
 	(cd raybez;$(MAKE) mrproper)
+	(cd pkrender;$(MAKE) mrproper)
 	(cd eghole;$(MAKE) mrproper)
 	(cd xgedit;$(MAKE) mrproper)
 	(cd bsfile;$(MAKE) mrproper)

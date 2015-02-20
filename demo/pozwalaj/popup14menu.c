@@ -27,6 +27,7 @@
 #include "egholed.h"
 #include "mengerc.h"
 #include "bsfile.h"
+#include "pkrender.h"
 #include "xgedit.h"
 #include "xgledit.h"
 
@@ -39,7 +40,6 @@
 #include "editor_bsm.h"
 #include "editor_bsh.h"
 #include "pozwalaj.h"
-#include "render.h"
 
 
 xge_widget *InitPopup14 ( void )

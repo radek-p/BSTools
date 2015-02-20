@@ -27,6 +27,7 @@
 #include "mengerc.h"
 #include "egholed.h"
 #include "bsfile.h"
+#include "pkrender.h"
 #include "xgedit.h"
 #include "xgledit.h"
 

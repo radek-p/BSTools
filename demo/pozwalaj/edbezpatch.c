@@ -25,14 +25,15 @@
 #include "g2blendingd.h"
 #include "egholed.h"
 #include "bsfile.h"
+#include "pkrender.h"
 #include "xgedit.h"
 #include "xgledit.h"
 
-#include "render.h"
 #include "editor.h"
 #include "edcolours.h"
 #include "editor_bezp.h"
 
+extern pkRenderer rend;
 
 boolean GeomObjectInitBezierPatch ( GO_BezierPatch *obj,
                                     char spdimen, boolean rational )
@@ -564,10 +565,10 @@ void GeomObjectBezierPatchOutputToRenderer3D ( GO_BezierPatch *obj )
   if ( obj->me.spdimen != 3 )
     return;
   if ( obj->rational )
-    RendEnterBezPatch3Rd ( obj->degree_u, obj->degree_v,
+    RendEnterBezPatch3Rd ( &rend, obj->degree_u, obj->degree_v,
                            (point4d*)obj->cpoints, obj->me.colour );
   else
-    RendEnterBezPatch3d ( obj->degree_u, obj->degree_v,
+    RendEnterBezPatch3d ( &rend, obj->degree_u, obj->degree_v,
                           (point3d*)obj->cpoints, obj->me.colour );
 } /*GeomObjectBezierPatchOutputToRenderer3D*/
 

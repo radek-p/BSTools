@@ -27,6 +27,7 @@
 #include "egholed.h"
 #include "mengerc.h"
 #include "bsfile.h"
+#include "pkrender.h"
 #include "xgedit.h"
 #include "xgledit.h"
 
@@ -39,7 +40,6 @@
 #include "editor_bsm.h"
 #include "editor_bsh.h"
 #include "pozwalaj.h"
-#include "render.h"
 #include "edlight.h"
 
 
@@ -258,18 +258,18 @@ void Geom00WinRestartRendering ( void )
   if ( rendered_picture ) {
     rendered_picture = false;
     if ( g00win3D.fww.zoomwin == -1 || g00win3D.fww.zoomwin == 3 ) {
-      RendEnterCamerad ( &g00win3D.CPos[3], g00win3D.fww.win[3] );
+      RendEnterCamerad ( &rend, &g00win3D.CPos[3] );
       xge_SetClipping ( g00win3D.fww.win[3] );
       g00win3D.fww.win[3]->redraw ( g00win3D.fww.win[3], false );
       XGetSubImage ( xgedisplay, xgepixmap, g00win3D.cwin[3]->x, g00win3D.cwin[3]->y,
                      g00win3D.cwin[3]->w, g00win3D.cwin[3]->h, 0xFFFFFFFF, ZPixmap,
                      rendimage, g00win3D.cwin[3]->x, g00win3D.cwin[3]->y );
       renderbtn0->data0 = renderbtn1->data0 = renderbtn2->data0 = txtInterrupt;
-      if ( !RenderingIsOn ) {
+      if ( !rend.RenderingIsOn ) {
         xge_PostIdleCommand ( IDLE_COMMAND_RENDER_CONT, 0, 0 );
-        RenderingIsOn = true;
+        rend.RenderingIsOn = true;
       }
-      RendRestart ();
+      RendRestart ( &rend );
       rendered_picture = true;
     }
   }

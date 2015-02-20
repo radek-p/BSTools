@@ -23,6 +23,7 @@
 #include "raybezf.h"
 #include "mengerc.h"
 #include "bsfile.h"
+#include "pkrender.h"
 #include "xgedit.h"
 #include "xgledit.h"
 
@@ -35,7 +36,6 @@
 #include "editor_bsm.h"
 #include "editor_bsh.h"
 #include "pozwalaj.h"
-#include "render.h"
 #include "edlight.h"
 
 #define POINT_TOL 10

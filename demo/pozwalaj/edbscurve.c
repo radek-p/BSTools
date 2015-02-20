@@ -26,13 +26,15 @@
 #include "egholed.h"
 #include "mengerc.h"
 #include "bsfile.h"
+#include "pkrender.h"
 #include "xgedit.h"
 #include "xgledit.h"
 
-#include "render.h"
 #include "editor.h"
 #include "edcolours.h"
 #include "editor_bsc.h"
+
+extern pkRenderer rend;
 
 void GeomObjectBSplineCurveInitMC ( GO_BSplineCurve *obj )
 {
@@ -1239,11 +1241,11 @@ void GeomObjectBSplineCurveOutputToRenderer ( GO_BSplineCurve *obj )
   if ( obj->me.spdimen != 3 )
     return;
   if ( obj->rational )
-    RendEnterBSCurve3Rd ( obj->degree, obj->lastknot, obj->knots,
+    RendEnterBSCurve3Rd ( &rend, obj->degree, obj->lastknot, obj->knots,
                           (point4d*)obj->cpoints, 0.5*obj->pipe_diameter,
                           obj->me.colour );
   else
-    RendEnterBSCurve3d ( obj->degree, obj->lastknot, obj->knots,
+    RendEnterBSCurve3d ( &rend, obj->degree, obj->lastknot, obj->knots,
                          (point3d*)obj->cpoints, 0.5*obj->pipe_diameter,
                          obj->me.colour );
 } /*GeomObjectBSplineCurveOutputToRenderer*/

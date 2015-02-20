@@ -32,6 +32,7 @@
 #include "bsfile.h"
 #include "xgedit.h"
 #include "xgledit.h"
+#include "pkrender.h"
 
 #include "widgets.h"
 #include "editor.h"
@@ -42,7 +43,6 @@
 #include "editor_bsm.h"
 #include "editor_bsh.h"
 #include "pozwalaj.h"
-#include "render.h"
 
 #define PARENT_SIDE
 #include "pozwalajipc.h"
@@ -158,7 +158,7 @@ void init_program ( int argc, char *argv[] )
   GeomObjectInitList ();
   InitWindow0Widgets ();
   InitWindow1Widgets ();
-  RendInit ();
+  InitXRenderer ();
   files_ok = ProcessCMDLineParameters ( argc, argv );
   xge_RedrawAll ();
   xge_SetWindow ( win0 );
@@ -170,7 +170,7 @@ void init_program ( int argc, char *argv[] )
 
 void destroy_program ( void )
 {
-  RendDestroy ();
+  DestroyXRenderer ();
   printf ( "Scratch memory used: %d out of %d bytes\n",
            (int)pkv_MaxScratchTaken(), SCRATCHMEMSIZE );
   pkv_DestroyScratchMem ();

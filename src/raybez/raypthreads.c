@@ -33,67 +33,68 @@ typedef struct {
     unsigned short  errcode;
   } vertq;
 
-static int             raybez_npthreads = 0;
+static unsigned short  raybez_npthreads = 0;
 static pthread_mutex_t raybez_mutex;
 static vertq           *raybez_vert = NULL;
+static unsigned short  *raybez_pt = NULL;
+static unsigned short  raybez_cdiv = 0;
 
 void raybez_DisablePThreads ( void )
 {
   int i;
 
-  if ( raybez_npthreads > 0 ) {
-    if ( raybez_vert ) {
-      for ( i = 0; i < raybez_npthreads; i++ ) {
-        if ( !(raybez_vert[i].errcode & 0x01) )
-          pthread_mutex_destroy ( &raybez_vert[i].mutex );
-        if ( !(raybez_vert[i].errcode & 0x02 ) )
-          pthread_cond_destroy ( &raybez_vert[i].cond );
-      }
-      PKV_FREE ( raybez_vert );
+  if ( raybez_vert ) {
+    for ( i = 0; i < raybez_npthreads; i++ ) {
+      if ( !(raybez_vert[i].errcode & 0x01) )
+        pthread_mutex_destroy ( &raybez_vert[i].mutex );
+      if ( !(raybez_vert[i].errcode & 0x02 ) )
+        pthread_cond_destroy ( &raybez_vert[i].cond );
     }
+    PKV_FREE ( raybez_vert );
     pthread_mutex_destroy ( &raybez_mutex );
-    raybez_npthreads = 0;
+    raybez_npthreads = raybez_cdiv = 0;
+    if ( raybez_pt ) PKV_FREE ( raybez_pt );
   }
 } /*raybez_DisablePThreads*/
 
-boolean raybez_EnablePThreads ( int npthr )
+boolean raybez_EnablePThreads ( void )
 {
   int i;
 
   raybez_DisablePThreads ();
-  if ( npthr > 1 ) { 
-    PKV_MALLOC ( raybez_vert, npthr*sizeof(vertq) );
-    if ( raybez_vert ) {
-      memset ( raybez_vert, 0, npthr*sizeof(vertq) );
-      raybez_npthreads = npthr;
-      if ( pthread_mutex_init ( &raybez_mutex, NULL ) )
-        goto failure;
-      for ( i = 0; i < npthr; i++ ) {
-        raybez_vert[i].errcode = 0;
-        if ( pthread_mutex_init ( &raybez_vert[i].mutex, NULL ) )
-          raybez_vert[i].errcode = 1;
-        if ( pthread_cond_init ( &raybez_vert[i].cond, NULL ) )
-          raybez_vert[i].errcode += 2;
-        if ( raybez_vert[i].errcode ) {
-          raybez_npthreads = i;
-          raybez_DisablePThreads ();
-          return false;
-        }
+  PKV_MALLOC ( raybez_vert, max_threads*sizeof(vertq) );
+  PKV_MALLOC ( raybez_pt, max_threads*sizeof(unsigned short) );
+  if ( raybez_vert && raybez_pt ) {
+    memset ( raybez_vert, 0, max_threads*sizeof(vertq) );
+    raybez_npthreads = max_threads;
+    if ( pthread_mutex_init ( &raybez_mutex, NULL ) )
+      goto failure;
+    for ( i = 0; i < max_threads; i++ ) {
+      raybez_vert[i].errcode = 0;
+      if ( pthread_mutex_init ( &raybez_vert[i].mutex, NULL ) )
+        raybez_vert[i].errcode = 1;
+      if ( pthread_cond_init ( &raybez_vert[i].cond, NULL ) )
+        raybez_vert[i].errcode += 2;
+      if ( raybez_vert[i].errcode ) {
+        raybez_npthreads = i;
+        raybez_DisablePThreads ();
+        return false;
       }
-      return true;
     }
-    else {
-failure:
-      if ( raybez_vert ) PKV_FREE ( raybez_vert );
-    }
+    raybez_cdiv = 0;
+    return true;
   }
+
+failure:
+  if ( raybez_pt )   PKV_FREE ( raybez_pt );
+  if ( raybez_vert ) PKV_FREE ( raybez_vert );
   return false;
 } /*raybez_EnablePThreads*/
 
 void raybez_DivideTreeVertex ( void *tree, void *vertex, unsigned char *tag,
                                divide_vertex_proc DivideVertex )
 {
-  int my_id, its_id;
+  unsigned short my_id, its_id, vp;
 
   if ( raybez_npthreads == 0 ) {
     DivideVertex ( tree, vertex );
@@ -109,6 +110,7 @@ void raybez_DivideTreeVertex ( void *tree, void *vertex, unsigned char *tag,
       raybez_vert[my_id].count ++;
       raybez_vert[my_id].vertex = vertex;
       raybez_vert[my_id].n_waiting_threads = 0;
+      raybez_pt[raybez_cdiv++] = my_id;
 /*printf ( "%d (b)\n", my_id );*/
       pthread_mutex_unlock ( &raybez_mutex );
 
@@ -118,6 +120,12 @@ void raybez_DivideTreeVertex ( void *tree, void *vertex, unsigned char *tag,
       pthread_mutex_lock ( &raybez_mutex );
       *tag = 2;
       raybez_vert[my_id].vertex = NULL;
+      raybez_cdiv --;
+      for ( vp = 0; vp < raybez_cdiv; vp ++ )
+        if ( raybez_pt[vp] == my_id ) {
+          raybez_pt[vp] = raybez_pt[raybez_cdiv];
+          break;
+        }
       switch ( raybez_vert[my_id].n_waiting_threads ) {
     case 0:   /* none to wake up */
 /*printf ( "%d (d)\n", my_id );*/
@@ -149,9 +157,11 @@ void raybez_DivideTreeVertex ( void *tree, void *vertex, unsigned char *tag,
   case 1:    /* some thread is now dividing the leaf - wait for the result */
                /* linear search - perhaps to be changed later */
 /*printf ( "%d (m)\n", my_id );*/
-      for ( its_id = 0; its_id < raybez_npthreads; its_id++ )
+      for ( vp = 0; vp < raybez_cdiv; vp++ ) {
+        its_id = raybez_pt[vp];
         if ( vertex == raybez_vert[its_id].vertex )
           goto hang;
+      }
       printf ( "raybez_pthread error.\n" );
       exit ( 1 );
 hang:
