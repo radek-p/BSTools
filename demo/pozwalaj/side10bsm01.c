@@ -76,9 +76,11 @@ void InitSide10Menu_BSm ( void )
                          10, 100, &intw_bsm_simplify_z, txtZ, &bsm_simplify_xyz[2] );
   w = xge_NewButton ( win1, w, btnM1BSM_SIMPLIFY_MESH, 79, 19, 0, 180,
                       txtSimplify );
+  w = xge_NewIntWidget ( win1, w, intwM1BSM_DECIMATE_ITER, 30, 19, 80,200,
+                         1, 1000, &intw_bsm_decimate_iter, NULL, &bsm_decimate_iter );
   w = xge_NewButton ( win1, w, btnM1BSM_DECIMATE_MESH, 79, 19, 0, 200,
                       txtDecimate );
-  w->state = xgestate_BUTTON_INACTIVE;
+  w->state = xgestate_BUTTON_INACTIVE; 
   w = xge_NewIntWidget ( win1, w, intwM1BSM_VERTEX0, 75, 19, 0, 228,
                          -2, 10, &intw_bsm_vert0, txtVertex, &bsm_vertex_num0 );
   w = xge_NewIntWidget ( win1, w, intwM1BSM_VERTEX1, 35, 19, 74, 228,
@@ -728,7 +730,7 @@ case xgemsg_BUTTON_COMMAND:
         xge_DisplayErrorMessage ( ErrorMsgCannotSimplifyMesh, 0 );
       return 1;
   case btnM1BSM_DECIMATE_MESH:
-      if ( GeomObjectBSplineMeshDecimate ( obj ) ) {
+      if ( GeomObjectBSplineMeshDecimate ( obj, bsm_decimate_iter ) ) {
         bsm_sw_blending = obj->blending;
         SetupBSplineMeshVEFnum ( obj );
         rendered_picture = false;
@@ -1020,6 +1022,9 @@ case xgemsg_INT_WIDGET_COMMAND:
       return 1;
   case intwM1BSM_SIMPLIFY_Z:
       bsm_simplify_xyz[2] = key;
+      return 1;
+  case intwM1BSM_DECIMATE_ITER:
+      bsm_decimate_iter = key;
       return 1;
   case intwM1BSM_VERTEX0:
       if ( GeomObjectBSplineMeshSetCurrentVertex ( obj, key, 0 ) ) {

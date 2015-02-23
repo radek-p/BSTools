@@ -168,7 +168,7 @@ boolean GeomObjectBSplineMeshDivideFacet ( GO_BSplineMesh *obj );
 boolean GeomObjectBSplineMeshDoubleEdgeLoop ( GO_BSplineMesh *obj );
 boolean GeomObjectBSplineMeshTriangulateFacets ( GO_BSplineMesh *obj );
 boolean GeomObjectBSplineMeshSimplify ( GO_BSplineMesh *obj, int *nboxes );
-boolean GeomObjectBSplineMeshDecimate ( GO_BSplineMesh *obj );
+boolean GeomObjectBSplineMeshDecimate ( GO_BSplineMesh *obj, int niter );
 
 boolean GeomObjectBSplineMeshInitTetrahedron ( GO_BSplineMesh *obj, boolean add );
 boolean GeomObjectBSplineMeshInitCube ( GO_BSplineMesh *obj, boolean add );

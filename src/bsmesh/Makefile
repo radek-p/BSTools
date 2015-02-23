@@ -3,7 +3,7 @@
 # This file is a part of the BSTools package
 # written by Przemyslaw Kiciak
 # /////////////////////////////////////////////////////////////////////
-# (C) Copyright by Przemyslaw Kiciak, 2010, 2014
+# (C) Copyright by Przemyslaw Kiciak, 2010, 2015
 # this package is distributed under the terms of the
 # Lesser GNU Public License, see the file COPYING.LIB
 # /////////////////////////////////////////////////////////////////////
@@ -27,7 +27,8 @@ OBJECTS = $(SRCDIR)/bsmesh00.o $(SRCDIR)/bsmesh01.o $(SRCDIR)/bsmesh02.o \
   $(SRCDIR)/bsmesh27d.o $(SRCDIR)/bsmesh28d.o $(SRCDIR)/bsmesh29.o  \
   $(SRCDIR)/bsmesh30.o  $(SRCDIR)/bsmesh31d.o $(SRCDIR)/bsmesh32d.o \
   $(SRCDIR)/bsmesh33d.o $(SRCDIR)/bsmesh34d.o $(SRCDIR)/bsmesh35d.o \
-  $(SRCDIR)/bsmesh36d.o $(SRCDIR)/bsmesh37d.o $(SRCDIR)/bsmesh38d.o
+  $(SRCDIR)/bsmesh36d.o $(SRCDIR)/bsmesh37d.o $(SRCDIR)/bsmesh38d.o \
+  $(SRCDIR)/bsmesh39d.o $(SRCDIR)/bsmesh40d.o $(SRCDIR)/bsmesh41d.o
 
 TARGET = $(LIBDIR)/libbsmesh.a
 
@@ -116,6 +117,12 @@ $(SRCDIR)/bsmesh36d.o: $(SRCDIR)/bsmesh36d.c $(INCDIR)/bsmesh.h $(SRCDIR)/bsmpri
 $(SRCDIR)/bsmesh37d.o: $(SRCDIR)/bsmesh37d.c $(INCDIR)/bsmesh.h $(SRCDIR)/bsmprivate.h
 
 $(SRCDIR)/bsmesh38d.o: $(SRCDIR)/bsmesh38d.c $(INCDIR)/bsmesh.h $(SRCDIR)/bsmprivate.h
+
+$(SRCDIR)/bsmesh39d.o: $(SRCDIR)/bsmesh39d.c $(INCDIR)/bsmesh.h $(SRCDIR)/bsmprivate.h
+
+$(SRCDIR)/bsmesh40d.o: $(SRCDIR)/bsmesh40d.c $(INCDIR)/bsmesh.h $(SRCDIR)/bsmprivate.h
+
+$(SRCDIR)/bsmesh41d.o: $(SRCDIR)/bsmesh41d.c $(INCDIR)/bsmesh.h $(SRCDIR)/bsmprivate.h
 
 clean:
 	rm -f $(OBJECTS)

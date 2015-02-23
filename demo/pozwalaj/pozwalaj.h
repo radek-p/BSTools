@@ -227,6 +227,8 @@ extern xge_int_widget intw_bsmdeg1, intw_bsmdeg2;
 extern int            bsm_degree1, bsm_degree2;
 extern xge_int_widget intw_bsm_simplify_x, intw_bsm_simplify_y, intw_bsm_simplify_z;
 extern int            bsm_simplify_xyz[4];
+extern xge_int_widget intw_bsm_decimate_iter;
+extern int            bsm_decimate_iter;
 
 extern xge_widget     *bsm_density;
 extern boolean        bsm_sw_subdivision;

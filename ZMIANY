@@ -4130,4 +4130,14 @@ Wersja 0.35.
 950. Poprawiony blad w procedurze mbs_FindBoundLineIntersectionsf -
     wywolanie procedury sortowania ciagu o dlugosci 0 powodowalo SIGSEGV.
 
+23.02.2015.
+951. Nowe procedury w libbsmesh, napisane przez Anne Sierhej - algorytm
+    upraszczania siatek (_bsm_DivideFacetd, bsm_TriangulateFacetNum,
+    bsm_TriangulateFacetd, bsm_VertexDecimation). Procedury te sa bardzo
+    surowe i wymagaja poprawek i przetestowania.
+
+952. Podlaczenie nowej procedury upraszczania siatek do programu pozwalaj.
+    Na razie jej wywolanie jest zablokowane, po pelnym uruchomieniu wersja
+    bez blokady bedzie dostepna.
+
 

@@ -250,6 +250,8 @@ int             bsm_degree1 = 3, bsm_degree2 = 3;
 
 xge_int_widget  intw_bsm_simplify_x, intw_bsm_simplify_y, intw_bsm_simplify_z;
 int             bsm_simplify_xyz[4] = {20, 20, 20, 1};
+xge_int_widget  intw_bsm_decimate_iter;
+int             bsm_decimate_iter = 1;
 
 xge_widget      *bsm_density;
 boolean         bsm_sw_subdivision = false;

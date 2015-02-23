@@ -1434,8 +1434,77 @@ failure:
   return false;
 } /*GeomObjectBSplineMeshSimplify*/
 
-boolean GeomObjectBSplineMeshDecimate ( GO_BSplineMesh *obj )
+boolean GeomObjectBSplineMeshDecimate ( GO_BSplineMesh *obj, int niter )
 {
+  int            onv, onhe, onfac;
+  BSMvertex      *omv;
+  BSMhalfedge    *omhe;
+  BSMfacet       *omfac;
+  int            *omvhei, *omfhei;
+  double         *omvpc;
+  byte           *mkcp, *mkhe, *mkfac;
+
+  if ( !bsm_CheckMeshIntegrity ( obj->nv, obj->meshv, obj->meshvhei,
+                                 obj->nhe, obj->meshhe,
+                                 obj->nfac, obj->meshfac, obj->meshfhei,
+                                 NULL, NULL ) )
+    return false;
+  if ( GeomObjectCopyCurrent () )
+    current_go = (geom_object*)obj;
+  else
+    return false;
+  mkcp = mkhe = mkfac = NULL;
+  if ( bsm_VertexDecimation ( obj->me.cpdimen,
+                              obj->nv, obj->meshv, obj->meshvhei,
+                              obj->meshvpc, obj->nhe, obj->meshhe,
+                              obj->nfac, obj->meshfac, obj->meshfhei,
+                              niter,
+                              &onv, &omv, &omvhei, &omvpc, &onhe, &omhe,
+                              &onfac, &omfac, &omfhei ) ) {
+    mkcp  = malloc ( onv );
+    mkhe  = malloc ( onhe );
+    mkfac = malloc ( onfac );
+    if ( !mkcp || !mkhe || !mkfac )
+      goto failure;
+    {
+      void *sp;
+      char *s;
+
+      sp = pkv_GetScratchMemTop ();
+      s = pkv_GetScratchMem ( 160 );
+      if ( s ) {
+        sprintf ( s, "Decimating: %d vertices, %d halfedges, %d facets",
+                  onv, onhe, onfac );
+        SetStatusText ( s, true );
+      }
+      pkv_SetScratchMemTop ( sp );
+    }
+    if ( !bsm_CheckMeshIntegrity ( onv, omv, omvhei, onhe, omhe,
+                                   onfac, omfac, omfhei, NULL, NULL ) )
+      goto failure;
+    memset ( mkcp, MASK_CP_MOVEABLE, onv );
+    memset ( mkhe, 0, onhe );
+    memset ( mkfac, 0, onfac );
+    GeomObjectAssignBSplineMesh ( obj, obj->me.spdimen, obj->rational,
+                                  onv, omv, omvhei, omvpc, onhe, omhe,
+                                  onfac, omfac, omfhei, mkcp, mkhe, mkfac );
+    obj->me.dlistmask = 0;
+    obj->spvlist_ok = false;
+    obj->special_patches_ok = false;
+    obj->blending = false;
+    return true;
+  }
+
+failure:
+  if ( omv ) free ( omv );
+  if ( omhe ) free ( omhe );
+  if ( omfac ) free ( omfac );
+  if ( omvhei ) free ( omvhei );
+  if ( omfhei ) free ( omfhei );
+  if ( omvpc ) free ( omvpc );
+  if ( mkcp ) free ( mkcp );
+  if ( mkhe ) free ( mkhe );
+  if ( mkfac ) free ( mkfac );
   return false;
 } /*GeomObjectBSplineMeshDecimate*/
 

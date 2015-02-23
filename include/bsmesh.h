@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2010, 2014                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2010, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -367,6 +367,12 @@ boolean bsm_DivideFacetd ( int spdimen, int inv,
                            int *onv, BSMvertex *omv, int *omvhei,
                            double *optc, int* onhe, BSMhalfedge *omhe,
                            int *onfac, BSMfacet *omfac, int *omfhei );
+/* in situ version */
+boolean _bsm_DivideFacetd ( int spdimen, int *inv,
+                            BSMvertex *imv, int *imvhei,
+                            double *iptc, int *inhe, BSMhalfedge *imhe,
+                            int *infac, BSMfacet *imfac, int *imfhei,
+                            int nV0, int nV1 );
 
 /* doubling edges forming a closed loop */
 void bsm_EdgeLoopDoublingNum ( int inv, int inhe, int infac,
@@ -382,6 +388,19 @@ boolean bsm_EdgeLoopDoublingd ( int spdimen,
                                 int *onhe, BSMhalfedge *omhe,
                                 int *onfac, BSMfacet *omfac, int *omfhei );
 
+/* dividing one facet to triangles */
+void bsm_TriangulateFacetNum ( int inv, BSMvertex *imv, int *imvhei,
+                               int inhe, BSMhalfedge *imhe,
+                               int facetNum,
+                               int infac, BSMfacet *imfac, int *imfhei,
+                               int *onv, int *onhe, int *onfac );
+
+void bsm_TriangulateFacetd ( int spdimen, int *inv,
+                             BSMvertex *imv, int *imvhei,
+                             double *iptc, int *inhe,BSMhalfedge *imhe,
+                             int *infac, BSMfacet *imfac, int *imfhei,
+                             int facetNum );
+
 /* dividing all facets to triangles */
 void bsm_TriangulateFacetsNum ( int inv, BSMvertex *imv, int *imvhei,
                                 int inhe, BSMhalfedge *imhe,
@@ -396,7 +415,7 @@ boolean bsm_TriangulateFacetsd ( int spdimen, int inv,
                                  double *optc, int *onhe, BSMhalfedge *omhe,
                                  int *onfac, BSMfacet *omfac, int *omfhei );
 
-/* mesh simplification - experimental */
+/* mesh simplification - two experimental algorithms */
 boolean bsm_SimplifyMeshd ( int spdimen, int inv,
                             const BSMvertex *imv, const int *imvhei,
                             double *iptc, int inhe, const BSMhalfedge *imhe,
@@ -405,7 +424,14 @@ boolean bsm_SimplifyMeshd ( int spdimen, int inv,
                             int *onv, BSMvertex **omv, int **omvhei,
                             double **optc, int *onhe, BSMhalfedge **omhe,
                             int *onfac, BSMfacet **omfac, int **omfhei );
-
+boolean bsm_VertexDecimation ( int spdimen, int inv,
+                               const BSMvertex *imv, const int *imvhei,
+                               double *iptc, int inhe, const BSMhalfedge *imhe,
+                               int infac, const BSMfacet *imfac, const int *imfhei,
+                               int nIterations,
+                               int *onv, BSMvertex **omv, int **omvhei,
+                               double **optc, int *onhe, BSMhalfedge **omhe,
+                               int *onfac, BSMfacet **omfac, int **omfhei );
 #ifdef __cplusplus
 }
 #endif
