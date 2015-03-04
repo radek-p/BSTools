@@ -106,6 +106,9 @@ void pkn_MultMatrixTSubd ( int nrows_a, int rowlen_a, int pitch_a, const double 
                            int nrows_b, int pitch_b, const double *b,
                            int pitch_c, double *c );
 
+boolean pkn_VarSignd ( int n, const double *a );
+boolean pkn_OneSignChanged ( int n, const double *a, boolean *nonzero );
+
 /* ///////////////////////////////////////////////////////////////////////// */
 void pkn_FindGivensRotationd ( double a, double b, double *c, double *s );
 void pkn_FindGivensRotXid ( double a, double b, double *c, double *s, double *xi );

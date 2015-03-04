@@ -4140,4 +4140,13 @@ Wersja 0.35.
     Na razie jej wywolanie jest zablokowane, po pelnym uruchomieniu wersja
     bez blokady bedzie dostepna.
 
+4.03.2015.
+953. Nowe procedury psl_SmallArrow i psl_SmallBkArrow, do rysowania
+    mniejszych strzalek.
+
+954. Nowe procedury, mbs_DeallocatePolycurvef i mbs_ClipPolycurvef. Ta druga
+    sluzy do obcinania (do polplaszczyzny) krzywoliniowych wielokatow, np.
+    opisujacych brzegi B-sklejanych platow obcietych. Ma to byc uzywane
+    przez procedury sledzenia promieni w libraybez, ale trzeba przetestowac
+    i ulepszyc.
 

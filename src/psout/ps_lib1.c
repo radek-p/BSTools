@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2012                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -152,11 +152,45 @@ void psl_BkArrow ( float t, boolean sgn )
   else
     psl_GoAlong ( arrowl, &pp[1].x, &pp[1].y );
   pp[2] = pp[1];
-  psl_GoPerp(arroww, &pp[1].x, &pp[1].y);
-  psl_GoPerp(-arroww, &pp[2].x, &pp[2].y);
+  psl_GoPerp ( arroww, &pp[1].x, &pp[1].y );
+  psl_GoPerp ( -arroww, &pp[2].x, &pp[2].y );
   pp[3] = pp[0];
   ps_Draw_Polyline2f ( 4, pp );
 }  /*psl_BkArrow*/
+
+void psl_SmallArrow ( float t, boolean sgn )
+{
+  point2f pp[3];
+
+  psl_GetPointf ( t, &pp[0].x, &pp[0].y );
+  pp[1] = pp[0];
+  if (sgn)
+    psl_GoAlong ( -smallarrowl, &pp[1].x, &pp[1].y );
+  else
+    psl_GoAlong ( smallarrowl, &pp[1].x, &pp[1].y );
+  pp[2] = pp[1];
+  psl_GoPerp ( smallarroww, &pp[1].x, &pp[1].y );
+  psl_GoPerp ( -smallarroww, &pp[2].x, &pp[2].y );
+  ps_Fill_Polygon2f ( 3, pp );
+}  /*psl_SmallArrow*/
+
+void psl_SmallBkArrow ( float t, boolean sgn )
+{
+  point2f pp[4];
+
+  ps_Set_Line_Width(6.0);
+  psl_GetPointf ( t, &pp[0].x, &pp[0].y );
+  pp[1] = pp[0];
+  if (sgn)
+    psl_GoAlong ( -smallarrowl, &pp[1].x, &pp[1].y );
+  else
+    psl_GoAlong ( smallarrowl, &pp[1].x, &pp[1].y );
+  pp[2] = pp[1];
+  psl_GoPerp ( smallarroww, &pp[1].x, &pp[1].y );
+  psl_GoPerp ( -smallarroww, &pp[2].x, &pp[2].y );
+  pp[3] = pp[0];
+  ps_Draw_Polyline2f ( 4, pp );
+}  /*psl_SmallBkArrow*/
 
 void psl_Draw ( float ta, float tb, float w )
 {

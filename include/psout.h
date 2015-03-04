@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2010                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -85,12 +85,14 @@ void ps_GetSize ( float *x1, float *y1, float *x2, float *y2 );
 void ps_BeginDict ( int n );
 void ps_EndDict ( void );
 
-#define tickl  10.0
-#define tickw   2.0
-#define tickd   6.0
-#define dotr   12.0
-#define arrowl 71.0
-#define arroww 12.5
+#define tickl       10.0
+#define tickw        2.0
+#define tickd        6.0
+#define dotr        12.0
+#define arrowl      71.0
+#define arroww      12.5
+#define smallarrowl 50.0
+#define smallarroww  8.8
 
 void psl_SetLine ( float x1, float y1, float x2, float y2, float t1,
                    float t2 );
@@ -115,6 +117,8 @@ void psl_HighLTrMark ( float t );
 void psl_BlackHighLTrMark ( float t );
 void psl_Arrow ( float t, boolean sgn );
 void psl_BkArrow ( float t, boolean sgn );
+void psl_SmallArrow ( float t, boolean sgn );
+void psl_SmallBkArrow ( float t, boolean sgn );
 void psl_Draw ( float ta, float tb, float w );
 void psl_ADraw ( float ta, float tb, float ea, float eb, float w );
 void psl_MapsTo ( float t );

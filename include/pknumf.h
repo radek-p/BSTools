@@ -106,6 +106,9 @@ void pkn_MultMatrixTSubf ( int nrows_a, int rowlen_a, int pitch_a, const float *
                            int nrows_b, int pitch_b, const float *b,
                            int pitch_c, float *c );
 
+boolean pkn_VarSignf ( int n, const float *a );
+boolean pkn_OneSignChangef ( int n, const float *a, boolean *nonzero );
+
 /* ///////////////////////////////////////////////////////////////////////// */
 void pkn_FindGivensRotationf ( float a, float b, float *c, float *s );
 void pkn_FindGivensRotXif ( float a, float b, float *c, float *s, float *xi );
@@ -152,7 +155,6 @@ boolean pkn_multiSolveRLSQf ( int nrows, int ncols, float *a,
 void pkn_QRGetReflectionf ( int nrows, int ncols,
                             const float *a, const float *aa,
                             int nrefl, float *w, float *gamma );
-
 
 /* ///////////////////////////////////////////////////////////////////////// */
 #ifndef PKNUM_H

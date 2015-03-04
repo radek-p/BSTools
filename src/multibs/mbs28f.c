@@ -3,7 +3,7 @@
 /* This file is a part of the BSTools package                                */
 /* written by Przemyslaw Kiciak                                              */
 /* ///////////////////////////////////////////////////////////////////////// */
-/* (C) Copyright by Przemyslaw Kiciak, 2005, 2014                            */
+/* (C) Copyright by Przemyslaw Kiciak, 2005, 2015                            */
 /* this package is distributed under the terms of the                        */
 /* Lesser GNU Public License, see the file COPYING.LIB                       */
 /* ///////////////////////////////////////////////////////////////////////// */
@@ -130,41 +130,6 @@ static float _mbs_apoly ( void *usrptr, float t )
   return value;
 } /*_mbs_apoly*/
 
-static boolean _mbs_varsign ( int deg, float *ac )
-{
-  int  i;
-  char s, z;
-
-  s = pkv_signf ( ac[0] );
-  for ( i = 1; i <= deg; i++ ) {
-    z = pkv_signf ( ac[i] );
-    if ( z != s )
-      return true;
-  }
-  return false;
-} /*_mbs_varsign*/
-
-static boolean _mbs_onesignch ( int deg, float *ac, boolean *nonzero )
-{
-  int  i, k;
-  char sa, sb;
-
-  k = 0;
-  sa = pkv_signf ( ac[0] );
-  *nonzero = (boolean)(sa != 0);
-  for ( i = 1; i <= deg; i++ ) {
-    sb = pkv_signf ( ac[i] );
-    *nonzero = (boolean)(*nonzero || sb != 0);
-    if ( sb != sa ) {
-      sa = sb;
-      k++;
-      if ( k > 1 )
-        return false;
-    }
-  }
-  return true;
-} /*_mbs_onesignch*/
-
 static boolean _mbs_pushp ( _mbs_apolystrf *ap, float t0, float t1, float *ac )
 {
   int   deg;
@@ -258,13 +223,13 @@ static float _mbs_FindLineBezcIntersf ( const point2f *p0, float t0,
   *ninters = ni = 0;
   ap.deg = deg;
   ap.sp = 0;
-  if ( _mbs_varsign ( deg, ac ) ) {
+  if ( pkn_VarSignf ( deg+1, ac ) ) {
     if ( !_mbs_pushp ( &ap, 0.0, 1.0, ac ) )
       goto out;
     do {
       if ( !_mbs_popp ( &ap, &u0, &u1, ap.ac ) )
         goto out;
-      if ( _mbs_onesignch ( deg, ap.ac, &nonzero ) ) {
+      if ( pkn_OneSignChangef ( deg+1, ap.ac, &nonzero ) ) {
         if ( nonzero ) {
           u = pkn_Illinoisf ( _mbs_apoly, (void*)&ap, 0.0, 1.0, eps, &error );
           u = u0 + u*(u1-u0);
@@ -289,11 +254,11 @@ static float _mbs_FindLineBezcIntersf ( const point2f *p0, float t0,
         if ( u1-u0 > eps ) {
           mbs_BisectBC1f ( deg, ap.ac, bc );
           u = (float)(0.5*(u0+u1));
-          if ( _mbs_varsign ( deg, ap.ac ) ) {
+          if ( pkn_VarSignf ( deg+1, ap.ac ) ) {
             if ( !_mbs_pushp ( &ap, u, u1, ap.ac ) )
               goto out;
           }
-          if ( _mbs_varsign ( deg, bc ) ) {
+          if ( pkn_VarSignf ( deg+1, bc ) ) {
             if ( !_mbs_pushp ( &ap, u0, u, bc ) )
               goto out;
           }

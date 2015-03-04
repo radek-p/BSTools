@@ -1223,6 +1223,12 @@ boolean mbs_DrawTrimBSPatchDomd ( int degu, int lastuknot, const double *uknots,
                                   void (*DrawLine)(void*,point2d*,point2d*,int),
                                   void (*DrawCurve)(void*,int,int,const double*) );
 
+void mbs_DeallocatePolycurved ( int nelem, mbs_polycurved *poly );
+boolean mbs_ClipPolycurved ( int nelem, const mbs_polycurved *poly,
+                             point2d *p0, vector2d *v,
+                             int *nelem1, mbs_polycurved **poly1,
+                             int *nelem2, mbs_polycurved **poly2 );
+
 
 boolean mbs_MonotonicPolylined ( int spdimen, int npoints, int pitch,
                                  const double *points, const double *v );

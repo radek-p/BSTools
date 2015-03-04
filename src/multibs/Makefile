@@ -53,7 +53,7 @@ OBJECTS = mbs01fd.o \
   mbs37f.o mbs38f.o mbs41f.o \
   mbs42f.o mbs43f.o mbs45f.o mbs46f.o mbs47f.o mbs48f.o \
   mbs51f.o mbs52f.o mbs53f.o mbs54f.o mbs55f.o mbs56f.o mbs57f.o \
-  mbs58f.o mbs60f.o mbs61f.o mbs62f.o \
+  mbs58f.o mbs60f.o mbs61f.o mbs62f.o mbs63f.o mbs64f.o \
   mbs01d.o mbs02d.o mbs03d.o mbs04d.o mbs05d.o mbs06d.o mbs07d.o mbs08d.o \
   mbs09d.o mbs10d.o mbs11d.o mbs13d.o mbs14d.o mbs16d.o \
   mbs17d.o mbs18d.o mbs19d.o mbs20d.o mbs21d.o mbs22d.o mbs23d.o mbs24d.o \
@@ -61,7 +61,7 @@ OBJECTS = mbs01fd.o \
   mbs37d.o mbs38d.o mbs41d.o \
   mbs42d.o mbs43d.o mbs45d.o mbs46d.o mbs47d.o mbs48d.o \
   mbs51d.o mbs52d.o mbs53d.o mbs54d.o mbs55d.o mbs56d.o mbs57d.o \
-  mbs58d.o mbs60d.o mbs61d.o mbs62d.o
+  mbs58d.o mbs60d.o mbs61d.o mbs62d.o mbs63d.o mbs64d.o
 
 TARGET = $(LIBDIR)/libmultibs.a
 
